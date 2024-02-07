@@ -2,9 +2,10 @@
   "name": "example",
   "private": true,
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --hot src/index.tsx"
   },
   "dependencies": {
+    "@wevm/framework": "workspace:*",
     "hono": "^3.12.8"
   },
   "devDependencies": {

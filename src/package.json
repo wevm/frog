@@ -2,11 +2,17 @@
 	"name": "@wevm/framework",
 	"version": "0.0.0",
 	"type": "module",
-	"module": "lib/index.js",
-	"types": "lib/index.d.ts",
-	"typings": "lib/index.d.ts",
+	"module": "_lib/index.js",
+	"types": "_lib/index.d.ts",
+	"typings": "_lib/index.d.ts",
 	"sideEffects": false,
+	"exports": {
+    ".": "./_lib/index.js"
+  },
 	"peerDependencies": {
 		"hono": "^3"
+	},
+	"dependencies": {
+		"hono-og": "~0.0.2"
 	}
 }

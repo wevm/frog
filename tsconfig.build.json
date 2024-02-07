@@ -12,7 +12,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./src/lib",
+    "outDir": "./src/_lib",
     "rootDir": "./src"
   }
 }
