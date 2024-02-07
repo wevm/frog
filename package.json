@@ -1,6 +1,7 @@
 {
   "workspaces": ["example", "src"],
   "scripts": {
+    "dev": "bun run --hot ./example/src/index.tsx",
     "build": "bun run clean && tsc --project ./tsconfig.build.json",
     "changeset": "changeset",
     "changeset:release": "bun run build && changeset publish",

@@ -1,18 +1,19 @@
 {
-	"name": "@wevm/framework",
-	"version": "0.0.0",
-	"type": "module",
-	"module": "_lib/index.js",
-	"types": "_lib/index.d.ts",
-	"typings": "_lib/index.d.ts",
-	"sideEffects": false,
-	"exports": {
+  "name": "@wevm/framework",
+  "version": "0.0.0",
+  "type": "module",
+  "module": "_lib/index.js",
+  "types": "_lib/index.d.ts",
+  "typings": "_lib/index.d.ts",
+  "sideEffects": false,
+  "exports": {
     ".": "./_lib/index.js"
   },
-	"peerDependencies": {
-		"hono": "^3"
-	},
-	"dependencies": {
-		"hono-og": "~0.0.2"
-	}
+  "peerDependencies": {
+    "hono": "^3"
+  },
+  "dependencies": {
+    "happy-dom": "^13.3.8",
+    "hono-og": "~0.0.2"
+  }
 }
