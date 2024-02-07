@@ -1,4 +1,6 @@
 {
+  "name": "example",
+  "private": true,
   "scripts": {
     "dev": "bun run --hot src/index.ts"
   },

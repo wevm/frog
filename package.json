@@ -1,5 +1,5 @@
 {
-  "workspaces": ["src"],
+  "workspaces": ["example", "src"],
   "scripts": {
     "build": "bun run clean && tsc --project ./tsconfig.build.json",
     "changeset": "changeset",
