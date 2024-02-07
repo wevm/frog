@@ -8,7 +8,6 @@ const app = new Framework()
 
 app.frame('/', ({ untrustedData }) => {
   const { buttonIndex } = untrustedData || {}
-  console.log('buttonIndex', buttonIndex)
   return {
     image: (
       <div

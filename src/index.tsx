@@ -1,7 +1,7 @@
+import { Window } from 'happy-dom'
 import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
-import { Window } from 'happy-dom'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import * as ed from '@noble/ed25519'
 import { bytesToHex } from 'viem/utils'
