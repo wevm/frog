@@ -46,6 +46,9 @@ app.frame('/', ({ untrustedData }) => {
       <>
         <Button>Apples</Button>
         <Button>Oranges</Button>
+        <Button>{`Last index: ${
+          buttonIndex ? buttonIndex.toString() : 'none'
+        }`}</Button>
       </>
     ),
   }

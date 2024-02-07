@@ -3,6 +3,14 @@ import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import * as ed from '@noble/ed25519'
+import { bytesToHex } from 'viem/utils'
+import {
+  NobleEd25519Signer,
+  makeFrameAction,
+  Message,
+  FrameActionBody,
+} from '@farcaster/core'
 
 import {
   type Frame,
@@ -30,34 +38,148 @@ type FrameReturnType = {
   intents: JSX.Element
 }
 
+const renderer = jsxRenderer(
+  ({ children }) => {
+    return (
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    )
+  },
+  { docType: true },
+)
+
 export class Framework extends Hono {
   frame(
     path: string,
     handler: (c: FrameContext) => FrameReturnType | Promise<FrameReturnType>,
   ) {
-    this.get(
-      '/preview',
-      jsxRenderer(
-        ({ children }) => {
-          return (
-            <html lang="en">
-              <body>{children}</body>
-            </html>
-          )
-        },
-        { docType: true },
-      ),
-    )
+    this.get('/preview', renderer)
+    this.post('/preview', renderer)
 
     this.get('/preview/*', async (c) => {
       const baseUrl = c.req.url.replace('/preview', '')
       const response = await fetch(baseUrl)
-      const html = await response.text()
-      const frame = htmlToFrame(html)
+      const text = await response.text()
+      const frame = htmlToFrame(text)
       return c.render(
-        <div>
-          <img alt="Farcaster frame" src={frame.imageUrl} />
-        </div>,
+        <>
+          <FramePreview baseUrl={baseUrl} frame={frame} />
+        </>,
+      )
+    })
+
+    this.post('/preview', async (c) => {
+      const baseUrl = c.req.url.replace('/preview', '')
+
+      const formData = await c.req.formData()
+      const buttonIndex = parseInt(
+        typeof formData.get('buttonIndex') === 'string'
+          ? (formData.get('buttonIndex') as string)
+          : '',
+      )
+      const inputText = formData.get('inputText')
+        ? Buffer.from(formData.get('inputText') as string)
+        : undefined
+
+      const privateKeyBytes = ed.utils.randomPrivateKey()
+      // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
+
+      // const key = bytesToHex(publicKeyBytes)
+      // const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
+      //
+      // const account = privateKeyToAccount(bytesToHex(privateKeyBytes))
+      // const requestFid = 1
+
+      // const signature = await account.signTypedData({
+      //   domain: {
+      //     name: 'Farcaster SignedKeyRequestValidator',
+      //     version: '1',
+      //     chainId: 10,
+      //     verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
+      //   },
+      //   types: {
+      //     SignedKeyRequest: [
+      //       { name: 'requestFid', type: 'uint256' },
+      //       { name: 'key', type: 'bytes' },
+      //       { name: 'deadline', type: 'uint256' },
+      //     ],
+      //   },
+      //   primaryType: 'SignedKeyRequest',
+      //   message: {
+      //     requestFid: BigInt(requestFid),
+      //     key,
+      //     deadline: BigInt(deadline),
+      //   },
+      // })
+
+      // const response = await fetch(
+      //   'https://api.warpcast.com/v2/signed-key-requests',
+      //   {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({
+      //       deadline,
+      //       key,
+      //       requestFid,
+      //       signature,
+      //     }),
+      //   },
+      // )
+
+      const fid = 2
+      const castId = {
+        fid,
+        hash: new Uint8Array(
+          Buffer.from('0000000000000000000000000000000000000000', 'hex'),
+        ),
+      }
+      const frameActionBody = FrameActionBody.create({
+        url: Buffer.from(baseUrl),
+        buttonIndex,
+        castId,
+        inputText,
+      })
+      const frameActionMessage = await makeFrameAction(
+        frameActionBody,
+        { fid, network: 1 },
+        new NobleEd25519Signer(privateKeyBytes),
+      )
+
+      const message = frameActionMessage._unsafeUnwrap()
+      const response = await fetch(baseUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          untrustedData: {
+            buttonIndex,
+            castId: {
+              fid: castId.fid,
+              hash: bytesToHex(castId.hash),
+            },
+            fid,
+            inputText,
+            messageHash: bytesToHex(message.hash),
+            network: 1,
+            timestamp: message.data.timestamp,
+            url: baseUrl,
+          },
+          trustedData: {
+            messageBytes: Buffer.from(
+              Message.encode(message).finish(),
+            ).toString('hex'),
+          },
+        }),
+      })
+      const text = await response.text()
+      // TODO: handle redirects
+      const frame = htmlToFrame(text)
+
+      return c.render(
+        <>
+          <FramePreview baseUrl={baseUrl} frame={frame} />
+        </>,
       )
     })
 
@@ -102,6 +224,40 @@ export class Framework extends Hono {
 
 ////////////////////////////////////////////////////////////////////////
 // Components
+
+type FramePreviewProps = {
+  baseUrl: string
+  frame: Frame
+}
+
+function FramePreview({ baseUrl, frame }: FramePreviewProps) {
+  return (
+    <div>
+      <form action="/preview" method="post">
+        <input type="hidden" name="action" value={frame.postUrl} />
+        <div>
+          <img alt={frame.title ?? 'Farcaster frame'} src={frame.imageUrl} />
+          <div>{new URL(baseUrl).host}</div>
+        </div>
+        {/* TODO: Text input */}
+        {frame.buttons && (
+          <div>
+            {frame.buttons.map((button) => (
+              <button
+                key={button.index}
+                type="submit"
+                name="buttonIndex"
+                value={button.index}
+              >
+                {button.title}
+              </button>
+            ))}
+          </div>
+        )}
+      </form>
+    </div>
+  )
+}
 
 export type ButtonProps = {
   children: string

@@ -13,7 +13,10 @@
     "hono": "^3"
   },
   "dependencies": {
+    "@farcaster/core": "^0.13.7",
+    "@noble/ed25519": "^2.0.0",
     "happy-dom": "^13.3.8",
-    "hono-og": "~0.0.2"
+    "hono-og": "~0.0.2",
+    "viem": "^2.7.6"
   }
 }
