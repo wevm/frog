@@ -1,0 +1,25 @@
+{
+  "workspaces": ["src"],
+  "scripts": {
+    "build": "bun run clean && tsc --project ./tsconfig.build.json",
+    "changeset": "changeset",
+    "changeset:release": "bun run build && changeset publish",
+    "changeset:version": "changeset version && bun install --lockfile-only",
+    "clean": "rimraf src/index.js src/lib src/tsconfig.build.tsbuildinfo",
+    "format": "biome format . --write",
+    "lint": "biome check . --apply",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.5.3",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.1",
+    "@types/bun": "latest",
+    "@vitest/coverage-v8": "^1.2.2",
+    "hono": "^3.12.8",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.0.0",
+    "vitest": "^1.2.2"
+  }
+}

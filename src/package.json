@@ -1,0 +1,12 @@
+{
+	"name": "@wevm/framework",
+	"version": "0.0.0",
+	"type": "module",
+	"module": "lib/index.js",
+	"types": "lib/index.d.ts",
+	"typings": "lib/index.d.ts",
+	"sideEffects": false,
+	"peerDependencies": {
+		"hono": "^3"
+	}
+}
