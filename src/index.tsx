@@ -43,7 +43,7 @@ type FrameHandlerReturnType = {
   intents?: Intents | undefined
 }
 
-export class Framework extends Hono {
+export class Farc extends Hono {
   frame(
     path: string,
     handler: (

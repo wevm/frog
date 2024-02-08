@@ -13,6 +13,27 @@ export function Preview(props: PreviewProps) {
   const { baseUrl, frame } = props
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', fontSize: '0.75rem', gap: '0.5rem' }}>
+        <span>𝑭𝒂𝒓𝒄</span>
+        <a
+          href="https://docs.farcaster.xyz/reference/frames/spec"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Frames Spec
+        </a>
+        <a
+          href="https://warpcast.com/~/developers/frames"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Warpcast Frame Validator
+        </a>
+        <a href="https://github.com/wevm/farc" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </div>
+
       <Frame {...{ ...frame, baseUrl }} />
       <Devtools {...{ frame }} />
     </div>

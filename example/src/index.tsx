@@ -2,9 +2,9 @@
 /** @jsxImportSource hono/jsx */
 /** @jsxFrag */
 
-import { Button, Framework, TextInput } from 'farc'
+import { Button, Farc, TextInput } from 'farc'
 
-const app = new Framework()
+const app = new Farc()
 
 app.frame('/', (context, previousContext) => {
   console.log(context, previousContext)
