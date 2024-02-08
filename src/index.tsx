@@ -33,15 +33,19 @@ type FrameContext = {
   url: Context['req']['url']
 }
 
-type FrameReturnType = {
+type Intent = JSX.Element | false | null | undefined
+type Intents = Intent | Intent[]
+type FrameHandlerReturnType = {
   image: JSX.Element
-  intents?: JSX.Element | JSX.Element[]
+  intents?: Intents
 }
 
 export class Framework extends Hono {
   frame(
     path: string,
-    handler: (c: FrameContext) => FrameReturnType | Promise<FrameReturnType>,
+    handler: (
+      c: FrameContext,
+    ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
     this.use(path, async (c) => {
@@ -395,7 +399,7 @@ async function getFrameContext(ctx: Context): Promise<FrameContext> {
   }
 }
 
-function parseIntents(intents_: JSX.Element | JSX.Element[]) {
+function parseIntents(intents_: Intents) {
   const intents = intents_ as unknown as JSXNode
   const counter: Counter = {
     button: 1,
@@ -410,7 +414,10 @@ function parseIntents(intents_: JSX.Element | JSX.Element[]) {
   return parseIntent(intents, counter)
 }
 
-function parseIntent(node: JSXNode, counter: Counter) {
+function parseIntent(node_: JSXNode, counter: Counter) {
+  // Check if the node is a "falsy" node (ie. `null`, `undefined`, `false`, etc).
+  const node = (!node_ ? { tag() {} } : node_) as JSXNode
+
   const props = (() => {
     if ((node.tag as any).__type === 'button')
       return { ...node.props, children: node.children, index: counter.button++ }

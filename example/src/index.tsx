@@ -39,7 +39,7 @@ app.frame('/', ({ status }) => {
         </div>
       </div>
     ),
-    intents: [
+    intents: status === 'initial' && [
       <Button>Apples</Button>,
       <Button>Oranges</Button>,
       <Button>Bananas</Button>,
@@ -55,6 +55,23 @@ app.frame('/no-intents', () => {
         foo
       </div>
     ),
+  }
+})
+
+app.frame('/falsy-intents', () => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        foo
+      </div>
+    ),
+    intents: [
+      null,
+      undefined,
+      false,
+      <Button>Apples</Button>,
+      false && <Button>Oranges</Button>,
+    ],
   }
 })
 
