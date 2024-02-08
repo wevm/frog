@@ -4,7 +4,7 @@ declare module 'hono' {
   interface ContextRenderer {
     (
       content: JSX.Element | null,
-      props?: { context: FrameContext; intents: JSX.Element },
+      props?: { context: FrameContext; intents: JSX.Element } | undefined,
     ): Response
   }
 }

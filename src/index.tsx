@@ -14,6 +14,7 @@ import { jsxRenderer } from 'hono/jsx-renderer'
 
 import {
   type Frame,
+  type FrameImageAspectRatio,
   type FrameButton,
   type FrameMetaTagPropertyName,
   type FrameVersion,
@@ -28,16 +29,17 @@ type FrameContext = {
    * - `response` - The frame has been interacted with (user presses button).
    */
   status: 'initial' | 'response'
-  trustedData?: TrustedData
-  untrustedData?: UntrustedData
+  trustedData?: TrustedData | undefined
+  untrustedData?: UntrustedData | undefined
   url: Context['req']['url']
 }
 
 type Intent = JSX.Element | false | null | undefined
 type Intents = Intent | Intent[]
 type FrameHandlerReturnType = {
+  // TODO: Support `fc:frame:image:aspect_ratio`
   image: JSX.Element
-  intents?: Intents
+  intents?: Intents | undefined
 }
 
 export class Framework extends Hono {
@@ -235,7 +237,7 @@ export class Framework extends Hono {
 
 export type ButtonProps = {
   children: string
-  index?: number
+  index?: number | undefined
 }
 
 // TODO: `fc:frame:button:$idx:action` and `fc:frame:button:$idx:target`
@@ -245,7 +247,7 @@ export function Button({ children, index = 0 }: ButtonProps) {
 }
 
 export type TextInputProps = {
-  placeholder?: string
+  placeholder?: string | undefined
 }
 
 TextInput.__type = 'text-input'
@@ -293,7 +295,7 @@ function Preview({ baseUrl, frame }: PreviewProps) {
             alt={frame.title ?? 'Farcaster frame'}
             src={frame.imageUrl}
             style={{
-              aspectRatio: '1.91 / 1',
+              aspectRatio: frame.imageAspectRatio.replace(':', '/'),
               borderTopLeftRadius: '.5rem',
               borderTopRightRadius: '0.5rem',
               borderWidth: '1px',
@@ -371,11 +373,16 @@ function Preview({ baseUrl, frame }: PreviewProps) {
                     key={button.index}
                     name="buttonIndex"
                     style={{
+                      alignItems: 'center',
                       borderRadius: '0.5rem',
                       borderWidth: '1px',
                       cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'row',
                       fontSize: '0.875rem',
+                      gap: '3px',
                       height: '2.5rem',
+                      justifyContent: 'center',
                       paddingBottom: '0.5rem',
                       paddingLeft: '1rem',
                       paddingRight: '1rem',
@@ -384,7 +391,40 @@ function Preview({ baseUrl, frame }: PreviewProps) {
                     type="submit"
                     value={button.index}
                   >
-                    {button.title}
+                    <span>{button.title}</span>
+
+                    {button.type === 'post_redirect' && (
+                      <svg
+                        aria-hidden="true"
+                        fill="none"
+                        height="13"
+                        viewBox="0 0 15 15"
+                        width="13"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          clip-rule="evenodd"
+                          d="M12 13C12.5523 13 13 12.5523 13 12V3C13 2.44771 12.5523 2 12 2H3C2.44771 2 2 2.44771 2 3V6.5C2 6.77614 2.22386 7 2.5 7C2.77614 7 3 6.77614 3 6.5V3H12V12H8.5C8.22386 12 8 12.2239 8 12.5C8 12.7761 8.22386 13 8.5 13H12ZM9 6.5C9 6.5001 9 6.50021 9 6.50031V6.50035V9.5C9 9.77614 8.77614 10 8.5 10C8.22386 10 8 9.77614 8 9.5V7.70711L2.85355 12.8536C2.65829 13.0488 2.34171 13.0488 2.14645 12.8536C1.95118 12.6583 1.95118 12.3417 2.14645 12.1464L7.29289 7H5.5C5.22386 7 5 6.77614 5 6.5C5 6.22386 5.22386 6 5.5 6H8.5C8.56779 6 8.63244 6.01349 8.69139 6.03794C8.74949 6.06198 8.80398 6.09744 8.85143 6.14433C8.94251 6.23434 8.9992 6.35909 8.99999 6.49708L8.99999 6.49738"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    )}
+                    {button.type === 'link' && (
+                      <svg
+                        aria-hidden="true"
+                        fill="none"
+                        height="13"
+                        viewBox="0 0 15 15"
+                        width="13"
+                      >
+                        <path
+                          d="M3 2C2.44772 2 2 2.44772 2 3V12C2 12.5523 2.44772 13 3 13H12C12.5523 13 13 12.5523 13 12V8.5C13 8.22386 12.7761 8 12.5 8C12.2239 8 12 8.22386 12 8.5V12H3V3L6.5 3C6.77614 3 7 2.77614 7 2.5C7 2.22386 6.77614 2 6.5 2H3ZM12.8536 2.14645C12.9015 2.19439 12.9377 2.24964 12.9621 2.30861C12.9861 2.36669 12.9996 2.4303 13 2.497L13 2.5V2.50049V5.5C13 5.77614 12.7761 6 12.5 6C12.2239 6 12 5.77614 12 5.5V3.70711L6.85355 8.85355C6.65829 9.04882 6.34171 9.04882 6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L11.2929 3H9.5C9.22386 3 9 2.77614 9 2.5C9 2.22386 9.22386 2 9.5 2H12.4999H12.5C12.5678 2 12.6324 2.01349 12.6914 2.03794C12.7504 2.06234 12.8056 2.09851 12.8536 2.14645Z"
+                          fill="currentColor"
+                          fill-rule="evenodd"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    )}
                   </button>
                 ))}
               </div>
@@ -401,18 +441,39 @@ type DevtoolsProps = {
 }
 
 async function Devtools({ frame }: DevtoolsProps) {
-  const { debug: _d, title: _t, ...rest } = frame
+  const {
+    debug: {
+      buttons: _b,
+      imageAspectRatio: _ia,
+      imageUrl: _iu,
+      input: _in,
+      postUrl: _pu,
+      version: _v,
+      htmlTags,
+      ...debug
+    } = {},
+    title: _t,
+    ...rest
+  } = frame
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <pre style={{ fontFamily: 'monospace' }}>
         {JSON.stringify(rest, null, 2)}
       </pre>
 
-      <pre style={{ fontFamily: 'monospace' }}>
-        {frame.debug?.htmlTags.map((x) => (
-          <code style={{ display: 'grid' }}>{x}</code>
-        ))}
-      </pre>
+      {htmlTags && (
+        <pre style={{ fontFamily: 'monospace' }}>
+          {htmlTags.map((x) => (
+            <code style={{ display: 'grid' }}>{x}</code>
+          ))}
+        </pre>
+      )}
+
+      {debug && (
+        <pre style={{ fontFamily: 'monospace' }}>
+          {JSON.stringify(debug, null, 2)}
+        </pre>
+      )}
     </div>
   )
 }
@@ -469,14 +530,16 @@ function parseUrl(path: string) {
   return path.endsWith('/') ? path.slice(0, -1) : path
 }
 
-function htmlToFrame(html: string) {
+export function htmlToMetaTags(html: string) {
   const window = new Window()
   window.document.write(html)
   const document = window.document
-  const metaTags = document.querySelectorAll(
+  return document.querySelectorAll(
     'meta',
   ) as unknown as readonly HTMLMetaElement[]
+}
 
+export function parseFrameProperties(metaTags: readonly HTMLMetaElement[]) {
   const validPropertyNames = new Set<FrameMetaTagPropertyName>([
     'fc:frame',
     'fc:frame:image',
@@ -485,6 +548,43 @@ function htmlToFrame(html: string) {
     'og:image',
     'og:title',
   ])
+
+  const properties: Partial<Record<FrameMetaTagPropertyName, string>> = {}
+  for (const metaTag of metaTags) {
+    const property = metaTag.getAttribute(
+      'property',
+    ) as FrameMetaTagPropertyName | null
+    if (!property) continue
+
+    const content = metaTag.getAttribute('content') ?? ''
+    if (!validPropertyNames.has(property)) continue
+    properties[property] = content
+  }
+
+  const text = properties['fc:frame:input:text'] ?? ''
+  const input = properties['fc:frame:input:text'] ? { text } : undefined
+
+  const image = properties['og:image'] ?? ''
+  const imageAspectRatio =
+    (properties['fc:frame:image:aspect_ratio'] as FrameImageAspectRatio) ??
+    '1.91:1'
+  const imageUrl = properties['fc:frame:image'] ?? ''
+  const postUrl = properties['fc:frame:post_url'] ?? ''
+  const title = properties['og:title'] ?? ''
+  const version = (properties['fc:frame'] as FrameVersion) ?? 'vNext'
+
+  return {
+    image,
+    imageAspectRatio,
+    imageUrl,
+    input,
+    postUrl,
+    title,
+    version,
+  }
+}
+
+export function parseFrameButtons(metaTags: readonly HTMLMetaElement[]) {
   // https://regexr.com/7rlm0
   const buttonRegex = /fc:frame:button:(1|2|3|4)(?::(action|target))?$/
 
@@ -495,84 +595,102 @@ function htmlToFrame(html: string) {
   const buttonActionMap = new Map<number, FrameButton['type']>()
   const invalidButtons: FrameButton['index'][] = []
 
-  const properties: Partial<Record<FrameMetaTagPropertyName, string>> = {}
   for (const metaTag of metaTags) {
     const property = metaTag.getAttribute(
       'property',
     ) as FrameMetaTagPropertyName | null
     if (!property) continue
 
+    if (!buttonRegex.test(property)) continue
+    const matchArray = property.match(buttonRegex) as [
+      string,
+      string,
+      string | undefined,
+    ]
+    const index = parseInt(matchArray[1], 10) as FrameButton['index']
+    const type = matchArray[2] as FrameButton['type'] | undefined
+
     const content = metaTag.getAttribute('content') ?? ''
-    if (validPropertyNames.has(property)) properties[property] = content
-    else if (buttonRegex.test(property)) {
-      const matchArray = property.match(buttonRegex) as [
-        string,
-        string,
-        string | undefined,
-      ]
-      const index = parseInt(matchArray[1], 10) as FrameButton['index']
-      const type = matchArray[2] as FrameButton['type'] | undefined
+    if (type) buttonActionMap.set(index, content as FrameButton['type'])
+    else {
+      if (currentButtonIndex >= index) buttonsAreOutOfOrder = true
+      if (currentButtonIndex + 1 === index) currentButtonIndex = index
+      else buttonsAreMissing = true
 
-      if (type) buttonActionMap.set(index, content as FrameButton['type'])
-      else {
-        if (currentButtonIndex >= index) buttonsAreOutOfOrder = true
-        if (currentButtonIndex + 1 === index) currentButtonIndex = index
-        else buttonsAreMissing = true
+      if (buttonsAreOutOfOrder || buttonsAreMissing) invalidButtons.push(index)
 
-        if (buttonsAreOutOfOrder || buttonsAreMissing)
-          invalidButtons.push(index)
-
-        const title = content ?? index
-        buttonMap.set(index, { index, title })
-      }
+      const title = content ?? index
+      buttonMap.set(index, { index, title })
     }
   }
 
-  const image = properties['og:image'] ?? ''
-  const imageUrl = properties['fc:frame:image'] ?? ''
-  const postUrl = properties['fc:frame:post_url'] ?? ''
-  const title = properties['og:title'] ?? ''
-  const version = (properties['fc:frame'] as FrameVersion) ?? 'vNext'
-
   // TODO: Validate `fc:frame:button:$idx:action="link"` has corresponding `fc:frame:button:$idx:target`
-  let buttons = [] as FrameButton[]
+  const buttons = [] as FrameButton[]
   for (const [index, button] of buttonMap) {
-    buttons.push({
-      ...button,
-      type: buttonActionMap.get(index) ?? 'post',
-    })
+    const type = buttonActionMap.get(index) ?? 'post'
+    buttons.push({ ...button, type })
   }
-  buttons = buttons.toSorted((a, b) => a.index - b.index)
 
-  const input = properties['fc:frame:input:text']
-    ? {
-        text: properties['fc:frame:input:text'] ?? '',
-      }
-    : undefined
+  return buttons.toSorted((a, b) => a.index - b.index)
+}
 
-  const fallbackImageToUrl = !imageUrl
-  const postUrlTooLong = postUrl.length > 2_048
-  // TODO: Validate
-  const inputTextTooLong = false
+export function validateFrameButtons(buttons: readonly FrameButton[]) {
+  let buttonsAreOutOfOrder = false
+  const invalidButtons: FrameButton['index'][] = []
+  for (let i = 0; i < buttons.length; i++) {
+    const button = buttons[i]
+    const previousButton = buttons[i - 1]
+    const isOutOfOrder = button.index < previousButton?.index ?? 0
+    const isButtonMissing = button.index !== i + 1
+    if (isOutOfOrder || isButtonMissing) buttonsAreOutOfOrder = true
+  }
+  // TODO: `invalidButtons`
+  return { buttonsAreOutOfOrder, invalidButtons }
+}
+
+function htmlToFrame(html: string) {
+  const metaTags = htmlToMetaTags(html)
+  const properties = parseFrameProperties(metaTags)
+  const buttons = parseFrameButtons(metaTags)
+
+  const fallbackImageToUrl = !properties.imageUrl
+  const postUrlTooLong = properties.postUrl.length > 256
+  const inputTextTooLong = properties.input?.text
+    ? properties.input.text.length > 32
+    : false
+
+  const { buttonsAreOutOfOrder, invalidButtons } = validateFrameButtons(buttons)
+
   // TODO: Figure out how this is determined
   // https://warpcast.com/~/developers/frames
-  const valid = true
+  const valid = !(
+    postUrlTooLong ||
+    inputTextTooLong ||
+    Boolean(invalidButtons.length)
+  )
 
-  const frame = { buttons, imageUrl, input, postUrl, version }
+  const frame = {
+    buttons,
+    imageAspectRatio: properties.imageAspectRatio,
+    imageUrl: properties.imageUrl,
+    input: properties.input,
+    postUrl: properties.postUrl,
+    version: properties.version,
+  }
   return {
     ...frame,
     debug: {
       ...frame,
-      buttonsAreOutOfOrder: buttonsAreMissing || buttonsAreOutOfOrder,
+      buttonsAreOutOfOrder,
       fallbackImageToUrl,
       htmlTags: metaTags.map((x) => x.outerHTML),
-      image,
+      image: properties.image,
       inputTextTooLong,
       invalidButtons,
       postUrlTooLong,
       valid,
     },
-    title,
+    title: properties.title,
   } satisfies Frame
 }
 

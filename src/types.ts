@@ -18,6 +18,7 @@ export type UntrustedData = {
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
   debug?: FrameDebug | undefined
+  imageAspectRatio: FrameImageAspectRatio
   imageUrl: string
   input?: FrameInput | undefined
   postUrl: string
@@ -31,6 +32,7 @@ export type FrameDebug = Pretty<
     fallbackImageToUrl: boolean
     htmlTags: readonly string[]
     image: string
+    imageAspectRatio: FrameImageAspectRatio
     inputTextTooLong: boolean
     invalidButtons: readonly FrameButton['index'][]
     postUrl: string
@@ -42,18 +44,21 @@ export type FrameDebug = Pretty<
 export type FrameButton = {
   index: 1 | 2 | 3 | 4
   title: string
-  type: 'post' | 'post_redirect'
+  type: 'link' | 'mint' | 'post' | 'post_redirect'
 }
 
 export type FrameInput = {
   text: string
 }
 
+export type FrameImageAspectRatio = '1.91:1' | '1:1'
+
 export type FrameVersion = 'vNext'
 
 export type FrameMetaTagPropertyName =
   | 'fc:frame'
   | 'fc:frame:image'
+  | 'fc:frame:image:aspect_ratio'
   | 'fc:frame:input:text'
   | 'fc:frame:post_url'
   | 'og:image'
