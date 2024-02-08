@@ -31,7 +31,7 @@ type FrameReturnType = {
   intents: JSX.Element
 }
 
-const renderer = jsxRenderer(
+const previewRenderer = jsxRenderer(
   ({ children }) => {
     return (
       <html lang="en">
@@ -46,176 +46,181 @@ const renderer = jsxRenderer(
   { docType: true },
 )
 
+const frameRenderer = jsxRenderer(
+  ({ context, intents }) => {
+    return (
+      <html lang="en">
+        <head>
+          <meta property="fc:frame" content="vNext" />
+          <meta
+            property="fc:frame:image"
+            content={`${parseUrl(context.req.url)}/image`}
+          />
+          <meta
+            property="og:image"
+            content={`${parseUrl(context.req.url)}/image`}
+          />
+          <meta property="fc:frame:post_url" content={context.req.url} />
+          {parseIntents(intents)}
+        </head>
+      </html>
+    )
+  },
+  { docType: true },
+)
+
 export class Framework extends Hono {
   frame(
     path: string,
     handler: (c: FrameContext) => FrameReturnType | Promise<FrameReturnType>,
   ) {
-    this.get('/preview', renderer)
-    this.post('/preview', renderer)
-
-    this.get('/preview/*', async (c) => {
-      const baseUrl = c.req.url.replace('/preview', '')
-      const response = await fetch(baseUrl)
-      const text = await response.text()
-      const frame = htmlToFrame(text)
-      return c.render(
-        <>
-          <FramePreview baseUrl={baseUrl} frame={frame} />
-        </>,
-      )
-    })
-
-    this.post('/preview', async (c) => {
-      const baseUrl = c.req.url.replace('/preview', '')
-
-      const formData = await c.req.formData()
-      const buttonIndex = parseInt(
-        typeof formData.get('buttonIndex') === 'string'
-          ? (formData.get('buttonIndex') as string)
-          : '',
-      )
-      const inputText = formData.get('inputText')
-        ? Buffer.from(formData.get('inputText') as string)
-        : undefined
-
-      const privateKeyBytes = ed25519.utils.randomPrivateKey()
-      // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
-
-      // const key = bytesToHex(publicKeyBytes)
-      // const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
-      //
-      // const account = privateKeyToAccount(bytesToHex(privateKeyBytes))
-      // const requestFid = 1
-
-      // const signature = await account.signTypedData({
-      //   domain: {
-      //     name: 'Farcaster SignedKeyRequestValidator',
-      //     version: '1',
-      //     chainId: 10,
-      //     verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
-      //   },
-      //   types: {
-      //     SignedKeyRequest: [
-      //       { name: 'requestFid', type: 'uint256' },
-      //       { name: 'key', type: 'bytes' },
-      //       { name: 'deadline', type: 'uint256' },
-      //     ],
-      //   },
-      //   primaryType: 'SignedKeyRequest',
-      //   message: {
-      //     requestFid: BigInt(requestFid),
-      //     key,
-      //     deadline: BigInt(deadline),
-      //   },
-      // })
-
-      // const response = await fetch(
-      //   'https://api.warpcast.com/v2/signed-key-requests',
-      //   {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify({
-      //       deadline,
-      //       key,
-      //       requestFid,
-      //       signature,
-      //     }),
-      //   },
-      // )
-
-      const fid = 2
-      const castId = {
-        fid,
-        hash: new Uint8Array(
-          Buffer.from('0000000000000000000000000000000000000000', 'hex'),
-        ),
-      }
-      const frameActionBody = FrameActionBody.create({
-        url: Buffer.from(baseUrl),
-        buttonIndex,
-        castId,
-        inputText,
+    // Frame Routes
+    this.use(frameRenderer)
+      .get(async (c) => {
+        const { intents } = await handler(c)
+        return c.render(null, { context: c, intents })
       })
-      const frameActionMessage = await makeFrameAction(
-        frameActionBody,
-        { fid, network: 1 },
-        new NobleEd25519Signer(privateKeyBytes),
-      )
-
-      const message = frameActionMessage._unsafeUnwrap()
-      const response = await fetch(baseUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          untrustedData: {
-            buttonIndex,
-            castId: {
-              fid: castId.fid,
-              hash: `0x${bytesToHex(castId.hash)}`,
-            },
-            fid,
-            inputText,
-            messageHash: `0x${bytesToHex(message.hash)}`,
-            network: 1,
-            timestamp: message.data.timestamp,
-            url: baseUrl,
-          },
-          trustedData: {
-            messageBytes: Buffer.from(
-              Message.encode(message).finish(),
-            ).toString('hex'),
-          },
-        }),
+      .post(async (c) => {
+        const context = await parsePostContext(c)
+        const { intents } = await handler(context)
+        return c.render(null, { context, intents })
       })
-      const text = await response.text()
-      // TODO: handle redirects
-      const frame = htmlToFrame(text)
 
-      return c.render(
-        <>
-          <FramePreview baseUrl={baseUrl} frame={frame} />
-        </>,
-      )
-    })
-
-    this.get(path, async (c) => {
-      const { intents } = await handler(c)
-      return c.render(
-        <html lang="en">
-          <head>
-            <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content={`${c.req.url}_og`} />
-            <meta property="og:image" content={`${c.req.url}_og`} />
-            <meta property="fc:frame:post_url" content={c.req.url} />
-            {parseIntents(intents)}
-          </head>
-        </html>,
-      )
-    })
-
-    // TODO: don't slice
-    this.get(`${path.slice(1)}_og`, async (c) => {
+    // OG Image Route
+    this.get('image', async (c) => {
       const { image } = await handler(c)
       return new ImageResponse(image)
     })
 
-    this.post(path, async (c) => {
-      const context = await parsePostContext(c)
-      const { intents } = await handler(context)
-      return c.render(
-        <html lang="en">
-          <head>
-            <meta property="fc:frame" content="vNext" />
-            <meta property="fc:frame:image" content={`${c.req.url}_og`} />
-            <meta property="og:image" content={`${c.req.url}_og`} />
-            <meta property="fc:frame:post_url" content={c.req.url} />
-            {parseIntents(intents)}
-          </head>
-        </html>,
-      )
-    })
+    // Frame Preview Routes
+    this.use('preview', previewRenderer)
+      .get(async (c) => {
+        const baseUrl = c.req.url.replace('/preview', '')
+        const response = await fetch(baseUrl)
+        const text = await response.text()
+        const frame = htmlToFrame(text)
+        return c.render(
+          <>
+            <FramePreview baseUrl={baseUrl} frame={frame} />
+          </>,
+        )
+      })
+      .post(async (c) => {
+        const baseUrl = c.req.url.replace('/preview', '')
+
+        const formData = await c.req.formData()
+        const buttonIndex = parseInt(
+          typeof formData.get('buttonIndex') === 'string'
+            ? (formData.get('buttonIndex') as string)
+            : '',
+        )
+        const inputText = formData.get('inputText')
+          ? Buffer.from(formData.get('inputText') as string)
+          : undefined
+
+        const privateKeyBytes = ed25519.utils.randomPrivateKey()
+        // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
+
+        // const key = bytesToHex(publicKeyBytes)
+        // const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
+        //
+        // const account = privateKeyToAccount(bytesToHex(privateKeyBytes))
+        // const requestFid = 1
+
+        // const signature = await account.signTypedData({
+        //   domain: {
+        //     name: 'Farcaster SignedKeyRequestValidator',
+        //     version: '1',
+        //     chainId: 10,
+        //     verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
+        //   },
+        //   types: {
+        //     SignedKeyRequest: [
+        //       { name: 'requestFid', type: 'uint256' },
+        //       { name: 'key', type: 'bytes' },
+        //       { name: 'deadline', type: 'uint256' },
+        //     ],
+        //   },
+        //   primaryType: 'SignedKeyRequest',
+        //   message: {
+        //     requestFid: BigInt(requestFid),
+        //     key,
+        //     deadline: BigInt(deadline),
+        //   },
+        // })
+
+        // const response = await fetch(
+        //   'https://api.warpcast.com/v2/signed-key-requests',
+        //   {
+        //     method: 'POST',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //       deadline,
+        //       key,
+        //       requestFid,
+        //       signature,
+        //     }),
+        //   },
+        // )
+
+        const fid = 2
+        const castId = {
+          fid,
+          hash: new Uint8Array(
+            Buffer.from('0000000000000000000000000000000000000000', 'hex'),
+          ),
+        }
+        const frameActionBody = FrameActionBody.create({
+          url: Buffer.from(baseUrl),
+          buttonIndex,
+          castId,
+          inputText,
+        })
+        const frameActionMessage = await makeFrameAction(
+          frameActionBody,
+          { fid, network: 1 },
+          new NobleEd25519Signer(privateKeyBytes),
+        )
+
+        const message = frameActionMessage._unsafeUnwrap()
+        const response = await fetch(baseUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            untrustedData: {
+              buttonIndex,
+              castId: {
+                fid: castId.fid,
+                hash: `0x${bytesToHex(castId.hash)}`,
+              },
+              fid,
+              inputText,
+              messageHash: `0x${bytesToHex(message.hash)}`,
+              network: 1,
+              timestamp: message.data.timestamp,
+              url: baseUrl,
+            },
+            trustedData: {
+              messageBytes: Buffer.from(
+                Message.encode(message).finish(),
+              ).toString('hex'),
+            },
+          }),
+        })
+        const text = await response.text()
+        // TODO: handle redirects
+        const frame = htmlToFrame(text)
+
+        return c.render(
+          <>
+            <FramePreview baseUrl={baseUrl} frame={frame} />
+          </>,
+        )
+      })
+
+    // Package up the above routes into `path`.
+    this.route(path, this)
   }
 }
 
@@ -372,6 +377,10 @@ function parseIntent(node: JSXNode, counter: Counter) {
   }
 
   return Object.assign(intent, { props })
+}
+
+function parseUrl(path: string) {
+  return path.endsWith('/') ? path.slice(0, -1) : path
 }
 
 function htmlToFrame(html: string) {
