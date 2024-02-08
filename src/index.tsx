@@ -35,7 +35,7 @@ type FrameContext = {
 
 type FrameReturnType = {
   image: JSX.Element
-  intents: JSX.Element
+  intents?: JSX.Element
 }
 
 export class Framework extends Hono {
@@ -44,7 +44,7 @@ export class Framework extends Hono {
     handler: (c: FrameContext) => FrameReturnType | Promise<FrameReturnType>,
   ) {
     // Frame Route (implements GET & POST).
-    this.use(async (c) => {
+    this.use(path, async (c) => {
       const context = await getFrameContext(c)
       const { intents } = await handler(context)
       const serializedContext = encodeURIComponent(JSON.stringify(context))
@@ -65,14 +65,14 @@ export class Framework extends Hono {
               )}/image?context=${serializedContext}`}
             />
             <meta property="fc:frame:post_url" content={context.url} />
-            {parseIntents(intents)}
+            {intents ? parseIntents(intents) : null}
           </head>
         </html>,
       )
     })
 
     // OG Image Route
-    this.get('image', async (c) => {
+    this.get(`${parseUrl(path)}/image`, async (c) => {
       const { context } = c.req.query()
       const parsedContext = JSON.parse(
         decodeURIComponent(context),
@@ -83,7 +83,7 @@ export class Framework extends Hono {
 
     // Frame Preview Routes
     this.use(
-      'preview',
+      `${parseUrl(path)}/preview`,
       jsxRenderer(
         ({ children }) => {
           return (
@@ -224,8 +224,9 @@ export class Framework extends Hono {
         )
       })
 
+    // TODO: fix this – does it work?
     // Package up the above routes into `path`.
-    this.route(path, this)
+    // this.route(path, this)
   }
 }
 

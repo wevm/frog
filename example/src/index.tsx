@@ -48,6 +48,16 @@ app.frame('/', ({ status }) => {
   }
 })
 
+app.frame('/no-intents', () => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        foo
+      </div>
+    ),
+  }
+})
+
 export default {
   port: 3001,
   fetch: app.fetch,
