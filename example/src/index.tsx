@@ -39,13 +39,12 @@ app.frame('/', ({ status }) => {
         </div>
       </div>
     ),
-    intents: (
-      <>
-        <Button>Apples</Button>
-        <Button>Oranges</Button>
-        <TextInput placeholder="Enter custom fruit..." />
-      </>
-    ),
+    intents: [
+      <Button>Apples</Button>,
+      <Button>Oranges</Button>,
+      <Button>Bananas</Button>,
+      <TextInput placeholder="Enter custom fruit..." />,
+    ],
   }
 })
 

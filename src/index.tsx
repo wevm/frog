@@ -35,7 +35,7 @@ type FrameContext = {
 
 type FrameReturnType = {
   image: JSX.Element
-  intents?: JSX.Element
+  intents?: JSX.Element | JSX.Element[]
 }
 
 export class Framework extends Hono {
@@ -395,17 +395,18 @@ async function getFrameContext(ctx: Context): Promise<FrameContext> {
   }
 }
 
-async function parseIntents(intents_: JSX.Element) {
+function parseIntents(intents_: JSX.Element | JSX.Element[]) {
   const intents = intents_ as unknown as JSXNode
   const counter: Counter = {
     button: 1,
   }
 
-  if (typeof intents.children[0] === 'object') {
+  if (Array.isArray(intents))
+    return intents.map((e) => parseIntent(e as JSXNode, counter))
+  if (typeof intents.children[0] === 'object')
     return Object.assign(intents, {
       children: intents.children.map((e) => parseIntent(e as JSXNode, counter)),
     })
-  }
   return parseIntent(intents, counter)
 }
 
