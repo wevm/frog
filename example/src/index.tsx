@@ -6,8 +6,8 @@ import { Button, Framework } from 'farc'
 
 const app = new Framework()
 
-app.frame('/', ({ untrustedData }) => {
-  const { buttonIndex } = untrustedData || {}
+app.frame('/', ({ untrustedData = {} }) => {
+  const { buttonIndex } = untrustedData
   return {
     image: (
       <div

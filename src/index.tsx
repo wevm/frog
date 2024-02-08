@@ -21,9 +21,10 @@ import {
   type UntrustedData,
 } from './types.js'
 
-type FrameContext = Context & {
+type FrameContext = {
   trustedData?: TrustedData
   untrustedData?: UntrustedData
+  url: Context['req']['url']
 }
 
 type FrameReturnType = {
@@ -48,19 +49,24 @@ const previewRenderer = jsxRenderer(
 
 const frameRenderer = jsxRenderer(
   ({ context, intents }) => {
+    const serializedContext = encodeURIComponent(JSON.stringify(context))
     return (
       <html lang="en">
         <head>
           <meta property="fc:frame" content="vNext" />
           <meta
             property="fc:frame:image"
-            content={`${parseUrl(context.req.url)}/image`}
+            content={`${parseUrl(
+              context.url,
+            )}/image?context=${serializedContext}`}
           />
           <meta
             property="og:image"
-            content={`${parseUrl(context.req.url)}/image`}
+            content={`${parseUrl(
+              context.url,
+            )}/image?context=${serializedContext}`}
           />
-          <meta property="fc:frame:post_url" content={context.req.url} />
+          <meta property="fc:frame:post_url" content={context.url} />
           {parseIntents(intents)}
         </head>
       </html>
@@ -77,18 +83,23 @@ export class Framework extends Hono {
     // Frame Routes
     this.use(frameRenderer)
       .get(async (c) => {
-        const { intents } = await handler(c)
-        return c.render(null, { context: c, intents })
+        const context = await getFrameContext(c)
+        const { intents } = await handler(context)
+        return c.render(null, { context, intents })
       })
       .post(async (c) => {
-        const context = await parsePostContext(c)
+        const context = await getFrameContext(c)
         const { intents } = await handler(context)
         return c.render(null, { context, intents })
       })
 
     // OG Image Route
     this.get('image', async (c) => {
-      const { image } = await handler(c)
+      const { context } = c.req.query()
+      const parsedContext = JSON.parse(
+        decodeURIComponent(context),
+      ) as FrameContext
+      const { image } = await handler(parsedContext)
       return new ImageResponse(image)
     })
 
@@ -345,10 +356,11 @@ function FramePreview({ baseUrl, frame }: FramePreviewProps) {
 
 type Counter = { button: number }
 
-async function parsePostContext(ctx: Context): Promise<FrameContext> {
+async function getFrameContext(ctx: Context): Promise<FrameContext> {
+  const { req } = ctx
   const { trustedData, untrustedData } =
-    (await ctx.req.json().catch(() => {})) || {}
-  return Object.assign(ctx, { trustedData, untrustedData })
+    (await req.json().catch(() => {})) || {}
+  return { trustedData, untrustedData, url: req.url }
 }
 
 function parseIntents(intents_: JSX.Element) {
