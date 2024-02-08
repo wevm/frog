@@ -28,7 +28,8 @@ const html = `
   <meta property="fc:frame:post_url" content="http://localhost:3001">
   <meta property="og:image" content="https://example.com/og">
 `
-const metaTags = htmlToMetaTags(html)
+const selector = 'meta[property^="fc:"], meta[property^="og:"]'
+const metaTags = htmlToMetaTags(html, selector)
 
 test('htmlToMetaTags', () => {
   const html = `
@@ -37,7 +38,7 @@ test('htmlToMetaTags', () => {
     <meta property="og:image" content="https://example.com/og">
     <foo>bar</foo>
   `
-  expect(htmlToMetaTags(html).length).toEqual(2)
+  expect(htmlToMetaTags(html, selector).length).toEqual(2)
 })
 
 test('parseFrameProperties', () => {
@@ -99,7 +100,7 @@ describe('validateFrameButtons', () => {
       <meta property="fc:frame:button:2" content="bar">
       <meta property="fc:frame:button:3" content="baz">
     `
-    const metaTags = htmlToMetaTags(html)
+    const metaTags = htmlToMetaTags(html, selector)
     const buttons = parseFrameButtons(metaTags)
     const result = validateFrameButtons(buttons)
     expect(result).toEqual({
@@ -113,7 +114,7 @@ describe('validateFrameButtons', () => {
       <meta property="fc:frame:button:1" content="foo">
       <meta property="fc:frame:button:3" content="baz">
     `
-    const metaTags = htmlToMetaTags(html)
+    const metaTags = htmlToMetaTags(html, selector)
     const buttons = parseFrameButtons(metaTags)
     const result = validateFrameButtons(buttons)
     expect(result).toEqual({

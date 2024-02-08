@@ -601,7 +601,6 @@ function htmlToState(html: string) {
     properties[property] = content
   }
 
-  console.log(properties)
   return {
     context: deserializeJson<FrameContext>(properties['farc:context']),
     previousContext: deserializeJson<PreviousFrameContext>(
