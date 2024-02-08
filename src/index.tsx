@@ -11,6 +11,7 @@ import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import type { HtmlEscapedString } from 'hono/utils/html'
 
 import { Preview, previewStyles } from './preview.js'
 import {
@@ -263,22 +264,83 @@ export class Farc extends Hono {
 export type ButtonProps = {
   children: string
   index?: number | undefined
-  type?: 'reset'
+}
+
+export type ButtonRootProps = ButtonProps & {
+  action?: 'post' | 'post_redirect'
   value?: string | undefined
 }
 
 // TODO: `fc:frame:button:$idx:action` and `fc:frame:button:$idx:target`
-Button.__type = 'button'
-export function Button({ children, index = 0, type, value }: ButtonProps) {
+ButtonRoot.__type = 'button'
+export function ButtonRoot({
+  action = 'post',
+  children,
+  index = 0,
+  value,
+}: ButtonRootProps) {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={children}
+      data-value={value}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content={action} />,
+  ] as unknown as HtmlEscapedString
+}
+
+export type ButtonLinkProps = ButtonProps & {
+  href: string
+}
+
+ButtonLink.__type = 'button'
+export function ButtonLink({ children, index = 0, href }: ButtonLinkProps) {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={children}
+      data-href={href}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="link" />,
+    <meta property={`fc:frame:button:${index}:target`} content={href} />,
+  ] as unknown as HtmlEscapedString
+}
+
+export type ButtonMintProps = ButtonProps & {
+  target: string
+}
+
+ButtonMint.__type = 'button'
+export function ButtonMint({ children, index = 0, target }: ButtonMintProps) {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={children}
+      data-target={target}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="mint" />,
+    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+  ] as unknown as HtmlEscapedString
+}
+
+export type ButtonResetProps = ButtonProps
+
+ButtonReset.__type = 'button'
+export function ButtonReset({ children, index = 0 }: ButtonResetProps) {
   return (
     <meta
       property={`fc:frame:button:${index}`}
       content={children}
-      data-type={type}
-      data-value={value}
+      data-type="reset"
     />
   )
 }
+
+export const Button = Object.assign(ButtonRoot, {
+  Link: ButtonLink,
+  Mint: ButtonMint,
+  Reset: ButtonReset,
+})
 
 export type TextInputProps = {
   placeholder?: string | undefined
@@ -302,7 +364,7 @@ function getIntentState(
   if (!intents) return state
   if (buttonIndex) {
     const buttonIntents = intents.filter((intent) =>
-      intent?.props.property.includes('fc:frame:button'),
+      intent?.props.property.match(/fc:frame:button:\d$/),
     )
     const intent = buttonIntents[buttonIndex - 1]
     state.buttonValue = intent.props['data-value']
@@ -360,7 +422,7 @@ function parseIntents(intents_: Intents) {
     return parseIntent(nodes, counter)
   })()
 
-  return Array.isArray(intents) ? intents : [intents]
+  return (Array.isArray(intents) ? intents : [intents]).flat()
 }
 
 function parseIntent(node_: JSXNode, counter: Counter) {
