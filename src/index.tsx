@@ -17,20 +17,13 @@ import {
   type FrameButton,
   type FrameMetaTagPropertyName,
   type FrameVersion,
+  type TrustedData,
+  type UntrustedData,
 } from './types.js'
 
 type FrameContext = Context & {
-  trustedData?: { messageBytes: string }
-  untrustedData?: {
-    fid: number
-    url: string
-    messageHash: string
-    timestamp: number
-    network: number
-    buttonIndex?: 1 | 2 | 3 | 4
-    castId: { fid: number; hash: string }
-    inputText?: string
-  }
+  trustedData?: TrustedData
+  untrustedData?: UntrustedData
 }
 
 type FrameReturnType = {

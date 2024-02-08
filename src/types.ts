@@ -1,5 +1,20 @@
 // TODO: TSDoc
 
+export type TrustedData = {
+  messageBytes: string
+}
+
+export type UntrustedData = {
+  buttonIndex?: FrameButton['index'] | undefined
+  castId: { fid: number; hash: string }
+  fid: number
+  inputText?: string
+  messageHash: string
+  network: number
+  timestamp: number
+  url: string
+}
+
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
   debug?: FrameDebug | undefined
