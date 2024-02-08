@@ -119,6 +119,7 @@ export class Framework extends Hono {
             ? (formData.get('buttonIndex') as string)
             : '',
         )
+        // TODO: Sanitize input
         const inputText = formData.get('inputText')
           ? Buffer.from(formData.get('inputText') as string)
           : undefined
@@ -200,7 +201,9 @@ export class Framework extends Hono {
                 hash: `0x${bytesToHex(castId.hash)}`,
               },
               fid,
-              inputText,
+              inputText: inputText
+                ? Buffer.from(inputText).toString('utf-8')
+                : undefined,
               messageHash: `0x${bytesToHex(message.hash)}`,
               network: 1,
               timestamp: message.data.timestamp,
@@ -320,44 +323,72 @@ function Preview({ baseUrl, frame }: PreviewProps) {
           </div>
           <input name="action" type="hidden" value={frame.postUrl} />
         </div>
-        {/* TODO: Text input */}
-        {frame.buttons && (
+
+        {Boolean(frame.input || frame.buttons?.length) && (
           <div
             style={{
               borderBottomLeftRadius: '0.5rem',
               borderBottomRightRadius: '0.5rem',
               borderTopWidth: '0 !important',
               borderWidth: '1px',
-              display: 'grid',
-              gap: '10px',
-              gridTemplateColumns: `repeat(${frame.buttons.length}, minmax(0,1fr))`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
               paddingBottom: '0.5rem',
               paddingLeft: '1rem',
               paddingRight: '1rem',
               paddingTop: '0.5rem',
             }}
           >
-            {frame.buttons.map((button) => (
-              <button
-                key={button.index}
-                name="buttonIndex"
+            {frame.input && (
+              <input
+                aria-label={frame.input.text}
+                name="inputText"
+                placeholder={frame.input.text}
                 style={{
-                  borderRadius: '0.5rem',
+                  borderRadius: '0.25rem',
                   borderWidth: '1px',
-                  cursor: 'pointer',
                   fontSize: '0.875rem',
-                  height: '2.5rem',
-                  paddingBottom: '0.5rem',
-                  paddingLeft: '1rem',
-                  paddingRight: '1rem',
-                  paddingTop: '0.5rem',
+                  lineHeight: '1.25rem',
+                  paddingBottom: '9px',
+                  paddingLeft: '12px',
+                  paddingRight: '12px',
+                  paddingTop: '10px',
+                  width: '100%',
                 }}
-                type="submit"
-                value={button.index}
+              />
+            )}
+            {frame.buttons && (
+              <div
+                style={{
+                  display: 'grid',
+                  gap: '10px',
+                  gridTemplateColumns: `repeat(${frame.buttons.length}, minmax(0,1fr))`,
+                }}
               >
-                {button.title}
-              </button>
-            ))}
+                {frame.buttons.map((button) => (
+                  <button
+                    key={button.index}
+                    name="buttonIndex"
+                    style={{
+                      borderRadius: '0.5rem',
+                      borderWidth: '1px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      height: '2.5rem',
+                      paddingBottom: '0.5rem',
+                      paddingLeft: '1rem',
+                      paddingRight: '1rem',
+                      paddingTop: '0.5rem',
+                    }}
+                    type="submit"
+                    value={button.index}
+                  >
+                    {button.title}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </form>
@@ -370,8 +401,13 @@ type DevtoolsProps = {
 }
 
 async function Devtools({ frame }: DevtoolsProps) {
+  const { debug: _d, title: _t, ...rest } = frame
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <pre style={{ fontFamily: 'monospace' }}>
+        {JSON.stringify(rest, null, 2)}
+      </pre>
+
       <pre style={{ fontFamily: 'monospace' }}>
         {frame.debug?.htmlTags.map((x) => (
           <code style={{ display: 'grid' }}>{x}</code>
@@ -508,13 +544,21 @@ function htmlToFrame(html: string) {
   }
   buttons = buttons.toSorted((a, b) => a.index - b.index)
 
+  const input = properties['fc:frame:input:text']
+    ? {
+        text: properties['fc:frame:input:text'] ?? '',
+      }
+    : undefined
+
   const fallbackImageToUrl = !imageUrl
   const postUrlTooLong = postUrl.length > 2_048
+  // TODO: Validate
+  const inputTextTooLong = false
   // TODO: Figure out how this is determined
   // https://warpcast.com/~/developers/frames
   const valid = true
 
-  const frame = { buttons, imageUrl, postUrl, version }
+  const frame = { buttons, imageUrl, input, postUrl, version }
   return {
     ...frame,
     debug: {
@@ -523,6 +567,7 @@ function htmlToFrame(html: string) {
       fallbackImageToUrl,
       htmlTags: metaTags.map((x) => x.outerHTML),
       image,
+      inputTextTooLong,
       invalidButtons,
       postUrlTooLong,
       valid,
@@ -581,6 +626,16 @@ function getGlobalStyles() {
     button {
       background: var(--bn);
     }
+
+    input {
+      background: var(--bg);
+    }
+
+    pre {
+      margin: 0;
+    }
+
+    /** Reset **/
 
     button,
     input {

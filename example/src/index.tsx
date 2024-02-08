@@ -6,7 +6,9 @@ import { Button, Framework, TextInput } from 'farc'
 
 const app = new Framework()
 
-app.frame('/', ({ status }) => {
+app.frame('/', (props) => {
+  const { status, untrustedData } = props
+  const fruit = untrustedData?.inputText
   return {
     image: (
       <div
@@ -35,11 +37,13 @@ app.frame('/', ({ status }) => {
             whiteSpace: 'pre-wrap',
           }}
         >
-          {status === 'response' ? 'Nice choice.' : 'Welcome!'}
+          {status === 'response'
+            ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
+            : 'Welcome!'}
         </div>
       </div>
     ),
-    intents: status === 'initial' && [
+    intents: [
       <Button>Apples</Button>,
       <Button>Oranges</Button>,
       <Button>Bananas</Button>,

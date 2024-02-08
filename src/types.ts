@@ -8,7 +8,7 @@ export type UntrustedData = {
   buttonIndex?: FrameButton['index'] | undefined
   castId: { fid: number; hash: string }
   fid: number
-  inputText?: string
+  inputText?: string | undefined
   messageHash: string
   network: number
   timestamp: number
@@ -19,29 +19,34 @@ export type Frame = {
   buttons?: readonly FrameButton[] | undefined
   debug?: FrameDebug | undefined
   imageUrl: string
+  input?: FrameInput | undefined
   postUrl: string
   title: string
   version: FrameVersion
 }
 
-export type FrameDebug = {
-  buttons?: readonly FrameButton[] | undefined
-  buttonsAreOutOfOrder: boolean
-  fallbackImageToUrl: boolean
-  htmlTags: readonly string[]
-  image: string
-  imageUrl: string
-  invalidButtons: readonly FrameButton['index'][]
-  postUrl: string
-  postUrlTooLong: boolean
-  valid: boolean
-  version: FrameVersion
-}
+export type FrameDebug = Pretty<
+  Omit<Frame, 'debug' | 'title'> & {
+    buttonsAreOutOfOrder: boolean
+    fallbackImageToUrl: boolean
+    htmlTags: readonly string[]
+    image: string
+    inputTextTooLong: boolean
+    invalidButtons: readonly FrameButton['index'][]
+    postUrl: string
+    postUrlTooLong: boolean
+    valid: boolean
+  }
+>
 
 export type FrameButton = {
   index: 1 | 2 | 3 | 4
   title: string
   type: 'post' | 'post_redirect'
+}
+
+export type FrameInput = {
+  text: string
 }
 
 export type FrameVersion = 'vNext'
@@ -56,3 +61,5 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:action`
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
+
+type Pretty<type> = { [key in keyof type]: type[key] } & unknown
