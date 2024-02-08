@@ -6,8 +6,10 @@ import { Button, Framework, TextInput } from 'farc'
 
 const app = new Framework()
 
-app.frame('/', (props) => {
-  const { status, untrustedData } = props
+app.frame('/', (context, previousContext) => {
+  console.log(context, previousContext)
+
+  const { status, untrustedData } = context
   const fruit = untrustedData?.inputText
   return {
     image: (
