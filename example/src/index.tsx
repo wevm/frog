@@ -12,8 +12,8 @@ app.frame('/', ({ untrustedData }) => {
     image: (
       <div
         style={{
-          backgroundColor: 'black',
-          backgroundSize: '150px 150px',
+          background: 'linear-gradient(to right, #432889, #17101F)',
+          backgroundSize: '100% 100%',
           height: '100%',
           width: '100%',
           display: 'flex',
@@ -46,9 +46,6 @@ app.frame('/', ({ untrustedData }) => {
       <>
         <Button>Apples</Button>
         <Button>Oranges</Button>
-        <Button>{`Last index: ${
-          buttonIndex ? buttonIndex.toString() : 'none'
-        }`}</Button>
       </>
     ),
   }

@@ -42,7 +42,11 @@ const renderer = jsxRenderer(
   ({ children }) => {
     return (
       <html lang="en">
-        <body>{children}</body>
+        <head>
+          <title>𝑭𝒓𝒂𝒎𝒆work Preview</title>
+          <style>{getGlobalStyles()}</style>
+        </head>
+        <body style={{ padding: '1rem' }}>{children}</body>
       </html>
     )
   },
@@ -232,21 +236,89 @@ type FramePreviewProps = {
 
 function FramePreview({ baseUrl, frame }: FramePreviewProps) {
   return (
-    <div>
-      <form action="/preview" method="post">
-        <input type="hidden" name="action" value={frame.postUrl} />
-        <div>
-          <img alt={frame.title ?? 'Farcaster frame'} src={frame.imageUrl} />
-          <div>{new URL(baseUrl).host}</div>
+    <div style={{ maxWidth: '512px', width: '100%' }}>
+      <form
+        action="/preview"
+        method="post"
+        style={{
+          borderRadius: '0.5rem',
+          display: 'flex-column',
+          position: 'relative',
+          width: '100%',
+        }}
+      >
+        <div
+          style={{
+            position: 'relative',
+          }}
+        >
+          <img
+            alt={frame.title ?? 'Farcaster frame'}
+            src={frame.imageUrl}
+            style={{
+              aspectRatio: '1.91 / 1',
+              borderTopLeftRadius: '.5rem',
+              borderTopRightRadius: '0.5rem',
+              borderWidth: '1px',
+              maxHeight: '526px',
+              objectFit: 'cover',
+              width: '100%',
+            }}
+          />
+          <div
+            style={{
+              background: '#00000080',
+              borderRadius: '0.25rem',
+              bottom: 0,
+              color: 'white',
+              fontSize: '0.875rem',
+              marginBottom: '0.5rem',
+              marginRight: '1rem',
+              paddingBottom: '0.125rem',
+              paddingLeft: '0.5rem',
+              paddingRight: '0.5rem',
+              paddingTop: '0.125rem',
+              position: 'absolute',
+              right: 0,
+            }}
+          >
+            {new URL(baseUrl).host}
+          </div>
+          <input name="action" type="hidden" value={frame.postUrl} />
         </div>
         {/* TODO: Text input */}
         {frame.buttons && (
-          <div>
+          <div
+            style={{
+              borderBottomLeftRadius: '0.5rem',
+              borderBottomRightRadius: '0.5rem',
+              borderTopWidth: '0 !important',
+              borderWidth: '1px',
+              display: 'grid',
+              gap: '10px',
+              gridTemplateColumns: `repeat(${frame.buttons.length}, minmax(0,1fr))`,
+              paddingBottom: '0.5rem',
+              paddingLeft: '1rem',
+              paddingRight: '1rem',
+              paddingTop: '0.5rem',
+            }}
+          >
             {frame.buttons.map((button) => (
               <button
                 key={button.index}
-                type="submit"
                 name="buttonIndex"
+                style={{
+                  borderRadius: '0.5rem',
+                  borderWidth: '1px',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  height: '2.5rem',
+                  paddingBottom: '0.5rem',
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem',
+                  paddingTop: '0.5rem',
+                }}
+                type="submit"
                 value={button.index}
               >
                 {button.title}
@@ -401,4 +473,144 @@ function htmlToFrame(html: string) {
     },
     title,
   } satisfies Frame
+}
+
+function getGlobalStyles() {
+  return `
+    :root {
+      --bg: #181818;
+      --bn: #262626;
+      --br: #404040;
+      --fg: rgba(255, 255, 255, 0.87);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8f8f8;
+        --bn: #F5F5F5;
+        --br: #A3A3A3;
+        --fg: #181818;
+      }
+    }
+
+    *,
+    ::before,
+    ::after {
+      box-sizing: border-box;
+      border-width: 0;
+      border-style: solid;
+      border-color: var(--br);
+    }
+
+    html {
+      background-color: var(--bg);
+      color-scheme: light dark;
+      color: var(--fg);
+      font-family: sans-serif;
+      font-synthesis: none;
+      font-weight: 400;
+      line-height: 1.5;
+      text-rendering: optimizeLegibility;
+
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      line-height: inherit;
+    }
+    
+    button {
+      background: var(--bn);
+    }
+
+    button,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-family: inherit; 
+      font-feature-settings: inherit;
+      font-variation-settings: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      line-height: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0;
+    }
+
+    button,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-family: inherit;
+      font-feature-settings: inherit;
+      font-variation-settings: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      line-height: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0;
+    }
+
+    button,
+    select {
+      text-transform: none;
+    }
+
+    button,
+    [type='button'],
+    [type='reset'],
+    [type='submit'] {
+      -webkit-appearance: button;
+      background-color: transparent;
+      background-image: none;
+    }
+
+    :-moz-focusring {
+      outline: auto;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      opacity: 1;
+      color: #9ca3af;
+    }
+
+    button,
+    [role="button"] {
+      cursor: pointer;
+    }
+
+    :disabled {
+      cursor: default;
+    }
+
+    img,
+    svg,
+    video,
+    canvas,
+    audio,
+    iframe,
+    embed,
+    object {
+      display: block;
+      vertical-align: middle;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+      height: auto;
+    }
+
+    [hidden] {
+      display: none;
+    }
+  `
 }
