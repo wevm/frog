@@ -4,13 +4,13 @@ import {
   NobleEd25519Signer,
   makeFrameAction,
 } from '@farcaster/core'
-import * as ed from '@noble/ed25519'
+import { bytesToHex } from '@noble/curves/abstract/utils'
+import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
 import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
-import { bytesToHex } from 'viem/utils'
 
 import {
   type Frame,
@@ -86,7 +86,7 @@ export class Framework extends Hono {
         ? Buffer.from(formData.get('inputText') as string)
         : undefined
 
-      const privateKeyBytes = ed.utils.randomPrivateKey()
+      const privateKeyBytes = ed25519.utils.randomPrivateKey()
       // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
 
       // const key = bytesToHex(publicKeyBytes)
@@ -160,11 +160,11 @@ export class Framework extends Hono {
             buttonIndex,
             castId: {
               fid: castId.fid,
-              hash: bytesToHex(castId.hash),
+              hash: `0x${bytesToHex(castId.hash)}`,
             },
             fid,
             inputText,
-            messageHash: bytesToHex(message.hash),
+            messageHash: `0x${bytesToHex(message.hash)}`,
             network: 1,
             timestamp: message.data.timestamp,
             url: baseUrl,
