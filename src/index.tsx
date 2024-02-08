@@ -47,15 +47,16 @@ export class Framework extends Hono {
     path: string,
     handler: (
       context: FrameContext,
-      previousContext: FrameContext,
+      previousContext?: FrameContext | undefined,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
     this.use(path, async (c) => {
       const query = c.req.query()
-      const previousContext = deserializeJson<FrameContext>(
-        query.previousContext,
-      )
+      const previousContext =
+        query.previousContext && query.previousContext !== 'undefined'
+          ? deserializeJson<FrameContext>(query.previousContext)
+          : undefined
 
       const context = await getFrameContext(c)
       const { intents } = await handler(context, previousContext)
@@ -98,9 +99,10 @@ export class Framework extends Hono {
     this.get(`${toBaseUrl(path)}/image`, async (c) => {
       const query = c.req.query()
       const parsedContext = deserializeJson<FrameContext>(query.context)
-      const parsedPreviousContext = deserializeJson<FrameContext>(
-        query.previousContext,
-      )
+      const parsedPreviousContext =
+        query.previousContext && query.previousContext !== 'undefined'
+          ? deserializeJson<FrameContext>(query.previousContext)
+          : undefined
       const { image } = await handler(parsedContext, parsedPreviousContext)
       return new ImageResponse(image)
     })
