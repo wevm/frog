@@ -22,6 +22,12 @@ import {
 } from './types.js'
 
 type FrameContext = {
+  /**
+   * Status of the frame in the frame lifecycle.
+   * - `initial` - The frame has not yet been interacted with.
+   * - `response` - The frame has been interacted with (user presses button).
+   */
+  status: 'initial' | 'response'
   trustedData?: TrustedData
   untrustedData?: UntrustedData
   url: Context['req']['url']
@@ -348,7 +354,12 @@ async function getFrameContext(ctx: Context): Promise<FrameContext> {
   const { req } = ctx
   const { trustedData, untrustedData } =
     (await req.json().catch(() => {})) || {}
-  return { trustedData, untrustedData, url: req.url }
+  return {
+    status: req.method === 'POST' ? 'response' : 'initial',
+    trustedData,
+    untrustedData,
+    url: req.url,
+  }
 }
 
 function parseIntents(intents_: JSX.Element) {

@@ -6,8 +6,7 @@ import { Button, Framework } from 'farc'
 
 const app = new Framework()
 
-app.frame('/', ({ untrustedData = {} }) => {
-  const { buttonIndex } = untrustedData
+app.frame('/', ({ status }) => {
   return {
     image: (
       <div
@@ -36,9 +35,7 @@ app.frame('/', ({ untrustedData = {} }) => {
             whiteSpace: 'pre-wrap',
           }}
         >
-          {typeof buttonIndex === 'number'
-            ? `Button Index: ${buttonIndex}`
-            : 'Welcome!'}
+          {status === 'response' ? 'Nice choice.' : 'Welcome!'}
         </div>
       </div>
     ),
