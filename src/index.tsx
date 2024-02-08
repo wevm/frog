@@ -104,11 +104,7 @@ export class Framework extends Hono {
         const response = await fetch(baseUrl)
         const text = await response.text()
         const frame = htmlToFrame(text)
-        return c.render(
-          <>
-            <FramePreview baseUrl={baseUrl} frame={frame} />
-          </>,
-        )
+        return c.render(<Content baseUrl={baseUrl} frame={frame} />)
       })
       .post(async (c) => {
         const baseUrl = c.req.url.replace('/preview', '')
@@ -217,11 +213,7 @@ export class Framework extends Hono {
         // TODO: handle redirects
         const frame = htmlToFrame(text)
 
-        return c.render(
-          <>
-            <FramePreview baseUrl={baseUrl} frame={frame} />
-          </>,
-        )
+        return c.render(<Content baseUrl={baseUrl} frame={frame} />)
       })
 
     // TODO: fix this – does it work?
@@ -254,12 +246,26 @@ export function TextInput({ placeholder }: TextInputProps) {
   return <meta property="fc:frame:input:text" content={placeholder} />
 }
 
-type FramePreviewProps = {
+type ContentProps = {
   baseUrl: string
   frame: Frame
 }
 
-function FramePreview({ baseUrl, frame }: FramePreviewProps) {
+function Content({ baseUrl, frame }: ContentProps) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Preview baseUrl={baseUrl} frame={frame} />
+      <Devtools frame={frame} />
+    </div>
+  )
+}
+
+type PreviewProps = {
+  baseUrl: string
+  frame: Frame
+}
+
+function Preview({ baseUrl, frame }: PreviewProps) {
   return (
     <div style={{ maxWidth: '512px', width: '100%' }}>
       <form
@@ -267,7 +273,6 @@ function FramePreview({ baseUrl, frame }: FramePreviewProps) {
         method="post"
         style={{
           borderRadius: '0.5rem',
-          display: 'flex-column',
           position: 'relative',
           width: '100%',
         }}
@@ -352,6 +357,22 @@ function FramePreview({ baseUrl, frame }: FramePreviewProps) {
           </div>
         )}
       </form>
+    </div>
+  )
+}
+
+type DevtoolsProps = {
+  frame: Frame
+}
+
+async function Devtools({ frame }: DevtoolsProps) {
+  return (
+    <div>
+      <pre style={{ fontFamily: 'monospace' }}>
+        {frame.debug?.htmlTags.map((x) => (
+          <code style={{ display: 'grid' }}>{x}</code>
+        ))}
+      </pre>
     </div>
   )
 }
