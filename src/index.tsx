@@ -32,66 +32,38 @@ type FrameReturnType = {
   intents: JSX.Element
 }
 
-const previewRenderer = jsxRenderer(
-  ({ children }) => {
-    return (
-      <html lang="en">
-        <head>
-          <title>𝑭𝒂𝒓𝒄 Preview</title>
-          <style>{getGlobalStyles()}</style>
-        </head>
-        <body style={{ padding: '1rem' }}>{children}</body>
-      </html>
-    )
-  },
-  { docType: true },
-)
-
-const frameRenderer = jsxRenderer(
-  ({ context, intents }) => {
-    const serializedContext = encodeURIComponent(JSON.stringify(context))
-    return (
-      <html lang="en">
-        <head>
-          <meta property="fc:frame" content="vNext" />
-          <meta
-            property="fc:frame:image"
-            content={`${parseUrl(
-              context.url,
-            )}/image?context=${serializedContext}`}
-          />
-          <meta
-            property="og:image"
-            content={`${parseUrl(
-              context.url,
-            )}/image?context=${serializedContext}`}
-          />
-          <meta property="fc:frame:post_url" content={context.url} />
-          {parseIntents(intents)}
-        </head>
-      </html>
-    )
-  },
-  { docType: true },
-)
-
 export class Framework extends Hono {
   frame(
     path: string,
     handler: (c: FrameContext) => FrameReturnType | Promise<FrameReturnType>,
   ) {
-    // Frame Routes
-    this.use(frameRenderer)
-      .get(async (c) => {
-        const context = await getFrameContext(c)
-        const { intents } = await handler(context)
-        return c.render(null, { context, intents })
-      })
-      .post(async (c) => {
-        const context = await getFrameContext(c)
-        const { intents } = await handler(context)
-        return c.render(null, { context, intents })
-      })
+    // Frame Route (implements GET & POST).
+    this.use(async (c) => {
+      const context = await getFrameContext(c)
+      const { intents } = await handler(context)
+      const serializedContext = encodeURIComponent(JSON.stringify(context))
+      return c.render(
+        <html lang="en">
+          <head>
+            <meta property="fc:frame" content="vNext" />
+            <meta
+              property="fc:frame:image"
+              content={`${parseUrl(
+                context.url,
+              )}/image?context=${serializedContext}`}
+            />
+            <meta
+              property="og:image"
+              content={`${parseUrl(
+                context.url,
+              )}/image?context=${serializedContext}`}
+            />
+            <meta property="fc:frame:post_url" content={context.url} />
+            {parseIntents(intents)}
+          </head>
+        </html>,
+      )
+    })
 
     // OG Image Route
     this.get('image', async (c) => {
@@ -104,7 +76,23 @@ export class Framework extends Hono {
     })
 
     // Frame Preview Routes
-    this.use('preview', previewRenderer)
+    this.use(
+      'preview',
+      jsxRenderer(
+        ({ children }) => {
+          return (
+            <html lang="en">
+              <head>
+                <title>𝑭𝒂𝒓𝒄 Preview</title>
+                <style>{getGlobalStyles()}</style>
+              </head>
+              <body style={{ padding: '1rem' }}>{children}</body>
+            </html>
+          )
+        },
+        { docType: true },
+      ),
+    )
       .get(async (c) => {
         const baseUrl = c.req.url.replace('/preview', '')
         const response = await fetch(baseUrl)
