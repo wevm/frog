@@ -36,7 +36,6 @@
     "jsxImportSource": "hono/jsx",
 
     // Skip type checking for node modules
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true
+    "skipLibCheck": true
   }
 }
