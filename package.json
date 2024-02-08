@@ -6,7 +6,7 @@
     "changeset": "changeset",
     "changeset:release": "bun run build && changeset publish",
     "changeset:version": "changeset version && bun install --lockfile-only",
-    "clean": "rimraf src/index.js src/lib src/tsconfig.build.tsbuildinfo",
+    "clean": "rimraf src/_lib src/tsconfig.build.tsbuildinfo",
     "format": "biome format . --write",
     "lint": "biome check . --apply",
     "preconstruct": "bun run scripts/preconstruct.ts",
