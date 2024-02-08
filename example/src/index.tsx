@@ -2,7 +2,7 @@
 /** @jsxImportSource hono/jsx */
 /** @jsxFrag */
 
-import { Button, Framework } from 'farc'
+import { Button, Framework, TextInput } from 'farc'
 
 const app = new Framework()
 
@@ -43,6 +43,7 @@ app.frame('/', ({ status }) => {
       <>
         <Button>Apples</Button>
         <Button>Oranges</Button>
+        <TextInput placeholder="Enter custom fruit..." />
       </>
     ),
   }

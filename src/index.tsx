@@ -245,6 +245,15 @@ export function Button({ children, index = 0 }: ButtonProps) {
   return <meta property={`fc:frame:button:${index}`} content={children} />
 }
 
+export type TextInputProps = {
+  placeholder?: string
+}
+
+TextInput.__type = 'text-input'
+export function TextInput({ placeholder }: TextInputProps) {
+  return <meta property="fc:frame:input:text" content={placeholder} />
+}
+
 type FramePreviewProps = {
   baseUrl: string
   frame: Frame
@@ -382,8 +391,9 @@ async function parseIntents(intents_: JSX.Element) {
 function parseIntent(node: JSXNode, counter: Counter) {
   const props = (() => {
     if ((node.tag as any).__type === 'button')
-      return { children: node.children, index: counter.button++ }
-    // TODO: handle text input
+      return { ...node.props, children: node.children, index: counter.button++ }
+    if ((node.tag as any).__type === 'text-input')
+      return { ...node.props, children: node.children }
     return {}
   })()
 
