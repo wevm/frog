@@ -46,8 +46,18 @@ export type FrameDebug = Pretty<
 export type FrameButton = {
   index: 1 | 2 | 3 | 4
   title: string
-  type: 'link' | 'mint' | 'post' | 'post_redirect'
-}
+} & (
+  | { type: 'link'; target: `http://${string}` | `https://${string}` }
+  | {
+      type: 'mint'
+      // TODO: tighten type
+      target: `eip155:${string}`
+    }
+  | {
+      type: 'post' | 'post_redirect'
+      target?: `http://${string}` | `https://${string}` | undefined
+    }
+)
 
 export type FrameInput = {
   text: string

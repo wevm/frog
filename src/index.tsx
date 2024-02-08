@@ -466,8 +466,9 @@ export function parseFrameButtons(metaTags: readonly HTMLMetaElement[]) {
   let currentButtonIndex = 0
   let buttonsAreMissing = false
   let buttonsAreOutOfOrder = false
-  const buttonMap = new Map<number, Omit<FrameButton, 'type'>>()
+  const buttonMap = new Map<number, Omit<FrameButton, 'target' | 'type'>>()
   const buttonActionMap = new Map<number, FrameButton['type']>()
+  const buttonTargetMap = new Map<number, FrameButton['target']>()
   const invalidButtons: FrameButton['index'][] = []
 
   for (const metaTag of metaTags) {
@@ -483,10 +484,13 @@ export function parseFrameButtons(metaTags: readonly HTMLMetaElement[]) {
       string | undefined,
     ]
     const index = parseInt(matchArray[1], 10) as FrameButton['index']
-    const type = matchArray[2] as FrameButton['type'] | undefined
+    const type = matchArray[2]
 
     const content = metaTag.getAttribute('content') ?? ''
-    if (type) buttonActionMap.set(index, content as FrameButton['type'])
+    if (type === 'action')
+      buttonActionMap.set(index, content as FrameButton['type'])
+    else if (type === 'target')
+      buttonTargetMap.set(index, content as FrameButton['target'])
     else {
       if (currentButtonIndex >= index) buttonsAreOutOfOrder = true
       if (currentButtonIndex + 1 === index) currentButtonIndex = index
@@ -499,11 +503,15 @@ export function parseFrameButtons(metaTags: readonly HTMLMetaElement[]) {
     }
   }
 
-  // TODO: Validate `fc:frame:button:$idx:action="link"` has corresponding `fc:frame:button:$idx:target`
-  const buttons = [] as FrameButton[]
+  const buttons: FrameButton[] = []
   for (const [index, button] of buttonMap) {
     const type = buttonActionMap.get(index) ?? 'post'
-    buttons.push({ ...button, type })
+    const target = buttonTargetMap.get(index) as FrameButton['target']
+    buttons.push({
+      ...button,
+      ...(target ? { target } : {}),
+      type,
+    } as FrameButton)
   }
 
   return buttons.toSorted((a, b) => a.index - b.index)
@@ -515,11 +523,15 @@ export function validateFrameButtons(buttons: readonly FrameButton[]) {
   for (let i = 0; i < buttons.length; i++) {
     const button = buttons[i]
     const previousButton = buttons[i - 1]
+
     const isOutOfOrder = button.index < previousButton?.index ?? 0
     const isButtonMissing = button.index !== i + 1
     if (isOutOfOrder || isButtonMissing) buttonsAreOutOfOrder = true
+
+    // TODO: `invalidButtons`
+    // link must have target in format
+    // mint must have target in format
   }
-  // TODO: `invalidButtons`
   return { buttonsAreOutOfOrder, invalidButtons }
 }
 
