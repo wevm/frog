@@ -44,31 +44,48 @@ export class Framework extends Hono {
   frame(
     path: string,
     handler: (
-      c: FrameContext,
+      context: FrameContext,
+      previousContext: FrameContext,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
     this.use(path, async (c) => {
+      const query = c.req.query()
+      const previousContext = deserializeJson<FrameContext>(
+        query.previousContext,
+      )
+
       const context = await getFrameContext(c)
-      const { intents } = await handler(context)
-      const serializedContext = encodeURIComponent(JSON.stringify(context))
+      const { intents } = await handler(context, previousContext)
+
+      const serializedContext = serializeJson(context)
+
       return c.render(
         <html lang="en">
           <head>
             <meta property="fc:frame" content="vNext" />
             <meta
               property="fc:frame:image"
-              content={`${parseUrl(
+              content={`${toBaseUrl(
                 context.url,
-              )}/image?context=${serializedContext}`}
+              )}/image?context=${serializedContext}&previousContext=${
+                query.previousContext
+              }`}
             />
             <meta
               property="og:image"
-              content={`${parseUrl(
+              content={`${toBaseUrl(
                 context.url,
-              )}/image?context=${serializedContext}`}
+              )}/image?context=${serializedContext}&previousContext=${
+                query.previousContext
+              }`}
             />
-            <meta property="fc:frame:post_url" content={context.url} />
+            <meta
+              property="fc:frame:post_url"
+              content={`${toBaseUrl(
+                context.url,
+              )}?previousContext=${serializedContext}`}
+            />
             {intents ? parseIntents(intents) : null}
           </head>
         </html>,
@@ -76,18 +93,19 @@ export class Framework extends Hono {
     })
 
     // OG Image Route
-    this.get(`${parseUrl(path)}/image`, async (c) => {
-      const { context } = c.req.query()
-      const parsedContext = JSON.parse(
-        decodeURIComponent(context),
-      ) as FrameContext
-      const { image } = await handler(parsedContext)
+    this.get(`${toBaseUrl(path)}/image`, async (c) => {
+      const query = c.req.query()
+      const parsedContext = deserializeJson<FrameContext>(query.context)
+      const parsedPreviousContext = deserializeJson<FrameContext>(
+        query.previousContext,
+      )
+      const { image } = await handler(parsedContext, parsedPreviousContext)
       return new ImageResponse(image)
     })
 
     // Frame Preview Routes
     this.use(
-      `${parseUrl(path)}/preview`,
+      `${toBaseUrl(path)}/preview`,
       jsxRenderer(
         ({ children }) => {
           return (
@@ -191,7 +209,7 @@ export class Framework extends Hono {
         )
 
         const message = frameActionMessage._unsafeUnwrap()
-        const response = await fetch(baseUrl, {
+        const response = await fetch(formData.get('action') as string, {
           method: 'POST',
           body: JSON.stringify({
             untrustedData: {
@@ -236,12 +254,19 @@ export class Framework extends Hono {
 export type ButtonProps = {
   children: string
   index?: number
+  value?: string
 }
 
 // TODO: `fc:frame:button:$idx:action` and `fc:frame:button:$idx:target`
 Button.__type = 'button'
-export function Button({ children, index = 0 }: ButtonProps) {
-  return <meta property={`fc:frame:button:${index}`} content={children} />
+export function Button({ children, index = 0, value }: ButtonProps) {
+  return (
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={children}
+      data-value={value}
+    />
+  )
 }
 
 export type TextInputProps = {
@@ -431,7 +456,7 @@ async function getFrameContext(ctx: Context): Promise<FrameContext> {
     status: req.method === 'POST' ? 'response' : 'initial',
     trustedData,
     untrustedData,
-    url: req.url,
+    url: toBaseUrl(req.url),
   }
 }
 
@@ -465,8 +490,18 @@ function parseIntent(node_: JSXNode, counter: Counter) {
   return (typeof node.tag === 'function' ? node.tag(props) : node) as JSXNode
 }
 
-function parseUrl(path: string) {
-  return path.endsWith('/') ? path.slice(0, -1) : path
+function toBaseUrl(path_: string) {
+  let path = path_.split('?')[0]
+  if (path.endsWith('/')) path = path.slice(0, -1)
+  return path
+}
+
+function deserializeJson<returnType>(data = '{}'): returnType {
+  return JSON.parse(decodeURIComponent(data))
+}
+
+function serializeJson(data: unknown = {}) {
+  return encodeURIComponent(JSON.stringify(data))
 }
 
 function htmlToFrame(html: string) {
