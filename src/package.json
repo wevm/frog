@@ -1,5 +1,5 @@
 {
-  "name": "@wevm/framework",
+  "name": "farc",
   "version": "0.0.0",
   "type": "module",
   "module": "_lib/index.js",

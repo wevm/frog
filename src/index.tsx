@@ -43,7 +43,7 @@ const renderer = jsxRenderer(
     return (
       <html lang="en">
         <head>
-          <title>𝑭𝒓𝒂𝒎𝒆work Preview</title>
+          <title>𝑭𝒂𝒓𝒄 Preview</title>
           <style>{getGlobalStyles()}</style>
         </head>
         <body style={{ padding: '1rem' }}>{children}</body>
@@ -228,6 +228,16 @@ export class Framework extends Hono {
 
 ////////////////////////////////////////////////////////////////////////
 // Components
+////////////////////////////////////////////////////////////////////////
+
+export type ButtonProps = {
+  children: string
+}
+
+// TODO: `fc:frame:button:$idx:action` and `fc:frame:button:$idx:target`
+export function Button({ children }: ButtonProps) {
+  return <meta property="fc:frame:button" content={children} />
+}
 
 type FramePreviewProps = {
   baseUrl: string
@@ -331,16 +341,9 @@ function FramePreview({ baseUrl, frame }: FramePreviewProps) {
   )
 }
 
-export type ButtonProps = {
-  children: string
-}
-
-export function Button({ children }: ButtonProps) {
-  return <meta property="fc:frame:button" content={children} />
-}
-
 ////////////////////////////////////////////////////////////////////////
 // Utilities
+////////////////////////////////////////////////////////////////////////
 
 type Counter = { button: number }
 
@@ -443,6 +446,7 @@ function htmlToFrame(html: string) {
   const title = properties['og:title'] ?? ''
   const version = (properties['fc:frame'] as FrameVersion) ?? 'vNext'
 
+  // TODO: Validate `fc:frame:button:$idx:action="link"` has corresponding `fc:frame:button:$idx:target`
   let buttons = [] as FrameButton[]
   for (const [index, button] of buttonMap) {
     buttons.push({
@@ -527,10 +531,7 @@ function getGlobalStyles() {
     }
 
     button,
-    input,
-    optgroup,
-    select,
-    textarea {
+    input {
       font-family: inherit; 
       font-feature-settings: inherit;
       font-variation-settings: inherit;
@@ -543,10 +544,7 @@ function getGlobalStyles() {
     }
 
     button,
-    input,
-    optgroup,
-    select,
-    textarea {
+    input {
       font-family: inherit;
       font-feature-settings: inherit;
       font-variation-settings: inherit;
@@ -558,15 +556,12 @@ function getGlobalStyles() {
       padding: 0;
     }
 
-    button,
-    select {
+    button {
+      cursor: pointer;
       text-transform: none;
     }
 
-    button,
-    [type='button'],
-    [type='reset'],
-    [type='submit'] {
+    button[type='submit'] {
       -webkit-appearance: button;
       background-color: transparent;
       background-image: none;
@@ -576,15 +571,9 @@ function getGlobalStyles() {
       outline: auto;
     }
 
-    input::placeholder,
-    textarea::placeholder {
+    input::placeholder {
       opacity: 1;
       color: #9ca3af;
-    }
-
-    button,
-    [role="button"] {
-      cursor: pointer;
     }
 
     :disabled {
@@ -593,12 +582,7 @@ function getGlobalStyles() {
 
     img,
     svg,
-    video,
-    canvas,
-    audio,
-    iframe,
-    embed,
-    object {
+    video {
       display: block;
       vertical-align: middle;
     }

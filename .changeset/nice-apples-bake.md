@@ -1,5 +1,5 @@
 ---
-"@wevm/framework": patch
+"farc": patch
 ---
 
 Initial release.

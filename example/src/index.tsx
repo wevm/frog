@@ -2,7 +2,7 @@
 /** @jsxImportSource hono/jsx */
 /** @jsxFrag */
 
-import { Button, Framework } from '@wevm/framework'
+import { Button, Framework } from 'farc'
 
 const app = new Framework()
 
@@ -12,27 +12,27 @@ app.frame('/', ({ untrustedData }) => {
     image: (
       <div
         style={{
+          alignItems: 'center',
           background: 'linear-gradient(to right, #432889, #17101F)',
           backgroundSize: '100% 100%',
-          height: '100%',
-          width: '100%',
           display: 'flex',
-          textAlign: 'center',
-          alignItems: 'center',
-          justifyContent: 'center',
           flexDirection: 'column',
           flexWrap: 'nowrap',
+          height: '100%',
+          justifyContent: 'center',
+          textAlign: 'center',
+          width: '100%',
         }}
       >
         <div
           style={{
+            color: 'white',
             fontSize: 60,
             fontStyle: 'normal',
             letterSpacing: '-0.025em',
-            color: 'white',
+            lineHeight: 1.4,
             marginTop: 30,
             padding: '0 120px',
-            lineHeight: 1.4,
             whiteSpace: 'pre-wrap',
           }}
         >

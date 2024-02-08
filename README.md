@@ -1,3 +1,3 @@
-# 𝑭𝒓𝒂𝒎𝒆work
+# 𝑭𝒂𝒓𝒄
 
-A Framework for Farcaster Frames.
+The Framework for Farcaster Frames.
