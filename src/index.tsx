@@ -9,7 +9,7 @@ import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
 import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
-import { type JSXNode } from 'hono/jsx'
+import type { JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
 
 import {
@@ -236,11 +236,13 @@ export class Framework extends Hono {
 
 export type ButtonProps = {
   children: string
+  index?: number
 }
 
 // TODO: `fc:frame:button:$idx:action` and `fc:frame:button:$idx:target`
-export function Button({ children }: ButtonProps) {
-  return <meta property="fc:frame:button" content={children} />
+Button.__type = 'button'
+export function Button({ children, index = 0 }: ButtonProps) {
+  return <meta property={`fc:frame:button:${index}`} content={children} />
 }
 
 type FramePreviewProps = {
@@ -363,32 +365,29 @@ async function getFrameContext(ctx: Context): Promise<FrameContext> {
   }
 }
 
-function parseIntents(intents_: JSX.Element) {
+async function parseIntents(intents_: JSX.Element) {
   const intents = intents_ as unknown as JSXNode
   const counter: Counter = {
     button: 1,
   }
 
-  if (typeof intents.children[0] === 'object')
+  if (typeof intents.children[0] === 'object') {
     return Object.assign(intents, {
       children: intents.children.map((e) => parseIntent(e as JSXNode, counter)),
     })
+  }
   return parseIntent(intents, counter)
 }
 
 function parseIntent(node: JSXNode, counter: Counter) {
-  const intent = (
-    typeof node.tag === 'function' ? node.tag({}) : node
-  ) as JSXNode
+  const props = (() => {
+    if ((node.tag as any).__type === 'button')
+      return { children: node.children, index: counter.button++ }
+    // TODO: handle text input
+    return {}
+  })()
 
-  const props = intent.props || {}
-
-  if (props.property === 'fc:frame:button') {
-    props.property = `fc:frame:button:${counter.button++}`
-    props.content = node.children
-  }
-
-  return Object.assign(intent, { props })
+  return (typeof node.tag === 'function' ? node.tag(props) : node) as JSXNode
 }
 
 function parseUrl(path: string) {
