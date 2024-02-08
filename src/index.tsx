@@ -14,8 +14,8 @@ import { jsxRenderer } from 'hono/jsx-renderer'
 
 import {
   type Frame,
-  type FrameImageAspectRatio,
   type FrameButton,
+  type FrameImageAspectRatio,
   type FrameMetaTagPropertyName,
   type FrameVersion,
   type TrustedData,
