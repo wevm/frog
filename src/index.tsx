@@ -14,35 +14,16 @@ import { jsxRenderer } from 'hono/jsx-renderer'
 
 import { Preview, previewStyles } from './preview.js'
 import {
+  type FarcMetaTagPropertyName,
   type Frame,
   type FrameButton,
+  type FrameContext,
   type FrameData,
   type FrameImageAspectRatio,
   type FrameMetaTagPropertyName,
   type FrameVersion,
-  type TrustedData,
-  type UntrustedData,
+  type PreviousFrameContext,
 } from './types.js'
-
-type FrameContext = {
-  buttonIndex?: number
-  buttonValue?: string
-  inputText?: string
-  /**
-   * Status of the frame in the frame lifecycle.
-   * - `initial` - The frame has not yet been interacted with.
-   * - `response` - The frame has been interacted with (user presses button).
-   */
-  status: 'initial' | 'response'
-  trustedData?: TrustedData | undefined
-  untrustedData?: UntrustedData | undefined
-  url: Context['req']['url']
-}
-
-type PreviousFrameContext = FrameContext & {
-  /** Intents from the previous frame. */
-  intents: JSXNode[]
-}
 
 type Intent = JSX.Element | false | null | undefined
 type Intents = Intent | Intent[]
@@ -105,6 +86,12 @@ export class Farc extends Hono {
               )}?previousContext=${serializedPreviousContext}`}
             />
             {parsedIntents}
+
+            <meta property="farc:context" content={serializedContext} />
+            <meta
+              property="farc:prev_context"
+              content={serializedPreviousContext}
+            />
           </head>
         </html>,
       )
@@ -126,11 +113,12 @@ export class Farc extends Hono {
     this.use(
       `${toBaseUrl(path)}/preview`,
       jsxRenderer(
-        ({ children }) => {
+        (props) => {
+          const { children } = props
           return (
             <html lang="en">
               <head>
-                <title>𝑭𝒂𝒓𝒄 Preview</title>
+                <title>𝑭𝒂𝒓𝒄 Preview "{path}"</title>
                 <style>{previewStyles()}</style>
               </head>
               <body style={{ padding: '1rem' }}>{children}</body>
@@ -145,7 +133,8 @@ export class Farc extends Hono {
         const response = await fetch(baseUrl)
         const text = await response.text()
         const frame = htmlToFrame(text)
-        return c.render(<Preview baseUrl={baseUrl} frame={frame} />)
+        const state = htmlToState(text)
+        return c.render(<Preview {...{ baseUrl, frame, state }} />)
       })
       .post(async (c) => {
         const baseUrl = c.req.url.replace('/preview', '')
@@ -256,8 +245,9 @@ export class Farc extends Hono {
         const text = await response.text()
         // TODO: handle redirects
         const frame = htmlToFrame(text)
+        const state = htmlToState(text)
 
-        return c.render(<Preview baseUrl={baseUrl} frame={frame} />)
+        return c.render(<Preview {...{ baseUrl, frame, state }} />)
       })
 
     // TODO: fix this – does it work?
@@ -305,7 +295,7 @@ export function TextInput({ placeholder }: TextInputProps) {
 
 function getIntentState(
   frameData: FrameData | undefined,
-  intents: JSXNode[] | null,
+  intents: readonly JSXNode[] | null,
 ) {
   const { buttonIndex, inputText } = frameData || {}
   const state = { buttonIndex, buttonValue: undefined, inputText, reset: false }
@@ -405,12 +395,12 @@ function serializeJson(data: unknown = {}) {
   return encodeURIComponent(JSON.stringify(data))
 }
 
-export function htmlToMetaTags(html: string) {
+export function htmlToMetaTags(html: string, selector: string) {
   const window = new Window()
   window.document.write(html)
   const document = window.document
   return document.querySelectorAll(
-    'meta',
+    selector,
   ) as unknown as readonly HTMLMetaElement[]
 }
 
@@ -535,8 +525,34 @@ export function validateFrameButtons(buttons: readonly FrameButton[]) {
   return { buttonsAreOutOfOrder, invalidButtons }
 }
 
+function htmlToState(html: string) {
+  const metaTags = htmlToMetaTags(html, 'meta[property^="farc:"]')
+
+  const properties: Partial<Record<FarcMetaTagPropertyName, string>> = {}
+  for (const metaTag of metaTags) {
+    const property = metaTag.getAttribute(
+      'property',
+    ) as FarcMetaTagPropertyName | null
+    if (!property) continue
+
+    const content = metaTag.getAttribute('content') ?? ''
+    properties[property] = content
+  }
+
+  console.log(properties)
+  return {
+    context: deserializeJson<FrameContext>(properties['farc:context']),
+    previousContext: deserializeJson<PreviousFrameContext>(
+      properties['farc:prev_context'],
+    ),
+  }
+}
+
 function htmlToFrame(html: string) {
-  const metaTags = htmlToMetaTags(html)
+  const metaTags = htmlToMetaTags(
+    html,
+    'meta[property^="fc:"], meta[property^="og:"]',
+  )
   const properties = parseFrameProperties(metaTags)
   const buttons = parseFrameButtons(metaTags)
 

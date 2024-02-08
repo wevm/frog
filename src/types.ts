@@ -1,5 +1,28 @@
 // TODO: TSDoc
 
+import { type Context } from 'hono'
+import { type JSXNode } from 'hono/jsx'
+
+export type FrameContext = {
+  buttonIndex?: number
+  buttonValue?: string
+  inputText?: string
+  /**
+   * Status of the frame in the frame lifecycle.
+   * - `initial` - The frame has not yet been interacted with.
+   * - `response` - The frame has been interacted with (user presses button).
+   */
+  status: 'initial' | 'response'
+  trustedData?: TrustedData | undefined
+  untrustedData?: UntrustedData | undefined
+  url: Context['req']['url']
+}
+
+export type PreviousFrameContext = FrameContext & {
+  /** Intents from the previous frame. */
+  intents: readonly JSXNode[]
+}
+
 export type TrustedData = {
   messageBytes: string
 }
@@ -78,5 +101,7 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:action`
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
+
+export type FarcMetaTagPropertyName = 'farc:context' | 'farc:prev_context'
 
 type Pretty<type> = { [key in keyof type]: type[key] } & unknown

@@ -2,15 +2,21 @@ import {
   type Frame as FrameType,
   type FrameButton,
   type FrameInput,
+  type FrameContext,
+  type PreviousFrameContext,
 } from './types.js'
 
 export type PreviewProps = {
   baseUrl: string
   frame: FrameType
+  state: {
+    context: FrameContext
+    previousContext?: PreviousFrameContext | undefined
+  }
 }
 
 export function Preview(props: PreviewProps) {
-  const { baseUrl, frame } = props
+  const { baseUrl, frame, state } = props
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', fontSize: '0.75rem', gap: '0.5rem' }}>
@@ -35,7 +41,7 @@ export function Preview(props: PreviewProps) {
       </div>
 
       <Frame {...{ ...frame, baseUrl }} />
-      <Devtools {...{ frame }} />
+      <Devtools {...{ frame, state }} />
     </div>
   )
 }
@@ -269,10 +275,14 @@ const redirectIcon = (
 
 type DevtoolsProps = {
   frame: FrameType
+  state: {
+    context: FrameContext
+    previousContext?: PreviousFrameContext | undefined
+  }
 }
 
 async function Devtools(props: DevtoolsProps) {
-  const { frame } = props
+  const { frame, state } = props
   const {
     debug: {
       buttons: _b,
@@ -290,6 +300,10 @@ async function Devtools(props: DevtoolsProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <pre style={{ fontFamily: 'monospace' }}>
+        {JSON.stringify(state, null, 2)}
+      </pre>
+
       <pre style={{ fontFamily: 'monospace' }}>
         {JSON.stringify(rest, null, 2)}
       </pre>
