@@ -4,7 +4,9 @@ export type TrustedData = {
   messageBytes: string
 }
 
-export type UntrustedData = {
+export type UntrustedData = FrameData
+
+export type FrameData = {
   buttonIndex?: FrameButton['index'] | undefined
   castId: { fid: number; hash: string }
   fid: number

@@ -16,6 +16,7 @@ import { Preview, previewStyles } from './preview.js'
 import {
   type Frame,
   type FrameButton,
+  type FrameData,
   type FrameImageAspectRatio,
   type FrameMetaTagPropertyName,
   type FrameVersion,
@@ -24,6 +25,9 @@ import {
 } from './types.js'
 
 type FrameContext = {
+  buttonIndex?: number
+  buttonValue?: string
+  inputText?: string
   /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.
@@ -33,6 +37,11 @@ type FrameContext = {
   trustedData?: TrustedData | undefined
   untrustedData?: UntrustedData | undefined
   url: Context['req']['url']
+}
+
+type PreviousFrameContext = FrameContext & {
+  /** Intents from the previous frame. */
+  intents: JSXNode[]
 }
 
 type Intent = JSX.Element | false | null | undefined
@@ -48,7 +57,7 @@ export class Farc extends Hono {
     path: string,
     handler: (
       context: FrameContext,
-      previousContext?: FrameContext | undefined,
+      previousContext?: PreviousFrameContext | undefined,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
@@ -56,13 +65,18 @@ export class Farc extends Hono {
       const query = c.req.query()
       const previousContext =
         query.previousContext && query.previousContext !== 'undefined'
-          ? deserializeJson<FrameContext>(query.previousContext)
+          ? deserializeJson<PreviousFrameContext>(query.previousContext)
           : undefined
+      const context = await getFrameContext(c, previousContext)
 
-      const context = await getFrameContext(c)
       const { intents } = await handler(context, previousContext)
+      const parsedIntents = intents ? parseIntents(intents) : null
 
       const serializedContext = serializeJson(context)
+      const serializedPreviousContext = serializeJson({
+        ...context,
+        intents: parsedIntents,
+      })
 
       return c.render(
         <html lang="en">
@@ -88,9 +102,9 @@ export class Farc extends Hono {
               property="fc:frame:post_url"
               content={`${toBaseUrl(
                 context.url,
-              )}?previousContext=${serializedContext}`}
+              )}?previousContext=${serializedPreviousContext}`}
             />
-            {intents ? parseIntents(intents) : null}
+            {parsedIntents}
           </head>
         </html>,
       )
@@ -102,7 +116,7 @@ export class Farc extends Hono {
       const parsedContext = deserializeJson<FrameContext>(query.context)
       const parsedPreviousContext =
         query.previousContext && query.previousContext !== 'undefined'
-          ? deserializeJson<FrameContext>(query.previousContext)
+          ? deserializeJson<PreviousFrameContext>(query.previousContext)
           : undefined
       const { image } = await handler(parsedContext, parsedPreviousContext)
       return new ImageResponse(image)
@@ -259,16 +273,18 @@ export class Farc extends Hono {
 export type ButtonProps = {
   children: string
   index?: number | undefined
+  type?: 'reset'
   value?: string | undefined
 }
 
 // TODO: `fc:frame:button:$idx:action` and `fc:frame:button:$idx:target`
 Button.__type = 'button'
-export function Button({ children, index = 0, value }: ButtonProps) {
+export function Button({ children, index = 0, type, value }: ButtonProps) {
   return (
     <meta
       property={`fc:frame:button:${index}`}
       content={children}
+      data-type={type}
       data-value={value}
     />
   )
@@ -287,14 +303,51 @@ export function TextInput({ placeholder }: TextInputProps) {
 // Utilities
 ////////////////////////////////////////////////////////////////////////
 
+function getIntentState(
+  frameData: FrameData | undefined,
+  intents: JSXNode[] | null,
+) {
+  const { buttonIndex, inputText } = frameData || {}
+  const state = { buttonIndex, buttonValue: undefined, inputText, reset: false }
+  if (!intents) return state
+  if (buttonIndex) {
+    const buttonIntents = intents.filter((intent) =>
+      intent?.props.property.includes('fc:frame:button'),
+    )
+    const intent = buttonIntents[buttonIndex - 1]
+    state.buttonValue = intent.props['data-value']
+    if (intent.props['data-type'] === 'reset') state.reset = true
+  }
+  return state
+}
+
 type Counter = { button: number }
 
-async function getFrameContext(ctx: Context): Promise<FrameContext> {
+async function getFrameContext(
+  ctx: Context,
+  previousFrameContext: PreviousFrameContext | undefined,
+): Promise<FrameContext> {
   const { req } = ctx
   const { trustedData, untrustedData } =
     (await req.json().catch(() => {})) || {}
+
+  const { buttonIndex, buttonValue, inputText, reset } = getIntentState(
+    // TODO: derive from untrusted data.
+    untrustedData,
+    previousFrameContext?.intents || [],
+  )
+
+  const status = (() => {
+    if (reset) return 'initial'
+    if (req.method === 'POST') return 'response'
+    return 'initial'
+  })()
+
   return {
-    status: req.method === 'POST' ? 'response' : 'initial',
+    buttonIndex,
+    buttonValue,
+    inputText,
+    status,
     trustedData,
     untrustedData,
     url: toBaseUrl(req.url),
@@ -302,23 +355,29 @@ async function getFrameContext(ctx: Context): Promise<FrameContext> {
 }
 
 function parseIntents(intents_: Intents) {
-  const intents = intents_ as unknown as JSXNode
+  const nodes = intents_ as unknown as JSXNode | JSXNode[]
   const counter: Counter = {
     button: 1,
   }
 
-  if (Array.isArray(intents))
-    return intents.map((e) => parseIntent(e as JSXNode, counter))
-  if (typeof intents.children[0] === 'object')
-    return Object.assign(intents, {
-      children: intents.children.map((e) => parseIntent(e as JSXNode, counter)),
-    })
-  return parseIntent(intents, counter)
+  const intents = (() => {
+    if (Array.isArray(nodes))
+      return nodes.map((e) => parseIntent(e as JSXNode, counter))
+    if (typeof nodes.children[0] === 'object')
+      return Object.assign(nodes, {
+        children: nodes.children.map((e) => parseIntent(e as JSXNode, counter)),
+      })
+    return parseIntent(nodes, counter)
+  })()
+
+  return Array.isArray(intents) ? intents : [intents]
 }
 
 function parseIntent(node_: JSXNode, counter: Counter) {
   // Check if the node is a "falsy" node (ie. `null`, `undefined`, `false`, etc).
-  const node = (!node_ ? { tag() {} } : node_) as JSXNode
+  const node = (
+    !node_ ? { children: [], props: {}, tag() {} } : node_
+  ) as JSXNode
 
   const props = (() => {
     if ((node.tag as any).__type === 'button')
@@ -338,6 +397,7 @@ function toBaseUrl(path_: string) {
 }
 
 function deserializeJson<returnType>(data = '{}'): returnType {
+  if (data === 'undefined') return {} as returnType
   return JSON.parse(decodeURIComponent(data))
 }
 

@@ -6,11 +6,9 @@ import { Button, Farc, TextInput } from 'farc'
 
 const app = new Farc()
 
-app.frame('/', (context, previousContext) => {
-  console.log(context, previousContext)
-
-  const { status, untrustedData } = context
-  const fruit = untrustedData?.inputText
+app.frame('/', (context) => {
+  const { buttonValue, inputText, status } = context
+  const fruit = inputText || buttonValue
   return {
     image: (
       <div
@@ -46,10 +44,11 @@ app.frame('/', (context, previousContext) => {
       </div>
     ),
     intents: [
-      <Button>Apples</Button>,
-      <Button>Oranges</Button>,
-      <Button>Bananas</Button>,
       <TextInput placeholder="Enter custom fruit..." />,
+      <Button value="apples">Apples</Button>,
+      <Button value="oranges">Oranges</Button>,
+      <Button value="bananas">Bananas</Button>,
+      status === 'response' && <Button type="reset">Reset</Button>,
     ],
   }
 })
