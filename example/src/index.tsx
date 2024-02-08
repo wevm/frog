@@ -48,7 +48,32 @@ app.frame('/', (context) => {
       <Button value="apples">Apples</Button>,
       <Button value="oranges">Oranges</Button>,
       <Button value="bananas">Bananas</Button>,
-      status === 'response' && <Button type="reset">Reset</Button>,
+      status === 'response' && <Button.Reset>Reset</Button.Reset>,
+    ],
+  }
+})
+
+app.frame('/buttons', ({ buttonValue }) => {
+  return {
+    image: (
+      <div
+        style={{
+          backgroundColor: 'red',
+          fontSize: 60,
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {buttonValue ?? ''}
+      </div>
+    ),
+    intents: [
+      <Button value="apples">Apples</Button>,
+      <Button.Link href="https://www.google.com">Google</Button.Link>,
+      <Button.Mint target="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df">
+        Mint
+      </Button.Mint>,
+      <Button.Reset>Reset</Button.Reset>,
     ],
   }
 })
