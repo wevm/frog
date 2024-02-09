@@ -20,6 +20,7 @@ jobs:
       - name: Setup .npmrc file
         uses: actions/setup-node@v4
         with:
+          node-version: 'latest'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Set version
