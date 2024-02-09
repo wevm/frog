@@ -68,14 +68,15 @@ function Frame(props: FrameProps) {
     postUrl,
     title,
   } = props
+  const hasIntents = Boolean(input || buttons?.length)
   return (
     <div class="w-full" style={{ maxWidth: '512px' }}>
       <div class="rounded-md relative w-full">
-        <Img {...{ imageAspectRatio, imageUrl, title }} />
+        <Img {...{ hasIntents, imageAspectRatio, imageUrl, title }} />
 
         <input name="action" type="hidden" value={postUrl} />
 
-        {Boolean(input || buttons?.length) && (
+        {hasIntents && (
           <div class="flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
             {input && <Input {...input} />}
 
@@ -98,18 +99,26 @@ function Frame(props: FrameProps) {
 }
 
 type ImgProps = {
+  hasIntents?: boolean | undefined
   imageAspectRatio: string
   imageUrl: string
   title?: string | undefined
 }
 
 function Img(props: ImgProps) {
-  const { imageAspectRatio, imageUrl, title = 'Farcaster frame' } = props
+  const {
+    hasIntents,
+    imageAspectRatio,
+    imageUrl,
+    title = 'Farcaster frame',
+  } = props
   return (
     <img
       alt={title}
       src={imageUrl}
-      class="rounded-t-lg border object-cover w-full"
+      class={`${
+        hasIntents ? 'rounded-t-lg ' : 'rounded-lg '
+      }border object-cover w-full`}
       style={{
         aspectRatio: imageAspectRatio.replace(':', '/'),
         maxHeight: '526px',
@@ -249,6 +258,7 @@ async function Inspector(props: InspectorProps) {
       ...debug
     } = {},
     title: _t,
+    buttons,
     ...rest
   } = frame
 
@@ -266,7 +276,7 @@ async function Inspector(props: InspectorProps) {
         lang: 'json',
         themes,
       }),
-      codeToHtml(JSON.stringify(rest, null, 2), {
+      codeToHtml(JSON.stringify({ ...rest, buttons }, null, 2), {
         lang: 'json',
         themes,
       }),
@@ -280,61 +290,67 @@ async function Inspector(props: InspectorProps) {
       }),
     ])
 
-  const headerClass = 'text-fg2 text-sm font-bold p-2 pb-0'
   return (
-    <div class="flex flex-col gap-2 max-w-full">
-      <div class="border rounded-lg grid grid-cols-2 max-w-full">
-        <div>
-          <div class={headerClass}>Current Context</div>
-          <div
-            dangerouslySetInnerHTML={{ __html: contextHtml }}
-            class="p-2 scrollbars"
-            style={{ maxHeight: '48vh' }}
-          />
-        </div>
-        <div class="border-l">
-          <div class={headerClass}>Previous Context</div>
-          <div
-            dangerouslySetInnerHTML={{ __html: previousContextHtml }}
-            class="p-2 scrollbars"
-            style={{ maxHeight: '48vh' }}
-          />
-        </div>
+    <div class="border divide-y rounded-lg flex flex-col max-w-full">
+      <div class="divide-x grid grid-cols-2 max-w-full">
+        <Panel
+          {...{
+            title: 'Current Context',
+            content: contextHtml,
+          }}
+        />
+        <Panel
+          {...{
+            title: 'Previous Context',
+            content: previousContextHtml,
+          }}
+        />
       </div>
 
-      <div class="rounded-lg border max-w-full">
-        <div class="flex flex-col gap-2 scrollbars">
-          <div class="grid gap-2.5 grid-cols-2">
-            <div>
-              <div class={headerClass}>Frame</div>
-              <div
-                class="p-2"
-                dangerouslySetInnerHTML={{ __html: frameHtml }}
-              />
-            </div>
-
-            {debug && (
-              <div>
-                <div class={headerClass}>Debug</div>
-                <div
-                  class="p-2"
-                  dangerouslySetInnerHTML={{ __html: debugHtml }}
-                />
-              </div>
-            )}
-          </div>
-
-          {htmlTags && (
-            <div>
-              <div class={headerClass}>Meta Tags</div>
-              <div
-                class="p-2"
-                dangerouslySetInnerHTML={{ __html: metaTagsHtml }}
-              />
-            </div>
-          )}
-        </div>
+      <div class="divide-x grid grid-cols-2 max-w-full">
+        <Panel
+          {...{
+            title: 'Frame Data',
+            content: frameHtml,
+          }}
+        />
+        <Panel
+          {...{
+            title: 'Debug',
+            content: debugHtml,
+          }}
+        />
       </div>
+
+      {htmlTags && (
+        <div class="max-w-full">
+          <Panel
+            {...{
+              title: 'Meta Tags',
+              content: metaTagsHtml,
+            }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+type PanelProps = {
+  content: string
+  title: string
+}
+
+function Panel(props: PanelProps) {
+  const { content: __html, title } = props
+  return (
+    <div>
+      <div class="text-fg2 text-sm font-bold p-2 pb-0">{title}</div>
+      <div
+        dangerouslySetInnerHTML={{ __html }}
+        class="h-full p-2 scrollbars"
+        style={{ maxHeight: '47vh' }}
+      />
     </div>
   )
 }
@@ -370,9 +386,9 @@ function Footer() {
 export function DevStyles() {
   const styles = `
     :root {
-      --bg: #181818;
+      --bg: #1A1A19;
       --bn: #262626;
-      --br: #404040;
+      --br: #282C2E;
       --fg: rgba(255, 255, 255, 0.87);
       --fg2: rgba(255, 255, 255, 0.7);
     }
@@ -534,9 +550,16 @@ export function DevStyles() {
     /** Utilities **/
 
     .border { border-width: 1px; }
-    .border-l { border-left-width: 1px; }
     .border-t-0 { border-top-width: 0; }
     .cursor-pointer { cursor: pointer; }
+    .divide-x > * + * {
+      border-right-width: 0;
+      border-left-width: 1px;
+    }
+    .divide-y > * + * {
+      border-top-width: 1px;
+      border-bottom-width: 0px;
+    }
     .font-bold { font-weight: 700; }
     .font-mono { font-family: monospace; }
     .flex { display: flex; }
@@ -550,6 +573,7 @@ export function DevStyles() {
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .h-full { height: 100%; }
     .h-10 { height: 2.5rem; }
     .items-center { align-items: center; }
     .justify-center { justify-content: center; }
@@ -587,5 +611,5 @@ export function DevStyles() {
       scrollbar-width: thin;
     }
   `
-  return <style>{styles}</style>
+  return <style dangerouslySetInnerHTML={{ __html: styles }} />
 }

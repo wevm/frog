@@ -64,7 +64,8 @@ app.frame('/action', ({ buttonValue, inputText }) => {
     image: (
       <div
         style={{
-          backgroundColor: 'red',
+          backgroundColor: '#1E1E4C',
+          color: 'white',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -90,7 +91,8 @@ app.frame('/buttons', ({ buttonValue }) => {
     image: (
       <div
         style={{
-          backgroundColor: 'red',
+          backgroundColor: '#C0ff33',
+          display: 'flex',
           fontSize: 60,
           width: '100%',
           height: '100%',
@@ -114,7 +116,7 @@ app.frame('/buttons', ({ buttonValue }) => {
 app.frame('/no-intents', () => {
   return {
     image: (
-      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+      <div style={{ backgroundColor: 'green', width: '100%', height: '100%' }}>
         foo
       </div>
     ),
