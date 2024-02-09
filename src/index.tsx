@@ -11,7 +11,12 @@ import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import type { Env, Schema } from 'hono/types'
 import { type HtmlEscapedString } from 'hono/utils/html'
+import {
+  compressToEncodedURIComponent,
+  decompressFromEncodedURIComponent,
+} from 'lz-string'
 
 import { Preview, previewStyles } from './preview.js'
 import {
@@ -33,22 +38,24 @@ type FrameHandlerReturnType = {
   image: JSX.Element
   intents?: Intents | undefined
 }
-
-export class Farc extends Hono {
-  frame(
-    path: string,
+export class Farc<
+  E extends Env = Env,
+  S extends Schema = {},
+  BasePath extends string = '/',
+> extends Hono<E, S, BasePath> {
+  frame<P extends string>(
+    path: P,
     handler: (
-      context: FrameContext,
+      context: FrameContext<P>,
       previousContext?: PreviousFrameContext | undefined,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
     this.use(path, async (c) => {
       const query = c.req.query()
-      const previousContext =
-        query.previousContext && query.previousContext !== 'undefined'
-          ? deserializeJson<PreviousFrameContext>(query.previousContext)
-          : undefined
+      const previousContext = query.previousContext
+        ? deserializeJson<PreviousFrameContext>(query.previousContext)
+        : undefined
       const context = await getFrameContext(c, previousContext)
 
       const { intents } = await handler(context, previousContext)
@@ -60,31 +67,30 @@ export class Farc extends Hono {
         intents: parsedIntents,
       })
 
+      const ogSearch = new URLSearchParams()
+      if (query.previousContext)
+        ogSearch.set('previousContext', query.previousContext)
+      if (serializedContext) ogSearch.set('context', serializedContext)
+
+      const postSearch = new URLSearchParams()
+      if (serializedPreviousContext)
+        postSearch.set('previousContext', serializedPreviousContext)
+
       return c.render(
         <html lang="en">
           <head>
             <meta property="fc:frame" content="vNext" />
             <meta
               property="fc:frame:image"
-              content={`${toBaseUrl(
-                context.url,
-              )}/image?context=${serializedContext}&previousContext=${
-                query.previousContext
-              }`}
+              content={`${toBaseUrl(context.url)}/image?${ogSearch.toString()}`}
             />
             <meta
               property="og:image"
-              content={`${toBaseUrl(
-                context.url,
-              )}/image?context=${serializedContext}&previousContext=${
-                query.previousContext
-              }`}
+              content={`${toBaseUrl(context.url)}/image?${ogSearch.toString()}`}
             />
             <meta
               property="fc:frame:post_url"
-              content={`${toBaseUrl(
-                context.url,
-              )}?previousContext=${serializedPreviousContext}`}
+              content={`${toBaseUrl(context.url)}?${postSearch}`}
             />
             {parsedIntents}
 
@@ -104,11 +110,13 @@ export class Farc extends Hono {
     this.get(`${toBaseUrl(path)}/image`, async (c) => {
       const query = c.req.query()
       const parsedContext = deserializeJson<FrameContext>(query.context)
-      const parsedPreviousContext =
-        query.previousContext && query.previousContext !== 'undefined'
-          ? deserializeJson<PreviousFrameContext>(query.previousContext)
-          : undefined
-      const { image } = await handler(parsedContext, parsedPreviousContext)
+      const parsedPreviousContext = query.previousContext
+        ? deserializeJson<PreviousFrameContext>(query.previousContext)
+        : undefined
+      const { image } = await handler(
+        { ...parsedContext, request: c.req },
+        parsedPreviousContext,
+      )
       return new ImageResponse(image)
     })
 
@@ -401,6 +409,7 @@ async function getFrameContext(
     buttonIndex,
     buttonValue,
     inputText,
+    request: req,
     status,
     trustedData,
     untrustedData,
@@ -450,13 +459,13 @@ function toBaseUrl(path_: string) {
   return path
 }
 
-function deserializeJson<returnType>(data = '{}'): returnType {
+function deserializeJson<returnType>(data = ''): returnType {
   if (data === 'undefined') return {} as returnType
-  return JSON.parse(decodeURIComponent(data))
+  return JSON.parse(decompressFromEncodedURIComponent(data))
 }
 
 function serializeJson(data: unknown = {}) {
-  return encodeURIComponent(JSON.stringify(data))
+  return compressToEncodedURIComponent(JSON.stringify(data))
 }
 
 export function htmlToMetaTags(html: string, selector: string) {

@@ -1,12 +1,13 @@
 // TODO: TSDoc
 
-import { type Context } from 'hono'
+import { type Context, type Env } from 'hono'
 import { type JSXNode } from 'hono/jsx'
 
-export type FrameContext = {
+export type FrameContext<P extends string = string> = {
   buttonIndex?: number
   buttonValue?: string
   inputText?: string
+  request: Context<Env, P>['req']
   /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.

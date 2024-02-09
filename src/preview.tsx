@@ -63,7 +63,7 @@ function Frame(props: FrameProps) {
   return (
     <div style={{ maxWidth: '512px', width: '100%' }}>
       <form
-        action="/preview"
+        action="preview"
         method="post"
         style={{ borderRadius: '0.5rem', position: 'relative', width: '100%' }}
       >
