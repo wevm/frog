@@ -14,7 +14,10 @@ app.frame('/', (context) => {
       <div
         style={{
           alignItems: 'center',
-          background: 'linear-gradient(to right, #432889, #17101F)',
+          background:
+            status === 'response'
+              ? 'linear-gradient(to right, #432889, #17101F)'
+              : 'black',
           backgroundSize: '100% 100%',
           display: 'flex',
           flexDirection: 'column',

@@ -11,7 +11,7 @@ import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
-import type { HtmlEscapedString } from 'hono/utils/html'
+import { type HtmlEscapedString } from 'hono/utils/html'
 
 import { Preview, previewStyles } from './preview.js'
 import {
@@ -56,7 +56,7 @@ export class Farc extends Hono {
 
       const serializedContext = serializeJson(context)
       const serializedPreviousContext = serializeJson({
-        ...context,
+        ...previousContext,
         intents: parsedIntents,
       })
 
@@ -89,10 +89,12 @@ export class Farc extends Hono {
             {parsedIntents}
 
             <meta property="farc:context" content={serializedContext} />
-            <meta
-              property="farc:prev_context"
-              content={serializedPreviousContext}
-            />
+            {previousContext && (
+              <meta
+                property="farc:prev_context"
+                content={serializedPreviousContext}
+              />
+            )}
           </head>
         </html>,
       )

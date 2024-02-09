@@ -299,28 +299,92 @@ async function Devtools(props: DevtoolsProps) {
   } = frame
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-      <pre style={{ fontFamily: 'monospace' }}>
-        {JSON.stringify(state, null, 2)}
-      </pre>
-
-      <pre style={{ fontFamily: 'monospace' }}>
-        {JSON.stringify(rest, null, 2)}
-      </pre>
-
-      {htmlTags && (
-        <pre style={{ fontFamily: 'monospace' }}>
-          {htmlTags.map((x) => (
-            <code style={{ display: 'grid' }}>{x}</code>
-          ))}
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem',
+      }}
+    >
+      <div
+        style={{
+          borderWidth: '1px',
+          borderRadius: '0.5rem',
+          display: 'grid',
+          gap: '10px',
+          gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
+          maxWidth: '85vw',
+          maxHeight: '48vh',
+        }}
+      >
+        <pre
+          style={{
+            fontFamily: 'monospace',
+            overflow: 'auto',
+            padding: '0.5rem',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'sans-serif',
+              fontSize: '0.85rem',
+              fontWeight: 'bold',
+            }}
+          >
+            Current
+          </div>
+          {JSON.stringify(state.context, null, 2)}
         </pre>
-      )}
-
-      {debug && (
-        <pre style={{ fontFamily: 'monospace' }}>
-          {JSON.stringify(debug, null, 2)}
+        <pre
+          style={{
+            fontFamily: 'monospace',
+            overflow: 'auto',
+            borderLeftWidth: '1px',
+            padding: '0.5rem',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'sans-serif',
+              fontSize: '0.85rem',
+              fontWeight: 'bold',
+            }}
+          >
+            Previous
+          </div>
+          {JSON.stringify(state.previousContext, null, 2)}
         </pre>
-      )}
+      </div>
+
+      <div
+        style={{
+          borderRadius: '0.5rem',
+          borderWidth: '1px',
+          display: 'flex',
+          flexDirection: 'column',
+          maxWidth: '85vw',
+          overflow: 'auto',
+          padding: '0.5rem',
+        }}
+      >
+        <pre style={{ fontFamily: 'monospace' }}>
+          {JSON.stringify(rest, null, 2)}
+        </pre>
+
+        {htmlTags && (
+          <pre style={{ fontFamily: 'monospace' }}>
+            {htmlTags.map((x) => (
+              <code style={{ display: 'grid' }}>{x}</code>
+            ))}
+          </pre>
+        )}
+
+        {debug && (
+          <pre style={{ fontFamily: 'monospace' }}>
+            {JSON.stringify(debug, null, 2)}
+          </pre>
+        )}
+      </div>
     </div>
   )
 }
