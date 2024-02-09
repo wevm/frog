@@ -5,7 +5,7 @@ import {
   parseFrameButtons,
   parseFrameProperties,
   validateFrameButtons,
-} from './index.tsx'
+} from './utils.js'
 
 const html = `
   <meta property="fc:frame" content="vNext">

@@ -1,12 +1,7 @@
 import { codeToHtml } from 'shiki'
 
-import {
-  type Frame as FrameType,
-  type FrameButton,
-  type FrameContext,
-  type FrameInput,
-  type PreviousFrameContext,
-} from './types.js'
+import type { FrameContext, PreviousFrameContext } from '../types.js'
+import type { Frame as FrameType, FrameButton, FrameInput } from './types.js'
 
 export type PreviewProps = {
   baseUrl: string

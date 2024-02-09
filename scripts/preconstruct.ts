@@ -56,7 +56,7 @@ for (const packagePath of packagePaths) {
     // Skip `package.json` exports
     if (/package\.json$/.test(key)) continue
 
-    let entries: string[][]
+    let entries: any
     if (typeof exports === 'string')
       entries = [
         ['default', exports],
@@ -74,8 +74,8 @@ for (const packagePath of packagePaths) {
         path.dirname(value).replace(distDirName, ''),
       )
       let srcFileName: string
-      if (key === '.') srcFileName = 'index.tsx'
-      else srcFileName = path.basename(`${key}.tsx`)
+      if (key === '.') srcFileName = 'index.ts'
+      else srcFileName = path.basename(`${key}.ts`)
       const srcFilePath = path.resolve(srcDir, srcFileName)
 
       const distDir = path.resolve(dir, path.dirname(value))
