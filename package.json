@@ -11,7 +11,7 @@
     "clean": "rimraf src/_lib src/tsconfig.build.tsbuildinfo",
     "format": "biome format . --write",
     "lint": "biome check . --apply",
-    "preconstruct": "bun run scripts/preconstruct.ts",
+    "preconstruct": "bun run .scripts/preconstruct.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
