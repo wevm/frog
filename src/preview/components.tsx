@@ -358,7 +358,7 @@ async function Devtools(props: DevtoolsProps) {
         }}
       >
         <div>
-          <div style={headerStyle}>Current</div>
+          <div style={headerStyle}>Current Context</div>
           <div
             dangerouslySetInnerHTML={{ __html: contextHtml }}
             style={{
@@ -369,7 +369,7 @@ async function Devtools(props: DevtoolsProps) {
           />
         </div>
         <div style={{ borderLeftWidth: '1px' }}>
-          <div style={headerStyle}>Previous</div>
+          <div style={headerStyle}>Previous Context</div>
           <div
             dangerouslySetInnerHTML={{ __html: previousContextHtml }}
             style={{ ...overflowStyle, maxHeight: '48vh', padding: '0.5rem' }}

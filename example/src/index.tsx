@@ -109,4 +109,5 @@ app.frame('/falsy-intents', () => {
   }
 })
 
-Bun.serve(app)
+const server = Bun.serve(app)
+console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/preview`)
