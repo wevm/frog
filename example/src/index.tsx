@@ -10,6 +10,7 @@ app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context
   const fruit = inputText || buttonValue
   return {
+    action: '/action',
     image: (
       <div
         style={{
@@ -52,6 +53,34 @@ app.frame('/', (context) => {
       <Button value="oranges">Oranges</Button>,
       <Button value="bananas">Bananas</Button>,
       status === 'response' && <Button.Reset>Reset</Button.Reset>,
+    ],
+  }
+})
+
+app.frame('/action', ({ buttonValue, inputText }) => {
+  const fruit = inputText || buttonValue || ''
+  return {
+    action: '/',
+    image: (
+      <div
+        style={{
+          backgroundColor: 'red',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 60,
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        Yuck! {fruit}! Enter another one.
+      </div>
+    ),
+    intents: [
+      <Button value="watermelon">Watermelon</Button>,
+      <Button value="mango">Mango</Button>,
+      <Button value="pear">Pear</Button>,
+      <Button.Reset>Reset</Button.Reset>,
     ],
   }
 })

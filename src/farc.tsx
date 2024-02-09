@@ -22,10 +22,12 @@ import {
 import { deserializeJson } from './utils/deserializeJson.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { parseIntents } from './utils/parseIntents.js'
+import { parsePath } from './utils/parsePath.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toBaseUrl } from './utils/toBaseUrl.js'
 
 export type FrameHandlerReturnType = {
+  action?: string
   image: JSX.Element
   imageAspectRatio?: FrameImageAspectRatio | undefined
   intents?: FrameIntents | undefined
@@ -51,7 +53,7 @@ export class Farc<
         : undefined
       const context = await getFrameContext(c, previousContext)
 
-      const { imageAspectRatio, intents } = await handler(
+      const { action, imageAspectRatio, intents } = await handler(
         context,
         previousContext,
       )
@@ -72,13 +74,14 @@ export class Farc<
       if (serializedPreviousContext)
         postSearch.set('previousContext', serializedPreviousContext)
 
+      if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
       return c.render(
         <html lang="en">
           <head>
             <meta property="fc:frame" content="vNext" />
             <meta
               property="fc:frame:image"
-              content={`${toBaseUrl(context.url)}/image?${ogSearch.toString()}`}
+              content={`${parsePath(context.url)}/image?${ogSearch.toString()}`}
             />
             <meta
               property="fc:frame:image:aspect_ratio"
@@ -86,11 +89,13 @@ export class Farc<
             />
             <meta
               property="og:image"
-              content={`${toBaseUrl(context.url)}/image?${ogSearch.toString()}`}
+              content={`${parsePath(context.url)}/image?${ogSearch.toString()}`}
             />
             <meta
               property="fc:frame:post_url"
-              content={`${toBaseUrl(context.url)}?${postSearch}`}
+              content={`${
+                action ? toBaseUrl(c.req.url) + (action || '') : context.url
+              }?${postSearch}`}
             />
             {parsedIntents}
 
@@ -107,7 +112,7 @@ export class Farc<
     })
 
     // OG Image Route
-    this.get(`${toBaseUrl(path)}/image`, async (c) => {
+    this.get(`${parsePath(path)}/image`, async (c) => {
       const query = c.req.query()
       const parsedContext = deserializeJson<FrameContext>(query.context)
       const parsedPreviousContext = query.previousContext
@@ -122,7 +127,7 @@ export class Farc<
 
     // Frame Preview Routes
     this.use(
-      `${toBaseUrl(path)}/preview`,
+      `${parsePath(path)}/preview`,
       jsxRenderer(
         (props) => {
           const { children } = props

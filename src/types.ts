@@ -6,6 +6,7 @@ import { type JSXNode } from 'hono/jsx'
 export type FrameContext<P extends string = string> = {
   buttonIndex?: number
   buttonValue?: string
+  initialUrl: string
   inputText?: string
   request: Context<Env, P>['req']
   /**
