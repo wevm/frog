@@ -73,7 +73,6 @@ function Frame(props: FrameProps) {
             imageAspectRatio,
             imageUrl,
             title,
-            url: baseUrl,
           }}
         />
 
@@ -113,6 +112,17 @@ function Frame(props: FrameProps) {
           </div>
         )}
       </form>
+
+      <div
+        style={{
+          fontSize: '0.8rem',
+          marginTop: '0.25rem',
+          textAlign: 'right',
+          opacity: '0.85',
+        }}
+      >
+        {new URL(baseUrl).host}
+      </div>
     </div>
   )
 }
@@ -121,11 +131,10 @@ type ImgProps = {
   imageAspectRatio: string
   imageUrl: string
   title?: string | undefined
-  url: string
 }
 
 function Img(props: ImgProps) {
-  const { imageAspectRatio, imageUrl, title = 'Farcaster frame', url } = props
+  const { imageAspectRatio, imageUrl, title = 'Farcaster frame' } = props
   return (
     <div style={{ position: 'relative' }}>
       <img
@@ -141,25 +150,6 @@ function Img(props: ImgProps) {
           width: '100%',
         }}
       />
-      <div
-        style={{
-          background: '#00000080',
-          borderRadius: '0.25rem',
-          bottom: 0,
-          color: 'white',
-          fontSize: '0.875rem',
-          marginBottom: '0.5rem',
-          marginRight: '1rem',
-          paddingBottom: '0.125rem',
-          paddingLeft: '0.5rem',
-          paddingRight: '0.5rem',
-          paddingTop: '0.125rem',
-          position: 'absolute',
-          right: 0,
-        }}
-      >
-        {new URL(url).host}
-      </div>
     </div>
   )
 }
@@ -491,7 +481,7 @@ export function previewStyles() {
     pre {
       margin: 0;
       --shiki-dark-bg: transparent !important;
-      --shiki-light-bg: transparent !important;
+      background: transparent !important;
     }
 
     @media (prefers-color-scheme: dark) {
