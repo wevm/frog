@@ -108,6 +108,19 @@ export class Farc<
               />
             )}
           </head>
+          <body
+            style={{
+              alignItems: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+              minHeight: '100vh',
+              overflow: 'hidden',
+            }}
+          >
+            <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
+              view 𝒇𝒓𝒂𝒎𝒆
+            </a>
+          </body>
         </html>,
       )
     })

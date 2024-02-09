@@ -19,9 +19,9 @@ export function App(props: AppProps) {
   const { baseUrl, frame, routes, state } = props
   return (
     <div class="items-center flex flex-col p-4">
-      <div class="max-w-7xl flex flex-col gap-2 w-full">
-        <Header />
+      <div class="max-w-7xl flex flex-col gap-2.5 w-full">
         <Preview {...{ baseUrl, frame, routes, state }} />
+        <Footer />
       </div>
     </div>
   )
@@ -339,9 +339,7 @@ async function Inspector(props: InspectorProps) {
   )
 }
 
-type HeaderProps = {}
-
-function Header(_props: HeaderProps) {
+function Footer() {
   return (
     <header class="flex text-xs gap-2 w-full">
       <span>𝑭𝒂𝒓𝒄</span>
@@ -437,6 +435,15 @@ export function DevStyles() {
       background: var(--bg);
     }
 
+    a:focus-visible,
+    button:focus-visible,
+    div:focus-visible,
+    input:focus-visible,
+    pre:focus-visible {
+      box-shadow: 0 0 0 2px rgba(0, 125, 255, 0.8);
+      outline: none;
+    }
+
     pre {
       margin: 0;
       --shiki-dark-bg: transparent !important;
@@ -500,7 +507,7 @@ export function DevStyles() {
 
     input::placeholder {
       opacity: 1;
-      color: #9ca3af;
+      color: var(--fg2);
     }
 
     :disabled {
