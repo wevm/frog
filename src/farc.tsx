@@ -15,6 +15,7 @@ import { Preview, previewStyles } from './preview/components.js'
 import { htmlToFrame, htmlToState } from './preview/utils.js'
 import {
   type FrameContext,
+  type FrameImageAspectRatio,
   type FrameIntents,
   type PreviousFrameContext,
 } from './types.js'
@@ -25,8 +26,8 @@ import { serializeJson } from './utils/serializeJson.js'
 import { toBaseUrl } from './utils/toBaseUrl.js'
 
 export type FrameHandlerReturnType = {
-  // TODO: Support `fc:frame:image:aspect_ratio`
   image: JSX.Element
+  imageAspectRatio?: FrameImageAspectRatio | undefined
   intents?: FrameIntents | undefined
 }
 
@@ -50,7 +51,10 @@ export class Farc<
         : undefined
       const context = await getFrameContext(c, previousContext)
 
-      const { intents } = await handler(context, previousContext)
+      const { imageAspectRatio, intents } = await handler(
+        context,
+        previousContext,
+      )
       const parsedIntents = intents ? parseIntents(intents) : null
 
       const serializedContext = serializeJson(context)
@@ -75,6 +79,10 @@ export class Farc<
             <meta
               property="fc:frame:image"
               content={`${toBaseUrl(context.url)}/image?${ogSearch.toString()}`}
+            />
+            <meta
+              property="fc:frame:image:aspect_ratio"
+              content={imageAspectRatio ?? '1.91:1'}
             />
             <meta
               property="og:image"

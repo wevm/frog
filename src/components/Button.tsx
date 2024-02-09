@@ -1,4 +1,4 @@
-import type { HtmlEscapedString } from 'hono/utils/html'
+import { type HtmlEscapedString } from 'hono/utils/html'
 
 export type ButtonProps = {
   children: string

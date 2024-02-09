@@ -1,7 +1,11 @@
 import { codeToHtml } from 'shiki'
 
-import type { FrameContext, PreviousFrameContext } from '../types.js'
-import type { Frame as FrameType, FrameButton, FrameInput } from './types.js'
+import { type FrameContext, type PreviousFrameContext } from '../types.js'
+import {
+  type Frame as FrameType,
+  type FrameButton,
+  type FrameInput,
+} from './types.js'
 
 export type PreviewProps = {
   baseUrl: string
@@ -299,6 +303,13 @@ async function Devtools(props: DevtoolsProps) {
     fontFamily: 'sans-serif',
     fontSize: '0.85rem',
     fontWeight: 'bold',
+    padding: '0.5rem',
+    paddingBottom: '0',
+  }
+  const overflowStyle = {
+    overflow: 'auto',
+    scrollbarColor: 'var(--br) transparent',
+    scrollbarWidth: 'thin',
   }
 
   const themes = {
@@ -342,71 +353,81 @@ async function Devtools(props: DevtoolsProps) {
           borderWidth: '1px',
           borderRadius: '0.5rem',
           display: 'grid',
-          gap: '10px',
           gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
           maxWidth: '1200px',
         }}
       >
-        <pre
-          style={{
-            fontFamily: 'monospace',
-            padding: '0.5rem',
-          }}
-        >
+        <div>
           <div style={headerStyle}>Current</div>
           <div
             dangerouslySetInnerHTML={{ __html: contextHtml }}
             style={{
+              ...overflowStyle,
               maxHeight: '48vh',
-              overflow: 'auto',
+              padding: '0.5rem',
             }}
           />
-        </pre>
-        <pre
-          style={{
-            fontFamily: 'monospace',
-            borderLeftWidth: '1px',
-            padding: '0.5rem',
-          }}
-        >
+        </div>
+        <div style={{ borderLeftWidth: '1px' }}>
           <div style={headerStyle}>Previous</div>
           <div
             dangerouslySetInnerHTML={{ __html: previousContextHtml }}
-            style={{ maxHeight: '48vh', overflow: 'auto' }}
+            style={{ ...overflowStyle, maxHeight: '48vh', padding: '0.5rem' }}
           />
-        </pre>
+        </div>
       </div>
 
       <div
         style={{
           borderRadius: '0.5rem',
           borderWidth: '1px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
           maxWidth: '1200px',
-          overflow: 'auto',
-          padding: '0.5rem',
         }}
       >
-        <pre style={{ fontFamily: 'monospace' }}>
-          <div style={headerStyle}>Frame</div>
-          <div dangerouslySetInnerHTML={{ __html: frameHtml }} />
-        </pre>
+        <div
+          style={{
+            ...overflowStyle,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gap: '10px',
+              gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
+            }}
+          >
+            <div>
+              <div style={headerStyle}>Frame</div>
+              <div
+                dangerouslySetInnerHTML={{ __html: frameHtml }}
+                style={{ padding: '0.5rem' }}
+              />
+            </div>
 
-        {htmlTags && (
-          <pre style={{ fontFamily: 'monospace' }}>
-            <div style={headerStyle}>Meta Tags</div>
-            <div dangerouslySetInnerHTML={{ __html: metaTagsHtml }} />
-          </pre>
-        )}
+            {debug && (
+              <div>
+                <div style={headerStyle}>Debug</div>
+                <div
+                  dangerouslySetInnerHTML={{ __html: debugHtml }}
+                  style={{ padding: '0.5rem' }}
+                />
+              </div>
+            )}
+          </div>
 
-        {debug && (
-          <pre style={{ fontFamily: 'monospace' }}>
-            <div style={headerStyle}>Debug</div>
-            <div dangerouslySetInnerHTML={{ __html: debugHtml }} />
-          </pre>
-        )}
+          {htmlTags && (
+            <div>
+              <div style={headerStyle}>Meta Tags</div>
+              <div
+                dangerouslySetInnerHTML={{ __html: metaTagsHtml }}
+                style={{ padding: '0.5rem' }}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

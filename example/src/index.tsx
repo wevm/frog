@@ -70,6 +70,7 @@ app.frame('/buttons', ({ buttonValue }) => {
         {buttonValue ?? ''}
       </div>
     ),
+    imageAspectRatio: '1:1',
     intents: [
       <Button value="apples">Apples</Button>,
       <Button.Link href="https://www.google.com">Google</Button.Link>,

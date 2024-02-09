@@ -1,5 +1,6 @@
-import type { JSXNode } from 'hono/jsx'
-import type { FrameData } from '../types.js'
+import { type JSXNode } from 'hono/jsx'
+
+import { type FrameData } from '../types.js'
 
 export function getIntentState(
   frameData: FrameData | undefined,

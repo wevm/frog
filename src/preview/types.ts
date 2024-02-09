@@ -1,6 +1,10 @@
 // TODO: TSDoc
 
-import type { FrameImageAspectRatio, FrameVersion, Pretty } from '../types.js'
+import {
+  type FrameImageAspectRatio,
+  type FrameVersion,
+  type Pretty,
+} from '../types.js'
 
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined

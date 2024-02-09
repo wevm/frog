@@ -1,16 +1,16 @@
 import { Window } from 'happy-dom'
-import type {
-  FrameContext,
-  FrameImageAspectRatio,
-  FrameVersion,
-  PreviousFrameContext,
+import {
+  type FrameContext,
+  type FrameImageAspectRatio,
+  type FrameVersion,
+  type PreviousFrameContext,
 } from '../types.js'
 import { deserializeJson } from '../utils/deserializeJson.js'
-import type {
-  FarcMetaTagPropertyName,
-  Frame,
-  FrameButton,
-  FrameMetaTagPropertyName,
+import {
+  type FarcMetaTagPropertyName,
+  type Frame,
+  type FrameButton,
+  type FrameMetaTagPropertyName,
 } from './types.js'
 
 export function htmlToMetaTags(html: string, selector: string) {
@@ -26,6 +26,7 @@ export function parseFrameProperties(metaTags: readonly HTMLMetaElement[]) {
   const validPropertyNames = new Set<FrameMetaTagPropertyName>([
     'fc:frame',
     'fc:frame:image',
+    'fc:frame:image:aspect_ratio',
     'fc:frame:input:text',
     'fc:frame:post_url',
     'og:image',

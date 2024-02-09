@@ -1,4 +1,4 @@
-import type { FrameContext } from './_lib/index.js'
+import { type FrameContext } from './_lib/index.js'
 
 declare module 'hono' {
   interface ContextRenderer {
