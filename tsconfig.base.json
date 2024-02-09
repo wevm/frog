@@ -34,6 +34,7 @@
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
+    "types": ["@types/bun", "typed-htmx"],
 
     // Skip type checking for node modules
     "skipLibCheck": true

@@ -144,6 +144,11 @@ export function validateFrameButtons(buttons: readonly FrameButton[]) {
   return { buttonsAreOutOfOrder, invalidButtons }
 }
 
+export type State = {
+  context: FrameContext
+  previousContext?: PreviousFrameContext | undefined
+}
+
 export function htmlToState(html: string) {
   const metaTags = htmlToMetaTags(html, 'meta[property^="farc:"]')
 

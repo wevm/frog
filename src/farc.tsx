@@ -11,8 +11,8 @@ import { ImageResponse } from 'hono-og'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
 
-import { Preview, previewStyles } from './preview/components.js'
-import { htmlToFrame, htmlToState } from './preview/utils.js'
+import { DevStyles, App, Preview } from './dev/components.js'
+import { htmlToFrame, htmlToState } from './dev/utils.js'
 import {
   type FrameContext,
   type FrameImageAspectRatio,
@@ -27,21 +27,21 @@ import { serializeJson } from './utils/serializeJson.js'
 import { toBaseUrl } from './utils/toBaseUrl.js'
 
 export type FrameHandlerReturnType = {
-  action?: string
+  action?: string | undefined
   image: JSX.Element
   imageAspectRatio?: FrameImageAspectRatio | undefined
   intents?: FrameIntents | undefined
 }
 
 export class Farc<
-  E extends Env = Env,
-  S extends Schema = {},
-  BasePath extends string = '/',
-> extends Hono<E, S, BasePath> {
-  frame<P extends string>(
-    path: P,
+  env extends Env = Env,
+  schema extends Schema = {},
+  basePath extends string = '/',
+> extends Hono<env, schema, basePath> {
+  frame<path extends string>(
+    path: path,
     handler: (
-      context: FrameContext<P>,
+      context: FrameContext<path>,
       previousContext?: PreviousFrameContext | undefined,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
@@ -125,9 +125,9 @@ export class Farc<
       return new ImageResponse(image)
     })
 
-    // Frame Preview Routes
+    // Frame Dev Routes
     this.use(
-      `${parsePath(path)}/preview`,
+      `${parsePath(path)}/dev`,
       jsxRenderer(
         (props) => {
           const { children } = props
@@ -135,9 +135,14 @@ export class Farc<
             <html lang="en">
               <head>
                 <title>𝑭𝒂𝒓𝒄 ▶︎ {path}</title>
-                <style>{previewStyles()}</style>
+                <DevStyles />
+                <script
+                  src="https://unpkg.com/htmx.org@1.9.10"
+                  integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+                  crossorigin="anonymous"
+                />
               </head>
-              <body style={{ padding: '1rem' }}>{children}</body>
+              <body>{children}</body>
             </html>
           )
         },
@@ -145,15 +150,15 @@ export class Farc<
       ),
     )
       .get(async (c) => {
-        const baseUrl = c.req.url.replace('/preview', '')
+        const baseUrl = c.req.url.replace('/dev', '')
         const response = await fetch(baseUrl)
         const text = await response.text()
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        return c.render(<Preview {...{ baseUrl, frame, state }} />)
+        return c.render(<App {...{ baseUrl, frame, state }} />)
       })
       .post(async (c) => {
-        const baseUrl = c.req.url.replace('/preview', '')
+        const baseUrl = c.req.url.replace('/dev', '')
 
         const formData = await c.req.formData()
         const buttonIndex = parseInt(

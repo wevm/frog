@@ -3,12 +3,12 @@
 import { type Context, type Env } from 'hono'
 import { type JSXNode } from 'hono/jsx'
 
-export type FrameContext<P extends string = string> = {
-  buttonIndex?: number
-  buttonValue?: string
+export type FrameContext<path extends string = string> = {
+  buttonIndex?: number | undefined
+  buttonValue?: string | undefined
   initialUrl: string
-  inputText?: string
-  request: Context<Env, P>['req']
+  inputText?: string | undefined
+  request: Context<Env, path>['req']
   /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.

@@ -54,4 +54,4 @@ app.frame('/', (context) => {
 })
 
 const server = Bun.serve(app)
-console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/preview`)
+console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)

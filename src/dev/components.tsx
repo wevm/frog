@@ -6,44 +6,55 @@ import {
   type FrameButton,
   type FrameInput,
 } from './types.js'
+import { type State } from './utils.js'
 
-export type PreviewProps = {
+export type AppProps = {
   baseUrl: string
   frame: FrameType
-  state: {
-    context: FrameContext
-    previousContext?: PreviousFrameContext | undefined
-  }
+  state: State
+}
+
+export function App(props: AppProps) {
+  const { baseUrl, frame, state } = props
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+        padding: '1rem',
+      }}
+    >
+      <Header />
+      <Preview {...{ baseUrl, frame, state }} />
+    </div>
+  )
+}
+
+type PreviewProps = {
+  baseUrl: string
+  frame: FrameType
+  state: State
 }
 
 export function Preview(props: PreviewProps) {
   const { baseUrl, frame, state } = props
+  const hxTarget = 'preview'
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'flex', fontSize: '0.75rem', gap: '0.5rem' }}>
-        <span>𝑭𝒂𝒓𝒄 ▶︎</span>
-        <a
-          href="https://docs.farcaster.xyz/reference/frames/spec"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Frames Spec
-        </a>
-        <a
-          href="https://warpcast.com/~/developers/frames"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Warpcast Frame Validator
-        </a>
-        <a href="https://github.com/wevm/farc" target="_blank" rel="noreferrer">
-          GitHub
-        </a>
-      </div>
-
+    <form
+      id={hxTarget}
+      hx-post="/dev"
+      hx-swap="innerHTML"
+      hx-target={`#${hxTarget}`}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+      }}
+    >
       <Frame {...{ ...frame, baseUrl }} />
-      <Devtools {...{ frame, state }} />
-    </div>
+      <Inspector {...{ frame, state }} />
+    </form>
   )
 }
 
@@ -63,9 +74,7 @@ function Frame(props: FrameProps) {
   } = props
   return (
     <div style={{ maxWidth: '512px', width: '100%' }}>
-      <form
-        action="preview"
-        method="post"
+      <div
         style={{ borderRadius: '0.5rem', position: 'relative', width: '100%' }}
       >
         <Img
@@ -111,7 +120,7 @@ function Frame(props: FrameProps) {
             )}
           </div>
         )}
-      </form>
+      </div>
 
       <div
         style={{
@@ -264,7 +273,7 @@ const redirectIcon = (
   </svg>
 )
 
-type DevtoolsProps = {
+type InspectorProps = {
   frame: FrameType
   state: {
     context: FrameContext
@@ -272,7 +281,7 @@ type DevtoolsProps = {
   }
 }
 
-async function Devtools(props: DevtoolsProps) {
+async function Inspector(props: InspectorProps) {
   const { frame, state } = props
   const {
     debug: {
@@ -423,8 +432,33 @@ async function Devtools(props: DevtoolsProps) {
   )
 }
 
-export function previewStyles() {
-  return `
+function Header() {
+  return (
+    <header style={{ display: 'flex', fontSize: '0.75rem', gap: '0.5rem' }}>
+      <span>𝑭𝒂𝒓𝒄 ▶︎</span>
+      <a
+        href="https://docs.farcaster.xyz/reference/frames/spec"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Frames Spec
+      </a>
+      <a
+        href="https://warpcast.com/~/developers/frames"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Warpcast Frame Validator
+      </a>
+      <a href="https://github.com/wevm/farc" target="_blank" rel="noreferrer">
+        GitHub
+      </a>
+    </header>
+  )
+}
+
+export function DevStyles() {
+  const styles = `
     :root {
       --bg: #181818;
       --bn: #262626;
@@ -565,4 +599,5 @@ export function previewStyles() {
       display: none;
     }
   `
+  return <style>{styles}</style>
 }
