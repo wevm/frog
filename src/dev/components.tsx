@@ -45,7 +45,7 @@ export function Preview(props: PreviewProps) {
       hx-target={`#${hxTarget}`}
       id={hxTarget}
     >
-      <div class="flex flex-row gap-2">
+      <div class="flex flex-row gap-2" style={{ minHeight: '397px' }}>
         <Frame {...{ ...frame, baseUrl }} />
         <Navigator {...{ baseUrl, routes }} />
       </div>
@@ -344,7 +344,10 @@ type HeaderProps = {}
 function Header(_props: HeaderProps) {
   return (
     <header class="flex text-xs gap-2 w-full">
-      <span>𝑭𝒂𝒓𝒄 ▶︎</span>
+      <span>𝑭𝒂𝒓𝒄</span>
+      <a href="TODO" target="_blank" rel="noreferrer">
+        Docs
+      </a>
       <a
         href="https://docs.farcaster.xyz/reference/frames/spec"
         target="_blank"
@@ -403,6 +406,8 @@ export function DevStyles() {
       font-synthesis: none;
       font-weight: 400;
       line-height: 1.5;
+      scrollbar-color: var(--br) transparent;
+      scrollbar-width: thin;
       text-rendering: optimizeLegibility;
 
       -webkit-font-smoothing: antialiased;

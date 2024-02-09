@@ -135,7 +135,7 @@ export class Farc<
           return (
             <html lang="en">
               <head>
-                <title>𝑭𝒂𝒓𝒄 ▶︎ {path}</title>
+                <title>𝑭𝒂𝒓𝒄 {path}</title>
                 <DevStyles />
                 {/* TODO: Switch to bundling */}
                 <script
