@@ -1,0 +1,16 @@
+{
+  "name": "create-farc",
+  "version": "0.0.1",
+  "type": "module",
+  "bin": {
+    "create-farc": "./_lib/bin.js"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "cac": "^6.7.14",
+    "detect-package-manager": "^3.0.1",
+    "fs-extra": "^11.1.1",
+    "picocolors": "^1.0.0"
+  },
+  "repository": "wevm/farc"
+}

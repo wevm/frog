@@ -1,0 +1,15 @@
+{
+  "name": "Example",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --hot src/index.tsx"
+  },
+  "dependencies": {
+    "bun": "latest",
+    "farc": "main",
+    "hono": "^3.12.8"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
