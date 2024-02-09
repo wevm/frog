@@ -11,15 +11,16 @@ import { type State } from './utils.js'
 export type AppProps = {
   baseUrl: string
   frame: FrameType
+  routes: readonly string[]
   state: State
 }
 
 export function App(props: AppProps) {
-  const { baseUrl, frame, state } = props
+  const { baseUrl, frame, routes, state } = props
   return (
     <div class="flex flex-col gap-2 p-4">
       <Header />
-      <Preview {...{ baseUrl, frame, state }} />
+      <Preview {...{ baseUrl, frame, routes, state }} />
     </div>
   )
 }
@@ -27,21 +28,25 @@ export function App(props: AppProps) {
 type PreviewProps = {
   baseUrl: string
   frame: FrameType
+  routes: readonly string[]
   state: State
 }
 
 export function Preview(props: PreviewProps) {
-  const { baseUrl, frame, state } = props
+  const { baseUrl, frame, routes, state } = props
   const hxTarget = 'preview'
   return (
     <form
-      id={hxTarget}
+      class="flex flex-col gap-2"
       hx-post="/dev"
       hx-swap="innerHTML"
       hx-target={`#${hxTarget}`}
-      class="flex flex-col gap-2"
+      id={hxTarget}
     >
-      <Frame {...{ ...frame, baseUrl }} />
+      <div class="flex flex-row gap-2">
+        <Frame {...{ ...frame, baseUrl }} />
+        <Navigator {...{ baseUrl, routes }} />
+      </div>
       <Inspector {...{ frame, state }} />
     </form>
   )
@@ -196,6 +201,30 @@ const redirectIcon = (
   </svg>
 )
 
+type NavigatorProps = {
+  baseUrl: string
+  routes: readonly string[]
+}
+
+function Navigator(props: NavigatorProps) {
+  const { baseUrl, routes } = props
+  const url = new URL(baseUrl)
+  return (
+    <div class="flex flex-col gap-1">
+      {routes.map((route) => (
+        <a
+          class="font-mono text-xs. whitespace-nowrap"
+          key={route}
+          href={route === '/' ? '/dev' : `${route}/dev`}
+        >
+          {route === '/' ? '/' : route}
+          {url.pathname === route ? ' ▲' : ''}
+        </a>
+      ))}
+    </div>
+  )
+}
+
 type InspectorProps = {
   frame: FrameType
   state: {
@@ -308,7 +337,9 @@ async function Inspector(props: InspectorProps) {
   )
 }
 
-function Header() {
+type HeaderProps = {}
+
+function Header(_props: HeaderProps) {
   return (
     <header class="flex text-xs gap-2">
       <span>𝑭𝒂𝒓𝒄 ▶︎</span>
@@ -493,6 +524,7 @@ export function DevStyles() {
     .border-t-0 { border-top-width: 0; }
     .cursor-pointer { cursor: pointer; }
     .font-bold { font-weight: 700; }
+    .font-mono { font-family: monospace; }
     .flex { display: flex; }
     .flex-col { flex-direction: column; }
     .flex-row { flex-direction: row; }
@@ -530,6 +562,7 @@ export function DevStyles() {
     .text-sm { font-size: 0.875rem; }
     .text-xs { font-size: 0.75rem; }
     .w-full { width: 100%; }
+    .whitespace-nowrap { white-space: nowrap; }
 
     .text-fg2 { color: var(--fg2); }
 

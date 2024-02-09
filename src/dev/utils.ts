@@ -1,4 +1,6 @@
 import { Window } from 'happy-dom'
+import { inspectRoutes } from 'hono/dev'
+
 import {
   type FrameContext,
   type FrameImageAspectRatio,
@@ -218,4 +220,14 @@ export function htmlToFrame(html: string) {
     },
     title: properties.title,
   } satisfies Frame
+}
+
+export function getFrameRoutes(routes: ReturnType<typeof inspectRoutes>) {
+  const frameRoutes = []
+  for (const route of routes) {
+    if (route.isMiddleware) continue
+    if (route.method !== 'ALL') continue
+    frameRoutes.push(route.path)
+  }
+  return frameRoutes
 }

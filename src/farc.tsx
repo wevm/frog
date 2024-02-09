@@ -10,9 +10,10 @@ import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
+import { inspectRoutes } from 'hono/dev'
 
 import { App, DevStyles, Preview } from './dev/components.js'
-import { htmlToFrame, htmlToState } from './dev/utils.js'
+import { getFrameRoutes, htmlToFrame, htmlToState } from './dev/utils.js'
 import {
   type FrameContext,
   type FrameImageAspectRatio,
@@ -154,9 +155,12 @@ export class Farc<
         const baseUrl = c.req.url.replace('/dev', '')
         const response = await fetch(baseUrl)
         const text = await response.text()
+
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        return c.render(<App {...{ baseUrl, frame, state }} />)
+        const routes = getFrameRoutes(inspectRoutes(this))
+
+        return c.render(<App {...{ baseUrl, frame, routes, state }} />)
       })
       .post(async (c) => {
         const baseUrl = c.req.url.replace('/dev', '')
@@ -265,11 +269,13 @@ export class Farc<
           }),
         })
         const text = await response.text()
+
         // TODO: handle redirects
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
+        const routes = getFrameRoutes(inspectRoutes(this))
 
-        return c.render(<Preview {...{ baseUrl, frame, state }} />)
+        return c.render(<Preview {...{ baseUrl, frame, routes, state }} />)
       })
   }
 }
