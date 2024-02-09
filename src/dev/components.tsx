@@ -18,9 +18,11 @@ export type AppProps = {
 export function App(props: AppProps) {
   const { baseUrl, frame, routes, state } = props
   return (
-    <div class="flex flex-col gap-2 p-4">
-      <Header />
-      <Preview {...{ baseUrl, frame, routes, state }} />
+    <div class="items-center flex flex-col p-4">
+      <div class="max-w-7xl flex flex-col gap-2 w-full">
+        <Header />
+        <Preview {...{ baseUrl, frame, routes, state }} />
+      </div>
     </div>
   )
 }
@@ -37,7 +39,7 @@ export function Preview(props: PreviewProps) {
   const hxTarget = 'preview'
   return (
     <form
-      class="flex flex-col gap-2"
+      class="flex flex-col gap-2 w-full"
       hx-post="/dev"
       hx-swap="innerHTML"
       hx-target={`#${hxTarget}`}
@@ -280,8 +282,8 @@ async function Inspector(props: InspectorProps) {
 
   const headerClass = 'text-fg2 text-sm font-bold p-2 pb-0'
   return (
-    <div class="flex flex-col gap-2">
-      <div class="border rounded-lg grid grid-cols-2 max-w-7xl">
+    <div class="flex flex-col gap-2 max-w-full">
+      <div class="border rounded-lg grid grid-cols-2 max-w-full">
         <div>
           <div class={headerClass}>Current Context</div>
           <div
@@ -300,7 +302,7 @@ async function Inspector(props: InspectorProps) {
         </div>
       </div>
 
-      <div class="rounded-lg border max-w-7xl">
+      <div class="rounded-lg border max-w-full">
         <div class="flex flex-col gap-2 scrollbars">
           <div class="grid gap-2.5 grid-cols-2">
             <div>
@@ -341,7 +343,7 @@ type HeaderProps = {}
 
 function Header(_props: HeaderProps) {
   return (
-    <header class="flex text-xs gap-2">
+    <header class="flex text-xs gap-2 w-full">
       <span>𝑭𝒂𝒓𝒄 ▶︎</span>
       <a
         href="https://docs.farcaster.xyz/reference/frames/spec"
@@ -540,6 +542,7 @@ export function DevStyles() {
     .items-center { align-items: center; }
     .justify-center { justify-content: center; }
     .leading-snug { line-height: 1.375; }
+    .max-w-full { max-width: 100%; }
     .max-w-7xl { max-width: 80rem; }
     .mt-1 { margin-top: 0.25rem; }
     .object-cover { object-fit: cover; }
