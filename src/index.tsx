@@ -11,7 +11,7 @@ import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type JSXNode } from 'hono/jsx'
 import { jsxRenderer } from 'hono/jsx-renderer'
-import type { Env, Schema } from 'hono/types'
+import { type Env, type Schema } from 'hono/types'
 import { type HtmlEscapedString } from 'hono/utils/html'
 import {
   compressToEncodedURIComponent,
@@ -129,7 +129,7 @@ export class Farc<
           return (
             <html lang="en">
               <head>
-                <title>𝑭𝒂𝒓𝒄 Preview "{path}"</title>
+                <title>𝑭𝒂𝒓𝒄 ▶︎ {path}</title>
                 <style>{previewStyles()}</style>
               </head>
               <body style={{ padding: '1rem' }}>{children}</body>

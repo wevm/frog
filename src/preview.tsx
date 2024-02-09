@@ -1,3 +1,5 @@
+import { codeToHtml } from 'shiki'
+
 import {
   type Frame as FrameType,
   type FrameButton,
@@ -20,7 +22,7 @@ export function Preview(props: PreviewProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', fontSize: '0.75rem', gap: '0.5rem' }}>
-        <span>𝑭𝒂𝒓𝒄</span>
+        <span>𝑭𝒂𝒓𝒄 ▶︎</span>
         <a
           href="https://docs.farcaster.xyz/reference/frames/spec"
           target="_blank"
@@ -298,6 +300,40 @@ async function Devtools(props: DevtoolsProps) {
     ...rest
   } = frame
 
+  const headerStyle = {
+    fontFamily: 'sans-serif',
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+  }
+
+  const themes = {
+    light: 'vitesse-light',
+    dark: 'vitesse-dark',
+  }
+  const [contextHtml, previousContextHtml, frameHtml, metaTagsHtml, debugHtml] =
+    await Promise.all([
+      codeToHtml(JSON.stringify(state.context, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+      codeToHtml(JSON.stringify(state.previousContext, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+      codeToHtml(JSON.stringify(rest, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+      codeToHtml((htmlTags ?? []).join('\n'), {
+        lang: 'html',
+        themes,
+      }),
+      codeToHtml(JSON.stringify(debug, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+    ])
+
   return (
     <div
       style={{
@@ -313,7 +349,7 @@ async function Devtools(props: DevtoolsProps) {
           display: 'grid',
           gap: '10px',
           gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
-          maxWidth: '85vw',
+          maxWidth: '1200px',
           maxHeight: '48vh',
         }}
       >
@@ -324,16 +360,8 @@ async function Devtools(props: DevtoolsProps) {
             padding: '0.5rem',
           }}
         >
-          <div
-            style={{
-              fontFamily: 'sans-serif',
-              fontSize: '0.85rem',
-              fontWeight: 'bold',
-            }}
-          >
-            Current
-          </div>
-          {JSON.stringify(state.context, null, 2)}
+          <div style={headerStyle}>Current</div>
+          <div dangerouslySetInnerHTML={{ __html: contextHtml }} />
         </pre>
         <pre
           style={{
@@ -343,16 +371,8 @@ async function Devtools(props: DevtoolsProps) {
             padding: '0.5rem',
           }}
         >
-          <div
-            style={{
-              fontFamily: 'sans-serif',
-              fontSize: '0.85rem',
-              fontWeight: 'bold',
-            }}
-          >
-            Previous
-          </div>
-          {JSON.stringify(state.previousContext, null, 2)}
+          <div style={headerStyle}>Previous</div>
+          <div dangerouslySetInnerHTML={{ __html: previousContextHtml }} />
         </pre>
       </div>
 
@@ -362,26 +382,28 @@ async function Devtools(props: DevtoolsProps) {
           borderWidth: '1px',
           display: 'flex',
           flexDirection: 'column',
-          maxWidth: '85vw',
+          gap: '0.75rem',
+          maxWidth: '1200px',
           overflow: 'auto',
           padding: '0.5rem',
         }}
       >
         <pre style={{ fontFamily: 'monospace' }}>
-          {JSON.stringify(rest, null, 2)}
+          <div style={headerStyle}>Frame</div>
+          <div dangerouslySetInnerHTML={{ __html: frameHtml }} />
         </pre>
 
         {htmlTags && (
           <pre style={{ fontFamily: 'monospace' }}>
-            {htmlTags.map((x) => (
-              <code style={{ display: 'grid' }}>{x}</code>
-            ))}
+            <div style={headerStyle}>Meta Tags</div>
+            <div dangerouslySetInnerHTML={{ __html: metaTagsHtml }} />
           </pre>
         )}
 
         {debug && (
           <pre style={{ fontFamily: 'monospace' }}>
-            {JSON.stringify(debug, null, 2)}
+            <div style={headerStyle}>Debug</div>
+            <div dangerouslySetInnerHTML={{ __html: debugHtml }} />
           </pre>
         )}
       </div>
@@ -446,6 +468,20 @@ export function previewStyles() {
 
     pre {
       margin: 0;
+      --shiki-dark-bg: transparent !important;
+      --shiki-light-bg: transparent !important;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .shiki,
+      .shiki span {
+        color: var(--shiki-dark) !important;
+        background-color: var(--shiki-dark-bg) !important;
+        /* Optional, if you also want font styles */
+        font-style: var(--shiki-dark-font-style) !important;
+        font-weight: var(--shiki-dark-font-weight) !important;
+        text-decoration: var(--shiki-dark-text-decoration) !important;
+      }
     }
 
     /** Reset **/

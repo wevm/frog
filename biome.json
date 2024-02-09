@@ -25,6 +25,9 @@
         "noBannedTypes": "off",
         "noUselessFragments": "off"
       },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off"
       }
