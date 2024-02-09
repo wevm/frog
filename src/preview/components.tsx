@@ -345,29 +345,35 @@ async function Devtools(props: DevtoolsProps) {
           gap: '10px',
           gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
           maxWidth: '1200px',
-          maxHeight: '48vh',
         }}
       >
         <pre
           style={{
             fontFamily: 'monospace',
-            overflow: 'auto',
             padding: '0.5rem',
           }}
         >
           <div style={headerStyle}>Current</div>
-          <div dangerouslySetInnerHTML={{ __html: contextHtml }} />
+          <div
+            dangerouslySetInnerHTML={{ __html: contextHtml }}
+            style={{
+              maxHeight: '48vh',
+              overflow: 'auto',
+            }}
+          />
         </pre>
         <pre
           style={{
             fontFamily: 'monospace',
-            overflow: 'auto',
             borderLeftWidth: '1px',
             padding: '0.5rem',
           }}
         >
           <div style={headerStyle}>Previous</div>
-          <div dangerouslySetInnerHTML={{ __html: previousContextHtml }} />
+          <div
+            dangerouslySetInnerHTML={{ __html: previousContextHtml }}
+            style={{ maxHeight: '48vh', overflow: 'auto' }}
+          />
         </pre>
       </div>
 
