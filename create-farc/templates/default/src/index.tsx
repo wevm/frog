@@ -1,3 +1,4 @@
+import * as Bun from 'bun'
 import { Button, Farc, TextInput } from 'farc'
 
 const app = new Farc()
@@ -52,7 +53,4 @@ app.frame('/', (context) => {
   }
 })
 
-export default {
-  port: 3000,
-  fetch: app.fetch,
-}
+Bun.serve(app)

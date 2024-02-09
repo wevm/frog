@@ -108,7 +108,4 @@ app.frame('/falsy-intents', () => {
   }
 })
 
-export default {
-  port: 3001,
-  fetch: app.fetch,
-}
+Bun.serve(app)
