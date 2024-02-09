@@ -11,7 +11,7 @@ import { ImageResponse } from 'hono-og'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
 
-import { DevStyles, App, Preview } from './dev/components.js'
+import { App, DevStyles, Preview } from './dev/components.js'
 import { htmlToFrame, htmlToState } from './dev/utils.js'
 import {
   type FrameContext,
