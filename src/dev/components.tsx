@@ -346,6 +346,9 @@ function Footer() {
       <a href="TODO" target="_blank" rel="noreferrer">
         Docs
       </a>
+      <a href="https://github.com/wevm/farc" target="_blank" rel="noreferrer">
+        GitHub
+      </a>
       <a
         href="https://docs.farcaster.xyz/reference/frames/spec"
         target="_blank"
@@ -359,9 +362,6 @@ function Footer() {
         rel="noreferrer"
       >
         Warpcast Frame Validator
-      </a>
-      <a href="https://github.com/wevm/farc" target="_blank" rel="noreferrer">
-        GitHub
       </a>
     </header>
   )
