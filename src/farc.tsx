@@ -136,6 +136,7 @@ export class Farc<
               <head>
                 <title>𝑭𝒂𝒓𝒄 ▶︎ {path}</title>
                 <DevStyles />
+                {/* TODO: Switch to bundling */}
                 <script
                   src="https://unpkg.com/htmx.org@1.9.10"
                   integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"

@@ -17,14 +17,7 @@ export type AppProps = {
 export function App(props: AppProps) {
   const { baseUrl, frame, state } = props
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-        padding: '1rem',
-      }}
-    >
+    <div class="flex flex-col gap-2 p-4">
       <Header />
       <Preview {...{ baseUrl, frame, state }} />
     </div>
@@ -46,11 +39,7 @@ export function Preview(props: PreviewProps) {
       hx-post="/dev"
       hx-swap="innerHTML"
       hx-target={`#${hxTarget}`}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-      }}
+      class="flex flex-col gap-2"
     >
       <Frame {...{ ...frame, baseUrl }} />
       <Inspector {...{ frame, state }} />
@@ -73,46 +62,18 @@ function Frame(props: FrameProps) {
     title,
   } = props
   return (
-    <div style={{ maxWidth: '512px', width: '100%' }}>
-      <div
-        style={{ borderRadius: '0.5rem', position: 'relative', width: '100%' }}
-      >
-        <Img
-          {...{
-            imageAspectRatio,
-            imageUrl,
-            title,
-          }}
-        />
+    <div class="w-full" style={{ maxWidth: '512px' }}>
+      <div class="rounded-md relative w-full">
+        <Img {...{ imageAspectRatio, imageUrl, title }} />
 
         <input name="action" type="hidden" value={postUrl} />
 
         {Boolean(input || buttons?.length) && (
-          <div
-            style={{
-              borderBottomLeftRadius: '0.5rem',
-              borderBottomRightRadius: '0.5rem',
-              borderTopWidth: '0 !important',
-              borderWidth: '1px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              paddingBottom: '0.5rem',
-              paddingLeft: '1rem',
-              paddingRight: '1rem',
-              paddingTop: '0.5rem',
-            }}
-          >
+          <div class="flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
             {input && <Input {...input} />}
 
             {buttons && (
-              <div
-                style={{
-                  display: 'grid',
-                  gap: '10px',
-                  gridTemplateColumns: `repeat(${buttons.length}, minmax(0,1fr))`,
-                }}
-              >
+              <div class={`grid gap-2.5 grid-cols-${buttons.length}`}>
                 {buttons.map((button) => (
                   <Button {...button} />
                 ))}
@@ -122,15 +83,8 @@ function Frame(props: FrameProps) {
         )}
       </div>
 
-      <div
-        style={{
-          fontSize: '0.8rem',
-          marginTop: '0.25rem',
-          textAlign: 'right',
-          opacity: '0.85',
-        }}
-      >
-        {new URL(baseUrl).host}
+      <div class="text-xs mt-1 text-right">
+        <a href={baseUrl}>{new URL(baseUrl).host}</a>
       </div>
     </div>
   )
@@ -145,21 +99,15 @@ type ImgProps = {
 function Img(props: ImgProps) {
   const { imageAspectRatio, imageUrl, title = 'Farcaster frame' } = props
   return (
-    <div style={{ position: 'relative' }}>
-      <img
-        alt={title}
-        src={imageUrl}
-        style={{
-          aspectRatio: imageAspectRatio.replace(':', '/'),
-          borderTopLeftRadius: '0.5rem',
-          borderTopRightRadius: '0.5rem',
-          borderWidth: '1px',
-          maxHeight: '526px',
-          objectFit: 'cover',
-          width: '100%',
-        }}
-      />
-    </div>
+    <img
+      alt={title}
+      src={imageUrl}
+      class="rounded-t-lg border object-cover w-full"
+      style={{
+        aspectRatio: imageAspectRatio.replace(':', '/'),
+        maxHeight: '526px',
+      }}
+    />
   )
 }
 
@@ -170,19 +118,9 @@ function Input(props: InputProps) {
   return (
     <input
       aria-label={text}
+      class="rounded-sm border px-3 py-2.5 text-sm leading-snug w-full"
       name={name}
       placeholder={text}
-      style={{
-        borderRadius: '0.25rem',
-        borderWidth: '1px',
-        fontSize: '0.875rem',
-        lineHeight: '1.25rem',
-        paddingBottom: '9px',
-        paddingLeft: '12px',
-        paddingRight: '12px',
-        paddingTop: '10px',
-        width: '100%',
-      }}
     />
   )
 }
@@ -195,22 +133,7 @@ function Button(props: ButtonProps) {
     <button
       key={index}
       name={name}
-      style={{
-        alignItems: 'center',
-        borderRadius: '0.5rem',
-        borderWidth: '1px',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'row',
-        fontSize: '0.875rem',
-        gap: '5px',
-        height: '2.5rem',
-        justifyContent: 'center',
-        paddingBottom: '0.5rem',
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        paddingTop: '0.5rem',
-      }}
+      class="flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4"
       type="submit"
       value={index}
     >
@@ -298,19 +221,6 @@ async function Inspector(props: InspectorProps) {
     ...rest
   } = frame
 
-  const headerStyle = {
-    fontFamily: 'sans-serif',
-    fontSize: '0.85rem',
-    fontWeight: 'bold',
-    padding: '0.5rem',
-    paddingBottom: '0',
-  }
-  const overflowStyle = {
-    overflow: 'auto',
-    scrollbarColor: 'var(--br) transparent',
-    scrollbarWidth: 'thin',
-  }
-
   const themes = {
     light: 'vitesse-light',
     dark: 'vitesse-dark',
@@ -339,79 +249,45 @@ async function Inspector(props: InspectorProps) {
       }),
     ])
 
+  const headerClass = 'text-fg2 text-sm font-bold p-2 pb-0'
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
-      }}
-    >
-      <div
-        style={{
-          borderWidth: '1px',
-          borderRadius: '0.5rem',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
-          maxWidth: '1200px',
-        }}
-      >
+    <div class="flex flex-col gap-2">
+      <div class="border rounded-lg grid grid-cols-2 max-w-7xl">
         <div>
-          <div style={headerStyle}>Current Context</div>
+          <div class={headerClass}>Current Context</div>
           <div
             dangerouslySetInnerHTML={{ __html: contextHtml }}
-            style={{
-              ...overflowStyle,
-              maxHeight: '48vh',
-              padding: '0.5rem',
-            }}
+            class="p-2 scrollbars"
+            style={{ maxHeight: '48vh' }}
           />
         </div>
-        <div style={{ borderLeftWidth: '1px' }}>
-          <div style={headerStyle}>Previous Context</div>
+        <div class="border-l">
+          <div class={headerClass}>Previous Context</div>
           <div
             dangerouslySetInnerHTML={{ __html: previousContextHtml }}
-            style={{ ...overflowStyle, maxHeight: '48vh', padding: '0.5rem' }}
+            class="p-2 scrollbars"
+            style={{ maxHeight: '48vh' }}
           />
         </div>
       </div>
 
-      <div
-        style={{
-          borderRadius: '0.5rem',
-          borderWidth: '1px',
-          maxWidth: '1200px',
-        }}
-      >
-        <div
-          style={{
-            ...overflowStyle,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gap: '10px',
-              gridTemplateColumns: 'repeat(2, minmax(0,1fr))',
-            }}
-          >
+      <div class="rounded-lg border max-w-7xl">
+        <div class="flex flex-col gap-2 scrollbars">
+          <div class="grid gap-2.5 grid-cols-2">
             <div>
-              <div style={headerStyle}>Frame</div>
+              <div class={headerClass}>Frame</div>
               <div
+                class="p-2"
                 dangerouslySetInnerHTML={{ __html: frameHtml }}
-                style={{ padding: '0.5rem' }}
               />
             </div>
 
             {debug && (
               <div>
-                <div style={headerStyle}>Debug</div>
+                <div class={headerClass}>Debug</div>
                 <div
+                  class="p-2"
                   dangerouslySetInnerHTML={{ __html: debugHtml }}
-                  style={{ padding: '0.5rem' }}
                 />
               </div>
             )}
@@ -419,10 +295,10 @@ async function Inspector(props: InspectorProps) {
 
           {htmlTags && (
             <div>
-              <div style={headerStyle}>Meta Tags</div>
+              <div class={headerClass}>Meta Tags</div>
               <div
+                class="p-2"
                 dangerouslySetInnerHTML={{ __html: metaTagsHtml }}
-                style={{ padding: '0.5rem' }}
               />
             </div>
           )}
@@ -434,7 +310,7 @@ async function Inspector(props: InspectorProps) {
 
 function Header() {
   return (
-    <header style={{ display: 'flex', fontSize: '0.75rem', gap: '0.5rem' }}>
+    <header class="flex text-xs gap-2">
       <span>𝑭𝒂𝒓𝒄 ▶︎</span>
       <a
         href="https://docs.farcaster.xyz/reference/frames/spec"
@@ -464,6 +340,7 @@ export function DevStyles() {
       --bn: #262626;
       --br: #404040;
       --fg: rgba(255, 255, 255, 0.87);
+      --fg2: rgba(255, 255, 255, 0.7);
     }
 
     @media (prefers-color-scheme: light) {
@@ -472,6 +349,7 @@ export function DevStyles() {
         --bn: #F5F5F5;
         --br: #A3A3A3;
         --fg: #181818;
+        --fg2: #454545;
       }
     }
 
@@ -497,6 +375,15 @@ export function DevStyles() {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       -webkit-text-size-adjust: 100%;
+    }
+
+    a {
+      color: var(--fg2);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+      text-decoration-skip-ink: auto;
     }
 
     body {
@@ -597,6 +484,59 @@ export function DevStyles() {
 
     [hidden] {
       display: none;
+    }
+
+    /** Utilities **/
+
+    .border { border-width: 1px; }
+    .border-l { border-left-width: 1px; }
+    .border-t-0 { border-top-width: 0; }
+    .cursor-pointer { cursor: pointer; }
+    .font-bold { font-weight: 700; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .flex-row { flex-direction: row; }
+    .gap-1\\.5 { gap: 0.375rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-2\\.5 { gap: 0.625rem; }
+    .grid { display: grid; }
+    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .h-10 { height: 2.5rem; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .leading-snug { line-height: 1.375; }
+    .max-w-7xl { max-width: 80rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .object-cover { object-fit: cover; }
+    .opacity-80 { opacity: 0.8; }
+    .p-2 { padding: 0.5rem; }
+    .p-4 { padding: 1rem; }
+    .pb-0 { padding-bottom: 0; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-2\\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .relative { position: relative; }
+    .rounded-bl-md { border-bottom-left-radius: 0.375rem; }
+    .rounded-br-md { border-bottom-right-radius: 0.375rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-sm { border-radius: 0.25rem; }
+    .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+    .text-right { text-align: right; }
+    .text-sm { font-size: 0.875rem; }
+    .text-xs { font-size: 0.75rem; }
+    .w-full { width: 100%; }
+
+    .text-fg2 { color: var(--fg2); }
+
+    .scrollbars {
+      overflow: auto;
+      scrollbar-color: var(--br) transparent;
+      scrollbar-width: thin;
     }
   `
   return <style>{styles}</style>
