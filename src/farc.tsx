@@ -54,6 +54,11 @@ export class Farc<
         : undefined
       const context = await getFrameContext(c, previousContext)
 
+      if (context.url !== parsePath(c.req.url))
+        return c.redirect(
+          `${context.url}?previousContext=${query.previousContext}`,
+        )
+
       const { action, imageAspectRatio, intents } = await handler(
         context,
         previousContext,
@@ -75,7 +80,6 @@ export class Farc<
       if (serializedPreviousContext)
         postSearch.set('previousContext', serializedPreviousContext)
 
-      if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
       return c.render(
         <html lang="en">
           <head>
