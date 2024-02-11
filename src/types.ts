@@ -3,11 +3,13 @@
 import { type Context, type Env } from 'hono'
 import { type JSXNode } from 'hono/jsx'
 
-export type FrameContext<path extends string = string> = {
+export type FrameContext<path extends string = string, state = unknown> = {
   buttonIndex?: number | undefined
   buttonValue?: string | undefined
+  deriveState: (fn?: (state: state) => void) => state
   initialUrl: string
   inputText?: string | undefined
+  previousState: state
   request: Context<Env, path>['req']
   /**
    * Status of the frame in the frame lifecycle.
@@ -20,7 +22,10 @@ export type FrameContext<path extends string = string> = {
   url: Context['req']['url']
 }
 
-export type PreviousFrameContext = FrameContext & {
+export type PreviousFrameContext<
+  path extends string = string,
+  state = unknown,
+> = FrameContext<path, state> & {
   /** Intents from the previous frame. */
   intents: readonly JSXNode[]
 }

@@ -17,6 +17,7 @@
     "@noble/curves": "^1.3.0",
     "happy-dom": "^13.3.8",
     "hono-og": "~0.0.2",
+    "immer": "^10.0.3",
     "lz-string": "^1.5.0",
     "shiki": "^1.0.0"
   }

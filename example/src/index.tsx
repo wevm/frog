@@ -3,6 +3,7 @@
 /** @jsxFrag */
 
 import { Button, Farc, TextInput } from 'farc'
+import { app as todoApp } from './todos'
 
 const app = new Farc()
 
@@ -139,6 +140,8 @@ app.frame('/falsy-intents', () => {
     ],
   }
 })
+
+app.route('/todos', todoApp)
 
 const server = Bun.serve(app)
 console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)

@@ -9,6 +9,7 @@ import { ed25519 } from '@noble/curves/ed25519'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { inspectRoutes } from 'hono/dev'
+import type { HonoOptions } from 'hono/hono-base'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
 
@@ -24,8 +25,14 @@ import { deserializeJson } from './utils/deserializeJson.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
+import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toBaseUrl } from './utils/toBaseUrl.js'
+
+export type FarcConstructorParameters<
+  state = undefined,
+  env extends Env = Env,
+> = HonoOptions<env> & { initialState?: state | undefined }
 
 export type FrameHandlerReturnType = {
   action?: string | undefined
@@ -35,24 +42,39 @@ export type FrameHandlerReturnType = {
 }
 
 export class Farc<
+  state = undefined,
   env extends Env = Env,
   schema extends Schema = {},
   basePath extends string = '/',
 > extends Hono<env, schema, basePath> {
+  #initialState: state = undefined as state
+
+  constructor({ initialState }: FarcConstructorParameters<state, env> = {}) {
+    super()
+    if (initialState) this.#initialState = initialState
+  }
+
   frame<path extends string>(
     path: path,
     handler: (
-      context: FrameContext<path>,
-      previousContext?: PreviousFrameContext | undefined,
+      context: FrameContext<path, state>,
+      previousContext: PreviousFrameContext<path, state> | undefined,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
     this.use(path, async (c) => {
       const query = c.req.query()
       const previousContext = query.previousContext
-        ? deserializeJson<PreviousFrameContext>(query.previousContext)
+        ? deserializeJson<PreviousFrameContext<path, state>>(
+            query.previousContext,
+          )
         : undefined
-      const context = await getFrameContext(c, previousContext)
+      const context = await getFrameContext({
+        context: await requestToContext(c.req),
+        initialState: this.#initialState,
+        previousContext,
+        request: c.req,
+      })
 
       if (context.url !== parsePath(c.req.url))
         return c.redirect(
@@ -69,6 +91,7 @@ export class Farc<
       const serializedPreviousContext = serializeJson({
         ...context,
         intents: parsedIntents,
+        previousState: context.deriveState(),
       })
 
       const ogSearch = new URLSearchParams()
@@ -99,7 +122,9 @@ export class Farc<
             <meta
               property="fc:frame:post_url"
               content={`${
-                action ? toBaseUrl(c.req.url) + (action || '') : context.url
+                action
+                  ? toBaseUrl(c.req.url) + parsePath(action || '')
+                  : context.url
               }?${postSearch}`}
             />
             {parsedIntents}
@@ -132,14 +157,18 @@ export class Farc<
     // OG Image Route
     this.get(`${parsePath(path)}/image`, async (c) => {
       const query = c.req.query()
-      const parsedContext = deserializeJson<FrameContext>(query.context)
-      const parsedPreviousContext = query.previousContext
-        ? deserializeJson<PreviousFrameContext>(query.previousContext)
+      const previousContext = query.previousContext
+        ? deserializeJson<PreviousFrameContext<path, state>>(
+            query.previousContext,
+          )
         : undefined
-      const { image } = await handler(
-        { ...parsedContext, request: c.req },
-        parsedPreviousContext,
-      )
+      const context = await getFrameContext({
+        context: deserializeJson<FrameContext<path, state>>(query.context),
+        initialState: this.#initialState,
+        previousContext,
+        request: c.req,
+      })
+      const { image } = await handler(context, previousContext)
       return new ImageResponse(image)
     })
 
