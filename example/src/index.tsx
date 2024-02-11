@@ -141,7 +141,7 @@ app.frame('/falsy-intents', () => {
   }
 })
 
-app.route('/todos', todoApp)
+app.attach(todoApp)
 
 const server = Bun.serve(app)
 console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)

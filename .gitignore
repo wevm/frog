@@ -4,3 +4,4 @@ _lib
 node_modules
 tsconfig.*.tsbuildinfo
 tsconfig.tsbuildinfo
+.vercel

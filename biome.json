@@ -31,6 +31,9 @@
       "suspicious": {
         "noExplicitAny": "off",
         "noRedeclare": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
       }
     }
   },

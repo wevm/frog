@@ -14,6 +14,7 @@ export const app = new Farc<State>({
     index: -1,
     todos: [],
   },
+  route: '/todos',
 })
 
 app.frame('/', ({ buttonValue, deriveState, inputText }) => {
