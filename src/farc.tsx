@@ -55,6 +55,8 @@ export class Farc<
 
   hono: Hono<env, schema, basePath>
   fetch: Hono<env, schema, basePath>['fetch']
+  get: Hono<env, schema, basePath>['get']
+  post: Hono<env, schema, basePath>['post']
 
   constructor({
     basePath,
@@ -64,6 +66,8 @@ export class Farc<
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
     this.fetch = this.hono.fetch.bind(this.hono)
+    this.get = this.hono.get.bind(this.hono)
+    this.post = this.hono.post.bind(this.hono)
 
     if (initialState) this.#initialState = initialState
   }
