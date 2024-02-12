@@ -11,12 +11,7 @@ import { ImageResponse } from 'hono-og'
 import { inspectRoutes } from 'hono/dev'
 import type { HonoOptions } from 'hono/hono-base'
 import { jsxRenderer } from 'hono/jsx-renderer'
-import {
-  type Env,
-  type MergePath,
-  type MergeSchemaPath,
-  type Schema,
-} from 'hono/types'
+import { type Env, type Schema } from 'hono/types'
 
 import { App, DevStyles, Preview } from './dev/components.js'
 import { getFrameRoutes, htmlToFrame, htmlToState } from './dev/utils.js'
@@ -39,7 +34,6 @@ export type FarcConstructorParameters<
   env extends Env = Env,
 > = HonoOptions<env> & {
   initialState?: state | undefined
-  route?: string | undefined
 }
 
 export type FrameHandlerReturnType = {
@@ -56,31 +50,13 @@ export class Farc<
   basePath extends string = '/',
 > extends Hono<env, schema, basePath> {
   #initialState: state = undefined as state
-  subPath: string | undefined
 
   constructor({
     initialState,
-    route,
     ...options
   }: FarcConstructorParameters<state, env> = {}) {
     super(options)
     if (initialState) this.#initialState = initialState
-    if (route) this.subPath = route
-  }
-
-  attach<
-    subEnv extends Env,
-    subSchema extends Schema,
-    subBasePath extends string,
-  >(
-    app: Farc<any, subEnv, subSchema, subBasePath>,
-  ): Farc<
-    any,
-    env,
-    MergeSchemaPath<subSchema, MergePath<basePath, subBasePath>> & schema,
-    basePath
-  > {
-    return this.route(app.subPath!, app as any) as any
   }
 
   frame<path extends string>(
@@ -152,9 +128,7 @@ export class Farc<
               property="fc:frame:post_url"
               content={`${
                 action
-                  ? toBaseUrl(c.req.url) +
-                    parsePath(this.subPath || '') +
-                    parsePath(action || '')
+                  ? toBaseUrl(c.req.url) + parsePath(action || '')
                   : context.url
               }?${postSearch}`}
             />
