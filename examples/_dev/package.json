@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "farc": "workspace:*",
-    "hono": "^3.12.8"
+    "hono": "^4"
   },
   "devDependencies": {
     "@types/bun": "latest"

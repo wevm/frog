@@ -10,7 +10,7 @@
     ".": "./_lib/index.js"
   },
   "peerDependencies": {
-    "hono": "^3"
+    "hono": "^4"
   },
   "dependencies": {
     "@farcaster/core": "^0.13.7",
