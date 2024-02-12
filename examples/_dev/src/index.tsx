@@ -92,7 +92,7 @@ app.frame('/buttons', ({ buttonValue }) => {
     image: (
       <div
         style={{
-          backgroundColor: '#C0ff33',
+          backgroundColor: '#2D2D2D',
           display: 'flex',
           fontSize: 60,
           width: '100%',
@@ -102,7 +102,6 @@ app.frame('/buttons', ({ buttonValue }) => {
         {buttonValue ?? ''}
       </div>
     ),
-    imageAspectRatio: '1:1',
     intents: [
       <Button value="apples">Apples</Button>,
       <Button.Link href="https://www.google.com">Google</Button.Link>,
@@ -121,6 +120,7 @@ app.frame('/no-intents', () => {
         foo
       </div>
     ),
+    imageAspectRatio: '1:1',
   }
 })
 

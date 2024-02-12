@@ -22,7 +22,6 @@ export function Dev(props: DevProps) {
     <div class="items-center flex flex-col p-4">
       <div class="max-w-7xl flex flex-col gap-2.5 w-full">
         <Preview {...{ baseUrl, error, frame, routes, state }} />
-        <Footer />
       </div>
     </div>
   )
@@ -74,7 +73,7 @@ function Frame(props: FrameProps) {
   const hasIntents = Boolean(input || buttons?.length)
   return (
     <div class="w-full" style={{ maxWidth: '512px' }}>
-      <div class="rounded-md relative w-full">
+      <div class="relative rounded-md relative w-full">
         <Img {...{ hasIntents, imageAspectRatio, imageUrl, title }} />
 
         <input name="postUrl" type="hidden" value={postUrl} />
@@ -150,25 +149,74 @@ function Input(props: InputProps) {
 type ButtonProps = FrameButton & { name?: string | undefined }
 
 function Button(props: ButtonProps) {
-  const { index, name = 'buttonIndex', title, type = 'post' } = props
+  const { index, name = 'buttonIndex', target, title, type = 'post' } = props
+
+  const buttonClass =
+    'bg-bn flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
+  const innerHtml = (
+    <span
+      class="whitespace-nowrap overflow-hidden text-ellipsis"
+      style={{ lineHeight: 'normal' }}
+    >
+      {title}
+    </span>
+  )
+
+  if (type === 'link')
+    return (
+      <div x-data="{ open: false }" class="relative">
+        <button class={buttonClass} type="button" x-on:click="open = true">
+          {innerHtml}
+          {type === 'link' && linkIcon}
+        </button>
+
+        <div
+          x-show="open"
+          class="flex flex-col gap-1.5 border bg-bg p-4 rounded-lg text-center"
+          style={{ position: 'absolute', marginTop: '4px', width: '20rem' }}
+          {...{
+            '@click.outside': 'open = false',
+            'x-trap.noscroll': 'open',
+          }}
+        >
+          <h1 class="font-bold text-base">Leaving Warpcast</h1>
+          <div class="text-fg2 text-sm font-mono">{target}</div>
+          <p class="text-base leading-snug">
+            If you connect your wallet and the site is malicious, you may lose
+            funds.
+          </p>
+          <div class="flex gap-1.5 mt-1">
+            <button
+              class="bg-bg border rounded-sm w-full text-sm font-bold py-1"
+              type="button"
+              x-on:click="open = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="bg-er border-er rounded-sm w-full text-sm text-white font-bold py-1"
+              target="_blank"
+              type="button"
+              x-on:click={`open = false; window.open('${target}', '_blank');`}
+            >
+              I Understand
+            </button>
+          </div>
+        </div>
+      </div>
+    )
 
   return (
     <button
       name={name}
-      class="bg-bn flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4"
+      class={buttonClass}
       style={{ paddingTop: '0.625rem ' }}
       type="submit"
       value={index}
     >
       {type === 'mint' && mintIcon}
-      <span
-        class="whitespace-nowrap overflow-hidden text-ellipsis"
-        style={{ lineHeight: 'normal' }}
-      >
-        {title}
-      </span>
+      {innerHtml}
       {type === 'post_redirect' && redirectIcon}
-      {type === 'link' && linkIcon}
     </button>
   )
 }
@@ -368,34 +416,6 @@ function Panel(props: PanelProps) {
   )
 }
 
-function Footer() {
-  return (
-    <header class="flex text-xs gap-2 w-full">
-      <span>𝑭𝒂𝒓𝒄</span>
-      <a href="TODO" target="_blank" rel="noreferrer">
-        Docs
-      </a>
-      <a href="https://github.com/wevm/farc" target="_blank" rel="noreferrer">
-        GitHub
-      </a>
-      <a
-        href="https://docs.farcaster.xyz/reference/frames/spec"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Frames Spec
-      </a>
-      <a
-        href="https://warpcast.com/~/developers/frames"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Warpcast Frame Validator
-      </a>
-    </header>
-  )
-}
-
 export function Style() {
   const styles = `
     :root {
@@ -403,7 +423,7 @@ export function Style() {
       --bg2: #111111;
       --bn: #1F1F1F;
       --br: #252525;
-      --er: #C8403E;
+      --er: #7F1E1E;
       --fg: #EDEDED;
       --fg2: #A1A1A1;
     }
@@ -469,6 +489,8 @@ export function Style() {
       box-shadow: 0 0 0 2px rgba(0, 125, 255, 0.8);
       outline: none;
     }
+
+    h1, p { margin: 0; }
 
     pre {
       margin: 0;
@@ -599,6 +621,7 @@ export function Style() {
     .pb-0 { padding-bottom: 0; }
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .py-2\\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
     .relative { position: relative; }
@@ -611,6 +634,7 @@ export function Style() {
     .text-center { text-align: center; }
     .text-ellipsis { text-overflow: ellipsis; }
     .text-right { text-align: right; }
+    .text-base { font-size: 1rem; }
     .text-sm { font-size: 0.875rem; }
     .text-xs { font-size: 0.75rem; }
     .w-full { width: 100%; }
@@ -619,8 +643,11 @@ export function Style() {
     .bg-bg { background-color: var(--bg) !important; }
     .bg-bg2 { background-color: var(--bg2) !important; }
     .bg-bn { background-color: var(--bn) !important; }
+    .bg-er { background-color: var(--er) !important; }
+    .border-er { border-color: var(--er) !important; } w
     .text-er { color: var(--er); }
     .text-fg2 { color: var(--fg2); }
+    .text-white { color: #FAFAFA; }
 
     .scrollbars {
       overflow: auto;

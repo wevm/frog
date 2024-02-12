@@ -187,7 +187,15 @@ export class Farc<
             <head>
               <title>𝑭𝒂𝒓𝒄 {path || '/'}</title>
               <Style />
-              {/* TODO: Switch to bundling */}
+              {/* TODO: Vendor into project */}
+              <script
+                defer
+                src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"
+              />
+              <script
+                defer
+                src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+              />
               <script
                 src="https://unpkg.com/htmx.org@1.9.10"
                 integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
