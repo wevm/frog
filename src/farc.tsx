@@ -9,11 +9,11 @@ import { ed25519 } from '@noble/curves/ed25519'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { inspectRoutes } from 'hono/dev'
-import type { HonoOptions } from 'hono/hono-base'
+import { type HonoOptions } from 'hono/hono-base'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
 
-import { Dev, Style, Preview } from './dev/components.js'
+import { Dev, Preview, Style } from './dev/components.js'
 import { getRoutes, htmlToFrame, htmlToState } from './dev/utils.js'
 import {
   type FrameContext,
