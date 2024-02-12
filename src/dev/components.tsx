@@ -8,19 +8,20 @@ import {
 } from './types.js'
 import { type State } from './utils.js'
 
-export type AppProps = {
+export type DevProps = {
   baseUrl: string
+  error?: string
   frame: FrameType
   routes: readonly string[]
   state: State
 }
 
-export function App(props: AppProps) {
-  const { baseUrl, frame, routes, state } = props
+export function Dev(props: DevProps) {
+  const { baseUrl, error, frame, routes, state } = props
   return (
     <div class="items-center flex flex-col p-4">
       <div class="max-w-7xl flex flex-col gap-2.5 w-full">
-        <Preview {...{ baseUrl, frame, routes, state }} />
+        <Preview {...{ baseUrl, error, frame, routes, state }} />
         <Footer />
       </div>
     </div>
@@ -29,18 +30,19 @@ export function App(props: AppProps) {
 
 type PreviewProps = {
   baseUrl: string
+  error?: string | undefined
   frame: FrameType
   routes: readonly string[]
   state: State
 }
 
 export function Preview(props: PreviewProps) {
-  const { baseUrl, frame, routes, state } = props
+  const { baseUrl, error, frame, routes, state } = props
   const hxTarget = 'preview'
   return (
     <form
       class="flex flex-col gap-2 w-full"
-      hx-post="/dev"
+      hx-post={`${baseUrl}/dev`}
       hx-swap="innerHTML"
       hx-target={`#${hxTarget}`}
       id={hxTarget}
@@ -49,6 +51,7 @@ export function Preview(props: PreviewProps) {
         <Frame {...{ ...frame, baseUrl }} />
         <Navigator {...{ baseUrl, routes }} />
       </div>
+      {error && <div class="text-er text-sm">{error}</div>}
       <Inspector {...{ frame, state }} />
     </form>
   )
@@ -74,10 +77,10 @@ function Frame(props: FrameProps) {
       <div class="rounded-md relative w-full">
         <Img {...{ hasIntents, imageAspectRatio, imageUrl, title }} />
 
-        <input name="action" type="hidden" value={postUrl} />
+        <input name="postUrl" type="hidden" value={postUrl} />
 
         {hasIntents && (
-          <div class="flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
+          <div class="bg-bg2 flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
             {input && <Input {...input} />}
 
             {buttons && (
@@ -121,6 +124,7 @@ function Img(props: ImgProps) {
       }border object-cover w-full`}
       style={{
         aspectRatio: imageAspectRatio.replace(':', '/'),
+        minHeight: '269px',
         maxHeight: '526px',
       }}
     />
@@ -134,9 +138,11 @@ function Input(props: InputProps) {
   return (
     <input
       aria-label={text}
-      class="rounded-sm border px-3 py-2.5 text-sm leading-snug w-full"
+      class="bg-bg rounded-sm border px-3 py-2.5 text-sm leading-snug w-full"
+      style={{ paddingBottom: '0.5rem' }}
       name={name}
       placeholder={text}
+      autocomplete="off"
     />
   )
 }
@@ -145,16 +151,22 @@ type ButtonProps = FrameButton & { name?: string | undefined }
 
 function Button(props: ButtonProps) {
   const { index, name = 'buttonIndex', title, type = 'post' } = props
+
   return (
     <button
-      key={index}
       name={name}
-      class="flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4"
+      class="bg-bn flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4"
+      style={{ paddingTop: '0.625rem ' }}
       type="submit"
       value={index}
     >
       {type === 'mint' && mintIcon}
-      <span>{title}</span>
+      <span
+        class="whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{ lineHeight: 'normal' }}
+      >
+        {title}
+      </span>
       {type === 'post_redirect' && redirectIcon}
       {type === 'link' && linkIcon}
     </button>
@@ -164,6 +176,7 @@ function Button(props: ButtonProps) {
 const linkIcon = (
   <svg
     aria-hidden="true"
+    class="text-fg2"
     fill="none"
     height="13"
     viewBox="0 0 15 15"
@@ -181,10 +194,10 @@ const linkIcon = (
 const mintIcon = (
   <svg
     aria-hidden="true"
-    width="13"
+    fill="none"
     height="13"
     viewBox="0 0 28 28"
-    fill="none"
+    width="13"
   >
     <path
       fill="currentColor"
@@ -198,6 +211,7 @@ const mintIcon = (
 const redirectIcon = (
   <svg
     aria-hidden="true"
+    class="text-fg2"
     fill="none"
     height="13"
     viewBox="0 0 15 15"
@@ -225,7 +239,6 @@ function Navigator(props: NavigatorProps) {
       {routes.map((route) => (
         <a
           class="font-mono text-xs. whitespace-nowrap"
-          key={route}
           href={route === '/' ? '/dev' : `${route}/dev`}
         >
           {route === '/' ? '/' : route}
@@ -383,23 +396,27 @@ function Footer() {
   )
 }
 
-export function DevStyles() {
+export function Style() {
   const styles = `
     :root {
-      --bg: #1A1A19;
-      --bn: #262626;
-      --br: #282C2E;
-      --fg: rgba(255, 255, 255, 0.87);
-      --fg2: rgba(255, 255, 255, 0.7);
+      --bg: #0A0A0A;
+      --bg2: #111111;
+      --bn: #1F1F1F;
+      --br: #252525;
+      --er: #C8403E;
+      --fg: #EDEDED;
+      --fg2: #A1A1A1;
     }
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg: #f8f8f8;
-        --bn: #F5F5F5;
-        --br: #A3A3A3;
-        --fg: #181818;
-        --fg2: #454545;
+        --bg: #FFFFFF;
+        --bg2: #FAFAFA;
+        --bn: #F2F2F2;
+        --br: #EBEBEB;
+        --er: #C9403D;
+        --fg: #171717;
+        --fg2: #666666;
       }
     }
 
@@ -443,16 +460,9 @@ export function DevStyles() {
       line-height: inherit;
     }
     
-    button {
-      background: var(--bn);
-    }
-
-    input {
-      background: var(--bg);
-    }
-
     a:focus-visible,
     button:focus-visible,
+    dialog:focus-visible,
     div:focus-visible,
     input:focus-visible,
     pre:focus-visible {
@@ -583,6 +593,7 @@ export function DevStyles() {
     .mt-1 { margin-top: 0.25rem; }
     .object-cover { object-fit: cover; }
     .opacity-80 { opacity: 0.8; }
+    .overflow-hidden { overflow: hidden; }
     .p-2 { padding: 0.5rem; }
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
@@ -597,12 +608,18 @@ export function DevStyles() {
     .rounded-md { border-radius: 0.375rem; }
     .rounded-sm { border-radius: 0.25rem; }
     .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+    .text-center { text-align: center; }
+    .text-ellipsis { text-overflow: ellipsis; }
     .text-right { text-align: right; }
     .text-sm { font-size: 0.875rem; }
     .text-xs { font-size: 0.75rem; }
     .w-full { width: 100%; }
     .whitespace-nowrap { white-space: nowrap; }
 
+    .bg-bg { background-color: var(--bg) !important; }
+    .bg-bg2 { background-color: var(--bg2) !important; }
+    .bg-bn { background-color: var(--bn) !important; }
+    .text-er { color: var(--er); }
     .text-fg2 { color: var(--fg2); }
 
     .scrollbars {

@@ -13,8 +13,8 @@ import type { HonoOptions } from 'hono/hono-base'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
 
-import { App, DevStyles, Preview } from './dev/components.js'
-import { getFrameRoutes, htmlToFrame, htmlToState } from './dev/utils.js'
+import { Dev, Style, Preview } from './dev/components.js'
+import { getRoutes, htmlToFrame, htmlToState } from './dev/utils.js'
 import {
   type FrameContext,
   type FrameImageAspectRatio,
@@ -178,29 +178,26 @@ export class Farc<
     })
 
     // Frame Dev Routes
-    this.use(
-      `${parsePath(path)}/dev`,
-      jsxRenderer(
-        (props) => {
-          const { children } = props
-          return (
-            <html lang="en">
-              <head>
-                <title>𝑭𝒂𝒓𝒄 {path}</title>
-                <DevStyles />
-                {/* TODO: Switch to bundling */}
-                <script
-                  src="https://unpkg.com/htmx.org@1.9.10"
-                  integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
-                  crossorigin="anonymous"
-                />
-              </head>
-              <body>{children}</body>
-            </html>
-          )
-        },
-        { docType: true },
-      ),
+    this.use(`${parsePath(path)}/dev`, (c, next) =>
+      jsxRenderer((props) => {
+        const { children } = props
+        const path = new URL(c.req.url).pathname.replace('/dev', '')
+        return (
+          <html lang="en">
+            <head>
+              <title>𝑭𝒂𝒓𝒄 {path || '/'}</title>
+              <Style />
+              {/* TODO: Switch to bundling */}
+              <script
+                src="https://unpkg.com/htmx.org@1.9.10"
+                integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+                crossorigin="anonymous"
+              />
+            </head>
+            <body>{children}</body>
+          </html>
+        )
+      })(c, next),
     )
       .get(async (c) => {
         const baseUrl = c.req.url.replace('/dev', '')
@@ -209,9 +206,9 @@ export class Farc<
 
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        const routes = getFrameRoutes(inspectRoutes(this))
+        const routes = getRoutes(baseUrl, inspectRoutes(this))
 
-        return c.render(<App {...{ baseUrl, frame, routes, state }} />)
+        return c.render(<Dev {...{ baseUrl, frame, routes, state }} />)
       })
       .post(async (c) => {
         const baseUrl = c.req.url.replace('/dev', '')
@@ -226,6 +223,7 @@ export class Farc<
         const inputText = formData.get('inputText')
           ? Buffer.from(formData.get('inputText') as string)
           : undefined
+        const postUrl = formData.get('postUrl') as string
 
         const privateKeyBytes = ed25519.utils.randomPrivateKey()
         // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
@@ -294,7 +292,7 @@ export class Farc<
         )
 
         const message = frameActionMessage._unsafeUnwrap()
-        const response = await fetch(formData.get('action') as string, {
+        let response = await fetch(postUrl, {
           method: 'POST',
           body: JSON.stringify({
             untrustedData: {
@@ -319,14 +317,20 @@ export class Farc<
             },
           }),
         })
-        const text = await response.text()
 
+        // fetch initial state on error
+        const error = response.status !== 200 ? response.statusText : undefined
+        if (response.status !== 200) response = await fetch(baseUrl)
+
+        const text = await response.text()
         // TODO: handle redirects
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        const routes = getFrameRoutes(inspectRoutes(this))
+        const routes = getRoutes(baseUrl, inspectRoutes(this))
 
-        return c.render(<Preview {...{ baseUrl, frame, routes, state }} />)
+        return c.render(
+          <Preview {...{ baseUrl, error, frame, routes, state }} />,
+        )
       })
   }
 }

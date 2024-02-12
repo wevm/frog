@@ -24,7 +24,7 @@ export function htmlToMetaTags(html: string, selector: string) {
   ) as unknown as readonly HTMLMetaElement[]
 }
 
-export function parseFrameProperties(metaTags: readonly HTMLMetaElement[]) {
+export function parseProperties(metaTags: readonly HTMLMetaElement[]) {
   const validPropertyNames = new Set<FrameMetaTagPropertyName>([
     'fc:frame',
     'fc:frame:image',
@@ -70,7 +70,7 @@ export function parseFrameProperties(metaTags: readonly HTMLMetaElement[]) {
   }
 }
 
-export function parseFrameButtons(metaTags: readonly HTMLMetaElement[]) {
+export function parseButtons(metaTags: readonly HTMLMetaElement[]) {
   // https://regexr.com/7rlm0
   const buttonRegex = /fc:frame:button:(1|2|3|4)(?::(action|target))?$/
 
@@ -128,7 +128,7 @@ export function parseFrameButtons(metaTags: readonly HTMLMetaElement[]) {
   return buttons.toSorted((a, b) => a.index - b.index)
 }
 
-export function validateFrameButtons(buttons: readonly FrameButton[]) {
+export function validateButtons(buttons: readonly FrameButton[]) {
   let buttonsAreOutOfOrder = false
   const invalidButtons: FrameButton['index'][] = []
   for (let i = 0; i < buttons.length; i++) {
@@ -178,8 +178,8 @@ export function htmlToFrame(html: string) {
     html,
     'meta[property^="fc:"], meta[property^="og:"]',
   )
-  const properties = parseFrameProperties(metaTags)
-  const buttons = parseFrameButtons(metaTags)
+  const properties = parseProperties(metaTags)
+  const buttons = parseButtons(metaTags)
 
   const fallbackImageToUrl = !properties.imageUrl
   const postUrlTooLong = properties.postUrl.length > 256
@@ -187,7 +187,7 @@ export function htmlToFrame(html: string) {
     ? properties.input.text.length > 32
     : false
 
-  const { buttonsAreOutOfOrder, invalidButtons } = validateFrameButtons(buttons)
+  const { buttonsAreOutOfOrder, invalidButtons } = validateButtons(buttons)
 
   // TODO: Figure out how this is determined
   // https://warpcast.com/~/developers/frames
@@ -222,12 +222,34 @@ export function htmlToFrame(html: string) {
   } satisfies Frame
 }
 
-export function getFrameRoutes(routes: ReturnType<typeof inspectRoutes>) {
+export function getRoutes(
+  baseUrl: string,
+  routes: ReturnType<typeof inspectRoutes>,
+) {
+  // corrects route paths for `app.route(...)` routes
+  const pathname = new URL(baseUrl).pathname
+  let basePathname = '/'
+  for (const route of routes) {
+    if (route.path === '/') {
+      basePathname = pathname
+    } else {
+      const normalizedPathname = pathname.replace(route.path, '')
+      if (normalizedPathname === pathname) continue
+      basePathname = normalizedPathname
+    }
+  }
+
   const frameRoutes = []
+  if (basePathname !== '/') frameRoutes.push('/')
+
   for (const route of routes) {
     if (route.isMiddleware) continue
     if (route.method !== 'ALL') continue
-    frameRoutes.push(route.path)
+
+    let path: string
+    if (route.path === '/') path = basePathname
+    else path = (basePathname === '/' ? '' : basePathname) + route.path
+    frameRoutes.push(path)
   }
   return frameRoutes
 }

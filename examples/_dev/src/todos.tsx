@@ -18,10 +18,15 @@ export const app = new Farc<State>({
 
 app.frame('/', ({ buttonValue, deriveState, inputText }) => {
   const { index, todos } = deriveState((state) => {
-    if (inputText) state.todos.push({ completed: false, name: inputText })
-    if (buttonValue === 'up') state.index = Math.max(0, state.index - 1)
+    if (inputText) {
+      state.todos.push({ completed: false, name: inputText })
+    }
+    if (buttonValue === 'up')
+      state.index =
+        state.index - 1 < 0 ? state.todos.length - 1 : state.index - 1
     if (buttonValue === 'down')
-      state.index = Math.min(state.todos.length - 1, state.index + 1)
+      state.index =
+        state.index + 1 > state.todos.length - 1 ? 0 : state.index + 1
     if (buttonValue === 'completed')
       state.todos[state.index].completed = !state.todos[state.index].completed
   })
@@ -61,5 +66,16 @@ app.frame('/', ({ buttonValue, deriveState, inputText }) => {
       <Button value="up">⬆️</Button>,
       <Button value="completed">{todos[index]?.completed ? '◻️' : '✅'}</Button>,
     ],
+  }
+})
+
+app.frame('/foo', () => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        hello world
+      </div>
+    ),
+    intents: [<Button>foo</Button>, <Button>bar</Button>, <Button>baz</Button>],
   }
 })

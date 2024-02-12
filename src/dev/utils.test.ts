@@ -2,9 +2,9 @@ import { describe, expect, test } from 'vitest'
 
 import {
   htmlToMetaTags,
-  parseFrameButtons,
-  parseFrameProperties,
-  validateFrameButtons,
+  parseButtons,
+  parseProperties,
+  validateButtons,
 } from './utils.js'
 
 const html = `
@@ -42,7 +42,7 @@ test('htmlToMetaTags', () => {
 })
 
 test('parseFrameProperties', () => {
-  const frameProperties = parseFrameProperties(metaTags)
+  const frameProperties = parseProperties(metaTags)
   expect(frameProperties).toEqual({
     image: 'https://example.com/og',
     imageAspectRatio: '1.91:1',
@@ -56,7 +56,7 @@ test('parseFrameProperties', () => {
 
 describe('parseFrameButtons', () => {
   test('default', () => {
-    const buttons = parseFrameButtons(metaTags)
+    const buttons = parseButtons(metaTags)
     expect(buttons).toEqual([
       {
         title: 'foo',
@@ -87,8 +87,8 @@ describe('parseFrameButtons', () => {
 
 describe('validateFrameButtons', () => {
   test('default', () => {
-    const buttons = parseFrameButtons(metaTags)
-    const result = validateFrameButtons(buttons)
+    const buttons = parseButtons(metaTags)
+    const result = validateButtons(buttons)
     expect(result).toEqual({
       buttonsAreOutOfOrder: false,
       invalidButtons: [],
@@ -101,8 +101,8 @@ describe('validateFrameButtons', () => {
       <meta property="fc:frame:button:3" content="baz">
     `
     const metaTags = htmlToMetaTags(html, selector)
-    const buttons = parseFrameButtons(metaTags)
-    const result = validateFrameButtons(buttons)
+    const buttons = parseButtons(metaTags)
+    const result = validateButtons(buttons)
     expect(result).toEqual({
       buttonsAreOutOfOrder: true,
       invalidButtons: [],
@@ -115,8 +115,8 @@ describe('validateFrameButtons', () => {
       <meta property="fc:frame:button:3" content="baz">
     `
     const metaTags = htmlToMetaTags(html, selector)
-    const buttons = parseFrameButtons(metaTags)
-    const result = validateFrameButtons(buttons)
+    const buttons = parseButtons(metaTags)
+    const result = validateButtons(buttons)
     expect(result).toEqual({
       buttonsAreOutOfOrder: true,
       invalidButtons: [],
