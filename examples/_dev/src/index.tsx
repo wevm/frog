@@ -1,11 +1,9 @@
-/** @jsx jsx */
-/** @jsxImportSource hono/jsx */
-/** @jsxFrag */
-
 import { Button, Farc, TextInput } from 'farc'
 import { app as todoApp } from './todos'
 
-const app = new Farc()
+const app = new Farc({
+  // basePath: '/api'
+})
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context

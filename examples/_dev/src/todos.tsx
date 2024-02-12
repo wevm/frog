@@ -1,7 +1,3 @@
-/** @jsx jsx */
-/** @jsxImportSource hono/jsx */
-/** @jsxFrag */
-
 import { Button, Farc, TextInput } from 'farc'
 
 type State = {
