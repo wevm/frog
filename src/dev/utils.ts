@@ -1,11 +1,11 @@
-import { Window } from 'happy-dom'
-import { inspectRoutes } from 'hono/dev'
 import {
   FrameActionBody,
   NobleEd25519Signer,
   makeFrameAction,
 } from '@farcaster/core'
 import { ed25519 } from '@noble/curves/ed25519'
+import { Window } from 'happy-dom'
+import { inspectRoutes } from 'hono/dev'
 
 import {
   type FrameContext,
