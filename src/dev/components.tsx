@@ -166,7 +166,7 @@ function Button(props: ButtonProps) {
     return (
       <div x-data="{ open: false }" class="relative">
         <button class={buttonClass} type="button" x-on:click="open = true">
-          {innerHtml}
+          <div style={{ marginTop: '2px' }}>{innerHtml}</div>
           {type === 'link' && linkIcon}
         </button>
 
@@ -187,19 +187,19 @@ function Button(props: ButtonProps) {
           </p>
           <div class="flex gap-1.5 mt-1">
             <button
-              class="bg-bg border rounded-sm w-full text-sm font-bold py-1"
+              class="bg-bg border rounded-md w-full text-sm font-bold py-1"
               type="button"
               x-on:click="open = false"
             >
-              Cancel
+              <div style={{ marginTop: '1px' }}>Cancel</div>
             </button>
             <button
-              class="bg-er border-er rounded-sm w-full text-sm text-white font-bold py-1"
+              class="bg-er border-er rounded-md w-full text-sm text-white font-bold py-1"
               target="_blank"
               type="button"
               x-on:click={`open = false; window.open('${target}', '_blank');`}
             >
-              I Understand
+              <div style={{ marginTop: '1px' }}>I Understand</div>
             </button>
           </div>
         </div>
