@@ -86,23 +86,17 @@ app.frame('/action', ({ buttonValue, inputText }) => {
   }
 })
 
-app.frame('/buttons', ({ buttonValue }) => {
+app.frame('/buttons', (context) => {
+  const { buttonValue } = context
   return {
     image: (
-      <div
-        style={{
-          backgroundColor: '#2D2D2D',
-          display: 'flex',
-          fontSize: 60,
-          width: '100%',
-          height: '100%',
-        }}
-      >
-        {buttonValue ?? ''}
-      </div>
+      <div style={{ backgroundColor: '#2D2D2D' }}>{buttonValue ?? ''}</div>
     ),
     intents: [
-      <Button action="post_redirect" value="apples">
+      <Button
+        action="post_redirect"
+        value="https://github.com/wevm/viem/blob/main/src/clients/createClient.ts"
+      >
         Redirect
       </Button>,
       <Button.Link href="https://www.example.com">Link</Button.Link>,

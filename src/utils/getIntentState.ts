@@ -7,15 +7,26 @@ export function getIntentState(
   intents: readonly JSXNode[] | null,
 ) {
   const { buttonIndex, inputText } = frameData || {}
-  const state = { buttonIndex, buttonValue: undefined, inputText, reset: false }
+  const state = {
+    buttonIndex,
+    buttonValue: undefined,
+    inputText,
+    redirect: false,
+    reset: false,
+  }
   if (!intents) return state
   if (buttonIndex) {
     const buttonIntents = intents.filter((intent) =>
       intent?.props.property.match(/fc:frame:button:\d$/),
     )
     const intent = buttonIntents[buttonIndex - 1]
-    state.buttonValue = intent.props['data-value']
-    if (intent.props['data-type'] === 'reset') state.reset = true
+    const type = intent.props['data-type']
+    const value = intent.props['data-value']
+
+    if (type === 'redirect') state.redirect = true
+    else if (type === 'reset') state.reset = true
+
+    state.buttonValue = value
   }
   return state
 }

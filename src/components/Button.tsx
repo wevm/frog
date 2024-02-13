@@ -23,6 +23,7 @@ export function ButtonRoot({
     <meta
       property={`fc:frame:button:${index}`}
       content={children}
+      data-type={action === 'post_redirect' ? 'redirect' : undefined}
       data-value={value}
     />,
     <meta property={`fc:frame:button:${index}:action`} content={action} />,
