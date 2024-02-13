@@ -27,12 +27,14 @@ import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
-import { toBaseUrl } from './utils/toBaseUrl.js'
 
 export type FarcConstructorParameters<
   state = undefined,
   env extends Env = Env,
-> = HonoOptions<env> & {
+  basePath extends string = '/',
+> = {
+  basePath?: basePath | string | undefined
+  honoOptions?: HonoOptions<env> | undefined
   initialState?: state | undefined
 }
 
@@ -48,14 +50,25 @@ export class Farc<
   env extends Env = Env,
   schema extends Schema = {},
   basePath extends string = '/',
-> extends Hono<env, schema, basePath> {
+> {
   #initialState: state = undefined as state
 
+  hono: Hono<env, schema, basePath>
+  fetch: Hono<env, schema, basePath>['fetch']
+  get: Hono<env, schema, basePath>['get']
+  post: Hono<env, schema, basePath>['post']
+
   constructor({
+    basePath,
+    honoOptions,
     initialState,
-    ...options
-  }: FarcConstructorParameters<state, env> = {}) {
-    super(options)
+  }: FarcConstructorParameters<state, env, basePath> = {}) {
+    this.hono = new Hono<env, schema, basePath>(honoOptions)
+    if (basePath) this.hono = this.hono.basePath(basePath)
+    this.fetch = this.hono.fetch.bind(this.hono)
+    this.get = this.hono.get.bind(this.hono)
+    this.post = this.hono.post.bind(this.hono)
+
     if (initialState) this.#initialState = initialState
   }
 
@@ -67,8 +80,12 @@ export class Farc<
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
-    this.use(path, async (c) => {
+    this.hono.use(parsePath(path), async (c) => {
       const query = c.req.query()
+
+      const url = new URL(c.req.url)
+      const baseUrl = `${url.origin}${url.pathname}`
+
       const previousContext = query.previousContext
         ? deserializeJson<PreviousFrameContext<path, state>>(
             query.previousContext,
@@ -127,9 +144,7 @@ export class Farc<
             <meta
               property="fc:frame:post_url"
               content={`${
-                action
-                  ? toBaseUrl(c.req.url) + parsePath(action || '')
-                  : context.url
+                action ? baseUrl + parsePath(action || '') : context.url
               }?${postSearch}`}
             />
             {parsedIntents}
@@ -160,7 +175,7 @@ export class Farc<
     })
 
     // OG Image Route
-    this.get(`${parsePath(path)}/image`, async (c) => {
+    this.hono.get(`${parsePath(path)}/image`, async (c) => {
       const query = c.req.query()
       const previousContext = query.previousContext
         ? deserializeJson<PreviousFrameContext<path, state>>(
@@ -178,35 +193,36 @@ export class Farc<
     })
 
     // Frame Dev Routes
-    this.use(`${parsePath(path)}/dev`, (c, next) =>
-      jsxRenderer((props) => {
-        const { children } = props
-        const path = new URL(c.req.url).pathname.replace('/dev', '')
-        return (
-          <html lang="en">
-            <head>
-              <title>𝑭𝒂𝒓𝒄 {path || '/'}</title>
-              <Style />
-              {/* TODO: Vendor into project */}
-              <script
-                defer
-                src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"
-              />
-              <script
-                defer
-                src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-              />
-              <script
-                src="https://unpkg.com/htmx.org@1.9.10"
-                integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
-                crossorigin="anonymous"
-              />
-            </head>
-            <body>{children}</body>
-          </html>
-        )
-      })(c, next),
-    )
+    this.hono
+      .use(`${parsePath(path)}/dev`, (c, next) =>
+        jsxRenderer((props) => {
+          const { children } = props
+          const path = new URL(c.req.url).pathname.replace('/dev', '')
+          return (
+            <html lang="en">
+              <head>
+                <title>𝑭𝒂𝒓𝒄 {path || '/'}</title>
+                <Style />
+                {/* TODO: Vendor into project */}
+                <script
+                  defer
+                  src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"
+                />
+                <script
+                  defer
+                  src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+                />
+                <script
+                  src="https://unpkg.com/htmx.org@1.9.10"
+                  integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+                  crossorigin="anonymous"
+                />
+              </head>
+              <body>{children}</body>
+            </html>
+          )
+        })(c, next),
+      )
       .get(async (c) => {
         const baseUrl = c.req.url.replace('/dev', '')
         const response = await fetch(baseUrl)
@@ -214,7 +230,7 @@ export class Farc<
 
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        const routes = getRoutes(baseUrl, inspectRoutes(this))
+        const routes = getRoutes(baseUrl, inspectRoutes(this.hono))
 
         return c.render(<Dev {...{ baseUrl, frame, routes, state }} />)
       })
@@ -334,11 +350,20 @@ export class Farc<
         // TODO: handle redirects
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        const routes = getRoutes(baseUrl, inspectRoutes(this))
+        const routes = getRoutes(baseUrl, inspectRoutes(this.hono))
 
         return c.render(
           <Preview {...{ baseUrl, error, frame, routes, state }} />,
         )
       })
+  }
+
+  route<
+    subPath extends string,
+    subEnv extends Env,
+    subSchema extends Schema,
+    subBasePath extends string,
+  >(path: subPath, farc: Farc<any, subEnv, subSchema, subBasePath>) {
+    return this.hono.route(path, farc.hono)
   }
 }
