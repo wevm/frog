@@ -7,6 +7,7 @@ export type ButtonProps = {
 
 export type ButtonRootProps = ButtonProps & {
   action?: 'post' | 'post_redirect'
+  target?: string | undefined
   value?: string | undefined
 }
 
@@ -15,6 +16,7 @@ export function ButtonRoot({
   action = 'post',
   children,
   index = 0,
+  target,
   value,
 }: ButtonRootProps) {
   return [
@@ -24,6 +26,7 @@ export function ButtonRoot({
       data-value={value}
     />,
     <meta property={`fc:frame:button:${index}:action`} content={action} />,
+    <meta property={`fc:frame:button:${index}:target`} content={target} />,
   ] as unknown as HtmlEscapedString
 }
 

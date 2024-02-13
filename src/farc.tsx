@@ -1,20 +1,21 @@
-import {
-  FrameActionBody,
-  Message,
-  NobleEd25519Signer,
-  makeFrameAction,
-} from '@farcaster/core'
+import { Message } from '@farcaster/core'
 import { bytesToHex } from '@noble/curves/abstract/utils'
-import { ed25519 } from '@noble/curves/ed25519'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { inspectRoutes } from 'hono/dev'
 import { type HonoOptions } from 'hono/hono-base'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { type Env, type Schema } from 'hono/types'
+import { validator } from 'hono/validator'
 
 import { Dev, Preview, Style } from './dev/components.js'
-import { getRoutes, htmlToFrame, htmlToState } from './dev/utils.js'
+import {
+  fetchFrameMessage,
+  getData,
+  getRoutes,
+  htmlToFrame,
+  htmlToState,
+} from './dev/utils.js'
 import {
   type FrameContext,
   type FrameImageAspectRatio,
@@ -234,89 +235,94 @@ export class Farc<
 
         return c.render(<Dev {...{ baseUrl, frame, routes, state }} />)
       })
-      .post(async (c) => {
-        const baseUrl = c.req.url.replace('/dev', '')
+      .post(
+        validator('form', (value, c) => {
+          try {
+            return getData(value)
+          } catch (e) {
+            return c.text('Invalid data', 400)
+          }
+        }),
+        async (c) => {
+          const baseUrl = c.req.url.replace('/dev', '')
+          const form = c.req.valid('form')
+          const { buttonIndex, castId, fid, inputText, postUrl } = form
 
-        const formData = await c.req.formData()
-        const buttonIndex = parseInt(
-          typeof formData.get('buttonIndex') === 'string'
-            ? (formData.get('buttonIndex') as string)
-            : '',
-        )
-        // TODO: Sanitize input
-        const inputText = formData.get('inputText')
-          ? Buffer.from(formData.get('inputText') as string)
-          : undefined
-        const postUrl = formData.get('postUrl') as string
+          const message = await fetchFrameMessage({
+            baseUrl,
+            buttonIndex,
+            castId,
+            fid,
+            inputText,
+          })
 
-        const privateKeyBytes = ed25519.utils.randomPrivateKey()
-        // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
+          let response = await fetch(postUrl, {
+            method: 'POST',
+            body: JSON.stringify({
+              untrustedData: {
+                buttonIndex,
+                castId: {
+                  fid: castId.fid,
+                  hash: `0x${bytesToHex(castId.hash)}`,
+                },
+                fid,
+                inputText: inputText
+                  ? Buffer.from(inputText).toString('utf-8')
+                  : undefined,
+                messageHash: `0x${bytesToHex(message.hash)}`,
+                network: 1,
+                timestamp: message.data.timestamp,
+                url: baseUrl,
+              },
+              trustedData: {
+                messageBytes: Buffer.from(
+                  Message.encode(message).finish(),
+                ).toString('hex'),
+              },
+            }),
+          })
 
-        // const key = bytesToHex(publicKeyBytes)
-        // const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
-        //
-        // const account = privateKeyToAccount(bytesToHex(privateKeyBytes))
-        // const requestFid = 1
+          // fetch initial state on error
+          const error =
+            response.status !== 200 ? response.statusText : undefined
+          if (response.status !== 200) response = await fetch(baseUrl)
 
-        // const signature = await account.signTypedData({
-        //   domain: {
-        //     name: 'Farcaster SignedKeyRequestValidator',
-        //     version: '1',
-        //     chainId: 10,
-        //     verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
-        //   },
-        //   types: {
-        //     SignedKeyRequest: [
-        //       { name: 'requestFid', type: 'uint256' },
-        //       { name: 'key', type: 'bytes' },
-        //       { name: 'deadline', type: 'uint256' },
-        //     ],
-        //   },
-        //   primaryType: 'SignedKeyRequest',
-        //   message: {
-        //     requestFid: BigInt(requestFid),
-        //     key,
-        //     deadline: BigInt(deadline),
-        //   },
-        // })
+          const text = await response.text()
+          // TODO: handle redirects
+          const frame = htmlToFrame(text)
+          const state = htmlToState(text)
+          const routes = getRoutes(baseUrl, inspectRoutes(this.hono))
 
-        // const response = await fetch(
-        //   'https://api.warpcast.com/v2/signed-key-requests',
-        //   {
-        //     method: 'POST',
-        //     headers: {
-        //       'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({
-        //       deadline,
-        //       key,
-        //       requestFid,
-        //       signature,
-        //     }),
-        //   },
-        // )
+          return c.render(
+            <Preview {...{ baseUrl, error, frame, routes, state }} />,
+          )
+        },
+      )
 
-        const fid = 2
-        const castId = {
-          fid,
-          hash: new Uint8Array(
-            Buffer.from('0000000000000000000000000000000000000000', 'hex'),
-          ),
+    this.hono.post(
+      `${parsePath(path)}/dev/redirect`,
+      validator('json', (value, c) => {
+        try {
+          return getData(value)
+        } catch (e) {
+          return c.text('Invalid data', 400)
         }
-        const frameActionBody = FrameActionBody.create({
-          url: Buffer.from(baseUrl),
+      }),
+      async (c) => {
+        const baseUrl = c.req.url.replace('/dev', '')
+        const json = c.req.valid('json')
+        const { buttonIndex, castId, fid, inputText, postUrl } = json
+
+        const message = await fetchFrameMessage({
+          baseUrl,
           buttonIndex,
           castId,
+          fid,
           inputText,
         })
-        const frameActionMessage = await makeFrameAction(
-          frameActionBody,
-          { fid, network: 1 },
-          new NobleEd25519Signer(privateKeyBytes),
-        )
 
-        const message = frameActionMessage._unsafeUnwrap()
-        let response = await fetch(postUrl, {
+        console.log(postUrl)
+        const response = await fetch(postUrl, {
           method: 'POST',
           body: JSON.stringify({
             untrustedData: {
@@ -342,20 +348,15 @@ export class Farc<
           }),
         })
 
-        // fetch initial state on error
-        const error = response.status !== 200 ? response.statusText : undefined
-        if (response.status !== 200) response = await fetch(baseUrl)
+        // TODO: Get redirect url
+        console.log({ response })
 
-        const text = await response.text()
-        // TODO: handle redirects
-        const frame = htmlToFrame(text)
-        const state = htmlToState(text)
-        const routes = getRoutes(baseUrl, inspectRoutes(this.hono))
-
-        return c.render(
-          <Preview {...{ baseUrl, error, frame, routes, state }} />,
-        )
-      })
+        return c.json({
+          success: true,
+          redirectUrl: '/',
+        })
+      },
+    )
   }
 
   route<

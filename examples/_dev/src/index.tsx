@@ -101,8 +101,10 @@ app.frame('/buttons', ({ buttonValue }) => {
       </div>
     ),
     intents: [
-      <Button value="apples">Apples</Button>,
-      <Button.Link href="https://www.google.com">Google</Button.Link>,
+      <Button action="post_redirect" value="apples">
+        Redirect
+      </Button>,
+      <Button.Link href="https://www.example.com">Link</Button.Link>,
       <Button.Mint target="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df">
         Mint
       </Button.Mint>,

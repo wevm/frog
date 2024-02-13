@@ -72,7 +72,15 @@ function Frame(props: FrameProps) {
   } = props
   const hasIntents = Boolean(input || buttons?.length)
   return (
-    <div class="w-full" style={{ maxWidth: '512px' }}>
+    <div
+      class="w-full"
+      style={{ maxWidth: '512px' }}
+      x-data={`{
+        baseUrl: '${baseUrl}',
+        inputText: '',
+        postUrl: '${postUrl}',
+      }`}
+    >
       <div class="relative rounded-md relative w-full">
         <Img {...{ hasIntents, imageAspectRatio, imageUrl, title }} />
 
@@ -137,11 +145,13 @@ function Input(props: InputProps) {
   return (
     <input
       aria-label={text}
+      autocomplete="off"
       class="bg-bg rounded-sm border px-3 py-2.5 text-sm leading-snug w-full"
-      style={{ paddingBottom: '0.5rem' }}
       name={name}
       placeholder={text}
-      autocomplete="off"
+      style={{ paddingBottom: '0.5rem' }}
+      type="text"
+      x-model="inputText"
     />
   )
 }
@@ -161,48 +171,94 @@ function Button(props: ButtonProps) {
       {title}
     </span>
   )
+  const leavingAppContainerProps = {
+    class: 'relative',
+    'x-data': `{
+      index: '${index}',
+      open: false,
+      target: ${target ? `'${target}'` : undefined},
+    }`,
+  }
+  const leavingAppPrompt = (
+    <div
+      x-show="open"
+      class="flex flex-col gap-1.5 border bg-bg p-4 rounded-lg text-center"
+      style={{ position: 'absolute', marginTop: '4px', width: '20rem' }}
+      {...{
+        '@click.outside': 'open = false',
+        '@keyup.escape': 'open = false',
+        'x-trap.noscroll': 'open',
+      }}
+    >
+      <h1 class="font-bold text-base">Leaving Warpcast</h1>
+      <div class="text-fg2 text-sm font-mono">{target}</div>
+      <p class="text-base leading-snug">
+        If you connect your wallet and the site is malicious, you may lose
+        funds.
+      </p>
+      <div class="flex gap-1.5 mt-1">
+        <button
+          class="bg-bg border rounded-md w-full text-sm font-bold py-1"
+          type="button"
+          x-on:click="open = false"
+        >
+          <div style={{ marginTop: '1px' }}>Cancel</div>
+        </button>
+        <button
+          class="bg-er border-er rounded-md w-full text-sm text-white font-bold py-1"
+          target="_blank"
+          type="button"
+          x-on:click={`open = false; window.open(target, '_blank');`}
+        >
+          <div style={{ marginTop: '1px' }}>I Understand</div>
+        </button>
+      </div>
+    </div>
+  )
 
   if (type === 'link')
     return (
-      <div x-data="{ open: false }" class="relative">
+      <div {...leavingAppContainerProps}>
         <button class={buttonClass} type="button" x-on:click="open = true">
           <div style={{ marginTop: '2px' }}>{innerHtml}</div>
-          {type === 'link' && linkIcon}
+          <div style={{ marginTop: '2px' }}>{linkIcon}</div>
         </button>
 
-        <div
-          x-show="open"
-          class="flex flex-col gap-1.5 border bg-bg p-4 rounded-lg text-center"
-          style={{ position: 'absolute', marginTop: '4px', width: '20rem' }}
-          {...{
-            '@click.outside': 'open = false',
-            'x-trap.noscroll': 'open',
-          }}
+        {leavingAppPrompt}
+      </div>
+    )
+
+  if (type === 'post_redirect')
+    return (
+      <div {...leavingAppContainerProps}>
+        <button
+          class={buttonClass}
+          type="button"
+          x-on:click={`
+            fetch(baseUrl + '/dev/redirect', {
+              method: 'POST',
+              body: JSON.stringify({
+                buttonIndex: index,
+                inputText,
+                postUrl: target ?? postUrl,
+              }),
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+            .then(res => {
+              console.log(res)
+              target = 'https://example.com'
+              open = true
+            })
+            .catch(error => console.log(error))
+          `}
         >
-          <h1 class="font-bold text-base">Leaving Warpcast</h1>
-          <div class="text-fg2 text-sm font-mono">{target}</div>
-          <p class="text-base leading-snug">
-            If you connect your wallet and the site is malicious, you may lose
-            funds.
-          </p>
-          <div class="flex gap-1.5 mt-1">
-            <button
-              class="bg-bg border rounded-md w-full text-sm font-bold py-1"
-              type="button"
-              x-on:click="open = false"
-            >
-              <div style={{ marginTop: '1px' }}>Cancel</div>
-            </button>
-            <button
-              class="bg-er border-er rounded-md w-full text-sm text-white font-bold py-1"
-              target="_blank"
-              type="button"
-              x-on:click={`open = false; window.open('${target}', '_blank');`}
-            >
-              <div style={{ marginTop: '1px' }}>I Understand</div>
-            </button>
-          </div>
-        </div>
+          <div style={{ marginTop: '2px' }}>{innerHtml}</div>
+          <div style={{ marginTop: '2px' }}>{redirectIcon}</div>
+        </button>
+
+        {leavingAppPrompt}
       </div>
     )
 
@@ -216,7 +272,6 @@ function Button(props: ButtonProps) {
     >
       {type === 'mint' && mintIcon}
       {innerHtml}
-      {type === 'post_redirect' && redirectIcon}
     </button>
   )
 }
