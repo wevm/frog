@@ -9,6 +9,8 @@
     "src/**/*.test-d.tsx"
   ],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

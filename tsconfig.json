@@ -1,5 +1,9 @@
 {
   // This configuration is used for local development and type checking.
   "extends": "./tsconfig.base.json",
-  "include": ["src"]
+  "include": ["src"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  }
 }

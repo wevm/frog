@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../_lib/edge/index.d.ts",
+  "module": "../_lib/edge/index.js"
+}

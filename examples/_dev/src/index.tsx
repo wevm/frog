@@ -1,4 +1,5 @@
 import { Button, Farc, TextInput } from 'farc'
+
 import { app as todoApp } from './todos'
 
 const app = new Farc({

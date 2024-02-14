@@ -85,7 +85,7 @@ for (const packagePath of packagePaths) {
       await fs.mkdir(distDir, { recursive: true })
 
       // Symlink src to dist file
-      await fs.symlink(srcFilePath, distFilePath, 'file')
+      await fs.symlink(srcFilePath, distFilePath, 'file').catch(() => {})
     }
   }
 }

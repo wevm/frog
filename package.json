@@ -2,7 +2,7 @@
   "workspaces": ["create-farc", "examples/*", "src"],
   "scripts": {
     "dev": "bun run --hot ./examples/_dev/src/index.tsx",
-    "build": "bun run clean && bun run build:farc && bun run build:create-farc",
+    "build": "bun run clean && bun run build:farc && bun run build:create-farc && bun .scripts/postbuild.ts",
     "build:farc": "tsc --project ./tsconfig.build.json",
     "build:create-farc": "rimraf create-farc/_lib && tsc -p create-farc/tsconfig.build.json",
     "changeset": "changeset",
@@ -22,10 +22,11 @@
     "@types/bun": "latest",
     "@types/fs-extra": "^11.0.4",
     "@vitest/coverage-v8": "^1.2.2",
+    "fast-glob": "^3.3.2",
     "hono": "^4",
     "rimraf": "^5.0.5",
     "typed-htmx": "^0.2.1",
-    "typescript": "^5.0.0",
+    "typescript": "^5.3.3",
     "vitest": "^1.2.2"
   }
 }

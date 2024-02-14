@@ -1,5 +1,5 @@
 {
-  "name": "example",
+  "name": "example-dev",
   "private": true,
   "scripts": {
     "dev": "bun run --hot src/index.tsx"

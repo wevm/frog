@@ -7,4 +7,4 @@ export {
 } from './components/Button.js'
 export { TextInput, type TextInputProps } from './components/TextInput.js'
 
-export { Farc, type FrameHandlerReturnType } from './farc.js'
+export { Farc } from './farc.js'

@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../../_lib/jsx/jsx-dev-runtime/index.d.ts",
+  "module": "../../_lib/jsx/jsx-dev-runtime/index.js"
+}
