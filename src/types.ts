@@ -1,13 +1,11 @@
 // TODO: TSDoc
 
 import { type Context, type Env } from 'hono'
-import { type JSXNode } from 'hono/jsx'
 
 export type FrameContext<path extends string = string, state = unknown> = {
-  buttonIndex?: number | undefined
   buttonValue?: string | undefined
   deriveState: (fn?: (state: state) => void) => state
-  initialUrl: string
+  frameData: FrameData
   inputText?: string | undefined
   previousState: state
   request: Context<Env, path>['req']
@@ -18,17 +16,13 @@ export type FrameContext<path extends string = string, state = unknown> = {
    * - `response` - The frame has been interacted with (user presses button).
    */
   status: 'initial' | 'redirect' | 'response'
-  trustedData?: TrustedData | undefined
-  untrustedData?: UntrustedData | undefined
   url: Context['req']['url']
 }
 
-export type PreviousFrameContext<
-  path extends string = string,
-  state = unknown,
-> = FrameContext<path, state> & {
-  /** Intents from the previous frame. */
-  intents: readonly JSXNode[]
+export type PreviousFrameContext<state = unknown> = {
+  /** Intent data from the previous frame. */
+  intentData: readonly Record<string, string>[]
+  previousState: state
 }
 
 export type FrameData = {
@@ -48,6 +42,8 @@ export type FrameVersion = 'vNext'
 
 export type FrameIntent = JSX.Element | false | null | undefined
 export type FrameIntents = FrameIntent | FrameIntent[]
+
+export type FrameIntentData = Record<string, string>
 
 export type TrustedData = {
   messageBytes: string

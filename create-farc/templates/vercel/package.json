@@ -2,7 +2,8 @@
   "name": "example",
   "private": true,
   "scripts": {
-    "dev": "bun run --hot src/index.tsx"
+    "dev": "bun run --hot api/index.tsx",
+    "build": "farc vercel-build"
   },
   "dependencies": {
     "bun": "latest",

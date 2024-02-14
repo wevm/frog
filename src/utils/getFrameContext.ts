@@ -5,12 +5,9 @@ import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
 
 type GetFrameContextParameters<state = unknown> = {
-  context: Pick<
-    FrameContext<string, state>,
-    'status' | 'trustedData' | 'untrustedData' | 'url'
-  >
+  context: Pick<FrameContext<string, state>, 'frameData' | 'status' | 'url'>
   initialState?: state
-  previousContext: PreviousFrameContext<string, state> | undefined
+  previousContext: PreviousFrameContext<state> | undefined
   request: Context['req']
 }
 
@@ -18,14 +15,12 @@ export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
   const { context, previousContext, request } = options
-  const { trustedData, untrustedData } = context || {}
+  const { frameData } = context || {}
 
-  const { buttonIndex, buttonValue, inputText, redirect, reset } =
-    getIntentState(
-      // TODO: derive from untrusted data.
-      untrustedData,
-      previousContext?.intents || [],
-    )
+  const { buttonValue, inputText, redirect, reset } = getIntentState(
+    frameData,
+    previousContext?.intentData || [],
+  )
 
   const status = (() => {
     if (redirect) return 'redirect'
@@ -33,14 +28,10 @@ export async function getFrameContext<state>(
     return context.status || 'initial'
   })()
 
-  // If there are no previous contexts, the initial URL is the current URL.
-  const initialUrl = !previousContext
-    ? parsePath(context.url)
-    : previousContext.initialUrl
-
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
-  const url = reset ? initialUrl : parsePath(context.url)
+  const url =
+    (reset ? context.frameData?.url : undefined) || parsePath(context.url)
 
   let previousState = previousContext?.previousState || options.initialState
   function deriveState(derive?: (state: state) => void): state {
@@ -50,16 +41,13 @@ export async function getFrameContext<state>(
   }
 
   return {
-    buttonIndex,
     buttonValue,
-    initialUrl,
+    frameData,
     inputText,
     deriveState,
     previousState: previousState as any,
     request,
     status,
-    trustedData,
-    untrustedData,
     url,
   }
 }

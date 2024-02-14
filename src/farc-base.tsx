@@ -12,6 +12,7 @@ import {
 } from './types.js'
 import { deserializeJson } from './utils/deserializeJson.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getIntentData } from './utils/getIntentData.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestToContext } from './utils/requestToContext.js'
@@ -44,6 +45,7 @@ export class FarcBase<
 > {
   #initialState: state = undefined as state
 
+  basePath: string
   hono: Hono<env, schema, basePath>
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
@@ -56,6 +58,7 @@ export class FarcBase<
   }: FarcConstructorParameters<state, env, basePath> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
+    this.basePath = basePath ?? '/'
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
@@ -67,20 +70,15 @@ export class FarcBase<
     path: path,
     handler: (
       context: FrameContext<path, state>,
-      previousContext: PreviousFrameContext<path, state> | undefined,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
   ) {
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), async (c) => {
       const query = c.req.query()
-
       const url = new URL(c.req.url)
-      const baseUrl = `${url.origin}${url.pathname}`
 
       const previousContext = query.previousContext
-        ? deserializeJson<PreviousFrameContext<path, state>>(
-            query.previousContext,
-          )
+        ? deserializeJson<PreviousFrameContext<state>>(query.previousContext)
         : undefined
       const context = await getFrameContext({
         context: await requestToContext(c.req),
@@ -94,22 +92,18 @@ export class FarcBase<
         if (!location) throw new Error('location required to redirect')
         return c.redirect(location, 302)
       }
+      if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
 
-      if (context.url !== parsePath(c.req.url))
-        return c.redirect(
-          `${context.url}?previousContext=${query.previousContext}`,
-        )
-
-      const { action, imageAspectRatio, intents } = await handler(
-        context,
-        previousContext,
-      )
+      const { action, imageAspectRatio, intents } = await handler(context)
       const parsedIntents = intents ? parseIntents(intents) : null
+      const intentData = getIntentData(parsedIntents)
 
-      const serializedContext = serializeJson(context)
-      const serializedPreviousContext = serializeJson({
+      const serializedContext = serializeJson({
         ...context,
-        intents: parsedIntents,
+        request: undefined,
+      })
+      const serializedPreviousContext = serializeJson({
+        intentData,
         previousState: context.deriveState(),
       })
 
@@ -141,7 +135,11 @@ export class FarcBase<
             <meta
               property="fc:frame:post_url"
               content={`${
-                action ? baseUrl + parsePath(action || '') : context.url
+                action
+                  ? url.origin +
+                    parsePath(this.basePath) +
+                    parsePath(action || '')
+                  : context.url
               }?${postSearch}`}
             />
             {parsedIntents}
@@ -175,9 +173,7 @@ export class FarcBase<
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
       const query = c.req.query()
       const previousContext = query.previousContext
-        ? deserializeJson<PreviousFrameContext<path, state>>(
-            query.previousContext,
-          )
+        ? deserializeJson<PreviousFrameContext<state>>(query.previousContext)
         : undefined
       const context = await getFrameContext({
         context: deserializeJson<FrameContext<path, state>>(query.context),
@@ -185,7 +181,7 @@ export class FarcBase<
         previousContext,
         request: c.req,
       })
-      const { image } = await handler(context, previousContext)
+      const { image } = await handler(context)
       return new ImageResponse(image)
     })
   }

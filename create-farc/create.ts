@@ -1,17 +1,15 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { intro, log, outro, text } from '@clack/prompts'
+import { intro, log, outro, select, text } from '@clack/prompts'
 import { default as fs } from 'fs-extra'
 import { default as pc } from 'picocolors'
 
-export type CreateParameters = { name: string }
+export type CreateParameters = { name: string; template: 'default' | 'vercel' }
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export async function create(params: CreateParameters) {
   intro('Welcome to Farc!')
-
-  const templateDir = resolve(__dirname, '../templates/default')
 
   const displayName =
     params.name ||
@@ -26,6 +24,19 @@ export async function create(params: CreateParameters) {
   const name = kebabcase(displayName)
 
   const destDir = resolve(process.cwd(), name)
+
+  const templateName =
+    params.template ||
+    ((await select({
+      message: 'Choose a template',
+      options: [
+        { value: 'default', label: 'Default' },
+        { value: 'vercel', label: 'Vercel' },
+      ],
+      initialValue: 'default',
+    })) as string)
+
+  const templateDir = resolve(__dirname, `../templates/${templateName}`)
 
   // Copy contents
   fs.copySync(templateDir, destDir)
