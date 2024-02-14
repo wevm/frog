@@ -1,7 +1,8 @@
-import type { Env, Schema } from 'hono'
+import { type Env, type Schema } from 'hono'
+
 import { routes as devRoutes } from './dev/routes.js'
 import { FarcBase, type FrameHandlerReturnType } from './farc-base.js'
-import type { FrameContext, PreviousFrameContext } from './types.js'
+import { type FrameContext, type PreviousFrameContext } from './types.js'
 
 export class Farc<
   state = undefined,

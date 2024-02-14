@@ -1,185 +1,248 @@
-import { codeToHtml } from 'shiki'
+import { type Frame as FrameType } from './types.js'
+import { type getInspectorData, type State } from './utils.js'
 
-import { type FrameContext, type PreviousFrameContext } from '../types.js'
-import {
-  type Frame as FrameType,
-  type FrameButton,
-  type FrameInput,
-} from './types.js'
-import { type State } from './utils.js'
-
-export type DevProps = {
+export type PreviewProps = {
   baseUrl: string
   error?: string
   frame: FrameType
   routes: readonly string[]
-  state: State
-}
-
-export function Dev(props: DevProps) {
-  const { baseUrl, error, frame, routes, state } = props
-  return (
-    <div class="items-center flex flex-col p-4">
-      <div class="max-w-7xl flex flex-col gap-2.5 w-full">
-        <Preview {...{ baseUrl, error, frame, routes, state }} />
-      </div>
-    </div>
-  )
-}
-
-type PreviewProps = {
-  baseUrl: string
-  error?: string | undefined
-  frame: FrameType
-  routes: readonly string[]
+  inspectorData: Awaited<ReturnType<typeof getInspectorData>>
   state: State
 }
 
 export function Preview(props: PreviewProps) {
   const { baseUrl, error, frame, routes, state } = props
-  const hxTarget = 'preview'
-  return (
-    <form
-      class="flex flex-col gap-2 w-full"
-      hx-post={`${baseUrl}/dev`}
-      hx-swap="innerHTML"
-      hx-target={`#${hxTarget}`}
-      id={hxTarget}
-    >
-      <div class="flex flex-row gap-2" style={{ minHeight: '397px' }}>
-        <Frame {...{ ...frame, baseUrl }} />
-        <Navigator {...{ baseUrl, routes }} />
-      </div>
-      {error && <div class="text-er text-sm">{error}</div>}
-      <Inspector {...{ frame, state }} />
-    </form>
-  )
-}
-
-type FrameProps = FrameType & {
-  baseUrl: string
-}
-
-function Frame(props: FrameProps) {
-  const {
-    baseUrl,
-    buttons,
-    imageAspectRatio,
-    imageUrl,
-    input,
-    postUrl,
-    title,
-  } = props
-  const hasIntents = Boolean(input || buttons?.length)
   return (
     <div
-      class="w-full"
-      style={{ maxWidth: '512px' }}
+      class="items-center flex flex-col p-4 mt-1"
       x-data={`{
+        error: ${error ? `'${error}'` : undefined},
         baseUrl: '${baseUrl}',
+        history: [],
+        id: -1,
+        initialData: {
+          frame: ${JSON.stringify(frame)},
+          inspectorData: ${JSON.stringify(props.inspectorData)},
+          routes: ${JSON.stringify(routes)},
+          state: ${JSON.stringify(state)},
+        },
         inputText: '',
-        postUrl: '${postUrl}',
+        data: {
+          frame: ${JSON.stringify(frame)},
+          inspectorData: ${JSON.stringify(props.inspectorData)},
+          routes: ${JSON.stringify(routes)},
+          state: ${JSON.stringify(state)},
+        },
+        get frame() { return this.data.frame },
       }`}
     >
-      <div class="relative rounded-md relative w-full">
-        <Img {...{ hasIntents, imageAspectRatio, imageUrl, title }} />
-
-        <input name="postUrl" type="hidden" value={postUrl} />
-
-        {hasIntents && (
-          <div class="bg-bg2 flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
-            {input && <Input {...input} />}
-
-            {buttons && (
-              <div class={`grid gap-2.5 grid-cols-${buttons.length}`}>
-                {buttons.map((button) => (
-                  <Button {...button} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div class="text-xs mt-1 text-right">
-        <a href={baseUrl}>{new URL(baseUrl).host}</a>
+      <div
+        class="max-w-7xl flex flex-col gap-2.5 w-full"
+        x-data="{
+          get inspectorData() { return data.inspectorData },
+          get routes() { return data.routes },
+          get state() { return data.state },
+          get buttonCount() { return frame.buttons?.length ?? 0 },
+          get hasIntents() { return Boolean(frame.input || frame.buttons.length) },
+        }"
+      >
+        <HistoryBar />
+        <div class="flex flex-row gap-2.5" style={{ minHeight: '397px' }}>
+          <Frame />
+          <Navigator />
+        </div>
+        <div class="text-er text-sm" x-text="error" />
+        <Inspector />
       </div>
     </div>
   )
 }
 
-type ImgProps = {
-  hasIntents?: boolean | undefined
-  imageAspectRatio: string
-  imageUrl: string
-  title?: string | undefined
+function HistoryBar() {
+  return (
+    <div class="items-center flex gap-2.5 w-full" style={{ maxWidth: '512px' }}>
+      <div class="flex border rounded-md" style={{ height: '1.6rem' }}>
+        <button
+          aria-label="back"
+          class="text-fg2 bg-transparent px-1.5 rounded-l-md"
+          type="button"
+          x-data="{ get disabled() { return id === -1 } }"
+          x-on:click={`
+            const nextId = id - 1
+            if (nextId < 0) {
+              data = initialData
+              id = -1
+              inputText = ''
+              return
+            }
+
+            const body = history[nextId].body
+            fetch(baseUrl + '/dev/action', {
+              method: 'POST',
+              body,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+            .then((res) => res.json())
+            .then((json) => {
+              data = json
+              id = nextId
+              inputText = ''
+            })
+            .catch(console.error)
+          `}
+          {...{
+            ':disabled': 'disabled',
+            ':style': "disabled && { opacity: '0.25' }",
+          }}
+        >
+          {arrowLeftIcon}
+        </button>
+        <div class="bg-br h-full" style={{ width: '1px' }} />
+        <button
+          aria-label="forward"
+          class="text-fg2 bg-transparent px-1.5 rounded-r-md"
+          type="button"
+          x-data="{ get disabled() { return !history[id + 1] } }"
+          x-on:click={`
+            let nextId = id + 1
+            if (!history[nextId]) return
+
+            const body = history[nextId].body
+            fetch(baseUrl + '/dev/action', {
+              method: 'POST',
+              body,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+            .then((res) => res.json())
+            .then((json) => {
+              data = json
+              id = nextId
+              inputText = ''
+            })
+            .catch(console.error)
+          `}
+          {...{
+            ':disabled': 'disabled',
+            ':style': "disabled && { opacity: '0.25' }",
+          }}
+        >
+          {arrowRightIcon}
+        </button>
+      </div>
+
+      <div class="flex gap-2 w-full" style={{ height: '1.6rem' }}>
+        <div class="items-center flex text-fg2 border px-1.5 rounded-md font-mono w-full gap-1">
+          <button type="button" class="bg-transparent">
+            {clockIcon}
+          </button>
+          <div
+            class="overflow-hidden whitespace-nowrap text-ellipsis text-xs"
+            style={{ marginTop: '1px' }}
+            x-text="state.context.url.replace(/https?:\\/\\//, '')"
+          />
+        </div>
+        <div class="items-center flex text-fg2 border px-1.5 rounded-md font-mono gap-1">
+          {stopwatchIcon}
+          <div class="text-xs" x-text="'24ms'" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
-function Img(props: ImgProps) {
-  const {
-    hasIntents,
-    imageAspectRatio,
-    imageUrl,
-    title = 'Farcaster frame',
-  } = props
+function Frame() {
+  return (
+    <div class="w-full" style={{ maxWidth: '512px' }}>
+      <div class="relative rounded-md relative w-full">
+        <Img />
+
+        <template x-if="hasIntents">
+          <div class="bg-bg2 flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
+            <template x-if="frame.input">
+              <Input />
+            </template>
+
+            <template x-if="Boolean(frame.buttons.length)">
+              <div
+                class="grid gap-2.5"
+                {...{
+                  ':class': `{
+                    'grid-cols-1': buttonCount === 1,
+                    'grid-cols-2': buttonCount === 2,
+                    'grid-cols-3': buttonCount === 3,
+                    'grid-cols-4': buttonCount === 4,
+                  }`,
+                }}
+              >
+                <template x-for="button in frame.buttons">
+                  <Button />
+                </template>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <div class="text-xs mt-1 text-right">
+        <a {...{ ':href': 'baseUrl' }} x-text="new URL(baseUrl).host" />
+      </div>
+    </div>
+  )
+}
+
+function Img() {
   return (
     <img
-      alt={title}
-      src={imageUrl}
-      class={`${
-        hasIntents ? 'rounded-t-lg ' : 'rounded-lg '
-      }border object-cover w-full`}
+      class="border object-cover w-full rounded-t-lg"
       style={{
-        aspectRatio: imageAspectRatio.replace(':', '/'),
         minHeight: '269px',
         maxHeight: '526px',
+      }}
+      {...{
+        ':alt': `frame.title ?? 'Farcaster frame'`,
+        ':class': `{
+          'rounded-lg': !hasIntents,
+        }`,
+        ':src': 'frame.imageUrl',
+        ':style': `{
+          aspectRatio: frame.imageAspectRatio.replace(':', '/'),
+        }`,
       }}
     />
   )
 }
 
-type InputProps = FrameInput & { name?: string | undefined }
-
-function Input(props: InputProps) {
-  const { name = 'inputText', text } = props
+function Input() {
   return (
     <input
-      aria-label={text}
       autocomplete="off"
       class="bg-bg rounded-sm border px-3 py-2.5 text-sm leading-snug w-full"
-      name={name}
-      placeholder={text}
+      name="inputText"
       style={{ paddingBottom: '0.5rem' }}
       type="text"
       x-model="inputText"
+      {...{
+        ':aria-label': 'frame.input.text',
+        ':placeholder': 'frame.input.text',
+      }}
     />
   )
 }
 
-type ButtonProps = FrameButton & { name?: string | undefined }
-
-function Button(props: ButtonProps) {
-  const { index, name = 'buttonIndex', target, title, type = 'post' } = props
-
+function Button() {
   const buttonClass =
     'bg-bn flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
   const innerHtml = (
     <span
       class="whitespace-nowrap overflow-hidden text-ellipsis"
       style={{ lineHeight: 'normal' }}
-    >
-      {title}
-    </span>
+      x-text="title"
+    />
   )
-  const leavingAppContainerProps = {
-    class: 'relative',
-    'x-data': `{
-      index: '${index}',
-      open: false,
-      target: ${target ? `'${target}'` : undefined},
-      url: ${type === 'link' && target ? `'${target}'` : undefined},
-    }`,
-  }
   const leavingAppPrompt = (
     <div
       x-show="open"
@@ -217,66 +280,109 @@ function Button(props: ButtonProps) {
     </div>
   )
 
-  if (type === 'link')
-    return (
-      <div {...leavingAppContainerProps}>
-        <button class={buttonClass} type="button" x-on:click="open = true">
-          <div style={{ marginTop: '2px' }}>{innerHtml}</div>
-          <div style={{ marginTop: '2px' }}>{linkIcon}</div>
-        </button>
+  return (
+    <div
+      class="relative"
+      x-data={`{
+        ...button,
+        open: false,
+        target: button.target,
+        url: button.type === 'link' && button.target ? button.target : undefined,
+      }`}
+    >
+      <template x-if="type === 'link'">
+        <div>
+          <button class={buttonClass} type="button" x-on:click="open = true">
+            <div style={{ marginTop: '2px' }}>{innerHtml}</div>
+            <div style={{ marginTop: '2px' }}>{linkIcon}</div>
+          </button>
 
-        {leavingAppPrompt}
-      </div>
-    )
+          {leavingAppPrompt}
+        </div>
+      </template>
 
-  if (type === 'post_redirect')
-    return (
-      <div {...leavingAppContainerProps}>
+      <template x-if="type === 'post_redirect'">
+        <div>
+          <button
+            class={buttonClass}
+            type="button"
+            x-on:click={`
+              if (open) return
+              fetch(baseUrl + '/dev/redirect', {
+                method: 'POST',
+                body: JSON.stringify({
+                  buttonIndex: index,
+                  inputText,
+                  postUrl: target ?? frame.postUrl,
+                }),
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              })
+              .then((res) => res.json())
+              .then((json) => {
+                // TODO: show error
+                if (!json.success) return
+                url = json.redirectUrl
+                open = true
+              })
+              .catch(console.error)
+          `}
+          >
+            <div style={{ marginTop: '2px' }}>{innerHtml}</div>
+            <div style={{ marginTop: '2px' }}>{redirectIcon}</div>
+          </button>
+
+          {leavingAppPrompt}
+        </div>
+      </template>
+
+      <template x-if="type === 'mint'">
         <button
           class={buttonClass}
+          style={{ paddingTop: '0.625rem ' }}
+          type="button"
+        >
+          {mintIcon}
+          {innerHtml}
+        </button>
+      </template>
+
+      <template x-if="type === 'post'">
+        <button
+          class={buttonClass}
+          style={{ paddingTop: '0.625rem' }}
           type="button"
           x-on:click={`
-            if (open) return
-            fetch(baseUrl + '/dev/redirect', {
+            const body = JSON.stringify({
+              buttonIndex: index,
+              inputText,
+              postUrl: target ?? frame.postUrl,
+            })
+            fetch(baseUrl + '/dev/action', {
               method: 'POST',
-              body: JSON.stringify({
-                buttonIndex: index,
-                inputText,
-                postUrl: target ?? postUrl,
-              }),
+              body,
               headers: {
                 'Content-Type': 'application/json',
               },
             })
-            .then(async (res) => {
-              const json = await res.json()
-              // TODO: show error
-              if (!json.success) return
-              url = json.redirectUrl
-              open = true
+            .then((res) => res.json())
+            .then((json) => {
+              const nextId = id + 1
+              const item = { body, url: json.state.context.url }
+              if (nextId < history.length) history = [...history.slice(0, nextId), item]
+              else history = [...history, item]
+              data = json
+              id = nextId
+              inputText = ''
             })
-            .catch((error) => console.log(error))
+            .catch(console.error)
           `}
         >
-          <div style={{ marginTop: '2px' }}>{innerHtml}</div>
-          <div style={{ marginTop: '2px' }}>{redirectIcon}</div>
+          {innerHtml}
         </button>
-
-        {leavingAppPrompt}
-      </div>
-    )
-
-  return (
-    <button
-      name={name}
-      class={buttonClass}
-      style={{ paddingTop: '0.625rem ' }}
-      type="submit"
-      value={index}
-    >
-      {type === 'mint' && mintIcon}
-      {innerHtml}
-    </button>
+      </template>
+    </div>
   )
 }
 
@@ -333,149 +439,160 @@ const redirectIcon = (
   </svg>
 )
 
-type NavigatorProps = {
-  baseUrl: string
-  routes: readonly string[]
-}
+const arrowLeftIcon = (
+  <svg
+    aria-hidden="true"
+    width="13"
+    height="13"
+    viewBox="0 0 15 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6.85355 3.14645C7.04882 3.34171 7.04882 3.65829 6.85355 3.85355L3.70711 7H12.5C12.7761 7 13 7.22386 13 7.5C13 7.77614 12.7761 8 12.5 8H3.70711L6.85355 11.1464C7.04882 11.3417 7.04882 11.6583 6.85355 11.8536C6.65829 12.0488 6.34171 12.0488 6.14645 11.8536L2.14645 7.85355C1.95118 7.65829 1.95118 7.34171 2.14645 7.14645L6.14645 3.14645C6.34171 2.95118 6.65829 2.95118 6.85355 3.14645Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
 
-function Navigator(props: NavigatorProps) {
-  const { baseUrl, routes } = props
-  const url = new URL(baseUrl)
+const arrowRightIcon = (
+  <svg
+    aria-hidden="true"
+    width="13"
+    height="13"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const stopwatchIcon = (
+  <svg
+    aria-hidden="true"
+    width="13"
+    height="13"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const clockIcon = (
+  <svg
+    aria-hidden="true"
+    width="13"
+    height="13"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M7.50009 0.877014C3.84241 0.877014 0.877258 3.84216 0.877258 7.49984C0.877258 11.1575 3.8424 14.1227 7.50009 14.1227C11.1578 14.1227 14.1229 11.1575 14.1229 7.49984C14.1229 3.84216 11.1577 0.877014 7.50009 0.877014ZM1.82726 7.49984C1.82726 4.36683 4.36708 1.82701 7.50009 1.82701C10.6331 1.82701 13.1729 4.36683 13.1729 7.49984C13.1729 10.6328 10.6331 13.1727 7.50009 13.1727C4.36708 13.1727 1.82726 10.6328 1.82726 7.49984ZM8 4.50001C8 4.22387 7.77614 4.00001 7.5 4.00001C7.22386 4.00001 7 4.22387 7 4.50001V7.50001C7 7.63262 7.05268 7.7598 7.14645 7.85357L9.14645 9.85357C9.34171 10.0488 9.65829 10.0488 9.85355 9.85357C10.0488 9.65831 10.0488 9.34172 9.85355 9.14646L8 7.29291V4.50001Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+function Navigator() {
   return (
-    <div class="flex flex-col gap-1">
-      {routes.map((route) => (
+    <div class="flex flex-col gap-0.5" x-data="{ url: new URL(baseUrl) }">
+      <template x-for="route in routes">
         <a
-          class="font-mono text-xs. whitespace-nowrap"
-          href={route === '/' ? '/dev' : `${route}/dev`}
-        >
-          {route === '/' ? '/' : route}
-          {url.pathname === route ? ' ▲' : ''}
-        </a>
-      ))}
+          class="font-mono text-xs whitespace-nowrap"
+          x-data="{ active: url.pathname === route }"
+          x-text="`${route === '/' ? '/' : route}${active ? ' ▲' : ''}`"
+          {...{ ':href': `route === '/' ? '/dev' : route + '/dev'` }}
+        />
+      </template>
     </div>
   )
 }
 
-type InspectorProps = {
-  frame: FrameType
-  state: {
-    context: FrameContext
-    previousContext?: PreviousFrameContext | undefined
-  }
-}
-
-async function Inspector(props: InspectorProps) {
-  const { frame, state } = props
-  const {
-    debug: {
-      buttons: _b,
-      imageAspectRatio: _ia,
-      imageUrl: _iu,
-      input: _in,
-      postUrl: _pu,
-      version: _v,
-      htmlTags,
-      ...debug
-    } = {},
-    title: _t,
-    buttons,
-    ...rest
-  } = frame
-
-  const themes = {
-    light: 'vitesse-light',
-    dark: 'vitesse-dark',
-  }
-  const [contextHtml, previousContextHtml, frameHtml, metaTagsHtml, debugHtml] =
-    await Promise.all([
-      codeToHtml(JSON.stringify(state.context, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-      codeToHtml(JSON.stringify(state.previousContext, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-      codeToHtml(JSON.stringify({ ...rest, buttons }, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-      codeToHtml((htmlTags ?? []).join('\n'), {
-        lang: 'html',
-        themes,
-      }),
-      codeToHtml(JSON.stringify(debug, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-    ])
-
+async function Inspector() {
   return (
     <div class="border divide-y rounded-lg flex flex-col max-w-full">
       <div class="divide-x grid grid-cols-2 max-w-full">
-        <Panel
-          {...{
+        <div
+          x-data="{
             title: 'Current Context',
-            content: contextHtml,
-          }}
-        />
-        <Panel
-          {...{
+            get content() { return inspectorData.contextHtml },
+          }"
+        >
+          <Panel />
+        </div>
+        <div
+          x-data="{
             title: 'Previous Context',
-            content: previousContextHtml,
-          }}
-        />
+            get content() { return inspectorData.previousContextHtml },
+          }"
+        >
+          <Panel />
+        </div>
       </div>
 
       <div class="divide-x grid grid-cols-2 max-w-full">
-        <Panel
-          {...{
+        <div
+          x-data="{
             title: 'Frame Data',
-            content: frameHtml,
-          }}
-        />
-        <Panel
-          {...{
+            get content() { return inspectorData.frameHtml },
+          }"
+        >
+          <Panel />
+        </div>
+
+        <div
+          x-data="{
             title: 'Debug',
-            content: debugHtml,
-          }}
-        />
+            get content() { return inspectorData.debugHtml },
+          }"
+        >
+          <Panel />
+        </div>
       </div>
 
-      {htmlTags && (
-        <div class="max-w-full">
-          <Panel
-            {...{
-              title: 'Meta Tags',
-              content: metaTagsHtml,
-            }}
-          />
+      <div class="max-w-full">
+        <div
+          x-data="{
+            title: 'Meta Tags',
+            get content() { return inspectorData.metaTagsHtml },
+          }"
+        >
+          <Panel />
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
-type PanelProps = {
-  content: string
-  title: string
-}
-
-function Panel(props: PanelProps) {
-  const { content: __html, title } = props
+function Panel() {
   return (
-    <div>
-      <div class="text-fg2 text-sm font-bold p-2 pb-0">{title}</div>
+    <>
+      <div class="text-fg2 text-sm font-bold p-2 pb-0" x-text="title" />
       <div
-        dangerouslySetInnerHTML={{ __html }}
         class="h-full p-2 scrollbars"
         style={{ maxHeight: '47vh' }}
+        x-html="content"
       />
-    </div>
+    </>
   )
 }
 
-export function Style() {
+export function Styles() {
   const styles = `
     :root {
       --bg: #0A0A0A;
@@ -656,6 +773,8 @@ export function Style() {
     .flex { display: flex; }
     .flex-col { flex-direction: column; }
     .flex-row { flex-direction: row; }
+    .gap-0\\.5 { gap: 0.125rem; }
+    .gap-1 { gap: 0.25rem; }
     .gap-1\\.5 { gap: 0.375rem; }
     .gap-2 { gap: 0.5rem; }
     .gap-2\\.5 { gap: 0.625rem; }
@@ -678,6 +797,7 @@ export function Style() {
     .p-2 { padding: 0.5rem; }
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
+    .px-1\\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
     .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
@@ -689,6 +809,8 @@ export function Style() {
     .rounded-lg { border-radius: 0.5rem; }
     .rounded-md { border-radius: 0.375rem; }
     .rounded-sm { border-radius: 0.25rem; }
+    .rounded-l-md { border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; }
+    .rounded-r-md { border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
     .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
     .text-center { text-align: center; }
     .text-ellipsis { text-overflow: ellipsis; }
@@ -702,7 +824,9 @@ export function Style() {
     .bg-bg { background-color: var(--bg) !important; }
     .bg-bg2 { background-color: var(--bg2) !important; }
     .bg-bn { background-color: var(--bn) !important; }
+    .bg-br { background-color: var(--br) !important; }
     .bg-er { background-color: var(--er) !important; }
+    .bg-transparent { background-color: transparent !important; }
     .border-er { border-color: var(--er) !important; } w
     .text-er { color: var(--er); }
     .text-fg2 { color: var(--fg2); }
@@ -720,6 +844,24 @@ export function Style() {
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
     }
+
+    [x-cloak] { display: none !important; }
   `
   return <style dangerouslySetInnerHTML={{ __html: styles }} />
+}
+
+export function Scripts() {
+  return (
+    <>
+      {/* TODO: Vendor into project */}
+      <script
+        defer
+        src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"
+      />
+      <script
+        defer
+        src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+      />
+    </>
+  )
 }

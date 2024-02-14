@@ -1,3 +1,6 @@
+import { Message } from '@farcaster/core'
+import { bytesToHex } from '@noble/curves/abstract/utils'
+import { codeToHtml } from 'shiki'
 import {
   FrameActionBody,
   NobleEd25519Signer,
@@ -20,6 +23,7 @@ import {
   type FrameButton,
   type FrameMetaTagPropertyName,
 } from './types.js'
+import type { Context } from 'hono'
 
 export function htmlToMetaTags(html: string, selector: string) {
   const window = new Window()
@@ -211,6 +215,7 @@ export function htmlToFrame(html: string) {
     postUrl: properties.postUrl,
     version: properties.version,
   }
+
   return {
     ...frame,
     debug: {
@@ -260,12 +265,69 @@ export function getRoutes(
   return frameRoutes
 }
 
-export function getData(value: Record<string, string | File>) {
+export async function getInspectorData(frame: Frame, state: State) {
+  const {
+    debug: {
+      buttons: _b,
+      imageAspectRatio: _ia,
+      imageUrl: _iu,
+      input: _in,
+      postUrl: _pu,
+      version: _v,
+      htmlTags,
+      ...debug
+    } = {},
+    title: _t,
+    buttons,
+    ...rest
+  } = frame
+
+  const themes = {
+    light: 'vitesse-light',
+    dark: 'vitesse-dark',
+  }
+  const [contextHtml, previousContextHtml, frameHtml, metaTagsHtml, debugHtml] =
+    await Promise.all([
+      codeToHtml(JSON.stringify(state.context, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+      codeToHtml(JSON.stringify(state.previousContext, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+      codeToHtml(JSON.stringify({ ...rest, buttons }, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+      codeToHtml((htmlTags ?? []).join('\n'), {
+        lang: 'html',
+        themes,
+      }),
+      codeToHtml(JSON.stringify(debug, null, 2), {
+        lang: 'json',
+        themes,
+      }),
+    ])
+
+  return {
+    contextHtml,
+    previousContextHtml,
+    frameHtml,
+    metaTagsHtml,
+    debugHtml,
+  }
+}
+
+export function validatePostBody(
+  value: Record<string, string | File>,
+  c: Context,
+) {
   const buttonIndex = parseInt(value.buttonIndex as string)
-  if (buttonIndex < 1 || buttonIndex > 4) throw new Error('Invalid buttonIndex')
+  if (buttonIndex < 1 || buttonIndex > 4) return c.text('Invalid data', 400)
 
   const postUrl = value.postUrl as string
-  if (!postUrl) throw new Error('Invalid postUrl')
+  if (!postUrl) return c.text('Invalid data', 400)
 
   // TODO: Sanitize input
   const inputText = value.inputText as string | undefined
@@ -282,12 +344,13 @@ export function getData(value: Record<string, string | File>) {
   return { buttonIndex, castId, fid, inputText, postUrl }
 }
 
-export async function fetchFrameMessage({
+export async function fetchFrame({
   baseUrl,
   buttonIndex,
   castId,
   fid,
   inputText,
+  postUrl,
 }: {
   baseUrl: string
   buttonIndex: number
@@ -297,6 +360,7 @@ export async function fetchFrameMessage({
   }
   fid: number
   inputText: string | undefined
+  postUrl: string
 }) {
   const privateKeyBytes = ed25519.utils.randomPrivateKey()
   // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
@@ -357,5 +421,31 @@ export async function fetchFrameMessage({
     new NobleEd25519Signer(privateKeyBytes),
   )
 
-  return frameActionMessage._unsafeUnwrap()
+  const message = frameActionMessage._unsafeUnwrap()
+
+  return fetch(postUrl, {
+    method: 'POST',
+    body: JSON.stringify({
+      untrustedData: {
+        buttonIndex,
+        castId: {
+          fid: castId.fid,
+          hash: `0x${bytesToHex(castId.hash)}`,
+        },
+        fid,
+        inputText: inputText
+          ? Buffer.from(inputText).toString('utf-8')
+          : undefined,
+        messageHash: `0x${bytesToHex(message.hash)}`,
+        network: 1,
+        timestamp: message.data?.timestamp,
+        url: baseUrl,
+      },
+      trustedData: {
+        messageBytes: Buffer.from(Message.encode(message).finish()).toString(
+          'hex',
+        ),
+      },
+    }),
+  })
 }

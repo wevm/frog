@@ -21,12 +21,12 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "a11y": {
+        "useAltText": "off"
+      },
       "complexity": {
         "noBannedTypes": "off",
         "noUselessFragments": "off"
-      },
-      "security": {
-        "noDangerouslySetInnerHtml": "off"
       },
       "suspicious": {
         "noExplicitAny": "off",

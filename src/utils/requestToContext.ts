@@ -1,5 +1,5 @@
-import type { Context } from 'hono'
-import type { FrameContext } from '../types.js'
+import { type Context } from 'hono'
+import { type FrameContext } from '../types.js'
 
 type RequestToContextReturnType = Pick<
   FrameContext,

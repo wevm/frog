@@ -1,4 +1,4 @@
-import type { Context } from 'hono'
+import { type Context } from 'hono'
 import { produce } from 'immer'
 import { type FrameContext, type PreviousFrameContext } from '../types.js'
 import { getIntentState } from './getIntentState.js'
