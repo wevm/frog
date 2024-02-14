@@ -25,8 +25,12 @@ export function ButtonRoot({
       content={children}
       data-value={value}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content={action} />,
-    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+    action !== 'post' && (
+      <meta property={`fc:frame:button:${index}:action`} content={action} />
+    ),
+    target && (
+      <meta property={`fc:frame:button:${index}:target`} content={target} />
+    ),
   ] as unknown as HtmlEscapedString
 }
 

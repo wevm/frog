@@ -11,7 +11,7 @@ export function getIntentState(
   if (!intents) return state
   if (buttonIndex) {
     const buttonIntents = intents.filter((intent) =>
-      intent?.props.property.match(/fc:frame:button:\d$/),
+      intent?.props?.property?.match(/fc:frame:button:\d$/),
     )
     const intent = buttonIntents[buttonIndex - 1]
     state.buttonValue = intent.props['data-value']
