@@ -5,12 +5,9 @@ import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
 
 type GetFrameContextParameters<state = unknown> = {
-  context: Pick<
-    FrameContext<string, state>,
-    'status' | 'trustedData' | 'untrustedData' | 'url'
-  >
+  context: Pick<FrameContext<string, state>, 'frameData' | 'status' | 'url'>
   initialState?: state
-  previousContext: PreviousFrameContext<string, state> | undefined
+  previousContext: PreviousFrameContext<state> | undefined
   request: Context['req']
 }
 
@@ -18,14 +15,12 @@ export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
   const { context, previousContext, request } = options
-  const { trustedData, untrustedData } = context || {}
+  const { frameData } = context || {}
 
-  const { buttonIndex, buttonValue, inputText, redirect, reset } =
-    getIntentState(
-      // TODO: derive from untrusted data.
-      untrustedData,
-      previousContext?.intents || [],
-    )
+  const { buttonValue, inputText, redirect, reset } = getIntentState(
+    frameData,
+    previousContext?.intentData || [],
+  )
 
   const status = (() => {
     if (redirect) return 'redirect'
@@ -50,16 +45,14 @@ export async function getFrameContext<state>(
   }
 
   return {
-    buttonIndex,
     buttonValue,
+    frameData,
     initialUrl,
     inputText,
     deriveState,
     previousState: previousState as any,
     request,
     status,
-    trustedData,
-    untrustedData,
     url,
   }
 }
