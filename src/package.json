@@ -1,6 +1,6 @@
 {
   "name": "farc",
-  "version": "0.0.1-vercel.20",
+  "version": "0.0.1",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
