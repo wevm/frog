@@ -6,7 +6,6 @@ export type FrameContext<path extends string = string, state = unknown> = {
   buttonValue?: string | undefined
   deriveState: (fn?: (state: state) => void) => state
   frameData: FrameData
-  initialUrl: string
   inputText?: string | undefined
   previousState: state
   request: Context<Env, path>['req']
@@ -21,7 +20,6 @@ export type FrameContext<path extends string = string, state = unknown> = {
 }
 
 export type PreviousFrameContext<state = unknown> = {
-  initialUrl: string
   /** Intent data from the previous frame. */
   intentData: readonly Record<string, string>[]
   previousState: state

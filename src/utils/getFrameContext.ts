@@ -28,14 +28,10 @@ export async function getFrameContext<state>(
     return context.status || 'initial'
   })()
 
-  // If there are no previous contexts, the initial URL is the current URL.
-  const initialUrl = !previousContext
-    ? parsePath(context.url)
-    : previousContext.initialUrl
-
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
-  const url = reset ? initialUrl : parsePath(context.url)
+  const url =
+    (reset ? context.frameData?.url : undefined) || parsePath(context.url)
 
   let previousState = previousContext?.previousState || options.initialState
   function deriveState(derive?: (state: state) => void): state {
@@ -47,7 +43,6 @@ export async function getFrameContext<state>(
   return {
     buttonValue,
     frameData,
-    initialUrl,
     inputText,
     deriveState,
     previousState: previousState as any,

@@ -103,7 +103,6 @@ export class FarcBase<
         request: undefined,
       })
       const serializedPreviousContext = serializeJson({
-        initialUrl: context.initialUrl,
         intentData,
         previousState: context.deriveState(),
       })
