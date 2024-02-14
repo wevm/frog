@@ -89,6 +89,12 @@ export class FarcBase<
         request: c.req,
       })
 
+      if (context.status === 'redirect') {
+        const location = context.buttonValue
+        if (!location) throw new Error('location required to redirect')
+        return c.redirect(location, 302)
+      }
+
       if (context.url !== parsePath(c.req.url))
         return c.redirect(
           `${context.url}?previousContext=${query.previousContext}`,

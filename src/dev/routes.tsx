@@ -148,7 +148,6 @@ export function routes<
         inputText,
       })
 
-      console.log(postUrl)
       const response = await fetch(postUrl, {
         method: 'POST',
         body: JSON.stringify({
@@ -175,13 +174,8 @@ export function routes<
         }),
       })
 
-      // TODO: Get redirect url
-      console.log({ response })
-
-      return c.json({
-        success: true,
-        redirectUrl: '/',
-      })
+      if (!response.redirected) return c.json({ success: false })
+      return c.json({ success: true, redirectUrl: response.url })
     },
   )
 }

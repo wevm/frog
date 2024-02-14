@@ -20,13 +20,15 @@ export async function getFrameContext<state>(
   const { context, previousContext, request } = options
   const { trustedData, untrustedData } = context || {}
 
-  const { buttonIndex, buttonValue, inputText, reset } = getIntentState(
-    // TODO: derive from untrusted data.
-    untrustedData,
-    previousContext?.intents || [],
-  )
+  const { buttonIndex, buttonValue, inputText, redirect, reset } =
+    getIntentState(
+      // TODO: derive from untrusted data.
+      untrustedData,
+      previousContext?.intents || [],
+    )
 
   const status = (() => {
+    if (redirect) return 'redirect'
     if (reset) return 'initial'
     return context.status || 'initial'
   })()

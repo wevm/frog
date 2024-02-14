@@ -102,9 +102,9 @@ app.frame('/buttons', ({ buttonValue }) => {
       </div>
     ),
     intents: [
-      <Button action="post_redirect" value="apples">
+      <Button.Redirect location="https://github.com/honojs/vite-plugins/tree/main/packages/dev-server">
         Redirect
-      </Button>,
+      </Button.Redirect>,
       <Button.Link href="https://www.example.com">Link</Button.Link>,
       <Button.Mint target="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df">
         Mint

@@ -177,6 +177,7 @@ function Button(props: ButtonProps) {
       index: '${index}',
       open: false,
       target: ${target ? `'${target}'` : undefined},
+      url: ${type === 'link' && target ? `'${target}'` : undefined},
     }`,
   }
   const leavingAppPrompt = (
@@ -187,11 +188,11 @@ function Button(props: ButtonProps) {
       {...{
         '@click.outside': 'open = false',
         '@keyup.escape': 'open = false',
-        'x-trap.noscroll': 'open',
+        'x-trap': 'open',
       }}
     >
       <h1 class="font-bold text-base">Leaving Warpcast</h1>
-      <div class="text-fg2 text-sm font-mono">{target}</div>
+      <div class="line-clamp-2 text-fg2 text-sm font-mono" x-text="url" />
       <p class="text-base leading-snug">
         If you connect your wallet and the site is malicious, you may lose
         funds.
@@ -208,7 +209,7 @@ function Button(props: ButtonProps) {
           class="bg-er border-er rounded-md w-full text-sm text-white font-bold py-1"
           target="_blank"
           type="button"
-          x-on:click={`open = false; window.open(target, '_blank');`}
+          x-on:click={`open = false; window.open(url, '_blank');`}
         >
           <div style={{ marginTop: '1px' }}>I Understand</div>
         </button>
@@ -235,6 +236,7 @@ function Button(props: ButtonProps) {
           class={buttonClass}
           type="button"
           x-on:click={`
+            if (open) return
             fetch(baseUrl + '/dev/redirect', {
               method: 'POST',
               body: JSON.stringify({
@@ -246,12 +248,14 @@ function Button(props: ButtonProps) {
                 'Content-Type': 'application/json',
               },
             })
-            .then(res => {
-              console.log(res)
-              target = 'https://example.com'
+            .then(async (res) => {
+              const json = await res.json()
+              // TODO: show error
+              if (!json.success) return
+              url = json.redirectUrl
               open = true
             })
-            .catch(error => console.log(error))
+            .catch((error) => console.log(error))
           `}
         >
           <div style={{ marginTop: '2px' }}>{innerHtml}</div>
@@ -708,6 +712,13 @@ export function Style() {
       overflow: auto;
       scrollbar-color: var(--br) transparent;
       scrollbar-width: thin;
+    }
+
+    .line-clamp-2 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
     }
   `
   return <style dangerouslySetInnerHTML={{ __html: styles }} />

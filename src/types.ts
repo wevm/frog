@@ -14,9 +14,10 @@ export type FrameContext<path extends string = string, state = unknown> = {
   /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.
+   * - `redirect` - The frame interaction is a redirect (button of type `'post_redirect'`).
    * - `response` - The frame has been interacted with (user presses button).
    */
-  status: 'initial' | 'response'
+  status: 'initial' | 'redirect' | 'response'
   trustedData?: TrustedData | undefined
   untrustedData?: UntrustedData | undefined
   url: Context['req']['url']

@@ -6,14 +6,12 @@ export type ButtonProps = {
 }
 
 export type ButtonRootProps = ButtonProps & {
-  action?: 'post' | 'post_redirect'
   target?: string | undefined
   value?: string | undefined
 }
 
 ButtonRoot.__type = 'button'
 export function ButtonRoot({
-  action = 'post',
   children,
   index = 0,
   target,
@@ -23,11 +21,9 @@ export function ButtonRoot({
     <meta
       property={`fc:frame:button:${index}`}
       content={children}
-      data-value={value}
+      {...(value ? { 'data-value': value } : {})}
     />,
-    action !== 'post' && (
-      <meta property={`fc:frame:button:${index}:action`} content={action} />
-    ),
+    <meta property={`fc:frame:button:${index}:action`} content="post" />,
     target && (
       <meta property={`fc:frame:button:${index}:target`} content={target} />
     ),
@@ -41,11 +37,7 @@ export type ButtonLinkProps = ButtonProps & {
 ButtonLink.__type = 'button'
 export function ButtonLink({ children, index = 0, href }: ButtonLinkProps) {
   return [
-    <meta
-      property={`fc:frame:button:${index}`}
-      content={children}
-      data-href={href}
-    />,
+    <meta property={`fc:frame:button:${index}`} content={children} />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta property={`fc:frame:button:${index}:target`} content={href} />,
   ] as unknown as HtmlEscapedString
@@ -58,13 +50,38 @@ export type ButtonMintProps = ButtonProps & {
 ButtonMint.__type = 'button'
 export function ButtonMint({ children, index = 0, target }: ButtonMintProps) {
   return [
+    <meta property={`fc:frame:button:${index}`} content={children} />,
+    <meta property={`fc:frame:button:${index}:action`} content="mint" />,
+    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+  ] as unknown as HtmlEscapedString
+}
+
+export type ButtonRedirectProps = ButtonProps & {
+  location: string
+  target?: string | undefined
+}
+
+ButtonRedirect.__type = 'button'
+export function ButtonRedirect({
+  children,
+  index = 0,
+  location,
+  target,
+}: ButtonRedirectProps) {
+  return [
     <meta
       property={`fc:frame:button:${index}`}
       content={children}
-      data-target={target}
+      data-type="redirect"
+      data-value={location}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content="mint" />,
-    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+    <meta
+      property={`fc:frame:button:${index}:action`}
+      content="post_redirect"
+    />,
+    target && (
+      <meta property={`fc:frame:button:${index}:target`} content={target} />
+    ),
   ] as unknown as HtmlEscapedString
 }
 
@@ -84,5 +101,6 @@ export function ButtonReset({ children, index = 0 }: ButtonResetProps) {
 export const Button = Object.assign(ButtonRoot, {
   Link: ButtonLink,
   Mint: ButtonMint,
+  Redirect: ButtonRedirect,
   Reset: ButtonReset,
 })
