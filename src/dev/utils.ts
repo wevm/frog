@@ -131,7 +131,10 @@ export function parseButtons(metaTags: readonly HTMLMetaElement[]) {
     } as FrameButton)
   }
 
-  return buttons.toSorted((a, b) => a.index - b.index)
+  // Using `sort` over `toSorted` for Node.js < 20 compatibility (ie. Vercel default).
+  buttons.sort((a, b) => a.index - b.index)
+
+  return buttons
 }
 
 export function validateButtons(buttons: readonly FrameButton[]) {
