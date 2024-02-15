@@ -29,7 +29,7 @@ export function routes<
         return (
           <html lang="en">
             <head>
-              <title>𝑭𝒂𝒓𝒄 {path || '/'}</title>
+              <title>{path || '/'}</title>
               <Styles />
               <Scripts />
             </head>
@@ -40,7 +40,11 @@ export function routes<
     )
     .get(async (c) => {
       const baseUrl = c.req.url.replace('/dev', '')
+      const t0 = performance.now()
       const response = await fetch(baseUrl)
+      const t1 = performance.now()
+
+      const speed = t1 - t0
       const text = await response.text()
 
       const frame = htmlToFrame(text)
@@ -48,20 +52,36 @@ export function routes<
       const inspectorData = await getInspectorData(frame, state)
       const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
-      const props = { baseUrl, frame, inspectorData, routes, state }
+      const props = { baseUrl, frame, inspectorData, routes, speed, state }
       return c.render(<Preview {...props} />)
     })
 
   app.hono
+    .get(`${parsePath(path)}/dev/frame`, async (c) => {
+      const baseUrl = c.req.url.replace('/dev/frame', '')
+      const t0 = performance.now()
+      const response = await fetch(baseUrl)
+      const t1 = performance.now()
+
+      const speed = t1 - t0
+      const text = await response.text()
+
+      const frame = htmlToFrame(text)
+      const state = htmlToState(text)
+      const inspectorData = await getInspectorData(frame, state)
+      const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
+
+      return c.json({ baseUrl, frame, inspectorData, routes, speed, state })
+    })
     .post(
-      `${parsePath(path)}/dev/action`,
+      `${parsePath(path)}/dev/frame/action`,
       validator('json', validatePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev/action', '')
+        const baseUrl = c.req.url.replace('/dev/frame/action', '')
         const json = c.req.valid('json')
         const { buttonIndex, castId, fid, inputText, postUrl } = json
 
-        let response = await fetchFrame({
+        const { response, speed } = await fetchFrame({
           baseUrl,
           buttonIndex,
           castId,
@@ -70,9 +90,9 @@ export function routes<
           postUrl,
         })
 
-        // fetch initial state on error
-        const error = response.status !== 200 ? response.statusText : undefined
-        if (response.status !== 200) response = await fetch(baseUrl)
+        // TODO: Display error message in interface
+        if (response.status !== 200)
+          return c.json({ success: false, message: response.statusText })
 
         const text = await response.text()
         const frame = htmlToFrame(text)
@@ -80,18 +100,18 @@ export function routes<
         const inspectorData = await getInspectorData(frame, state)
         const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
-        return c.json({ baseUrl, error, frame, inspectorData, state, routes })
+        return c.json({ baseUrl, frame, inspectorData, routes, speed, state })
       },
     )
     .post(
-      `${parsePath(path)}/dev/redirect`,
+      `${parsePath(path)}/dev/frame/redirect`,
       validator('json', validatePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev/redirect', '')
+        const baseUrl = c.req.url.replace('/dev/frame/redirect', '')
         const json = c.req.valid('json')
         const { buttonIndex, castId, fid, inputText, postUrl } = json
 
-        const response = await fetchFrame({
+        const { response, speed } = await fetchFrame({
           baseUrl,
           buttonIndex,
           castId,
@@ -101,7 +121,7 @@ export function routes<
         })
 
         if (!response.redirected) return c.json({ success: false })
-        return c.json({ success: true, redirectUrl: response.url })
+        return c.json({ success: true, redirectUrl: response.url, speed })
       },
     )
 }

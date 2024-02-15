@@ -3,51 +3,85 @@ import { type State, type getInspectorData } from './utils.js'
 
 export type PreviewProps = {
   baseUrl: string
-  error?: string
   frame: FrameType
-  routes: readonly string[]
   inspectorData: Awaited<ReturnType<typeof getInspectorData>>
+  routes: readonly string[]
+  speed: number
   state: State
 }
 
 export function Preview(props: PreviewProps) {
-  const { baseUrl, error, frame, routes, state } = props
+  const { baseUrl, frame, inspectorData, routes, speed, state } = props
   return (
     <div
-      class="items-center flex flex-col p-4 mt-1"
+      class="flex flex-col items-center p-4 mt-1"
       x-data={`{
-        error: ${error ? `'${error}'` : undefined},
         baseUrl: '${baseUrl}',
-        history: [],
-        id: -1,
-        initialData: {
-          frame: ${JSON.stringify(frame)},
-          inspectorData: ${JSON.stringify(props.inspectorData)},
-          routes: ${JSON.stringify(routes)},
-          state: ${JSON.stringify(state)},
-        },
-        inputText: '',
         data: {
           frame: ${JSON.stringify(frame)},
-          inspectorData: ${JSON.stringify(props.inspectorData)},
+          inspectorData: ${JSON.stringify(inspectorData)},
           routes: ${JSON.stringify(routes)},
+          speed: ${speed},
           state: ${JSON.stringify(state)},
         },
+        history: [],
+        id: -1,
+        inputText: '',
+        logs: [{ method: 'GET', url: '${baseUrl}', speed: ${speed}, time: Date.now() }],
         get frame() { return this.data.frame },
-        async fetchFrame(body) {
-          const response = await fetch(this.baseUrl + '/dev/action', {
-            method: 'POST',
-            body,
+        get speed() { return this.data.speed },
+
+        async getFrame() {
+          const response = await fetch(this.baseUrl + '/dev/frame', {
+            method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
           })
-          return response.json()
+          const json = await response.json()
+          this.logs = [...this.logs, { method: 'GET', url: this.baseUrl, speed: json.speed, time: Date.now() }]
+          return json
+        },
+        async postFrameAction(body) {
+          const response = await fetch(this.baseUrl + '/dev/frame/action', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          this.logs = [...this.logs, { method: 'POST', url: body.postUrl, body, speed: json.speed, time: Date.now() }]
+          return json
+        },
+        async postFrameRedirect(body) {
+          const response = await fetch(this.baseUrl + '/dev/frame/redirect', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          this.logs = [...this.logs, { method: 'POST', url: body.postUrl, body, speed: json.speed, time: Date.now() }]
+          return json
+        },
+
+        formatSpeed(speed) {
+          if (speed % 1 === 0) return speed
+          return (Math.round((speed + Number.EPSILON) * 100) / 100).toFixed(2)
+        },
+        formatUrl(url) {
+          let urlObj = new URL(url)
+          urlObj.search = ''
+          const urlString = urlObj.toString().replace(/https?:\\/\\//, '')
+          return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         }
       }`}
     >
       <div
-        class="max-w-7xl flex flex-col gap-2.5 w-full"
+        class="grid gap-2.5 w-full"
+        style={{ maxWidth: '68rem' }}
         x-data="{
           get inspectorData() { return data.inspectorData },
           get routes() { return data.routes },
@@ -56,51 +90,69 @@ export function Preview(props: PreviewProps) {
           get hasIntents() { return Boolean(frame.input || frame.buttons.length) },
         }"
       >
-        <HistoryBar />
-        <div class="flex flex-row gap-2.5" style={{ minHeight: '397px' }}>
-          <Frame />
+        <div class="grid grid-cols-2 gap-4">
           <Navigator />
+          <div />
         </div>
-        <div class="text-er text-sm" x-text="error" />
-        <Inspector />
+
+        <div class="grid grid-cols-2 gap-4" style={{ minHeight: '408px' }}>
+          <Frame />
+          <div class="w-full">
+            <div>
+              Version: <span x-text="frame.version" />
+            </div>
+            <div>
+              Image: <span x-text="frame.imageUrl" />
+            </div>
+            <div>
+              Image Aspect Ratio: <span x-text="frame.imageAspectRatio" />
+            </div>
+            <div>
+              Post URL: <span x-text="frame.postUrl" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <Timeline />
+          <Inspector />
+        </div>
       </div>
     </div>
   )
 }
 
-function HistoryBar() {
+function Navigator() {
   return (
-    <div
-      class="items-center flex gap-2 w-full"
-      style={{ maxWidth: '512px', height: '1.7rem' }}
-    >
+    <div class="items-center flex gap-2 w-full" style={{ height: '1.7rem' }}>
       <div class="flex border rounded-md h-full">
         <button
           aria-label="back"
           class="text-fg2 bg-transparent px-1.5 rounded-l-md"
           type="button"
-          x-data="{ get disabled() { return id === -1 } }"
           x-on:click={`
             const nextId = id - 1
-            if (nextId < 0) {
-              data = initialData
-              id = -1
-              inputText = ''
-              return
-            }
+            if (nextId < 0)
+              return getFrame()
+                .then((json) => {
+                  data = json
+                  id = -1
+                  inputText = ''
+                })
+                .catch(console.error)
 
             const body = history[nextId].body
-            fetchFrame(body)
-            .then((json) => {
-              data = json
-              id = nextId
-              inputText = ''
-            })
-            .catch(console.error)
+            postFrameAction(body)
+              .then((json) => {
+                data = json
+                id = nextId
+                inputText = ''
+              })
+              .catch(console.error)
           `}
           {...{
-            ':disabled': 'disabled',
-            ':style': "disabled && { opacity: '0.25' }",
+            ':disabled': 'id === -1',
+            ':style': "id === -1 && { opacity: '0.25' }",
           }}
         >
           {arrowLeftIcon}
@@ -116,13 +168,13 @@ function HistoryBar() {
             if (!history[nextId]) return
 
             const body = history[nextId].body
-            fetchFrame(body)
-            .then((json) => {
-              data = json
-              id = nextId
-              inputText = ''
-            })
-            .catch(console.error)
+            postFrameAction(body)
+              .then((json) => {
+                data = json
+                id = nextId
+                inputText = ''
+              })
+              .catch(console.error)
           `}
           {...{
             ':disabled': 'disabled',
@@ -137,30 +189,76 @@ function HistoryBar() {
         aria-label="refresh"
         class="border rounded-md text-fg2 bg-transparent px-1.5 rounded-r-md h-full"
         type="button"
-        x-data="{ get disabled() { return !history[id] } }"
         x-on:click={`
-          const body = history[id].body
-          fetchFrame(body)
-          .then((json) => data = json)
-          .catch(console.error)
+          const body = history[id]?.body
+          if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
+          else getFrame().then((json) => data = json).catch(console.error)
         `}
       >
-        <span
-          {...{
-            ':disabled': 'disabled',
-            ':style': "disabled && { opacity: '0.25' }",
-          }}
-        >
-          {refreshIcon}
-        </span>
+        {refreshIcon}
       </button>
 
-      <div class="bg-transparent items-center flex text-fg2 px-1.5 rounded-md font-mono w-full gap-1 h-full text-sm">
+      <div
+        class="relative grid h-full"
+        x-data="{ open: false }"
+        style={{ flex: '1' }}
+      >
+        <button
+          type="button"
+          class="bg-transparent border rounded-md text-fg2 w-full h-full relative overflow-hidden"
+          style={{
+            paddingLeft: '1.75rem',
+            paddingRight: '1.75rem',
+          }}
+          x-on:click="open = true"
+        >
+          <div
+            class="flex items-center h-full"
+            style={{ left: '0.5rem', position: 'absolute' }}
+          >
+            {globeIcon}
+          </div>
+          <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
+            <span
+              class="font-mono text-xs"
+              style={{ marginTop: '1px' }}
+              x-text="formatUrl(state.context.url)"
+            />
+          </div>
+        </button>
+
         <div
-          class="overflow-hidden whitespace-nowrap text-ellipsis"
-          style={{ marginTop: '1px' }}
-          x-text="state.context.url.replace(/https?:\\/\\//, '')"
-        />
+          x-show="open"
+          class="border bg-bg rounded-lg w-full overflow-hidden"
+          style={{
+            position: 'absolute',
+            marginTop: '4px',
+            top: '100%',
+            zIndex: '10',
+          }}
+          x-data="{ url: new URL(baseUrl) }"
+          {...{
+            '@click.outside': 'open = false',
+            '@keyup.escape': 'open = false',
+            'x-trap': 'open',
+          }}
+        >
+          <template x-for="(route, index) in routes">
+            <a
+              class="display-block font-mono text-xs whitespace-nowrap px-3 py-1.5 rounded-lg overflow-hidden text-ellipsis"
+              x-text="`${url.host}${route === '/' ? '' : route}`"
+              style={{ textDecoration: 'none' }}
+              {...{
+                ':href': `route === '/' ? '/dev' : route + '/dev'`,
+              }}
+            />
+          </template>
+        </div>
+      </div>
+
+      <div class="border rounded-md items-center flex text-fg2 px-1.5 rounded-md font-mono gap-1 h-full text-xs">
+        {stopwatchIcon}
+        <div x-text="`${formatSpeed(speed)}ms`" />
       </div>
     </div>
   )
@@ -168,7 +266,7 @@ function HistoryBar() {
 
 function Frame() {
   return (
-    <div class="w-full" style={{ maxWidth: '512px' }}>
+    <div class="w-full h-full">
       <div class="relative rounded-md relative w-full">
         <Img />
 
@@ -320,25 +418,19 @@ function Button() {
             type="button"
             x-on:click={`
               if (open) return
-              fetch(baseUrl + '/dev/redirect', {
-                method: 'POST',
-                body: JSON.stringify({
-                  buttonIndex: index,
-                  inputText,
-                  postUrl: target ?? frame.postUrl,
-                }),
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              })
-              .then((res) => res.json())
-              .then((json) => {
-                // TODO: show error
-                if (!json.success) return
-                url = json.redirectUrl
-                open = true
-              })
-              .catch(console.error)
+              const body = {
+                buttonIndex: index,
+                inputText,
+                postUrl: target ?? frame.postUrl,
+              }
+              postFrameRedirect(body)
+                .then((json) => {
+                  // TODO: show error
+                  if (!json.success) return
+                  url = json.redirectUrl
+                  open = true
+                })
+                .catch(console.error)
           `}
           >
             <div style={{ marginTop: '2px' }}>{innerHtml}</div>
@@ -366,22 +458,22 @@ function Button() {
           style={{ paddingTop: '0.625rem' }}
           type="button"
           x-on:click={`
-            const body = JSON.stringify({
+            const body = {
               buttonIndex: index,
               inputText,
               postUrl: target ?? frame.postUrl,
-            })
-            fetchFrame(body)
-            .then((json) => {
-              const nextId = id + 1
-              const item = { body, url: json.state.context.url }
-              if (nextId < history.length) history = [...history.slice(0, nextId), item]
-              else history = [...history, item]
-              data = json
-              id = nextId
-              inputText = ''
-            })
-            .catch(console.error)
+            }
+            postFrameAction(body)
+              .then((json) => {
+                const nextId = id + 1
+                const item = { body, url: json.state.context.url }
+                if (nextId < history.length) history = [...history.slice(0, nextId), item]
+                else history = [...history, item]
+                data = json
+                id = nextId
+                inputText = ''
+              })
+              .catch(console.error)
           `}
         >
           {innerHtml}
@@ -479,39 +571,57 @@ const arrowRightIcon = (
   </svg>
 )
 
-// const _stopwatchIcon = (
-//   <svg
-//     aria-hidden="true"
-//     width="13"
-//     height="13"
-//     viewBox="0 0 15 15"
-//     fill="none"
-//   >
-//     <path
-//       d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
-//       fill="currentColor"
-//       fill-rule="evenodd"
-//       clip-rule="evenodd"
-//     />
-//   </svg>
-// )
-//
-// const linkIcon = (
-//   <svg
-//     aria-hidden="true"
-//     width="13"
-//     height="13"
-//     viewBox="0 0 15 15"
-//     fill="none"
-//   >
-//     <path
-//       d="M4.62471 4.00001L4.56402 4.00001C4.04134 3.99993 3.70687 3.99988 3.4182 4.055C2.2379 4.28039 1.29846 5.17053 1.05815 6.33035C0.999538 6.61321 0.999604 6.93998 0.999703 7.43689L0.999711 7.50001L0.999703 7.56313C0.999604 8.06004 0.999538 8.38681 1.05815 8.66967C1.29846 9.8295 2.2379 10.7196 3.4182 10.945C3.70688 11.0001 4.04135 11.0001 4.56403 11L4.62471 11H5.49971C5.77585 11 5.99971 10.7762 5.99971 10.5C5.99971 10.2239 5.77585 10 5.49971 10H4.62471C4.02084 10 3.78907 9.99777 3.60577 9.96277C2.80262 9.8094 2.19157 9.21108 2.03735 8.46678C2.00233 8.29778 1.99971 8.08251 1.99971 7.50001C1.99971 6.91752 2.00233 6.70225 2.03735 6.53324C2.19157 5.78895 2.80262 5.19062 3.60577 5.03725C3.78907 5.00225 4.02084 5.00001 4.62471 5.00001H5.49971C5.77585 5.00001 5.99971 4.77615 5.99971 4.50001C5.99971 4.22387 5.77585 4.00001 5.49971 4.00001H4.62471ZM10.3747 5.00001C10.9786 5.00001 11.2104 5.00225 11.3937 5.03725C12.1968 5.19062 12.8079 5.78895 12.9621 6.53324C12.9971 6.70225 12.9997 6.91752 12.9997 7.50001C12.9997 8.08251 12.9971 8.29778 12.9621 8.46678C12.8079 9.21108 12.1968 9.8094 11.3937 9.96277C11.2104 9.99777 10.9786 10 10.3747 10H9.49971C9.22357 10 8.99971 10.2239 8.99971 10.5C8.99971 10.7762 9.22357 11 9.49971 11H10.3747L10.4354 11C10.9581 11.0001 11.2925 11.0001 11.5812 10.945C12.7615 10.7196 13.701 9.8295 13.9413 8.66967C13.9999 8.38681 13.9998 8.06005 13.9997 7.56314L13.9997 7.50001L13.9997 7.43688C13.9998 6.93998 13.9999 6.61321 13.9413 6.33035C13.701 5.17053 12.7615 4.28039 11.5812 4.055C11.2925 3.99988 10.9581 3.99993 10.4354 4.00001L10.3747 4.00001H9.49971C9.22357 4.00001 8.99971 4.22387 8.99971 4.50001C8.99971 4.77615 9.22357 5.00001 9.49971 5.00001H10.3747ZM5.00038 7C4.72424 7 4.50038 7.22386 4.50038 7.5C4.50038 7.77614 4.72424 8 5.00038 8H10.0004C10.2765 8 10.5004 7.77614 10.5004 7.5C10.5004 7.22386 10.2765 7 10.0004 7H5.00038Z"
-//       fill="currentColor"
-//       fill-rule="evenodd"
-//       clip-rule="evenodd"
-//     />
-//   </svg>
-// )
+const stopwatchIcon = (
+  <svg
+    aria-hidden="true"
+    width="13"
+    height="13"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const globeIcon = (
+  <svg
+    aria-hidden="true"
+    width="13"
+    height="13"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M7.49996 1.80002C4.35194 1.80002 1.79996 4.352 1.79996 7.50002C1.79996 10.648 4.35194 13.2 7.49996 13.2C10.648 13.2 13.2 10.648 13.2 7.50002C13.2 4.352 10.648 1.80002 7.49996 1.80002ZM0.899963 7.50002C0.899963 3.85494 3.85488 0.900024 7.49996 0.900024C11.145 0.900024 14.1 3.85494 14.1 7.50002C14.1 11.1451 11.145 14.1 7.49996 14.1C3.85488 14.1 0.899963 11.1451 0.899963 7.50002Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <path
+      d="M13.4999 7.89998H1.49994V7.09998H13.4999V7.89998Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <path
+      d="M7.09991 13.5V1.5H7.89991V13.5H7.09991zM10.375 7.49998C10.375 5.32724 9.59364 3.17778 8.06183 1.75656L8.53793 1.24341C10.2396 2.82218 11.075 5.17273 11.075 7.49998 11.075 9.82724 10.2396 12.1778 8.53793 13.7566L8.06183 13.2434C9.59364 11.8222 10.375 9.67273 10.375 7.49998zM3.99969 7.5C3.99969 5.17611 4.80786 2.82678 6.45768 1.24719L6.94177 1.75281C5.4582 3.17323 4.69969 5.32389 4.69969 7.5 4.6997 9.67611 5.45822 11.8268 6.94179 13.2472L6.45769 13.7528C4.80788 12.1732 3.9997 9.8239 3.99969 7.5z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <path
+      d="M7.49996 3.95801C9.66928 3.95801 11.8753 4.35915 13.3706 5.19448 13.5394 5.28875 13.5998 5.50197 13.5055 5.67073 13.4113 5.83948 13.198 5.89987 13.0293 5.8056 11.6794 5.05155 9.60799 4.65801 7.49996 4.65801 5.39192 4.65801 3.32052 5.05155 1.97064 5.8056 1.80188 5.89987 1.58866 5.83948 1.49439 5.67073 1.40013 5.50197 1.46051 5.28875 1.62927 5.19448 3.12466 4.35915 5.33063 3.95801 7.49996 3.95801zM7.49996 10.85C9.66928 10.85 11.8753 10.4488 13.3706 9.6135 13.5394 9.51924 13.5998 9.30601 13.5055 9.13726 13.4113 8.9685 13.198 8.90812 13.0293 9.00238 11.6794 9.75643 9.60799 10.15 7.49996 10.15 5.39192 10.15 3.32052 9.75643 1.97064 9.00239 1.80188 8.90812 1.58866 8.9685 1.49439 9.13726 1.40013 9.30601 1.46051 9.51924 1.62927 9.6135 3.12466 10.4488 5.33063 10.85 7.49996 10.85z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
 
 const refreshIcon = (
   <svg
@@ -530,79 +640,49 @@ const refreshIcon = (
   </svg>
 )
 
-function Navigator() {
+function Timeline() {
   return (
-    <div class="flex flex-col gap-0.5" x-data="{ url: new URL(baseUrl) }">
-      <template x-for="route in routes">
-        <a
-          class="font-mono text-xs whitespace-nowrap"
-          x-data="{ active: url.pathname === route }"
-          x-text="`${route === '/' ? '/' : route}${active ? ' ▲' : ''}`"
-          {...{ ':href': `route === '/' ? '/dev' : route + '/dev'` }}
-        />
+    <div
+      class="w-full flex"
+      style={{
+        flexDirection: 'column-reverse',
+        justifyContent: 'flex-end',
+      }}
+    >
+      <template x-for="log in logs">
+        <div class="flex flex-col">
+          <div
+            class="flex flex-row"
+            style={{ justifyContent: 'space-between' }}
+          >
+            <div>
+              <span x-text="log.method" />
+              <span x-text="`${formatSpeed(log.speed)}ms`" />
+            </div>
+            <span x-text="new Date(log.time).toLocaleTimeString()" />
+          </div>
+          <div>
+            <span x-text="`${formatUrl(log.url)}`" />
+            <template v-if="log.body">
+              <div>
+                <span x-text="log.body.buttonIndex" />
+                <span x-text="log.body.inputText" />
+              </div>
+            </template>
+          </div>
+        </div>
       </template>
     </div>
   )
 }
 
-async function Inspector() {
+function Inspector() {
   return (
-    <div class="border divide-y rounded-lg flex flex-col max-w-full">
-      <div class="divide-x max-w-full">
-        <div
-          x-data="{
-            title: 'Current Context',
-            get content() { return inspectorData.contextHtml },
-          }"
-        >
-          <Panel />
-        </div>
-      </div>
-
-      <div class="divide-x grid grid-cols-2 max-w-full">
-        <div
-          x-data="{
-            title: 'Frame Data',
-            get content() { return inspectorData.frameHtml },
-          }"
-        >
-          <Panel />
-        </div>
-
-        <div
-          x-data="{
-            title: 'Debug',
-            get content() { return inspectorData.debugHtml },
-          }"
-        >
-          <Panel />
-        </div>
-      </div>
-
-      <div class="max-w-full">
-        <div
-          x-data="{
-            title: 'Meta Tags',
-            get content() { return inspectorData.metaTagsHtml },
-          }"
-        >
-          <Panel />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Panel() {
-  return (
-    <>
-      <div class="text-fg2 text-sm font-bold p-2 pb-0" x-text="title" />
-      <div
-        class="h-full p-2 scrollbars"
-        style={{ maxHeight: '47vh' }}
-        x-html="content"
-      />
-    </>
+    <div
+      class="h-full p-2"
+      style={{ maxHeight: '47vh' }}
+      x-html="inspectorData.contextHtml"
+    />
   )
 }
 
@@ -649,6 +729,7 @@ export function Styles() {
       line-height: 1.5;
       scrollbar-color: var(--br) transparent;
       scrollbar-width: thin;
+      scrollbar-gutter: stable;
       text-rendering: optimizeLegibility;
 
       -webkit-font-smoothing: antialiased;
@@ -774,6 +855,7 @@ export function Styles() {
     .border { border-width: 1px; }
     .border-t-0 { border-top-width: 0; }
     .cursor-pointer { cursor: pointer; }
+    .display-block { display: block; }
     .divide-x > * + * {
       border-right-width: 0;
       border-left-width: 1px;
@@ -792,6 +874,7 @@ export function Styles() {
     .gap-1\\.5 { gap: 0.375rem; }
     .gap-2 { gap: 0.5rem; }
     .gap-2\\.5 { gap: 0.625rem; }
+    .gap-4 { gap: 1rem; }
     .grid { display: grid; }
     .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -803,7 +886,6 @@ export function Styles() {
     .justify-center { justify-content: center; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
-    .max-w-7xl { max-width: 80rem; }
     .mt-1 { margin-top: 0.25rem; }
     .object-cover { object-fit: cover; }
     .opacity-80 { opacity: 0.8; }
@@ -815,6 +897,7 @@ export function Styles() {
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
     .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .py-2\\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
     .relative { position: relative; }

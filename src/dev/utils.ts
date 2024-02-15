@@ -285,7 +285,7 @@ export async function getInspectorData(frame: Frame, state: State) {
     light: 'vitesse-light',
     dark: 'vitesse-dark',
   }
-  const [contextHtml, frameHtml, metaTagsHtml, debugHtml] = await Promise.all([
+  const [contextHtml, frameHtml, metaTagsHtml] = await Promise.all([
     codeToHtml(JSON.stringify(state.context, null, 2), {
       lang: 'json',
       themes,
@@ -308,7 +308,6 @@ export async function getInspectorData(frame: Frame, state: State) {
     contextHtml,
     frameHtml,
     metaTagsHtml,
-    debugHtml,
   }
 }
 
@@ -416,7 +415,8 @@ export async function fetchFrame({
 
   const message = frameActionMessage._unsafeUnwrap()
 
-  return fetch(postUrl, {
+  const t0 = performance.now()
+  const response = await fetch(postUrl, {
     method: 'POST',
     body: JSON.stringify({
       untrustedData: {
@@ -441,4 +441,7 @@ export async function fetchFrame({
       },
     }),
   })
+  const t1 = performance.now()
+  const speed = t1 - t0
+  return { response, speed }
 }
