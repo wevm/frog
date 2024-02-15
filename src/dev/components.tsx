@@ -94,19 +94,29 @@ export function Preview(props: PreviewProps) {
 
         <div class="container gap-4" style={{ minHeight: '25.5rem' }}>
           <Frame />
-          <div class="w-full scrollbars">
+          <div class="flex flex-col gap-1.5 w-full scrollbars font-mono text-fg2 py-2">
             <div>
-              Version: <span x-text="frame.version" />
+              fc:frame <span class="text-fg" x-text="frame.version" />
+            </div>
+            <div class="text-ellipsis overflow-hidden whitespace-nowrap">
+              fc:frame:image <span class="text-fg" x-text="frame.imageUrl" />
             </div>
             <div>
-              Image: <span x-text="frame.imageUrl" />
+              fc:frame:image:aspect_ratio{' '}
+              <span class="text-fg" x-text="frame.imageAspectRatio" />
             </div>
-            <div>
-              Image Aspect Ratio: <span x-text="frame.imageAspectRatio" />
+            <div class="text-ellipsis overflow-hidden whitespace-nowrap">
+              fc:frame:post_url <span class="text-fg" x-text="frame.postUrl" />
             </div>
-            <div>
-              Post URL: <span x-text="frame.postUrl" />
+            <div class="text-ellipsis overflow-hidden whitespace-nowrap">
+              og:image <span class="text-fg" x-text="frame.title || 'unset'" />
             </div>
+            <div class="text-ellipsis overflow-hidden whitespace-nowrap">
+              og:title <span class="text-fg" x-text="frame.title || 'unset'" />
+            </div>
+
+            <br />
+            <div>TODO: validations, buttons, text input, copy to clipboard</div>
           </div>
         </div>
 
@@ -776,6 +786,7 @@ export function Styles() {
     .bg-transparent { background-color: transparent !important; }
     .border-er { border-color: var(--er) !important; } w
     .text-er { color: var(--er); }
+    .text-fg { color: var(--fg); }
     .text-fg2 { color: var(--fg2); }
     .text-white { color: #FAFAFA; }
 
