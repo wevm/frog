@@ -4,6 +4,7 @@ import { app as todoApp } from './todos'
 
 const app = new Farc({
   // basePath: '/api',
+  verify: false,
 })
 
 app.frame('/', (context) => {
