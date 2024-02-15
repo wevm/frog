@@ -25,24 +25,112 @@ export type FarcConstructorParameters<
   env extends Env = Env,
   basePath extends string = '/',
 > = {
+  /**
+   * The base path for the server instance.
+   *
+   * @example '/api' (commonly for Vercel Serverless Functions)
+   */
   basePath?: basePath | string | undefined
+  /**
+   * Options to forward to the `Hono` instance.
+   */
   honoOptions?: HonoOptions<env> | undefined
+  /**
+   * Farcaster Hub API URL.
+   *
+   * @default 'https://api.hub.wevm.dev'
+   */
   hubApiUrl?: string | undefined
+  /**
+   * Initial state for the frames.
+   *
+   * @example
+   * ```ts
+   * initialState: {
+   *   index: 0,
+   *   todos: [],
+   * }
+   * ```
+   */
   initialState?: state | undefined
+  /**
+   * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
+   *
+   * - When `true`, the frame will go through verification and throw an error if it fails.
+   * - When `false`, the frame will not go through verification.
+   * - When `undefined`, the frame will go through verification, but not throw an error if it fails.
+   * Instead, the frame will receive `verified: false` in its context.
+   *
+   * @default true.
+   */
   verify?: boolean | undefined
 }
 
-export type FrameOptions = {
-  verify?: boolean
-}
+export type FrameOptions = Pick<FarcConstructorParameters, 'verify'>
 
 export type FrameHandlerReturnType = {
+  /**
+   * Path of the next frame.
+   *
+   * @example '/submit'
+   */
   action?: string | undefined
+  /**
+   * The OG Image to render for the frame.
+   *
+   * @example
+   * <div style={{ fontSize: 60 }}>Hello World</div>
+   */
   image: JSX.Element
+  /**
+   * The aspect ratio of the OG Image.
+   *
+   * @example '1:1'
+   */
   imageAspectRatio?: FrameImageAspectRatio | undefined
+  /**
+   * A set of intents (ie. buttons, text inputs, etc) to render for the frame
+   * (beneath the OG image).
+   *
+   * @example
+   * intents: [
+   *   <TextInput placeholder="Enter your favourite food..." />,
+   *   <Button>Submit</Button>,
+   * ]
+   */
   intents?: FrameIntents | undefined
 }
 
+/**
+ * A Farc instance.
+ *
+ * @param parameters - {@link FarcConstructorParameters}
+ * @returns instance. {@link FarcBase}
+ *
+ * @example
+ * ```
+ * import { Farc } from 'farc'
+ *
+ * const app = new Farc()
+ *
+ * app.frame('/', (context) => {
+ *   const { buttonValue, inputText, status } = context
+ *   const fruit = inputText || buttonValue
+ *   return {
+ *     image: (
+ *       <div style={{ fontSize: 60 }}>
+ *         {fruit ? `You selected: ${fruit}` : 'Welcome!'}
+ *       </div>
+ *     ),
+ *     intents: [
+ *       <Button value="apples">Apples</Button>,
+ *       <Button value="oranges">Oranges</Button>,
+ *       <Button value="bananas">Bananas</Button>,
+ *     ]
+ *   }
+ * })
+ * ```
+ */
 export class FarcBase<
   state = undefined,
   env extends Env = Env,
@@ -51,13 +139,17 @@ export class FarcBase<
 > {
   #initialState: state = undefined as state
 
+  /** Base path of the server instance. */
   basePath: string
+  /** Hono instance. */
   hono: Hono<env, schema, basePath>
+  /** Farcaster Hub API URL. */
   hubApiUrl = 'https://api.hub.wevm.dev'
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   // TODO: default to `true` once devtools has auth.
+  /** Whether or not frames should be verified. */
   verify: boolean = process.env.NODE_ENV !== 'development'
 
   constructor({

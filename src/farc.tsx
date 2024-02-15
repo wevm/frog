@@ -8,6 +8,36 @@ import {
 } from './farc-base.js'
 import { type FrameContext } from './types.js'
 
+/**
+ * A Farc instance.
+ *
+ * @param parameters - {@link FarcConstructorParameters}
+ * @returns instance. {@link FarcBase}
+ *
+ * @example
+ * ```
+ * import { Farc } from 'farc'
+ *
+ * const app = new Farc()
+ *
+ * app.frame('/', (context) => {
+ *   const { buttonValue, inputText, status } = context
+ *   const fruit = inputText || buttonValue
+ *   return {
+ *     image: (
+ *       <div style={{ fontSize: 60 }}>
+ *         {fruit ? `You selected: ${fruit}` : 'Welcome!'}
+ *       </div>
+ *     ),
+ *     intents: [
+ *       <Button value="apples">Apples</Button>,
+ *       <Button value="oranges">Oranges</Button>,
+ *       <Button value="bananas">Bananas</Button>,
+ *     ]
+ *   }
+ * })
+ * ```
+ */
 export class Farc<
   state = undefined,
   env extends Env = Env,
