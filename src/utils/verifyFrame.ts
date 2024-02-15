@@ -30,5 +30,5 @@ export async function verifyFrame({
     throw new Error(`message is invalid. ${response.details}`)
 
   if (!frameUrl?.startsWith(url))
-    throw new Error(`Invalid frame url: ${frameUrl}`)
+    throw new Error(`Invalid frame url: ${frameUrl}. Expected: ${url}.`)
 }
