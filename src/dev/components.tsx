@@ -355,7 +355,7 @@ function Button() {
   const innerHtml = (
     <span
       class="whitespace-nowrap overflow-hidden text-ellipsis"
-      style={{ lineHeight: 'normal' }}
+      style={{ lineHeight: 'normal', marginTop: '2px' }}
       x-text="title"
     />
   )
@@ -409,7 +409,7 @@ function Button() {
       <template x-if="type === 'link'">
         <div>
           <button class={buttonClass} type="button" x-on:click="open = true">
-            <div style={{ marginTop: '2px' }}>{innerHtml}</div>
+            {innerHtml}
             <div style={{ marginTop: '2px' }}>{externalLinkIcon}</div>
           </button>
 
@@ -439,7 +439,7 @@ function Button() {
                 .catch(console.error)
           `}
           >
-            <div style={{ marginTop: '2px' }}>{innerHtml}</div>
+            {innerHtml}
             <div style={{ marginTop: '2px' }}>{redirectIcon}</div>
           </button>
 
@@ -448,12 +448,8 @@ function Button() {
       </template>
 
       <template x-if="type === 'mint'">
-        <button
-          class={buttonClass}
-          style={{ paddingTop: '0.625rem ' }}
-          type="button"
-        >
-          {mintIcon}
+        <button class={buttonClass} type="button">
+          <div>{mintIcon}</div>
           {innerHtml}
         </button>
       </template>
@@ -461,7 +457,6 @@ function Button() {
       <template x-if="type === 'post'">
         <button
           class={buttonClass}
-          style={{ paddingTop: '0.625rem' }}
           type="button"
           x-on:click={`
             const body = {
