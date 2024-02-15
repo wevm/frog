@@ -14,7 +14,7 @@ export function Preview(props: PreviewProps) {
   const { baseUrl, frame, inspectorData, routes, speed, state } = props
   return (
     <div
-      class="flex flex-col items-center p-4 mt-1"
+      class="flex flex-col items-center p-4"
       x-data={`{
         baseUrl: '${baseUrl}',
         data: {
@@ -90,14 +90,11 @@ export function Preview(props: PreviewProps) {
           get hasIntents() { return Boolean(frame.input || frame.buttons.length) },
         }"
       >
-        <div class="grid grid-cols-2 gap-4">
-          <Navigator />
-          <div />
-        </div>
+        <Navigator />
 
-        <div class="grid grid-cols-2 gap-4" style={{ minHeight: '408px' }}>
+        <div class="container gap-4" style={{ minHeight: '25.5rem' }}>
           <Frame />
-          <div class="w-full">
+          <div class="w-full scrollbars">
             <div>
               Version: <span x-text="frame.version" />
             </div>
@@ -113,9 +110,13 @@ export function Preview(props: PreviewProps) {
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <Timeline />
-          <Inspector />
+        <div class="border divide-x rounded-md container">
+          <div class="p-4 scrollbars" style={{ height: '22.75rem' }}>
+            <Inspector />
+          </div>
+          <div class="p-4 scrollbars" style={{ height: '22.75rem' }}>
+            <Timeline />
+          </div>
         </div>
       </div>
     </div>
@@ -124,11 +125,11 @@ export function Preview(props: PreviewProps) {
 
 function Navigator() {
   return (
-    <div class="items-center flex gap-2 w-full" style={{ height: '1.7rem' }}>
+    <div class="items-center flex gap-2 w-full" style={{ height: '2rem' }}>
       <div class="flex border rounded-md h-full">
         <button
           aria-label="back"
-          class="text-fg2 bg-transparent px-1.5 rounded-l-md"
+          class="text-fg2 bg-transparent px-2 rounded-l-md"
           type="button"
           x-on:click={`
             const nextId = id - 1
@@ -160,7 +161,7 @@ function Navigator() {
         <div class="bg-br h-full" style={{ width: '1px' }} />
         <button
           aria-label="forward"
-          class="text-fg2 bg-transparent px-1.5 rounded-r-md"
+          class="text-fg2 bg-transparent px-2 rounded-r-md"
           type="button"
           x-data="{ get disabled() { return !history[id + 1] } }"
           x-on:click={`
@@ -187,7 +188,7 @@ function Navigator() {
 
       <button
         aria-label="refresh"
-        class="border rounded-md text-fg2 bg-transparent px-1.5 rounded-r-md h-full"
+        class="border rounded-md text-fg2 bg-transparent px-2 rounded-r-md h-full"
         type="button"
         x-on:click={`
           const body = history[id]?.body
@@ -220,8 +221,8 @@ function Navigator() {
           </div>
           <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
             <span
-              class="font-mono text-xs"
-              style={{ marginTop: '1px' }}
+              class="font-mono text-sm"
+              style={{ lineHeight: '2rem' }}
               x-text="formatUrl(state.context.url)"
             />
           </div>
@@ -245,7 +246,7 @@ function Navigator() {
         >
           <template x-for="(route, index) in routes">
             <a
-              class="display-block font-mono text-xs whitespace-nowrap px-3 py-1.5 rounded-lg overflow-hidden text-ellipsis"
+              class="display-block font-mono text-sm whitespace-nowrap px-3 py-1.5 rounded-lg overflow-hidden text-ellipsis"
               x-text="`${url.host}${route === '/' ? '' : route}`"
               style={{ textDecoration: 'none' }}
               {...{
@@ -256,10 +257,17 @@ function Navigator() {
         </div>
       </div>
 
-      <div class="border rounded-md items-center flex text-fg2 px-1.5 rounded-md font-mono gap-1 h-full text-xs">
+      <div class="border rounded-md items-center flex text-fg2 px-1.5 rounded-md font-mono gap-1.5 h-full text-sm">
         {stopwatchIcon}
         <div x-text="`${formatSpeed(speed)}ms`" />
       </div>
+
+      <button
+        type="button"
+        class="bg-transparent rounded-md border overflow-hidden text-fg2"
+      >
+        {farcasterIcon}
+      </button>
     </div>
   )
 }
@@ -483,163 +491,6 @@ function Button() {
   )
 }
 
-const externalLinkIcon = (
-  <svg
-    aria-hidden="true"
-    class="text-fg2"
-    fill="none"
-    height="13"
-    viewBox="0 0 15 15"
-    width="13"
-  >
-    <path
-      d="M3 2C2.44772 2 2 2.44772 2 3V12C2 12.5523 2.44772 13 3 13H12C12.5523 13 13 12.5523 13 12V8.5C13 8.22386 12.7761 8 12.5 8C12.2239 8 12 8.22386 12 8.5V12H3V3L6.5 3C6.77614 3 7 2.77614 7 2.5C7 2.22386 6.77614 2 6.5 2H3ZM12.8536 2.14645C12.9015 2.19439 12.9377 2.24964 12.9621 2.30861C12.9861 2.36669 12.9996 2.4303 13 2.497L13 2.5V2.50049V5.5C13 5.77614 12.7761 6 12.5 6C12.2239 6 12 5.77614 12 5.5V3.70711L6.85355 8.85355C6.65829 9.04882 6.34171 9.04882 6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L11.2929 3H9.5C9.22386 3 9 2.77614 9 2.5C9 2.22386 9.22386 2 9.5 2H12.4999H12.5C12.5678 2 12.6324 2.01349 12.6914 2.03794C12.7504 2.06234 12.8056 2.09851 12.8536 2.14645Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
-
-const mintIcon = (
-  <svg
-    aria-hidden="true"
-    fill="none"
-    height="13"
-    viewBox="0 0 28 28"
-    width="13"
-  >
-    <path
-      fill="currentColor"
-      fill-rule="evenodd"
-      d="M14.804.333a1.137 1.137 0 0 0-1.608 0L.333 13.196a1.137 1.137 0 0 0 0 1.608l12.863 12.863a1.137 1.137 0 0 0 1.608 0l12.863-12.863a1.137 1.137 0 0 0 0-1.608L14.804.333ZM14 5.159c0-.89-1.077-1.337-1.707-.707l-8.134 8.134a2 2 0 0 0 0 2.828l8.134 8.134c.63.63 1.707.184 1.707-.707V5.159Z"
-      clip-rule="nonzero"
-    />
-  </svg>
-)
-
-const redirectIcon = (
-  <svg
-    aria-hidden="true"
-    class="text-fg2"
-    fill="none"
-    height="13"
-    viewBox="0 0 15 15"
-    width="13"
-  >
-    <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-      d="M12 13C12.5523 13 13 12.5523 13 12V3C13 2.44771 12.5523 2 12 2H3C2.44771 2 2 2.44771 2 3V6.5C2 6.77614 2.22386 7 2.5 7C2.77614 7 3 6.77614 3 6.5V3H12V12H8.5C8.22386 12 8 12.2239 8 12.5C8 12.7761 8.22386 13 8.5 13H12ZM9 6.5C9 6.5001 9 6.50021 9 6.50031V6.50035V9.5C9 9.77614 8.77614 10 8.5 10C8.22386 10 8 9.77614 8 9.5V7.70711L2.85355 12.8536C2.65829 13.0488 2.34171 13.0488 2.14645 12.8536C1.95118 12.6583 1.95118 12.3417 2.14645 12.1464L7.29289 7H5.5C5.22386 7 5 6.77614 5 6.5C5 6.22386 5.22386 6 5.5 6H8.5C8.56779 6 8.63244 6.01349 8.69139 6.03794C8.74949 6.06198 8.80398 6.09744 8.85143 6.14433C8.94251 6.23434 8.9992 6.35909 8.99999 6.49708L8.99999 6.49738"
-      fill="currentColor"
-    />
-  </svg>
-)
-
-const arrowLeftIcon = (
-  <svg
-    aria-hidden="true"
-    width="13"
-    height="13"
-    viewBox="0 0 15 15"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M6.85355 3.14645C7.04882 3.34171 7.04882 3.65829 6.85355 3.85355L3.70711 7H12.5C12.7761 7 13 7.22386 13 7.5C13 7.77614 12.7761 8 12.5 8H3.70711L6.85355 11.1464C7.04882 11.3417 7.04882 11.6583 6.85355 11.8536C6.65829 12.0488 6.34171 12.0488 6.14645 11.8536L2.14645 7.85355C1.95118 7.65829 1.95118 7.34171 2.14645 7.14645L6.14645 3.14645C6.34171 2.95118 6.65829 2.95118 6.85355 3.14645Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
-
-const arrowRightIcon = (
-  <svg
-    aria-hidden="true"
-    width="13"
-    height="13"
-    viewBox="0 0 15 15"
-    fill="none"
-  >
-    <path
-      d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
-
-const stopwatchIcon = (
-  <svg
-    aria-hidden="true"
-    width="13"
-    height="13"
-    viewBox="0 0 15 15"
-    fill="none"
-  >
-    <path
-      d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
-
-const globeIcon = (
-  <svg
-    aria-hidden="true"
-    width="13"
-    height="13"
-    viewBox="0 0 15 15"
-    fill="none"
-  >
-    <path
-      d="M7.49996 1.80002C4.35194 1.80002 1.79996 4.352 1.79996 7.50002C1.79996 10.648 4.35194 13.2 7.49996 13.2C10.648 13.2 13.2 10.648 13.2 7.50002C13.2 4.352 10.648 1.80002 7.49996 1.80002ZM0.899963 7.50002C0.899963 3.85494 3.85488 0.900024 7.49996 0.900024C11.145 0.900024 14.1 3.85494 14.1 7.50002C14.1 11.1451 11.145 14.1 7.49996 14.1C3.85488 14.1 0.899963 11.1451 0.899963 7.50002Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-    <path
-      d="M13.4999 7.89998H1.49994V7.09998H13.4999V7.89998Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-    <path
-      d="M7.09991 13.5V1.5H7.89991V13.5H7.09991zM10.375 7.49998C10.375 5.32724 9.59364 3.17778 8.06183 1.75656L8.53793 1.24341C10.2396 2.82218 11.075 5.17273 11.075 7.49998 11.075 9.82724 10.2396 12.1778 8.53793 13.7566L8.06183 13.2434C9.59364 11.8222 10.375 9.67273 10.375 7.49998zM3.99969 7.5C3.99969 5.17611 4.80786 2.82678 6.45768 1.24719L6.94177 1.75281C5.4582 3.17323 4.69969 5.32389 4.69969 7.5 4.6997 9.67611 5.45822 11.8268 6.94179 13.2472L6.45769 13.7528C4.80788 12.1732 3.9997 9.8239 3.99969 7.5z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-    <path
-      d="M7.49996 3.95801C9.66928 3.95801 11.8753 4.35915 13.3706 5.19448 13.5394 5.28875 13.5998 5.50197 13.5055 5.67073 13.4113 5.83948 13.198 5.89987 13.0293 5.8056 11.6794 5.05155 9.60799 4.65801 7.49996 4.65801 5.39192 4.65801 3.32052 5.05155 1.97064 5.8056 1.80188 5.89987 1.58866 5.83948 1.49439 5.67073 1.40013 5.50197 1.46051 5.28875 1.62927 5.19448 3.12466 4.35915 5.33063 3.95801 7.49996 3.95801zM7.49996 10.85C9.66928 10.85 11.8753 10.4488 13.3706 9.6135 13.5394 9.51924 13.5998 9.30601 13.5055 9.13726 13.4113 8.9685 13.198 8.90812 13.0293 9.00238 11.6794 9.75643 9.60799 10.15 7.49996 10.15 5.39192 10.15 3.32052 9.75643 1.97064 9.00239 1.80188 8.90812 1.58866 8.9685 1.49439 9.13726 1.40013 9.30601 1.46051 9.51924 1.62927 9.6135 3.12466 10.4488 5.33063 10.85 7.49996 10.85z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
-
-const refreshIcon = (
-  <svg
-    aria-hidden="true"
-    width="13"
-    height="13"
-    viewBox="0 0 15 15"
-    fill="none"
-  >
-    <path
-      d="M1.84998 7.49998C1.84998 4.66458 4.05979 1.84998 7.49998 1.84998C10.2783 1.84998 11.6515 3.9064 12.2367 5H10.5C10.2239 5 10 5.22386 10 5.5C10 5.77614 10.2239 6 10.5 6H13.5C13.7761 6 14 5.77614 14 5.5V2.5C14 2.22386 13.7761 2 13.5 2C13.2239 2 13 2.22386 13 2.5V4.31318C12.2955 3.07126 10.6659 0.849976 7.49998 0.849976C3.43716 0.849976 0.849976 4.18537 0.849976 7.49998C0.849976 10.8146 3.43716 14.15 7.49998 14.15C9.44382 14.15 11.0622 13.3808 12.2145 12.2084C12.8315 11.5806 13.3133 10.839 13.6418 10.0407C13.7469 9.78536 13.6251 9.49315 13.3698 9.38806C13.1144 9.28296 12.8222 9.40478 12.7171 9.66014C12.4363 10.3425 12.0251 10.9745 11.5013 11.5074C10.5295 12.4963 9.16504 13.15 7.49998 13.15C4.05979 13.15 1.84998 10.3354 1.84998 7.49998Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
-
 function Timeline() {
   return (
     <div
@@ -677,13 +528,7 @@ function Timeline() {
 }
 
 function Inspector() {
-  return (
-    <div
-      class="h-full p-2"
-      style={{ maxHeight: '47vh' }}
-      x-html="inspectorData.contextHtml"
-    />
-  )
+  return <div x-html="inspectorData.contextHtml" />
 }
 
 export function Styles() {
@@ -869,6 +714,7 @@ export function Styles() {
     .flex { display: flex; }
     .flex-col { flex-direction: column; }
     .flex-row { flex-direction: row; }
+    .flex-wrap { flex-wrap: wrap; }
     .gap-0\\.5 { gap: 0.125rem; }
     .gap-1 { gap: 0.25rem; }
     .gap-1\\.5 { gap: 0.375rem; }
@@ -894,6 +740,7 @@ export function Styles() {
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
     .px-1\\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
     .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
@@ -932,6 +779,7 @@ export function Styles() {
     .scrollbars {
       overflow: auto;
       scrollbar-color: var(--br) transparent;
+      scrollbar-gutter: stable;
       scrollbar-width: thin;
     }
 
@@ -943,6 +791,17 @@ export function Styles() {
     }
 
     [x-cloak] { display: none !important; }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr)); 
+    }
+
+    @media screen and (max-width: 768px) {
+      .container {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+    }
   `
   // biome-ignore lint/security/noDangerouslySetInnerHtml:
   return <style dangerouslySetInnerHTML={{ __html: styles }} />
@@ -963,3 +822,176 @@ export function Scripts() {
     </>
   )
 }
+
+const externalLinkIcon = (
+  <svg
+    aria-hidden="true"
+    class="text-fg2"
+    fill="none"
+    height="13"
+    viewBox="0 0 15 15"
+    width="13"
+  >
+    <path
+      d="M3 2C2.44772 2 2 2.44772 2 3V12C2 12.5523 2.44772 13 3 13H12C12.5523 13 13 12.5523 13 12V8.5C13 8.22386 12.7761 8 12.5 8C12.2239 8 12 8.22386 12 8.5V12H3V3L6.5 3C6.77614 3 7 2.77614 7 2.5C7 2.22386 6.77614 2 6.5 2H3ZM12.8536 2.14645C12.9015 2.19439 12.9377 2.24964 12.9621 2.30861C12.9861 2.36669 12.9996 2.4303 13 2.497L13 2.5V2.50049V5.5C13 5.77614 12.7761 6 12.5 6C12.2239 6 12 5.77614 12 5.5V3.70711L6.85355 8.85355C6.65829 9.04882 6.34171 9.04882 6.14645 8.85355C5.95118 8.65829 5.95118 8.34171 6.14645 8.14645L11.2929 3H9.5C9.22386 3 9 2.77614 9 2.5C9 2.22386 9.22386 2 9.5 2H12.4999H12.5C12.5678 2 12.6324 2.01349 12.6914 2.03794C12.7504 2.06234 12.8056 2.09851 12.8536 2.14645Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const mintIcon = (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    height="13"
+    viewBox="0 0 28 28"
+    width="13"
+  >
+    <path
+      fill="currentColor"
+      fill-rule="evenodd"
+      d="M14.804.333a1.137 1.137 0 0 0-1.608 0L.333 13.196a1.137 1.137 0 0 0 0 1.608l12.863 12.863a1.137 1.137 0 0 0 1.608 0l12.863-12.863a1.137 1.137 0 0 0 0-1.608L14.804.333ZM14 5.159c0-.89-1.077-1.337-1.707-.707l-8.134 8.134a2 2 0 0 0 0 2.828l8.134 8.134c.63.63 1.707.184 1.707-.707V5.159Z"
+      clip-rule="nonzero"
+    />
+  </svg>
+)
+
+const redirectIcon = (
+  <svg
+    aria-hidden="true"
+    class="text-fg2"
+    fill="none"
+    height="13"
+    viewBox="0 0 15 15"
+    width="13"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M12 13C12.5523 13 13 12.5523 13 12V3C13 2.44771 12.5523 2 12 2H3C2.44771 2 2 2.44771 2 3V6.5C2 6.77614 2.22386 7 2.5 7C2.77614 7 3 6.77614 3 6.5V3H12V12H8.5C8.22386 12 8 12.2239 8 12.5C8 12.7761 8.22386 13 8.5 13H12ZM9 6.5C9 6.5001 9 6.50021 9 6.50031V6.50035V9.5C9 9.77614 8.77614 10 8.5 10C8.22386 10 8 9.77614 8 9.5V7.70711L2.85355 12.8536C2.65829 13.0488 2.34171 13.0488 2.14645 12.8536C1.95118 12.6583 1.95118 12.3417 2.14645 12.1464L7.29289 7H5.5C5.22386 7 5 6.77614 5 6.5C5 6.22386 5.22386 6 5.5 6H8.5C8.56779 6 8.63244 6.01349 8.69139 6.03794C8.74949 6.06198 8.80398 6.09744 8.85143 6.14433C8.94251 6.23434 8.9992 6.35909 8.99999 6.49708L8.99999 6.49738"
+      fill="currentColor"
+    />
+  </svg>
+)
+
+const arrowLeftIcon = (
+  <svg
+    aria-hidden="true"
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6.85355 3.14645C7.04882 3.34171 7.04882 3.65829 6.85355 3.85355L3.70711 7H12.5C12.7761 7 13 7.22386 13 7.5C13 7.77614 12.7761 8 12.5 8H3.70711L6.85355 11.1464C7.04882 11.3417 7.04882 11.6583 6.85355 11.8536C6.65829 12.0488 6.34171 12.0488 6.14645 11.8536L2.14645 7.85355C1.95118 7.65829 1.95118 7.34171 2.14645 7.14645L6.14645 3.14645C6.34171 2.95118 6.65829 2.95118 6.85355 3.14645Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const arrowRightIcon = (
+  <svg
+    aria-hidden="true"
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const stopwatchIcon = (
+  <svg
+    aria-hidden="true"
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const globeIcon = (
+  <svg
+    aria-hidden="true"
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M7.49996 1.80002C4.35194 1.80002 1.79996 4.352 1.79996 7.50002C1.79996 10.648 4.35194 13.2 7.49996 13.2C10.648 13.2 13.2 10.648 13.2 7.50002C13.2 4.352 10.648 1.80002 7.49996 1.80002ZM0.899963 7.50002C0.899963 3.85494 3.85488 0.900024 7.49996 0.900024C11.145 0.900024 14.1 3.85494 14.1 7.50002C14.1 11.1451 11.145 14.1 7.49996 14.1C3.85488 14.1 0.899963 11.1451 0.899963 7.50002Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <path
+      d="M13.4999 7.89998H1.49994V7.09998H13.4999V7.89998Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <path
+      d="M7.09991 13.5V1.5H7.89991V13.5H7.09991zM10.375 7.49998C10.375 5.32724 9.59364 3.17778 8.06183 1.75656L8.53793 1.24341C10.2396 2.82218 11.075 5.17273 11.075 7.49998 11.075 9.82724 10.2396 12.1778 8.53793 13.7566L8.06183 13.2434C9.59364 11.8222 10.375 9.67273 10.375 7.49998zM3.99969 7.5C3.99969 5.17611 4.80786 2.82678 6.45768 1.24719L6.94177 1.75281C5.4582 3.17323 4.69969 5.32389 4.69969 7.5 4.6997 9.67611 5.45822 11.8268 6.94179 13.2472L6.45769 13.7528C4.80788 12.1732 3.9997 9.8239 3.99969 7.5z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+    <path
+      d="M7.49996 3.95801C9.66928 3.95801 11.8753 4.35915 13.3706 5.19448 13.5394 5.28875 13.5998 5.50197 13.5055 5.67073 13.4113 5.83948 13.198 5.89987 13.0293 5.8056 11.6794 5.05155 9.60799 4.65801 7.49996 4.65801 5.39192 4.65801 3.32052 5.05155 1.97064 5.8056 1.80188 5.89987 1.58866 5.83948 1.49439 5.67073 1.40013 5.50197 1.46051 5.28875 1.62927 5.19448 3.12466 4.35915 5.33063 3.95801 7.49996 3.95801zM7.49996 10.85C9.66928 10.85 11.8753 10.4488 13.3706 9.6135 13.5394 9.51924 13.5998 9.30601 13.5055 9.13726 13.4113 8.9685 13.198 8.90812 13.0293 9.00238 11.6794 9.75643 9.60799 10.15 7.49996 10.15 5.39192 10.15 3.32052 9.75643 1.97064 9.00239 1.80188 8.90812 1.58866 8.9685 1.49439 9.13726 1.40013 9.30601 1.46051 9.51924 1.62927 9.6135 3.12466 10.4488 5.33063 10.85 7.49996 10.85z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const refreshIcon = (
+  <svg
+    aria-hidden="true"
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    fill="none"
+  >
+    <path
+      d="M1.84998 7.49998C1.84998 4.66458 4.05979 1.84998 7.49998 1.84998C10.2783 1.84998 11.6515 3.9064 12.2367 5H10.5C10.2239 5 10 5.22386 10 5.5C10 5.77614 10.2239 6 10.5 6H13.5C13.7761 6 14 5.77614 14 5.5V2.5C14 2.22386 13.7761 2 13.5 2C13.2239 2 13 2.22386 13 2.5V4.31318C12.2955 3.07126 10.6659 0.849976 7.49998 0.849976C3.43716 0.849976 0.849976 4.18537 0.849976 7.49998C0.849976 10.8146 3.43716 14.15 7.49998 14.15C9.44382 14.15 11.0622 13.3808 12.2145 12.2084C12.8315 11.5806 13.3133 10.839 13.6418 10.0407C13.7469 9.78536 13.6251 9.49315 13.3698 9.38806C13.1144 9.28296 12.8222 9.40478 12.7171 9.66014C12.4363 10.3425 12.0251 10.9745 11.5013 11.5074C10.5295 12.4963 9.16504 13.15 7.49998 13.15C4.05979 13.15 1.84998 10.3354 1.84998 7.49998Z"
+      fill="currentColor"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    />
+  </svg>
+)
+
+const farcasterIcon = (
+  <svg
+    aria-hidden="true"
+    width="30"
+    height="30"
+    viewBox="0 0 1024 1024"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M308.786 227H715.928V308.429L817.714 308.429L797.357 389.857H777V715.571C788.247 715.571 797.357 724.681 797.357 735.928V756.286C808.604 756.286 817.714 765.396 817.714 776.643V797H614.143V776.643C614.143 765.396 623.253 756.286 634.5 756.286L634.5 735.928C634.5 724.681 643.61 715.571 654.857 715.571L654.857 550.97C654.795 472.322 591.019 408.586 512.357 408.586C433.672 408.586 369.883 472.359 369.857 551.038L369.857 715.571C381.104 715.571 390.214 724.681 390.214 735.928V756.286C401.462 756.286 410.571 765.396 410.571 776.643V797H207V776.643C207 765.396 216.11 756.286 227.357 756.286L227.357 735.928C227.357 724.681 236.467 715.571 247.714 715.571L247.714 389.857H227.357L207 308.429L308.786 308.429V227Z"
+      fill="currentColor"
+    />
+  </svg>
+)
