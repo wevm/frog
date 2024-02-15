@@ -34,6 +34,16 @@ export function Preview(props: PreviewProps) {
           state: ${JSON.stringify(state)},
         },
         get frame() { return this.data.frame },
+        async fetchFrame(body) {
+          const response = await fetch(this.baseUrl + '/dev/action', {
+            method: 'POST',
+            body,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          return response.json()
+        }
       }`}
     >
       <div
@@ -60,8 +70,11 @@ export function Preview(props: PreviewProps) {
 
 function HistoryBar() {
   return (
-    <div class="items-center flex gap-2.5 w-full" style={{ maxWidth: '512px' }}>
-      <div class="flex border rounded-md" style={{ height: '1.6rem' }}>
+    <div
+      class="items-center flex gap-2 w-full"
+      style={{ maxWidth: '512px', height: '1.7rem' }}
+    >
+      <div class="flex border rounded-md h-full">
         <button
           aria-label="back"
           class="text-fg2 bg-transparent px-1.5 rounded-l-md"
@@ -77,14 +90,7 @@ function HistoryBar() {
             }
 
             const body = history[nextId].body
-            fetch(baseUrl + '/dev/action', {
-              method: 'POST',
-              body,
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            })
-            .then((res) => res.json())
+            fetchFrame(body)
             .then((json) => {
               data = json
               id = nextId
@@ -110,14 +116,7 @@ function HistoryBar() {
             if (!history[nextId]) return
 
             const body = history[nextId].body
-            fetch(baseUrl + '/dev/action', {
-              method: 'POST',
-              body,
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            })
-            .then((res) => res.json())
+            fetchFrame(body)
             .then((json) => {
               data = json
               id = nextId
@@ -134,21 +133,34 @@ function HistoryBar() {
         </button>
       </div>
 
-      <div class="flex gap-2 w-full" style={{ height: '1.6rem' }}>
-        <div class="items-center flex text-fg2 border px-1.5 rounded-md font-mono w-full gap-1">
-          <button type="button" class="bg-transparent">
-            {clockIcon}
-          </button>
-          <div
-            class="overflow-hidden whitespace-nowrap text-ellipsis text-xs"
-            style={{ marginTop: '1px' }}
-            x-text="state.context.url.replace(/https?:\\/\\//, '')"
-          />
-        </div>
-        <div class="items-center flex text-fg2 border px-1.5 rounded-md font-mono gap-1">
-          {stopwatchIcon}
-          <div class="text-xs" x-text="'24ms'" />
-        </div>
+      <button
+        aria-label="refresh"
+        class="border rounded-md text-fg2 bg-transparent px-1.5 rounded-r-md h-full"
+        type="button"
+        x-data="{ get disabled() { return !history[id] } }"
+        x-on:click={`
+          const body = history[id].body
+          fetchFrame(body)
+          .then((json) => data = json)
+          .catch(console.error)
+        `}
+      >
+        <span
+          {...{
+            ':disabled': 'disabled',
+            ':style': "disabled && { opacity: '0.25' }",
+          }}
+        >
+          {refreshIcon}
+        </span>
+      </button>
+
+      <div class="bg-transparent items-center flex text-fg2 px-1.5 rounded-md font-mono w-full gap-1 h-full text-sm">
+        <div
+          class="overflow-hidden whitespace-nowrap text-ellipsis"
+          style={{ marginTop: '1px' }}
+          x-text="state.context.url.replace(/https?:\\/\\//, '')"
+        />
       </div>
     </div>
   )
@@ -294,7 +306,7 @@ function Button() {
         <div>
           <button class={buttonClass} type="button" x-on:click="open = true">
             <div style={{ marginTop: '2px' }}>{innerHtml}</div>
-            <div style={{ marginTop: '2px' }}>{linkIcon}</div>
+            <div style={{ marginTop: '2px' }}>{externalLinkIcon}</div>
           </button>
 
           {leavingAppPrompt}
@@ -359,14 +371,7 @@ function Button() {
               inputText,
               postUrl: target ?? frame.postUrl,
             })
-            fetch(baseUrl + '/dev/action', {
-              method: 'POST',
-              body,
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            })
-            .then((res) => res.json())
+            fetchFrame(body)
             .then((json) => {
               const nextId = id + 1
               const item = { body, url: json.state.context.url }
@@ -386,7 +391,7 @@ function Button() {
   )
 }
 
-const linkIcon = (
+const externalLinkIcon = (
   <svg
     aria-hidden="true"
     class="text-fg2"
@@ -474,24 +479,41 @@ const arrowRightIcon = (
   </svg>
 )
 
-const stopwatchIcon = (
-  <svg
-    aria-hidden="true"
-    width="13"
-    height="13"
-    viewBox="0 0 15 15"
-    fill="none"
-  >
-    <path
-      d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
-      fill="currentColor"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    />
-  </svg>
-)
+// const _stopwatchIcon = (
+//   <svg
+//     aria-hidden="true"
+//     width="13"
+//     height="13"
+//     viewBox="0 0 15 15"
+//     fill="none"
+//   >
+//     <path
+//       d="M5.49998 0.5C5.49998 0.223858 5.72383 0 5.99998 0H7.49998H8.99998C9.27612 0 9.49998 0.223858 9.49998 0.5C9.49998 0.776142 9.27612 1 8.99998 1H7.99998V2.11922C9.09832 2.20409 10.119 2.56622 10.992 3.13572C11.0116 3.10851 11.0336 3.08252 11.058 3.05806L11.858 2.25806C12.1021 2.01398 12.4978 2.01398 12.7419 2.25806C12.986 2.50214 12.986 2.89786 12.7419 3.14194L11.967 3.91682C13.1595 5.07925 13.9 6.70314 13.9 8.49998C13.9 12.0346 11.0346 14.9 7.49998 14.9C3.96535 14.9 1.09998 12.0346 1.09998 8.49998C1.09998 5.13362 3.69904 2.3743 6.99998 2.11922V1H5.99998C5.72383 1 5.49998 0.776142 5.49998 0.5ZM2.09998 8.49998C2.09998 5.51764 4.51764 3.09998 7.49998 3.09998C10.4823 3.09998 12.9 5.51764 12.9 8.49998C12.9 11.4823 10.4823 13.9 7.49998 13.9C4.51764 13.9 2.09998 11.4823 2.09998 8.49998ZM7.99998 4.5C7.99998 4.22386 7.77612 4 7.49998 4C7.22383 4 6.99998 4.22386 6.99998 4.5V9.5C6.99998 9.77614 7.22383 10 7.49998 10C7.77612 10 7.99998 9.77614 7.99998 9.5V4.5Z"
+//       fill="currentColor"
+//       fill-rule="evenodd"
+//       clip-rule="evenodd"
+//     />
+//   </svg>
+// )
+//
+// const linkIcon = (
+//   <svg
+//     aria-hidden="true"
+//     width="13"
+//     height="13"
+//     viewBox="0 0 15 15"
+//     fill="none"
+//   >
+//     <path
+//       d="M4.62471 4.00001L4.56402 4.00001C4.04134 3.99993 3.70687 3.99988 3.4182 4.055C2.2379 4.28039 1.29846 5.17053 1.05815 6.33035C0.999538 6.61321 0.999604 6.93998 0.999703 7.43689L0.999711 7.50001L0.999703 7.56313C0.999604 8.06004 0.999538 8.38681 1.05815 8.66967C1.29846 9.8295 2.2379 10.7196 3.4182 10.945C3.70688 11.0001 4.04135 11.0001 4.56403 11L4.62471 11H5.49971C5.77585 11 5.99971 10.7762 5.99971 10.5C5.99971 10.2239 5.77585 10 5.49971 10H4.62471C4.02084 10 3.78907 9.99777 3.60577 9.96277C2.80262 9.8094 2.19157 9.21108 2.03735 8.46678C2.00233 8.29778 1.99971 8.08251 1.99971 7.50001C1.99971 6.91752 2.00233 6.70225 2.03735 6.53324C2.19157 5.78895 2.80262 5.19062 3.60577 5.03725C3.78907 5.00225 4.02084 5.00001 4.62471 5.00001H5.49971C5.77585 5.00001 5.99971 4.77615 5.99971 4.50001C5.99971 4.22387 5.77585 4.00001 5.49971 4.00001H4.62471ZM10.3747 5.00001C10.9786 5.00001 11.2104 5.00225 11.3937 5.03725C12.1968 5.19062 12.8079 5.78895 12.9621 6.53324C12.9971 6.70225 12.9997 6.91752 12.9997 7.50001C12.9997 8.08251 12.9971 8.29778 12.9621 8.46678C12.8079 9.21108 12.1968 9.8094 11.3937 9.96277C11.2104 9.99777 10.9786 10 10.3747 10H9.49971C9.22357 10 8.99971 10.2239 8.99971 10.5C8.99971 10.7762 9.22357 11 9.49971 11H10.3747L10.4354 11C10.9581 11.0001 11.2925 11.0001 11.5812 10.945C12.7615 10.7196 13.701 9.8295 13.9413 8.66967C13.9999 8.38681 13.9998 8.06005 13.9997 7.56314L13.9997 7.50001L13.9997 7.43688C13.9998 6.93998 13.9999 6.61321 13.9413 6.33035C13.701 5.17053 12.7615 4.28039 11.5812 4.055C11.2925 3.99988 10.9581 3.99993 10.4354 4.00001L10.3747 4.00001H9.49971C9.22357 4.00001 8.99971 4.22387 8.99971 4.50001C8.99971 4.77615 9.22357 5.00001 9.49971 5.00001H10.3747ZM5.00038 7C4.72424 7 4.50038 7.22386 4.50038 7.5C4.50038 7.77614 4.72424 8 5.00038 8H10.0004C10.2765 8 10.5004 7.77614 10.5004 7.5C10.5004 7.22386 10.2765 7 10.0004 7H5.00038Z"
+//       fill="currentColor"
+//       fill-rule="evenodd"
+//       clip-rule="evenodd"
+//     />
+//   </svg>
+// )
 
-const clockIcon = (
+const refreshIcon = (
   <svg
     aria-hidden="true"
     width="13"
@@ -500,7 +522,7 @@ const clockIcon = (
     fill="none"
   >
     <path
-      d="M7.50009 0.877014C3.84241 0.877014 0.877258 3.84216 0.877258 7.49984C0.877258 11.1575 3.8424 14.1227 7.50009 14.1227C11.1578 14.1227 14.1229 11.1575 14.1229 7.49984C14.1229 3.84216 11.1577 0.877014 7.50009 0.877014ZM1.82726 7.49984C1.82726 4.36683 4.36708 1.82701 7.50009 1.82701C10.6331 1.82701 13.1729 4.36683 13.1729 7.49984C13.1729 10.6328 10.6331 13.1727 7.50009 13.1727C4.36708 13.1727 1.82726 10.6328 1.82726 7.49984ZM8 4.50001C8 4.22387 7.77614 4.00001 7.5 4.00001C7.22386 4.00001 7 4.22387 7 4.50001V7.50001C7 7.63262 7.05268 7.7598 7.14645 7.85357L9.14645 9.85357C9.34171 10.0488 9.65829 10.0488 9.85355 9.85357C10.0488 9.65831 10.0488 9.34172 9.85355 9.14646L8 7.29291V4.50001Z"
+      d="M1.84998 7.49998C1.84998 4.66458 4.05979 1.84998 7.49998 1.84998C10.2783 1.84998 11.6515 3.9064 12.2367 5H10.5C10.2239 5 10 5.22386 10 5.5C10 5.77614 10.2239 6 10.5 6H13.5C13.7761 6 14 5.77614 14 5.5V2.5C14 2.22386 13.7761 2 13.5 2C13.2239 2 13 2.22386 13 2.5V4.31318C12.2955 3.07126 10.6659 0.849976 7.49998 0.849976C3.43716 0.849976 0.849976 4.18537 0.849976 7.49998C0.849976 10.8146 3.43716 14.15 7.49998 14.15C9.44382 14.15 11.0622 13.3808 12.2145 12.2084C12.8315 11.5806 13.3133 10.839 13.6418 10.0407C13.7469 9.78536 13.6251 9.49315 13.3698 9.38806C13.1144 9.28296 12.8222 9.40478 12.7171 9.66014C12.4363 10.3425 12.0251 10.9745 11.5013 11.5074C10.5295 12.4963 9.16504 13.15 7.49998 13.15C4.05979 13.15 1.84998 10.3354 1.84998 7.49998Z"
       fill="currentColor"
       fill-rule="evenodd"
       clip-rule="evenodd"
@@ -526,7 +548,7 @@ function Navigator() {
 async function Inspector() {
   return (
     <div class="border divide-y rounded-lg flex flex-col max-w-full">
-      <div class="divide-x grid grid-cols-2 max-w-full">
+      <div class="divide-x max-w-full">
         <div
           x-data="{
             title: 'Current Context',

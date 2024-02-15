@@ -57,7 +57,7 @@ export function routes<
       `${parsePath(path)}/dev/action`,
       validator('json', validatePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev', '')
+        const baseUrl = c.req.url.replace('/dev/action', '')
         const json = c.req.valid('json')
         const { buttonIndex, castId, fid, inputText, postUrl } = json
 
@@ -87,7 +87,7 @@ export function routes<
       `${parsePath(path)}/dev/redirect`,
       validator('json', validatePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev', '')
+        const baseUrl = c.req.url.replace('/dev/redirect', '')
         const json = c.req.valid('json')
         const { buttonIndex, castId, fid, inputText, postUrl } = json
 

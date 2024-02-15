@@ -249,17 +249,18 @@ export function getRoutes(
   }
 
   const frameRoutes = []
-  if (basePathname !== '/') frameRoutes.push('/')
+  if (basePathname !== '' && basePathname !== '/') frameRoutes.push('/')
 
   for (const route of routes) {
     if (route.isMiddleware) continue
     if (route.method !== 'ALL') continue
 
     let path: string
-    if (route.path === '/') path = basePathname
+    if (basePathname !== '' && route.path === '/') path = basePathname
     else path = (basePathname === '/' ? '' : basePathname) + route.path
     frameRoutes.push(path)
   }
+
   return frameRoutes
 }
 
