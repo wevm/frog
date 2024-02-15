@@ -839,6 +839,7 @@ export function Styles() {
 
     [x-cloak] { display: none !important; }
   `
+  // biome-ignore lint/security/noDangerouslySetInnerHtml:
   return <style dangerouslySetInnerHTML={{ __html: styles }} />
 }
 

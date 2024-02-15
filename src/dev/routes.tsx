@@ -7,12 +7,12 @@ import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
 import { Preview, Scripts, Styles } from './components.js'
 import {
-  validatePostBody,
+  fetchFrame,
   getInspectorData,
   getRoutes,
   htmlToFrame,
   htmlToState,
-  fetchFrame,
+  validatePostBody,
 } from './utils.js'
 
 export function routes<
