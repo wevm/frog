@@ -6,6 +6,7 @@ test('valid', async () => {
     '0a4f080d10ff2f18c1a6802f20018201400a2168747470733a2f2f746573742d66617263362e76657263656c2e6170702f61706910011a1908ff2f1214000000000000000000000000000000000000000112141de03010b0ce4f39ba4b8ff29851d0d610dc5ddd180122404aab47af096150fe7193713722bcdd6ddcd6cd35c1e84cc42e7713624916a97568fa8232e2ffd70ce5eeafb0391c7bbcdf6c5ba15a9a02834102b016058e7d0128013220daa3f0a5335900f542a266e4b837309aeac52d736f4cf9b2eff0d4c4f4c7e58f'
   expect(
     await verifyFrame({
+      frameUrl: 'https://test-farc6.vercel.app/api',
       hubApiUrl: 'https://api.hub.wevm.dev',
       trustedData: { messageBytes },
       url: 'https://test-farc6.vercel.app/api',
@@ -263,6 +264,7 @@ test('invalid hash', async () => {
     '0a4d080d10ff2f18c1a6802f20018201400a2168747470733a2a2f746573742d66617263362e76657263656c2e6170702f61706910011a1908ff2f1214000000000000000000000000000000000000000112141de03010b0ce4f39ba4b8ff29851d0d610dc5ddd180122404aab47af096150fe7193713722bcdd6ddcd6cd35c1e84cc42e7713624916a97568fa8232e2ffd70ce5eeafb0391c7bbcdf6c5ba15a9a02834102b016058e7d0128013220daa3f0a5335900f542a266e4b837309aeac52d736f4cf9b2eff0d4c4f4c7e58f'
   await expect(() =>
     verifyFrame({
+      frameUrl: 'https://test-farc6.vercel.app/api',
       hubApiUrl: 'https://api.hub.wevm.dev',
       trustedData: { messageBytes },
       url: 'https://test-farc6.vercel.app/api',
@@ -275,6 +277,7 @@ test('invalid url', async () => {
     '0a4f080d10ff2f18c1a6802f20018201400a2168747470733a2f2f746573742d66617263362e76657263656c2e6170702f61706910011a1908ff2f1214000000000000000000000000000000000000000112141de03010b0ce4f39ba4b8ff29851d0d610dc5ddd180122404aab47af096150fe7193713722bcdd6ddcd6cd35c1e84cc42e7713624916a97568fa8232e2ffd70ce5eeafb0391c7bbcdf6c5ba15a9a02834102b016058e7d0128013220daa3f0a5335900f542a266e4b837309aeac52d736f4cf9b2eff0d4c4f4c7e58f'
   await expect(() =>
     verifyFrame({
+      frameUrl: 'https://test-farc6.vercel.app/api',
       hubApiUrl: 'https://api.hub.wevm.dev',
       trustedData: { messageBytes },
       url: 'https://test-farc6.vercel.app/foo',

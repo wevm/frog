@@ -1,9 +1,9 @@
-import { Message } from '@farcaster/core'
 import { hexToBytes } from '@noble/curves/abstract/utils'
 import type { TrustedData } from '../types.js'
 
 export type VerifyFrameParameters = {
   fetchOptions?: RequestInit
+  frameUrl: string
   hubApiUrl: string
   trustedData: TrustedData
   url: string
@@ -11,10 +11,11 @@ export type VerifyFrameParameters = {
 
 export async function verifyFrame({
   fetchOptions,
+  frameUrl,
   hubApiUrl,
   trustedData,
   url,
-}: VerifyFrameParameters): Promise<Message> {
+}: VerifyFrameParameters): Promise<void> {
   const body = hexToBytes(trustedData.messageBytes)
   const response = await fetch(`${hubApiUrl}/v1/validateMessage`, {
     ...fetchOptions,
@@ -28,12 +29,6 @@ export async function verifyFrame({
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`)
 
-  const message = Message.fromJSON(response.message)
-
-  const urlBytes = message?.data?.frameActionBody?.url
-  const frameUrl = urlBytes ? new TextDecoder().decode(urlBytes) : undefined
   if (!frameUrl?.startsWith(url))
     throw new Error(`Invalid frame url: ${frameUrl}`)
-
-  return message
 }
