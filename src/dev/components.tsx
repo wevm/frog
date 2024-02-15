@@ -1,17 +1,17 @@
 import { type Frame as FrameType } from './types.js'
-import { type State, type getInspectorData } from './utils.js'
+import { type State } from './utils.js'
 
 export type PreviewProps = {
   baseUrl: string
+  contextHtml: string
   frame: FrameType
-  inspectorData: Awaited<ReturnType<typeof getInspectorData>>
   routes: readonly string[]
   speed: number
   state: State
 }
 
 export function Preview(props: PreviewProps) {
-  const { baseUrl, frame, inspectorData, routes, speed, state } = props
+  const { baseUrl, contextHtml, frame, routes, speed, state } = props
   return (
     <div
       class="flex flex-col items-center p-4"
@@ -19,7 +19,7 @@ export function Preview(props: PreviewProps) {
         baseUrl: '${baseUrl}',
         data: {
           frame: ${JSON.stringify(frame)},
-          inspectorData: ${JSON.stringify(inspectorData)},
+          contextHtml: ${JSON.stringify(contextHtml)},
           routes: ${JSON.stringify(routes)},
           speed: ${speed},
           state: ${JSON.stringify(state)},
@@ -83,7 +83,7 @@ export function Preview(props: PreviewProps) {
         class="grid gap-2.5 w-full"
         style={{ maxWidth: '68rem' }}
         x-data="{
-          get inspectorData() { return data.inspectorData },
+          get contextHtml() { return data.contextHtml },
           get routes() { return data.routes },
           get state() { return data.state },
           get buttonCount() { return frame.buttons?.length ?? 0 },
@@ -112,9 +112,9 @@ export function Preview(props: PreviewProps) {
 
         <div class="border divide-x rounded-md container">
           <div class="p-4 scrollbars" style={{ height: '22.75rem' }}>
-            <Inspector />
+            <div class="grayscale" x-html="contextHtml" />
           </div>
-          <div class="p-4 scrollbars" style={{ height: '22.75rem' }}>
+          <div class="scrollbars" style={{ height: '22.75rem' }}>
             <Timeline />
           </div>
         </div>
@@ -494,41 +494,35 @@ function Button() {
 function Timeline() {
   return (
     <div
-      class="w-full flex"
+      class="w-full flex divide-y-reverse"
       style={{
         flexDirection: 'column-reverse',
         justifyContent: 'flex-end',
       }}
     >
       <template x-for="log in logs">
-        <div class="flex flex-col">
+        <div class="flex flex-col p-4 gap-1.5">
           <div
             class="flex flex-row"
             style={{ justifyContent: 'space-between' }}
           >
-            <div>
-              <span x-text="log.method" />
+            <div class="flex gap-1.5 font-mono text-fg2">
+              <div class="bg-bn px-1 rounded-sm" x-text="log.method" />
               <span x-text="`${formatSpeed(log.speed)}ms`" />
             </div>
-            <span x-text="new Date(log.time).toLocaleTimeString()" />
+            <span
+              class="font-mono text-fg2"
+              x-text="new Date(log.time).toLocaleTimeString()"
+            />
           </div>
-          <div>
+
+          <div class="flex gap-1.5 font-mono text-fg2">
             <span x-text="`${formatUrl(log.url)}`" />
-            <template v-if="log.body">
-              <div>
-                <span x-text="log.body.buttonIndex" />
-                <span x-text="log.body.inputText" />
-              </div>
-            </template>
           </div>
         </div>
       </template>
     </div>
   )
-}
-
-function Inspector() {
-  return <div x-html="inspectorData.contextHtml" />
 }
 
 export function Styles() {
@@ -562,6 +556,10 @@ export function Styles() {
       border-width: 0;
       border-style: solid;
       border-color: var(--br);
+    }
+
+    ::selection {
+      background-color: #2860CA;
     }
 
     html {
@@ -709,6 +707,10 @@ export function Styles() {
       border-top-width: 1px;
       border-bottom-width: 0px;
     }
+    .divide-y-reverse > * + * {
+      border-top-width: 0px;
+      border-bottom-width: 1px;
+    }
     .font-bold { font-weight: 700; }
     .font-mono { font-family: monospace; }
     .flex { display: flex; }
@@ -739,6 +741,7 @@ export function Styles() {
     .p-2 { padding: 0.5rem; }
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
+    .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
     .px-1\\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
     .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
@@ -779,7 +782,6 @@ export function Styles() {
     .scrollbars {
       overflow: auto;
       scrollbar-color: var(--br) transparent;
-      scrollbar-gutter: stable;
       scrollbar-width: thin;
     }
 
@@ -788,6 +790,10 @@ export function Styles() {
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
+    }
+
+    .grayscale {
+      filter: grayscale(100%);
     }
 
     [x-cloak] { display: none !important; }

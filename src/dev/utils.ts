@@ -264,51 +264,12 @@ export function getRoutes(
   return frameRoutes
 }
 
-export async function getInspectorData(frame: Frame, state: State) {
-  const {
-    debug: {
-      buttons: _b,
-      imageAspectRatio: _ia,
-      imageUrl: _iu,
-      input: _in,
-      postUrl: _pu,
-      version: _v,
-      htmlTags,
-      ...debug
-    } = {},
-    title: _t,
-    buttons,
-    ...rest
-  } = frame
-
+export async function getCodeHtml(code: string, lang: string) {
   const themes = {
     light: 'vitesse-light',
-    dark: 'vitesse-dark',
+    dark: 'vitesse-black',
   }
-  const [contextHtml, frameHtml, metaTagsHtml] = await Promise.all([
-    codeToHtml(JSON.stringify(state.context, null, 2), {
-      lang: 'json',
-      themes,
-    }),
-    codeToHtml(JSON.stringify({ ...rest, buttons }, null, 2), {
-      lang: 'json',
-      themes,
-    }),
-    codeToHtml((htmlTags ?? []).join('\n'), {
-      lang: 'html',
-      themes,
-    }),
-    codeToHtml(JSON.stringify(debug, null, 2), {
-      lang: 'json',
-      themes,
-    }),
-  ])
-
-  return {
-    contextHtml,
-    frameHtml,
-    metaTagsHtml,
-  }
+  return codeToHtml(code, { lang, themes })
 }
 
 export function validatePostBody(

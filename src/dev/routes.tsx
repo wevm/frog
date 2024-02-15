@@ -5,10 +5,10 @@ import { validator } from 'hono/validator'
 
 import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
-import { Preview, Scripts, Styles } from './components.js'
+import { Preview, Scripts, Styles, type PreviewProps } from './components.js'
 import {
   fetchFrame,
-  getInspectorData,
+  getCodeHtml,
   getRoutes,
   htmlToFrame,
   htmlToState,
@@ -49,10 +49,20 @@ export function routes<
 
       const frame = htmlToFrame(text)
       const state = htmlToState(text)
-      const inspectorData = await getInspectorData(frame, state)
+      const contextHtml = await getCodeHtml(
+        JSON.stringify(state.context, null, 2),
+        'json',
+      )
       const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
-      const props = { baseUrl, frame, inspectorData, routes, speed, state }
+      const props = {
+        baseUrl,
+        contextHtml,
+        frame,
+        routes,
+        speed,
+        state,
+      }
       return c.render(<Preview {...props} />)
     })
 
@@ -68,10 +78,20 @@ export function routes<
 
       const frame = htmlToFrame(text)
       const state = htmlToState(text)
-      const inspectorData = await getInspectorData(frame, state)
+      const contextHtml = await getCodeHtml(
+        JSON.stringify(state.context, null, 2),
+        'json',
+      )
       const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
-      return c.json({ baseUrl, frame, inspectorData, routes, speed, state })
+      return c.json({
+        baseUrl,
+        contextHtml,
+        frame,
+        routes,
+        speed,
+        state,
+      } satisfies PreviewProps)
     })
     .post(
       `${parsePath(path)}/dev/frame/action`,
@@ -97,10 +117,20 @@ export function routes<
         const text = await response.text()
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
-        const inspectorData = await getInspectorData(frame, state)
+        const contextHtml = await getCodeHtml(
+          JSON.stringify(state.context, null, 2),
+          'json',
+        )
         const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
-        return c.json({ baseUrl, frame, inspectorData, routes, speed, state })
+        return c.json({
+          baseUrl,
+          contextHtml,
+          frame,
+          routes,
+          speed,
+          state,
+        } satisfies PreviewProps)
       },
     )
     .post(
