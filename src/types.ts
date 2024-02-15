@@ -19,6 +19,7 @@ export type FrameContext<path extends string = string, state = unknown> = {
    * - `response` - The frame has been interacted with (user presses button).
    */
   status: 'initial' | 'redirect' | 'response'
+  verified: boolean
   url: Context['req']['url']
 }
 

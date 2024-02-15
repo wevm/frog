@@ -27,7 +27,13 @@ export type FarcConstructorParameters<
 > = {
   basePath?: basePath | string | undefined
   honoOptions?: HonoOptions<env> | undefined
+  hubApiUrl?: string | undefined
   initialState?: state | undefined
+  verify?: boolean | undefined
+}
+
+export type FrameOptions = {
+  verify?: boolean
 }
 
 export type FrameHandlerReturnType = {
@@ -47,17 +53,25 @@ export class FarcBase<
 
   basePath: string
   hono: Hono<env, schema, basePath>
+  hubApiUrl = 'https://api.hub.wevm.dev'
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
+  // TODO: default to `true` once devtools has auth.
+  verify: boolean = process.env.NODE_ENV !== 'development'
 
   constructor({
     basePath,
     honoOptions,
+    hubApiUrl,
     initialState,
+    verify,
   }: FarcConstructorParameters<state, env, basePath> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
+    if (hubApiUrl) this.hubApiUrl = hubApiUrl
+    if (typeof verify !== 'undefined') this.verify = verify
+
     this.basePath = basePath ?? '/'
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
@@ -71,13 +85,19 @@ export class FarcBase<
     handler: (
       context: FrameContext<path, state>,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
+    options: FrameOptions = {},
   ) {
+    const { verify = this.verify } = options
+
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), async (c) => {
       const url = new URL(c.req.url)
 
       const context = await getFrameContext<state>({
-        context: await requestToContext(c.req),
+        context: await requestToContext(c.req, {
+          hubApiUrl: this.hubApiUrl,
+          verify,
+        }),
         initialState: this.#initialState,
         request: c.req,
       })
