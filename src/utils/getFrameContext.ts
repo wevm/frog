@@ -13,6 +13,7 @@ type GetFrameContextParameters<state = unknown> = {
     | 'frameData'
     | 'status'
     | 'url'
+    | 'verified'
   >
   initialState?: state
   request: Context['req']
@@ -22,7 +23,7 @@ export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
   const { context, request } = options
-  const { frameData, initialUrl, previousIntentData } = context || {}
+  const { frameData, initialUrl, previousIntentData, verified } = context || {}
 
   const { buttonValue, inputText, redirect, reset } = getIntentState(
     frameData,
@@ -58,5 +59,6 @@ export async function getFrameContext<state>(
     request,
     status,
     url,
+    verified,
   }
 }
