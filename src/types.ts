@@ -40,7 +40,7 @@ export type FrameVersion = 'vNext'
 export type FrameIntent = JSX.Element | false | null | undefined
 export type FrameIntents = FrameIntent | FrameIntent[]
 
-export type FrameIntentData = string | null
+export type FrameIntentData = string
 
 export type TrustedData = {
   messageBytes: string
