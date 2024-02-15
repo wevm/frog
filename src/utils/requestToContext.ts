@@ -35,6 +35,7 @@ export async function requestToContext<state>(
     if (!trustedData) return
     return verifyFrame({
       hubApiUrl,
+      frameUrl: untrustedData.url,
       trustedData,
       url: request.url,
     }).catch((err) => {
@@ -42,13 +43,11 @@ export async function requestToContext<state>(
     })
   })()
 
-  const frameData = message?.data?.frameActionBody ?? untrustedData
-
   return {
     initialUrl: initialUrl ? initialUrl : parsePath(request.url),
     previousState,
     previousIntentData,
-    frameData,
+    frameData: untrustedData,
     status: request.method === 'POST' ? 'response' : 'initial',
     url: request.url,
     verified: Boolean(message),

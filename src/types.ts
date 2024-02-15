@@ -1,15 +1,39 @@
-// TODO: TSDoc
-
 import { type Context, type Env } from 'hono'
 
 export type FrameContext<path extends string = string, state = unknown> = {
+  /**
+   * Index of the button that was interacted with on the previous frame.
+   */
   buttonIndex?: FrameData['buttonIndex']
+  /**
+   * Value of the button that was interacted with on the previous frame.
+   */
   buttonValue?: string | undefined
-  deriveState: (fn?: (state: state) => void) => state
+  /**
+   * Function to derive the frame's state based off the state from the
+   * previous frame.
+   */
+  deriveState: (fn?: (previousState: state) => void) => state
+  /**
+   * Data from the frame that was passed via the POST body.
+   * The {@link FrameContext`verified`} flag indicates whether the data is trusted or not.
+   */
   frameData?: FrameData
+  /**
+   * Initial URL of the frame set.
+   */
   initialUrl: string
+  /**
+   * Input text from the previous frame.
+   */
   inputText?: string | undefined
+  /**
+   * Intent data from the previous frame.
+   */
   previousIntentData?: FrameIntentData[] | undefined
+  /**
+   * State from the previous frame.
+   */
   previousState: state
   request: Context<Env, path>['req']
   /**
@@ -19,7 +43,13 @@ export type FrameContext<path extends string = string, state = unknown> = {
    * - `response` - The frame has been interacted with (user presses button).
    */
   status: 'initial' | 'redirect' | 'response'
+  /**
+   * Whether or not the {@link FrameContext`verified`} was verified by the Farcaster Hub API.
+   */
   verified: boolean
+  /**
+   * URL of the frame.
+   */
   url: Context['req']['url']
 }
 
