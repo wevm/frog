@@ -21,17 +21,21 @@ export function getIntentState(
   if (!intentData) return state
 
   if (buttonIndex) {
-    const buttonIntents = intentData.filter((intent) =>
-      intent?.property?.match(/fc:frame:button:\d$/),
-    )
+    const buttonIntents = intentData.filter((intent) => {
+      const [type] = intent?.split(';') || []
+      return type === 'button'
+    })
     const intent = buttonIntents[buttonIndex - 1]
+    const properties = intent?.split(';') || []
 
-    const type = intent['data-type']
-    if (type === 'redirect') state.redirect = true
-    else if (type === 'reset') state.reset = true
+    for (const property of properties) {
+      const [key, ...rest] = property.split(':')
+      const value = rest.join(':')
 
-    const value = intent['data-value']
-    state.buttonValue = value
+      if (key === 'type' && value === 'redirect') state.redirect = true
+      else if (key === 'type' && value === 'reset') state.reset = true
+      else if (key === 'value') state.buttonValue = value
+    }
   }
 
   return state

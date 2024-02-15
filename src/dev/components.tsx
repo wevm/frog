@@ -1,5 +1,5 @@
 import { type Frame as FrameType } from './types.js'
-import { type getInspectorData, type State } from './utils.js'
+import { type State, type getInspectorData } from './utils.js'
 
 export type PreviewProps = {
   baseUrl: string
@@ -531,14 +531,6 @@ async function Inspector() {
           x-data="{
             title: 'Current Context',
             get content() { return inspectorData.contextHtml },
-          }"
-        >
-          <Panel />
-        </div>
-        <div
-          x-data="{
-            title: 'Previous Context',
-            get content() { return inspectorData.previousContextHtml },
           }"
         >
           <Panel />

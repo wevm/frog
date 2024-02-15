@@ -8,15 +8,15 @@ import {
   type FrameContext,
   type FrameImageAspectRatio,
   type FrameIntents,
-  type PreviousFrameContext,
 } from './types.js'
-import { deserializeJson } from './utils/deserializeJson.js'
+import { fromQuery } from './utils/fromQuery.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getIntentData } from './utils/getIntentData.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
+import { toSearchParams } from './utils/toSearchParams.js'
 
 globalThis.Buffer = Buffer
 
@@ -74,16 +74,11 @@ export class FarcBase<
   ) {
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), async (c) => {
-      const query = c.req.query()
       const url = new URL(c.req.url)
 
-      const previousContext = query.previousContext
-        ? deserializeJson<PreviousFrameContext<state>>(query.previousContext)
-        : undefined
-      const context = await getFrameContext({
+      const context = await getFrameContext<state>({
         context: await requestToContext(c.req),
         initialState: this.#initialState,
-        previousContext,
         request: c.req,
       })
 
@@ -98,23 +93,20 @@ export class FarcBase<
       const parsedIntents = intents ? parseIntents(intents) : null
       const intentData = getIntentData(parsedIntents)
 
-      const serializedContext = serializeJson({
+      // The OG route also needs context, so we will need to pass the current derived context,
+      // via a query parameter to the OG image route (/image).
+      const frameImageParams = toSearchParams({
         ...context,
+        // We can't serialize `request` (aka `c.req`), so we'll just set it to undefined.
         request: undefined,
       })
-      const serializedPreviousContext = serializeJson({
-        intentData,
+
+      // We need to pass some context to the next frame to derive button values, state, etc.
+      const nextFrameParams = toSearchParams({
+        initialUrl: context.initialUrl,
+        previousIntentData: intentData,
         previousState: context.deriveState(),
       })
-
-      const ogSearch = new URLSearchParams()
-      if (query.previousContext)
-        ogSearch.set('previousContext', query.previousContext)
-      if (serializedContext) ogSearch.set('context', serializedContext)
-
-      const postSearch = new URLSearchParams()
-      if (serializedPreviousContext)
-        postSearch.set('previousContext', serializedPreviousContext)
 
       return c.render(
         <html lang="en">
@@ -122,7 +114,9 @@ export class FarcBase<
             <meta property="fc:frame" content="vNext" />
             <meta
               property="fc:frame:image"
-              content={`${parsePath(context.url)}/image?${ogSearch.toString()}`}
+              content={`${parsePath(
+                context.url,
+              )}/image?${frameImageParams.toString()}`}
             />
             <meta
               property="fc:frame:image:aspect_ratio"
@@ -130,7 +124,9 @@ export class FarcBase<
             />
             <meta
               property="og:image"
-              content={`${parsePath(context.url)}/image?${ogSearch.toString()}`}
+              content={`${parsePath(
+                context.url,
+              )}/image?${frameImageParams.toString()}`}
             />
             <meta
               property="fc:frame:post_url"
@@ -140,17 +136,11 @@ export class FarcBase<
                     parsePath(this.basePath) +
                     parsePath(action || '')
                   : context.url
-              }?${postSearch}`}
+              }?${nextFrameParams}`}
             />
             {parsedIntents}
 
-            <meta property="farc:context" content={serializedContext} />
-            {query.previousContext && (
-              <meta
-                property="farc:prev_context"
-                content={query.previousContext}
-              />
-            )}
+            <meta property="farc:context" content={serializeJson(context)} />
           </head>
           <body
             style={{
@@ -172,13 +162,9 @@ export class FarcBase<
     // OG Image Route
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
       const query = c.req.query()
-      const previousContext = query.previousContext
-        ? deserializeJson<PreviousFrameContext<state>>(query.previousContext)
-        : undefined
       const context = await getFrameContext({
-        context: deserializeJson<FrameContext<path, state>>(query.context),
+        context: fromQuery<FrameContext<path, state>>(query),
         initialState: this.#initialState,
-        previousContext,
         request: c.req,
       })
       const { image } = await handler(context)

@@ -1,20 +1,20 @@
 import { Message } from '@farcaster/core'
-import { bytesToHex } from '@noble/curves/abstract/utils'
-import { codeToHtml } from 'shiki'
 import {
   FrameActionBody,
   NobleEd25519Signer,
   makeFrameAction,
 } from '@farcaster/core'
+import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
 import { inspectRoutes } from 'hono/dev'
+import { codeToHtml } from 'shiki'
 
+import type { Context } from 'hono'
 import {
   type FrameContext,
   type FrameImageAspectRatio,
   type FrameVersion,
-  type PreviousFrameContext,
 } from '../types.js'
 import { deserializeJson } from '../utils/deserializeJson.js'
 import {
@@ -23,7 +23,6 @@ import {
   type FrameButton,
   type FrameMetaTagPropertyName,
 } from './types.js'
-import type { Context } from 'hono'
 
 export function htmlToMetaTags(html: string, selector: string) {
   const window = new Window()
@@ -161,7 +160,6 @@ export function validateButtons(buttons: readonly FrameButton[]) {
 
 export type State = {
   context: FrameContext
-  previousContext?: PreviousFrameContext | undefined
 }
 
 export function htmlToState(html: string) {
@@ -180,9 +178,6 @@ export function htmlToState(html: string) {
 
   return {
     context: deserializeJson<FrameContext>(properties['farc:context']),
-    previousContext: deserializeJson<PreviousFrameContext>(
-      properties['farc:prev_context'],
-    ),
   }
 }
 
@@ -289,33 +284,27 @@ export async function getInspectorData(frame: Frame, state: State) {
     light: 'vitesse-light',
     dark: 'vitesse-dark',
   }
-  const [contextHtml, previousContextHtml, frameHtml, metaTagsHtml, debugHtml] =
-    await Promise.all([
-      codeToHtml(JSON.stringify(state.context, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-      codeToHtml(JSON.stringify(state.previousContext, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-      codeToHtml(JSON.stringify({ ...rest, buttons }, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-      codeToHtml((htmlTags ?? []).join('\n'), {
-        lang: 'html',
-        themes,
-      }),
-      codeToHtml(JSON.stringify(debug, null, 2), {
-        lang: 'json',
-        themes,
-      }),
-    ])
+  const [contextHtml, frameHtml, metaTagsHtml, debugHtml] = await Promise.all([
+    codeToHtml(JSON.stringify(state.context, null, 2), {
+      lang: 'json',
+      themes,
+    }),
+    codeToHtml(JSON.stringify({ ...rest, buttons }, null, 2), {
+      lang: 'json',
+      themes,
+    }),
+    codeToHtml((htmlTags ?? []).join('\n'), {
+      lang: 'html',
+      themes,
+    }),
+    codeToHtml(JSON.stringify(debug, null, 2), {
+      lang: 'json',
+      themes,
+    }),
+  ])
 
   return {
     contextHtml,
-    previousContextHtml,
     frameHtml,
     metaTagsHtml,
     debugHtml,

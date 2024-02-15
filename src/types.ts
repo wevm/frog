@@ -3,10 +3,13 @@
 import { type Context, type Env } from 'hono'
 
 export type FrameContext<path extends string = string, state = unknown> = {
+  buttonIndex?: FrameData['buttonIndex']
   buttonValue?: string | undefined
   deriveState: (fn?: (state: state) => void) => state
-  frameData: FrameData
+  frameData?: FrameData
+  initialUrl: string
   inputText?: string | undefined
+  previousIntentData?: FrameIntentData[] | undefined
   previousState: state
   request: Context<Env, path>['req']
   /**
@@ -17,12 +20,6 @@ export type FrameContext<path extends string = string, state = unknown> = {
    */
   status: 'initial' | 'redirect' | 'response'
   url: Context['req']['url']
-}
-
-export type PreviousFrameContext<state = unknown> = {
-  /** Intent data from the previous frame. */
-  intentData: readonly Record<string, string>[]
-  previousState: state
 }
 
 export type FrameData = {
@@ -43,7 +40,7 @@ export type FrameVersion = 'vNext'
 export type FrameIntent = JSX.Element | false | null | undefined
 export type FrameIntents = FrameIntent | FrameIntent[]
 
-export type FrameIntentData = Record<string, string>
+export type FrameIntentData = string | null
 
 export type TrustedData = {
   messageBytes: string
