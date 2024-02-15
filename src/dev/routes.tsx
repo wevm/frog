@@ -5,7 +5,7 @@ import { validator } from 'hono/validator'
 
 import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
-import { Preview, Scripts, Styles, type PreviewProps } from './components.js'
+import { Preview, type PreviewProps, Scripts, Styles } from './components.js'
 import {
   fetchFrame,
   getCodeHtml,
