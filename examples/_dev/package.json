@@ -2,7 +2,6 @@
   "name": "example-dev",
   "type": "module",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "vite"
   },
