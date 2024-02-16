@@ -58,5 +58,8 @@ jobs:
         with:
           node-version: 'latest'
 
+      - name: Build
+        run: bun run build
+
       - name: Run tests
         run: pnpm test
