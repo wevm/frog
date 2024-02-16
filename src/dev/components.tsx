@@ -27,6 +27,7 @@ export type PreviewProps = {
           speed: number
         }
         response: {
+          success: boolean
           status: number
           statusText: string
         }
@@ -43,6 +44,7 @@ export type PreviewProps = {
           speed: number
         }
         response: {
+          success: boolean
           status: number
           statusText: string
         }
@@ -54,10 +56,10 @@ export type PreviewProps = {
         method: 'post'
         body: object
         metrics: {
-          htmlSize: number
           speed: number
         }
         response: {
+          success: boolean
           status: number
           statusText: string
           location: string
@@ -161,7 +163,7 @@ export function Preview(props: PreviewProps) {
       >
         <Navigator />
 
-        <div class="container gap-4 mt-1.5" style={{ minHeight: '26rem' }}>
+        <div class="container gap-4 mt-1.5" style={{ minHeight: '25.6rem' }}>
           <Frame />
           <Data />
         </div>
@@ -288,7 +290,7 @@ function Navigator() {
 
         <div
           x-show="open"
-          class="border bg-background-100 rounded-lg w-full overflow-hidden"
+          class="border bg-background-100 rounded-lg w-full overflow-hidden py-1"
           style={{
             position: 'absolute',
             marginTop: '4px',
@@ -304,7 +306,7 @@ function Navigator() {
         >
           <template x-for="(route, index) in routes">
             <a
-              class="display-block font-sans text-sm whitespace-nowrap px-3 py-1.5 rounded-lg overflow-hidden text-ellipsis text-gray-900"
+              class="display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900"
               x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
               style={{ textDecoration: 'none' }}
               {...{
@@ -621,6 +623,11 @@ function Data() {
           </div>
         </template>
       </div>
+
+      {/* TODO: Add property errors */}
+      {/* <div> */}
+      {/*   <div x-text="JSON.stringify(frame.debug)" /> */}
+      {/* </div> */}
     </div>
   )
 }
@@ -635,27 +642,67 @@ function Timeline() {
       }}
     >
       <template x-for="log in logs">
-        <div class="flex flex-col p-4 gap-2">
-          <div
-            class="flex flex-row"
-            style={{ justifyContent: 'space-between' }}
+        <div x-data="{ expanded: false }">
+          <button
+            type="button"
+            class="bg-transparent flex flex-col p-4 gap-2 w-full"
+            x-on:click="expanded = !expanded"
           >
-            <div class="flex gap-1.5 font-mono text-gray-700 text-sm">
-              <div
-                class="flex items-center bg-gray-200 px-1.5 rounded-sm text-xs text-gray-900"
-                x-text="log.method"
-                style={{ textTransform: 'uppercase' }}
+            <div
+              class="flex flex-row"
+              style={{ justifyContent: 'space-between' }}
+            >
+              <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
+                <div
+                  class="flex items-center border px-1.5 rounded-sm text-gray-900"
+                  x-text="log.method"
+                  style={{ textTransform: 'uppercase' }}
+                />
+                <div
+                  class="flex items-center border px-1.5 rounded-sm"
+                  x-text="log.response.status"
+                  style={{ textTransform: 'uppercase' }}
+                  {...{
+                    ':class': `{
+                      'border-green-100': log.response.success,
+                      'text-green-900': log.response.success,
+                      'border-red-100': !log.response.success,
+                      'text-red-900': !log.response.success,
+                    }`,
+                  }}
+                />
+                <span x-text="formatSpeed(log.metrics.speed)" />
+              </div>
+              <span
+                class="font-mono text-gray-700 text-xs"
+                x-text="formatTime(log.timestamp)"
               />
-              <span x-text="formatSpeed(log.metrics.speed)" />
             </div>
-            <span
-              class="font-mono text-gray-700 text-sm"
-              x-text="formatTime(log.timestamp)"
-            />
-          </div>
 
-          <div class="flex gap-1.5 font-mono text-gray-1000 text-sm">
-            <span x-text="`${formatUrl(log.url)}`" />
+            <div class="flex gap-1.5 font-mono text-gray-1000 text-sm">
+              <span x-text="`${formatUrl(log.url)}`" />
+            </div>
+          </button>
+
+          {/* TODO: Error formatting, show "metrics" */}
+          <div class="flex flex-col px-4 pb-4 gap-4" x-show="expanded">
+            <template x-if="log.body">
+              <div class="flex flex-col gap-2">
+                <div class="text-xs font-medium text-gray-700">Body</div>
+                <div class="text-gray-700 scrollbars bg-gray-alpha-100 p-2 rounded-md">
+                  <pre x-text="JSON.stringify(log.body, null, 2)" />
+                </div>
+              </div>
+            </template>
+
+            <template x-if="log.response">
+              <div class="flex flex-col gap-2">
+                <div class="text-xs font-medium text-gray-700">Response</div>
+                <div class="text-gray-700 scrollbars bg-gray-alpha-100 p-2 rounded-md">
+                  <pre x-text="JSON.stringify(log.response, null, 2)" />
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </template>
@@ -1437,6 +1484,7 @@ export function Styles() {
     .justify-center { justify-content: center; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
+    .mx-4 { margin-left: 1rem; margin-right: 1rem; }
     .mt-1 { margin-top: 0.25rem; }
     .mt-1\\.5 { margin-top: 0.375rem; }
     .object-cover { object-fit: cover; }
@@ -1444,6 +1492,7 @@ export function Styles() {
     .p-2 { padding: 0.5rem; }
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
+    .pb-4 { padding-bottom: 1rem; }
     .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
     .px-1\\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
     .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }

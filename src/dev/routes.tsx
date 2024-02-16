@@ -79,6 +79,7 @@ export function routes<
             speed,
           },
           response: {
+            success: response.ok,
             status: response.status,
             statusText: response.statusText,
           },
@@ -125,6 +126,7 @@ export function routes<
             speed,
           },
           response: {
+            success: response.ok,
             status: response.status,
             statusText: response.statusText,
           },
@@ -170,7 +172,10 @@ export function routes<
           frame,
           log: {
             type: 'response',
-            body: json,
+            body: {
+              ...json,
+              castId: { ...json.castId, hash: json.castId.hash.toString() },
+            },
             method: 'post',
             metrics: {
               htmlSize,
@@ -178,6 +183,7 @@ export function routes<
               speed,
             },
             response: {
+              success: response.ok,
               status: response.status,
               statusText: response.statusText,
             },
@@ -208,13 +214,16 @@ export function routes<
 
         return c.json({
           type: 'redirect',
-          body: json,
+          body: {
+            ...json,
+            castId: { ...json.castId, hash: json.castId.hash.toString() },
+          },
           method: 'post',
           metrics: {
-            htmlSize: 10,
             speed,
           },
           response: {
+            success: response.redirected,
             status: response.redirected ? 302 : response.status,
             statusText: response.statusText,
             location: response.url,
