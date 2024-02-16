@@ -6,11 +6,11 @@ import { validator } from 'hono/validator'
 import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
 import {
+  Fonts,
   Preview,
   type PreviewProps,
   Scripts,
   Styles,
-  Fonts,
 } from './components.js'
 import {
   fetchFrame,
