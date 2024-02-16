@@ -3,12 +3,12 @@ import {
   chevronRightIcon,
   externalLinkIcon,
   farcasterIcon,
+  fileTextIcon,
   globeIcon,
   imageIcon,
   mintIcon,
   refreshIcon,
   stopwatchIcon,
-  fileTextIcon,
 } from './icons.js'
 import { type Frame as FrameType } from './types.js'
 import { type State } from './utils.js'
