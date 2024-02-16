@@ -1,5 +1,5 @@
 import { Button, Farc, TextInput } from 'farc'
-import { handle } from 'hono/vercel'
+import { handle } from 'farc/vercel'
 
 export const config = {
   runtime: 'edge',
@@ -57,8 +57,8 @@ app.frame('/', (context) => {
   }
 })
 
-export const GET = handle(app.hono)
-export const POST = handle(app.hono)
+export const GET = handle(app)
+export const POST = handle(app)
 
 if (process.env.NODE_ENV === 'development') {
   const server = Bun.serve(app)
