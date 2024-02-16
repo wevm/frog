@@ -36,6 +36,6 @@ test('invalid url', async () => {
       url: 'https://test-farc6.vercel.app/foo',
     }),
   ).rejects.toMatchInlineSnapshot(
-    `[Error: Invalid frame url: https://test-farc6.vercel.app/api. Expected: https://test-farc6.vercel.app/foo.]`,
+    '[Error: Invalid frame url: https://test-farc6.vercel.app/api. Expected: https://test-farc6.vercel.app/foo.]',
   )
 })

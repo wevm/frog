@@ -10,7 +10,8 @@
     "changeset:version": "changeset version && bun install --lockfile-only",
     "clean": "rimraf src/_lib src/tsconfig.build.tsbuildinfo",
     "format": "biome format . --write",
-    "lint": "biome check . --apply",
+    "lint": "biome check . --apply-unsafe",
+    "postinstall": "bun run build && bun run preconstruct",
     "preconstruct": "bun run .scripts/preconstruct.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit"

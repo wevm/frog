@@ -36,6 +36,12 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
+      
+      - name: Build
+        run: bun run build
+
+      - name: Preconstruct
+        run: bun run preconstruct
         
       - name: Check types
         run: bun run typecheck
