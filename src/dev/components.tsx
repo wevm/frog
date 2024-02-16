@@ -554,14 +554,14 @@ function Button() {
 
 function Data() {
   return (
-    <div class="flex flex-col gap-3 w-full">
-      <div class="flex flex-row gap-2" style={{ height: '2rem' }}>
-        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-sm w-fit">
+    <div class="flex flex-col gap-2 w-full">
+      <div class="flex flex-row gap-2" style={{ height: '1.75rem' }}>
+        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-xs w-fit">
           {stopwatchIcon}
           <div class="text-gray-1000" x-text="formatSpeed(log.metrics.speed)" />
         </div>
 
-        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-sm w-fit">
+        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-xs w-fit">
           {fileTextIcon}
           <div
             class="text-gray-1000"
@@ -569,7 +569,7 @@ function Data() {
           />
         </div>
 
-        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-sm w-fit">
+        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-xs w-fit">
           {imageIcon}
           <div
             class="text-gray-1000"
@@ -578,7 +578,7 @@ function Data() {
         </div>
       </div>
 
-      <div class="flex flex-col gap-1.5 w-full scrollbars font-mono text-gray-900 text-sm">
+      <div class="flex flex-col gap-1 w-full scrollbars font-mono text-gray-900 text-sm">
         <div>
           fc:frame <span class="text-gray-1000" x-text="frame.version" />
         </div>
