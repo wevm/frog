@@ -4,6 +4,6 @@
   "include": ["create-farc", "examples", "src"],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
+    "jsxImportSource": "hono/jsx"
   }
 }
