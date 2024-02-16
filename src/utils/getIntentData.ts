@@ -1,5 +1,5 @@
-import type { JSXNode } from 'hono/jsx'
-import type { FrameIntentData } from '../types.js'
+import { type JSXNode } from 'hono/jsx'
+import { type FrameIntentData } from '../types.js'
 
 export function getIntentData(
   intents: readonly JSXNode[] | null,

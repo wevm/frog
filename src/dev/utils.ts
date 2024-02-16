@@ -7,10 +7,10 @@ import {
 import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
+import { type Context } from 'hono'
 import { inspectRoutes } from 'hono/dev'
-import { codeToHtml } from 'shiki'
+import { createCssVariablesTheme, getHighlighter } from 'shiki'
 
-import type { Context } from 'hono'
 import {
   type FrameContext,
   type FrameImageAspectRatio,
@@ -147,7 +147,7 @@ export function validateButtons(buttons: readonly FrameButton[]) {
     const button = buttons[i]
     const previousButton = buttons[i - 1]
 
-    const isOutOfOrder = button.index < previousButton?.index ?? 0
+    const isOutOfOrder = button.index < (previousButton?.index ?? 0)
     const isButtonMissing = button.index !== i + 1
     if (isOutOfOrder || isButtonMissing) buttonsAreOutOfOrder = true
 
@@ -264,12 +264,29 @@ export function getRoutes(
   return frameRoutes
 }
 
-export async function getCodeHtml(code: string, lang: string) {
-  const themes = {
-    light: 'vitesse-light',
-    dark: 'vitesse-black',
-  }
-  return codeToHtml(code, { lang, themes })
+export async function getCodeHtml(code: string, lang: 'json') {
+  const theme = createCssVariablesTheme({
+    name: 'css-variables',
+    variablePrefix: '--shiki-',
+    variableDefaults: {},
+    fontStyle: true,
+  })
+
+  const highlighter = await getHighlighter({
+    langs: ['json'],
+    themes: [theme],
+  })
+
+  return highlighter.codeToHtml(code, {
+    lang,
+    theme: 'css-variables',
+  })
+}
+
+export async function getImageSize(url: string) {
+  const response = await fetch(url)
+  const blob = await response.blob()
+  return blob.size
 }
 
 export function validatePostBody(

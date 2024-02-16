@@ -10,6 +10,7 @@ export const app = new Farc<State>({
     index: -1,
     todos: [],
   },
+  verify: false,
 })
 
 app.frame('/', ({ buttonValue, deriveState, inputText }) => {

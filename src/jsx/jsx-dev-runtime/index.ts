@@ -1,5 +1,5 @@
 import { type JSXNode, jsx } from 'hono/jsx'
-import type { HtmlEscapedString } from 'hono/utils/html'
+import { type HtmlEscapedString } from 'hono/utils/html'
 export { Fragment } from 'hono/jsx'
 
 export function jsxDEV(

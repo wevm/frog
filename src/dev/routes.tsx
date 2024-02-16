@@ -5,10 +5,17 @@ import { validator } from 'hono/validator'
 
 import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
-import { Preview, type PreviewProps, Scripts, Styles } from './components.js'
+import {
+  Preview,
+  type PreviewProps,
+  Scripts,
+  Styles,
+  Fonts,
+} from './components.js'
 import {
   fetchFrame,
   getCodeHtml,
+  getImageSize,
   getRoutes,
   htmlToFrame,
   htmlToState,
@@ -29,7 +36,8 @@ export function routes<
         return (
           <html lang="en">
             <head>
-              <title>{path || '/'}</title>
+              <title>frame: {path || '/'}</title>
+              <Fonts />
               <Styles />
               <Scripts />
             </head>
@@ -45,6 +53,8 @@ export function routes<
       const t1 = performance.now()
 
       const speed = t1 - t0
+      const response2 = response.clone()
+      const htmlSize = await response2.blob().then((b) => b.size)
       const text = await response.text()
 
       const frame = htmlToFrame(text)
@@ -54,15 +64,30 @@ export function routes<
         'json',
       )
       const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
+      const imageSize = await getImageSize(frame.imageUrl)
 
       const props = {
         baseUrl,
         contextHtml,
         frame,
+        log: {
+          type: 'initial',
+          method: 'get',
+          metrics: {
+            htmlSize,
+            imageSize,
+            speed,
+          },
+          response: {
+            status: response.status,
+            statusText: response.statusText,
+          },
+          timestamp: Date.now(),
+          url: baseUrl,
+        },
         routes,
-        speed,
         state,
-      }
+      } as const
       return c.render(<Preview {...props} />)
     })
 
@@ -74,6 +99,8 @@ export function routes<
       const t1 = performance.now()
 
       const speed = t1 - t0
+      const response2 = response.clone()
+      const htmlSize = await response2.blob().then((b) => b.size)
       const text = await response.text()
 
       const frame = htmlToFrame(text)
@@ -83,13 +110,28 @@ export function routes<
         'json',
       )
       const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
+      const imageSize = await getImageSize(frame.imageUrl)
 
       return c.json({
         baseUrl,
         contextHtml,
         frame,
+        log: {
+          type: 'initial',
+          method: 'get',
+          metrics: {
+            htmlSize,
+            imageSize,
+            speed,
+          },
+          response: {
+            status: response.status,
+            statusText: response.statusText,
+          },
+          timestamp: Date.now(),
+          url: baseUrl,
+        },
         routes,
-        speed,
         state,
       } satisfies PreviewProps)
     })
@@ -110,10 +152,8 @@ export function routes<
           postUrl,
         })
 
-        // TODO: Display error message in interface
-        if (response.status !== 200)
-          return c.json({ success: false, message: response.statusText })
-
+        const response2 = response.clone()
+        const htmlSize = await response2.blob().then((b) => b.size)
         const text = await response.text()
         const frame = htmlToFrame(text)
         const state = htmlToState(text)
@@ -122,13 +162,29 @@ export function routes<
           'json',
         )
         const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
+        const imageSize = await getImageSize(frame.imageUrl)
 
         return c.json({
           baseUrl,
           contextHtml,
           frame,
+          log: {
+            type: 'response',
+            body: json,
+            method: 'post',
+            metrics: {
+              htmlSize,
+              imageSize,
+              speed,
+            },
+            response: {
+              status: response.status,
+              statusText: response.statusText,
+            },
+            timestamp: Date.now(),
+            url: postUrl,
+          },
           routes,
-          speed,
           state,
         } satisfies PreviewProps)
       },
@@ -150,8 +206,22 @@ export function routes<
           postUrl,
         })
 
-        if (!response.redirected) return c.json({ success: false })
-        return c.json({ success: true, redirectUrl: response.url, speed })
+        return c.json({
+          type: 'redirect',
+          body: json,
+          method: 'post',
+          metrics: {
+            htmlSize: 10,
+            speed,
+          },
+          response: {
+            status: response.redirected ? 302 : response.status,
+            statusText: response.statusText,
+            location: response.url,
+          },
+          timestamp: Date.now(),
+          url: postUrl,
+        } satisfies PreviewProps['log'])
       },
     )
 }

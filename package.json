@@ -1,7 +1,7 @@
 {
   "workspaces": ["create-farc", "examples/*", "src"],
   "scripts": {
-    "dev": "bun run --hot ./examples/_dev/src/index.tsx",
+    "dev": "bun run --cwd ./examples/_dev dev",
     "build": "bun run clean && bun run build:farc && bun run build:create-farc && bun .scripts/postbuild.ts",
     "build:farc": "tsc --project ./tsconfig.build.json",
     "build:create-farc": "rimraf create-farc/_lib && tsc -p create-farc/tsconfig.build.json",
