@@ -1,6 +1,7 @@
 {
   "name": "example",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.tsx"
   },

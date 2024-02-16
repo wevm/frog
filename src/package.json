@@ -31,6 +31,10 @@
     "./jsx/jsx-dev-runtime": {
       "types": "./_lib/jsx/jsx-dev-runtime/index.d.ts",
       "default": "./_lib/jsx/jsx-dev-runtime/index.js"
+    },
+    "./vercel": {
+      "types": "./_lib/vercel/index.d.ts",
+      "default": "./_lib/vercel/index.js"
     }
   },
   "peerDependencies": {

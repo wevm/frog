@@ -137,7 +137,7 @@ export class FarcBase<
   schema extends Schema = {},
   basePath extends string = '/',
 > {
-  #initialState: state = undefined as state
+  _initialState: state = undefined as state
 
   /** Base path of the server instance. */
   basePath: string
@@ -169,7 +169,7 @@ export class FarcBase<
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
 
-    if (initialState) this.#initialState = initialState
+    if (initialState) this._initialState = initialState
   }
 
   frame<path extends string>(
@@ -190,7 +190,7 @@ export class FarcBase<
           hubApiUrl: this.hubApiUrl,
           verify,
         }),
-        initialState: this.#initialState,
+        initialState: this._initialState,
         request: c.req,
       })
 
@@ -276,7 +276,7 @@ export class FarcBase<
       const query = c.req.query()
       const context = await getFrameContext({
         context: fromQuery<FrameContext<path, state>>(query),
-        initialState: this.#initialState,
+        initialState: this._initialState,
         request: c.req,
       })
       const { image } = await handler(context)
