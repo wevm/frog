@@ -1,6 +1,7 @@
 {
   // This configuration is used for local development and type checking.
   "extends": "./tsconfig.base.json",
+  "exclude": ["examples/next"],
   "include": ["create-farc", "examples", "src"],
   "compilerOptions": {
     "jsx": "react-jsx",
