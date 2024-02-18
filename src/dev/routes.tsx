@@ -224,7 +224,7 @@ export function routes<
           },
           response: {
             success: response.redirected,
-            status: response.redirected ? 302 : response.status,
+            status: response.ok ? 302 : response.status,
             statusText: response.statusText,
             location: response.url,
           },

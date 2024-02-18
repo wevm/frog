@@ -136,7 +136,7 @@ export function Preview(props: PreviewProps) {
             },
           })
           const json = await response.json()
-          this.logs = [...this.logs, json]
+          this.logs = [...this.logs, { ...this.logs.at(-1), request: json }]
           this.selectedLogIndex = -1
           return json
         },
@@ -161,42 +161,26 @@ export function Preview(props: PreviewProps) {
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         }
       }`}
-      class="flex w-full h-full"
+      class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-6 md:gap-4 pb-6 md:pb-0"
       style={{
-        paddingLeft: '1.5rem',
-        gap: '1.5rem',
         maxWidth: '1512px',
         marginLeft: 'auto',
         marginRight: 'auto',
       }}
     >
-      <div
-        class="bg-background-200 border rounded-md overflow-hidden h-full"
-        style={{
-          marginTop: '1.5rem',
-          maxHeight: '554px',
-          minWidth: '350px',
-        }}
-      >
+      <div class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:min-w-sidebar lg:min-w-sidebar">
         <div class="bg-background-100 scrollbars h-full">
           <Timeline />
         </div>
       </div>
 
-      <div
-        class="flex flex-col scrollbars h-full w-full gap-4"
-        style={{
-          paddingTop: '1.5rem',
-          paddingBottom: '1.5rem',
-          paddingRight: '1.5rem',
-        }}
-      >
+      <div class="flex flex-col md:scrollbars md:h-full w-full gap-4 pt-6 md:pb-6 pr-0 md:pr-6 order-0 md:order-1">
         <Navigator />
 
-        <div class="flex flex-row gap-4">
+        <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex flex-col gap-4">
             <Metrics />
-            <div style={{ minWidth: '532.5px', minHeight: '411px' }}>
+            <div class="lg:min-w-frame" style={{ minHeight: '411px' }}>
               <Frame />
             </div>
           </div>
@@ -715,6 +699,7 @@ function Timeline() {
             ':tabIndex': 'logs.length - index',
           }}
           x-on:click={`
+            if (log.request.type === 'redirect') return
             data = log
             selectedLogIndex = index
           `}
@@ -1539,10 +1524,13 @@ export function Styles() {
     .mt-1\\.5 { margin-top: 0.375rem; }
     .object-cover { object-fit: cover; }
     .overflow-hidden { overflow: hidden; }
+    .order-0 { order: 0; }
+    .order-1 { order: 1; }
     .p-2 { padding: 0.5rem; }
     .p-3 { padding: 0.75rem; }
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
+    .pb-6 { padding-bottom: 1.5rem; }
     .pb-4 { padding-bottom: 1rem; }
     .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
     .px-1\\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
@@ -1554,6 +1542,11 @@ export function Styles() {
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .py-2\\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
     .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .pr-6 { padding-right: 1.5rem; }
+    .pl-6 { padding-left: 1.5rem; }
+    .pb-6 { padding-bottom: 1.5rem; }
+    .pt-6 { padding-top: 1.5rem; }
+    .p-6 { padding: 1.5rem; }
     .relative { position: relative; }
     .rounded-bl-md { border-bottom-left-radius: 0.375rem; }
     .rounded-br-md { border-bottom-right-radius: 0.375rem; }
@@ -1590,16 +1583,6 @@ export function Styles() {
 
     [x-cloak] { display: none !important; }
 
-    .container {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr)); 
-    }
-    @media screen and (max-width: 768px) {
-      .container {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-      }
-    }
-
     .sr-only {
       border-width: 0;
       clip: rect(0, 0, 0, 0);
@@ -1623,6 +1606,63 @@ export function Styles() {
 
     .hover\\:bg-gray-200 {
       &:hover { background-color: var(--gray-200) !important; }
+    }
+
+    .h-sidebar { height: 316px }
+
+    @media screen and (min-width: 768px) {
+      .md\\:flex-row {
+        flex-direction: row;
+      }
+      .md\\:pb-0 {
+        padding-bottom: 0;
+      }
+      .md\\:pr-0 {
+        padding-right: 0;
+      }
+      .md\\:pr-6 {
+        padding-bottom: 1.5rem;
+      }
+      .md\\:pr-6 {
+        padding-right: 1.5rem;
+      }
+      .md\\:scrollbars {
+        overflow: auto;
+        scrollbar-color: var(--gray-alpha-400) transparent;
+        scrollbar-width: thin;
+      }
+      .md\\:order-0 {
+        order: 0;
+      }
+      .md\\:order-1 {
+        order: 1;
+      }
+      .md\\:h-full {
+        height: 100%;
+      }
+      .md\\:gap-4 {
+        gap: 1rem;
+      }
+      .md\\:mt-6 {
+        margin-top: 1.5rem;
+      }
+      .md\\:h-sidebar {
+        height: 554px;
+      }
+      .md\\:min-w-sidebar {
+        min-width: 300px;
+      }
+    }
+    @media screen and (min-width: 1024px) {
+      .lg\\:flex-row {
+        flex-direction: row;
+      }
+      .lg\\:min-w-frame {
+        min-width: 532.5px;
+      }
+      .lg\\:min-w-sidebar {
+        min-width: 350px;
+      }
     }
   `
   // biome-ignore lint/security/noDangerouslySetInnerHtml:
