@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import devServer from '@hono/vite-dev-server'
+// TODO: replace w/ @hono/vite-dev-server once https://github.com/honojs/vite-plugins/pull/86 merged.
+import devServer from '@wevm/hono-vite-dev-server'
 import pc from 'picocolors'
 import { createLogger, createServer } from 'vite'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
@@ -27,6 +28,9 @@ export async function dev(
     plugins: [
       devServer({
         entry: entry_resolved,
+        // Note: we are not relying on the default export so we can be compatible with 
+        // runtimes that rely on it (ie. Vercel Serverless Functions).
+        export: 'app'
       }),
     ],
   })

@@ -1,6 +1,6 @@
 import { Button, Farc, TextInput } from 'farc'
 
-const app = new Farc()
+export const app = new Farc()
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context
@@ -51,5 +51,3 @@ app.frame('/', (context) => {
     ],
   }
 })
-
-export default app

@@ -2,7 +2,7 @@ import { Button, Farc, TextInput } from 'farc'
 
 import { app as todoApp } from './todos.js'
 
-const app = new Farc({
+export const app = new Farc({
   // basePath: '/api',
   verify: false,
 })
@@ -144,5 +144,3 @@ app.frame('/falsy-intents', () => {
 })
 
 app.route('/todos', todoApp)
-
-export default app

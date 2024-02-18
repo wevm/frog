@@ -1,7 +1,7 @@
 import { Button, Farc, TextInput } from 'farc'
 import { handle } from 'farc/vercel'
 
-const app = new Farc({ basePath: '/api' })
+export const app = new Farc({ basePath: '/api' })
 
 export const config = {
   // runtime: 'edge', // Uncomment to use Edge Runtime
@@ -59,5 +59,3 @@ app.frame('/', (context) => {
 
 export const GET = handle(app)
 export const POST = handle(app)
-
-export default app

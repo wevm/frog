@@ -67,7 +67,7 @@ export async function create(params: CreateParameters) {
   log.step(
     `3. ${pc.blue(pkgManagerRunCommand(pkgManager, 'dev'))} - Start dev server`,
   )
-  log.step(`4. Head to ${pc.blue('http://localhost:3000')}`)
+  log.step(`4. Head to ${pc.blue('http://localhost:5173/dev')}`)
 
   outro('Done! 🤠')
 }
