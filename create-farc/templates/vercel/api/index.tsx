@@ -60,8 +60,4 @@ app.frame('/', (context) => {
 export const GET = handle(app)
 export const POST = handle(app)
 
-if (process.env.NODE_ENV === 'development') {
-  const { serve } = await import('bun')
-  const server = serve(app)
-  console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)
-}
+export default app
