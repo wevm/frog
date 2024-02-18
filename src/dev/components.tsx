@@ -6,9 +6,9 @@ import {
   fileTextIcon,
   globeIcon,
   imageIcon,
-  warpIcon,
   refreshIcon,
   stopwatchIcon,
+  warpIcon,
 } from './icons.js'
 import { type Frame as FrameType } from './types.js'
 import { type State } from './utils.js'
