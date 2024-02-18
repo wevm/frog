@@ -41,44 +41,44 @@ export type FarcConstructorParameters<
    * browser by clicking on the link beneath the frame on Warpcast.
    * We may want to redirect them to a different page (ie. a mint page, etc)
    * when they arrive via their browser.
-   * 
+   *
    * @example (Absolute Path)
    * Parameters:
    *   basePath: '/api'
    *   browserLocation: '/'
-   * 
+   *
    * https://example.com/api -> https://example.com/
    * https://example.com/api/foo -> https://example.com/
-   * 
+   *
    * @example (Absolute Path)
    * Parameters:
    *   basePath: '/api'
    *   browserLocation: '/mint'
-   * 
+   *
    * https://example.com/api -> https://example.com/mint
    * https://example.com/api/foo -> https://example.com/mint
-   * 
+   *
    * @example (Absolute Path with `:path` template)
    * Parameters
    *   basePath: '/api'
    *   browserLocation: '/:path'
-   * 
+   *
    * https://example.com/api -> https://example.com/
    * https://example.com/api/foo -> https://example.com/foo
    * https://example.com/api/foo/bar -> https://example.com/foo/bar
-   * 
+   *
    * @example (Relative Path)
    * Parameters:
    *   basePath: '/api'
    *   browserLocation: './dev'
-   * 
+   *
    * https://example.com/api -> https://example.com/api/dev
    * https://example.com/api/foo -> https://example.com/api/foo/dev
-   * 
+   *
    * @example (URL)
    * Parameters:
    *   browserLocation: 'https://google.com/:path'
-   * 
+   *
    * https://example.com/api -> https://google.com/api
    * https://example.com/api/foo -> https://google.com/api/foo
    */
@@ -275,7 +275,7 @@ export class FarcBase<
       const browserLocation_ = browserLocation
         ?.replace(':path', path.replace(/(^\/)|(\/$)/, ''))
         .replace('//', '/')
-      if (browser.name && browserLocation_) 
+      if (browser.name && browserLocation_)
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
