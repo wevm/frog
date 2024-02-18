@@ -70,7 +70,7 @@ export function routes<
         baseUrl,
         contextHtml,
         frame,
-        log: {
+        request: {
           type: 'initial',
           method: 'get',
           metrics: {
@@ -117,7 +117,7 @@ export function routes<
         baseUrl,
         contextHtml,
         frame,
-        log: {
+        request: {
           type: 'initial',
           method: 'get',
           metrics: {
@@ -170,7 +170,7 @@ export function routes<
           baseUrl,
           contextHtml,
           frame,
-          log: {
+          request: {
             type: 'response',
             body: {
               ...json,
@@ -230,7 +230,7 @@ export function routes<
           },
           timestamp: Date.now(),
           url: postUrl,
-        } satisfies PreviewProps['log'])
+        } satisfies PreviewProps['request'])
       },
     )
 }

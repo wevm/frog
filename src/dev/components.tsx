@@ -1,6 +1,8 @@
 import {
+  checkCircledIcon,
   chevronLeftIcon,
   chevronRightIcon,
+  crossCircledIcon,
   externalLinkIcon,
   farcasterIcon,
   fileTextIcon,
@@ -17,7 +19,7 @@ export type PreviewProps = {
   baseUrl: string
   contextHtml: string
   frame: FrameType
-  log:
+  request:
     | {
         type: 'initial'
         method: 'get'
@@ -72,7 +74,7 @@ export type PreviewProps = {
 }
 
 export function Preview(props: PreviewProps) {
-  const { baseUrl, contextHtml, frame, log, routes, state } = props
+  const { baseUrl, contextHtml, frame, request, routes, state } = props
   return (
     <div
       x-data={`{
@@ -80,17 +82,19 @@ export function Preview(props: PreviewProps) {
           baseUrl: '${baseUrl}',
           contextHtml: ${JSON.stringify(contextHtml)},
           frame: ${JSON.stringify(frame)},
-          log: ${JSON.stringify(log)},
+          request: ${JSON.stringify(request)},
           routes: ${JSON.stringify(routes)},
           state: ${JSON.stringify(state)},
         },
         history: [],
         id: -1,
         inputText: '',
-        logs: [${JSON.stringify(log)}],
+        logs: [${JSON.stringify(props)}],
+        selectedLogIndex: -1,
+
         get baseUrl() { return this.data.baseUrl },
         get frame() { return this.data.frame },
-        get log() { return this.data.log },
+        get request() { return this.data.request },
 
         get contextHtml() { return this.data.contextHtml },
         get routes() { return this.data.routes },
@@ -106,7 +110,8 @@ export function Preview(props: PreviewProps) {
             },
           })
           const json = await response.json()
-          this.logs = [...this.logs, json.log]
+          this.logs = [...this.logs, json]
+          this.selectedLogIndex = -1
           return json
         },
         async postFrameAction(body) {
@@ -118,7 +123,8 @@ export function Preview(props: PreviewProps) {
             },
           })
           const json = await response.json()
-          this.logs = [...this.logs, json.log]
+          this.logs = [...this.logs, json]
+          this.selectedLogIndex = -1
           return json
         },
         async postFrameRedirect(body) {
@@ -131,6 +137,7 @@ export function Preview(props: PreviewProps) {
           })
           const json = await response.json()
           this.logs = [...this.logs, json]
+          this.selectedLogIndex = -1
           return json
         },
 
@@ -298,7 +305,7 @@ function Navigator() {
         class="bg-background-100 border rounded-md text-gray-700 px-2 rounded-r-md h-full"
         type="button"
         x-on:click={`
-          const body = history[id]?.body
+          const body = selectedLogIndex ? logs[selectedLogIndex]?.request.body : history[id]?.body
           if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
           else getFrame().then((json) => data = json).catch(console.error)
         `}
@@ -602,23 +609,24 @@ function Button() {
 function Data() {
   return (
     <div
-      class="bg-background-100 border rounded-md overflow-hidden"
+      class="bg-background-100 border rounded-md overflow-hidden divide-y"
       style={{ height: 'min-content' }}
       x-data="{
         get rows() {
           return [
-            { property: 'fc:frame', value: frame.version },
-            { property: 'fc:frame:image', value: frame.imageUrl },
-            { property: 'fc:frame:aspect_ratio', value: frame.imageAspectRatio },
-            { property: 'fc:frame:post_url', value: frame.postUrl },
-            { property: 'og:image', value: frame.image || 'Not Provided' },
-            { property: 'og:title', value: frame.title || 'Not Provided' },
-            ...(frame.input?.text ? [{ property: 'fc:frame:input:text', value: frame.input.text }] : []),
+            { property: 'fc:frame', value: frame.version, status: 'valid' },
+            { property: 'fc:frame:image', value: frame.imageUrl, status: 'valid' },
+            { property: 'fc:frame:aspect_ratio', value: frame.imageAspectRatio, status: 'valid' },
+            { property: 'fc:frame:post_url', value: frame.postUrl, status: frame.debug.postUrlTooLong ? 'error' : 'valid' },
+            { property: 'og:image', value: frame.image || 'Not Provided', status: frame.image ? 'valid' : 'error' },
+            { property: 'og:title', value: frame.title || 'Not Provided', status: frame.title ? 'valid' : 'error' },
+            ...(frame.input?.text ? [{ property: 'fc:frame:input:text', value: frame.input.text, status: frame.debug.inputTextTooLong ? 'error' : 'valid' }] : []),
             ...(frame.buttons.map(button => ({
               property: `fc:frame:button:${button.index}`,
               value: `
                 <span>${button.title}</span>${button.type ? `, <span>${button.type}</span>` : ''}${button.target ? `, <span>${button.target}</span>` : ''}
-              `
+              `,
+              status: 'valid',
             }))),
           ]
         },
@@ -626,21 +634,29 @@ function Data() {
     >
       <template x-for="(row, index) in rows">
         <div
-          class="flex flex-row"
-          {...{
-            ':style':
-              'index !== rows.length - 1 && { borderBottomWidth: `1px` }',
-          }}
+          class="items-center flex flex-row"
+          style={{ fontSize: '0.8125rem' }}
         >
           <div
-            class="text-sm text-gray-700 p-3 font-medium"
+            class="text-gray-700 p-3 font-medium"
             x-text="row.property"
-            style={{ minWidth: '12rem' }}
+            style={{ minWidth: '10rem' }}
           />
           <div
-            class="text-sm text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap"
+            class="text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap"
             x-html="row.value"
           />
+          <div
+            class="flex p-3"
+            style={{ justifyContent: 'flex-end', flex: '1' }}
+          >
+            <template x-if="row.status === 'valid'">
+              <span class="text-green-600">{checkCircledIcon}</span>
+            </template>
+            <template x-if="row.status === 'error'">
+              <span class="text-red-600">{crossCircledIcon}</span>
+            </template>
+          </div>
         </div>
       </template>
 
@@ -655,38 +671,25 @@ function Data() {
 function Metrics() {
   return (
     <div
-      class="bg-background-100 border rounded-md flex flex-row gap-2 divide-x"
+      class="bg-background-100 border rounded-md flex flex-row divide-x"
       style={{ justifyContent: 'space-around' }}
+      x-data={`{
+        metrics: [
+          { icon: '${stopwatchIcon}', name: 'speed', value: formatSpeed(request.metrics.speed) },
+          { icon: '${fileTextIcon}', name: 'frame size', value: formatFileSize(request.metrics.htmlSize) },
+          { icon: '${imageIcon}', name: 'image size', value: formatFileSize(request.metrics.imageSize) },
+        ]
+      }`}
     >
-      <div
-        class="items-center flex font-mono gap-1.5 text-sm justify-center"
-        style={{ flex: '1', padding: '0.685rem' }}
-      >
-        <span class="text-gray-700">{stopwatchIcon}</span>
-        <div class="text-gray-1000" x-text="formatSpeed(log.metrics.speed)" />
-      </div>
-
-      <div
-        class="items-center flex font-mono gap-1.5 text-sm justify-center"
-        style={{ flex: '1', padding: '0.65rem' }}
-      >
-        <span class="text-gray-700">{fileTextIcon}</span>
+      <template x-for="metric in metrics">
         <div
-          class="text-gray-1000"
-          x-text="formatFileSize(log.metrics.htmlSize)"
-        />
-      </div>
-
-      <div
-        class="items-center flex font-mono gap-1.5 text-sm justify-center"
-        style={{ flex: '1', padding: '0.65rem' }}
-      >
-        <span class="text-gray-700">{imageIcon}</span>
-        <div
-          class="text-gray-1000"
-          x-text="formatFileSize(log.metrics.imageSize)"
-        />
-      </div>
+          class="items-center flex font-mono gap-1.5 text-sm justify-center"
+          style={{ flex: '1', padding: '0.685rem' }}
+        >
+          <span class="text-gray-700" x-html="metric.icon" />
+          <div class="text-gray-1000" x-text="metric.value" />
+        </div>
+      </template>
     </div>
   )
 }
@@ -703,11 +706,18 @@ function Timeline() {
       <template x-for="(log, index) in logs">
         <button
           type="button"
-          class="bg-transparent flex flex-col p-4 gap-2 w-full"
+          class=" flex flex-col p-4 gap-2 w-full border-gray-200 hover:bg-gray-200"
           {...{
+            ':class':
+              'index === selectedLogIndex ? "bg-gray-200" : "bg-transparent"',
             ':style':
               '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
+            ':tabIndex': 'logs.length - index',
           }}
+          x-on:click={`
+            data = log
+            selectedLogIndex = index
+          `}
         >
           <div
             class="flex flex-row"
@@ -716,32 +726,32 @@ function Timeline() {
             <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
               <div
                 class="flex items-center border px-1.5 rounded-sm text-gray-900"
-                x-text="log.method"
+                x-text="log.request.method"
                 style={{ textTransform: 'uppercase' }}
               />
               <div
                 class="flex items-center border px-1.5 rounded-sm"
-                x-text="log.response.status"
+                x-text="log.request.response.status"
                 style={{ textTransform: 'uppercase' }}
                 {...{
                   ':class': `{
-                    'border-green-100': log.response.success,
-                    'text-green-900': log.response.success,
-                    'border-red-100': !log.response.success,
-                    'text-red-900': !log.response.success,
+                    'border-green-100': log.request.response.success,
+                    'text-green-900': log.request.response.success,
+                    'border-red-100': !log.request.response.success,
+                    'text-red-900': !log.request.response.success,
                   }`,
                 }}
               />
-              <span x-text="formatSpeed(log.metrics.speed)" />
+              <span x-text="formatSpeed(log.request.metrics.speed)" />
             </div>
             <span
               class="font-mono text-gray-700 text-xs"
-              x-text="formatTime(log.timestamp)"
+              x-text="formatTime(log.request.timestamp)"
             />
           </div>
 
           <div class="flex gap-1.5 font-mono text-gray-1000 text-xs">
-            <span x-text="`${formatUrl(log.url)}`" />
+            <span x-text="`${formatUrl(log.request.url)}`" />
           </div>
         </button>
       </template>
@@ -1497,14 +1507,6 @@ export function Styles() {
     .border-t-0 { border-top-width: 0; }
     .cursor-pointer { cursor: pointer; }
     .display-block { display: block; }
-    .divide-y > * + * {
-      border-top-width: 1px;
-      border-bottom-width: 0px;
-    }
-    .divide-y-reverse > * + * {
-      border-top-width: 0px;
-      border-bottom-width: 1px;
-    }
     .font-normal { font-weight: 400; }
     .font-medium { font-weight: 500; }
     .font-semibold { font-weight: 600; }
@@ -1610,19 +1612,17 @@ export function Styles() {
       width: 1px;
     }
 
-    .md\\:divide-y-0 > * + * {
-      border-top-width: 0px;
+    .divide-y > *:not(template) + *:not(template) {
+      border-top-width: 1px;
       border-bottom-width: 0px;
     }
-    @media screen and (max-width: 768px) {
-      .md\\:divide-y-0 > * + * {
-        border-top-width: inherit;
-      }
-    }
-
-    .divide-x > * + * {
+    .divide-x > *:not(template) + *:not(template) {
       border-right-width: 0;
       border-left-width: 1px;
+    }
+
+    .hover\\:bg-gray-200 {
+      &:hover { background-color: var(--gray-200) !important; }
     }
   `
   // biome-ignore lint/security/noDangerouslySetInnerHtml:
