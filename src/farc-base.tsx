@@ -1,10 +1,10 @@
 import { Buffer } from 'node:buffer'
-import { Hono } from 'hono'
-import { UAParser } from 'ua-parser-js'
 import { resolve } from 'node:path'
+import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
+import { UAParser } from 'ua-parser-js'
 
 import {
   type FrameContext,
@@ -232,7 +232,7 @@ export class FarcBase<
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
       const browser = new UAParser(c.req.header('user-agent')).getBrowser()
-      if (browser.name && browserLocation) 
+      if (browser.name && browserLocation)
         return c.redirect(
           browserLocation.startsWith('http')
             ? browserLocation
