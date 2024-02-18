@@ -167,7 +167,7 @@ export function Preview(props: PreviewProps) {
         class="bg-background-200 border rounded-md overflow-hidden h-full"
         style={{
           marginTop: '1.5rem',
-          maxHeight: '576px',
+          maxHeight: '554px',
           minWidth: '350px',
         }}
       >
@@ -196,8 +196,32 @@ export function Preview(props: PreviewProps) {
           <Data />
         </div>
 
-        <div class="border rounded-md bg-background-100 p-4 h-full">
-          <div class="text-sm" x-html="contextHtml" />
+        <div>
+          <div class="border rounded-md bg-background-100 h-full overflow-hidden">
+            <div
+              class="bg-background-200 border flex flex-row gap-6 text-sm px-4"
+              style={{ borderLeft: '0', borderRight: '0', borderTop: '0' }}
+            >
+              <button type="button" class="bg-transparent py-3 text-gray-700">
+                Request/Response
+              </button>
+              <button
+                type="button"
+                class="bg-transparent py-3 border-gray-1000"
+                style={{
+                  borderBottomWidth: '2px',
+                  marginBottom: '-1px',
+                }}
+              >
+                Context
+              </button>
+              <button type="button" class="bg-transparent py-3 text-gray-700">
+                Meta Tags
+              </button>
+            </div>
+
+            <div class="p-4 text-sm" x-html="contextHtml" />
+          </div>
         </div>
       </div>
     </div>
@@ -598,8 +622,14 @@ function Data() {
         ]
       }"
     >
-      <template x-for="row in rows">
-        <div class="flex flex-row" style={{ borderBottomWidth: '1px' }}>
+      <template x-for="(row, index) in rows">
+        <div
+          class="flex flex-row"
+          {...{
+            ':style':
+              'index !== rows.length - 1 && { borderBottomWidth: `1px` }',
+          }}
+        >
           <div
             class="text-sm text-gray-700 p-3 font-medium"
             x-text="row.property"
@@ -662,16 +692,20 @@ function Metrics() {
 function Timeline() {
   return (
     <div
-      class="w-full flex divide-y-reverse"
+      class="w-full flex"
       style={{
         flexDirection: 'column-reverse',
         justifyContent: 'flex-end',
       }}
     >
-      <template x-for="log in logs">
+      <template x-for="(log, index) in logs">
         <button
           type="button"
           class="bg-transparent flex flex-col p-4 gap-2 w-full"
+          {...{
+            ':style':
+              '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
+          }}
         >
           <div
             class="flex flex-row"
@@ -704,7 +738,7 @@ function Timeline() {
             />
           </div>
 
-          <div class="flex gap-1.5 font-mono text-gray-1000 text-sm">
+          <div class="flex gap-1.5 font-mono text-gray-1000 text-xs">
             <span x-text="`${formatUrl(log.url)}`" />
           </div>
         </button>
@@ -1484,6 +1518,7 @@ export function Styles() {
     .gap-2 { gap: 0.5rem; }
     .gap-2\\.5 { gap: 0.625rem; }
     .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
     .grid { display: grid; }
     .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1514,6 +1549,7 @@ export function Styles() {
     .py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .py-2\\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
     .relative { position: relative; }
     .rounded-bl-md { border-bottom-left-radius: 0.375rem; }
     .rounded-br-md { border-bottom-right-radius: 0.375rem; }
