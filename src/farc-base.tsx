@@ -1,5 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { Hono } from 'hono'
+import { UAParser } from 'ua-parser-js'
+import { resolve } from 'node:path'
 import { ImageResponse } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
@@ -31,6 +33,16 @@ export type FarcConstructorParameters<
    * @example '/api' (commonly for Vercel Serverless Functions)
    */
   basePath?: basePath | string | undefined
+  /**
+   * Location (URL or path relative to `basePath`) to redirect to when the user
+   * is coming to the page via a browser.
+   *
+   * For instance, a user may reach the frame page in their
+   * browser by clicking on the link beneath the frame on Warpcast.
+   * We may want to redirect them to a different page (ie. a mint page, etc)
+   * when they arrive via their browser.
+   */
+  browserLocation?: string | undefined
   /**
    * Options to forward to the `Hono` instance.
    */
@@ -68,7 +80,10 @@ export type FarcConstructorParameters<
 
 export type FrameOptions = Pick<FarcConstructorParameters, 'verify'>
 
-export type FrameHandlerReturnType = {
+export type FrameHandlerReturnType = Pick<
+  FarcConstructorParameters,
+  'browserLocation'
+> & {
   /**
    * Path of the next frame.
    *
@@ -141,6 +156,8 @@ export class FarcBase<
 
   /** Base path of the server instance. */
   basePath: string
+  /** URL to redirect to when the user is coming to the page via a browser. */
+  browserLocation: string | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
@@ -154,6 +171,7 @@ export class FarcBase<
 
   constructor({
     basePath,
+    browserLocation,
     honoOptions,
     hubApiUrl,
     initialState,
@@ -161,6 +179,7 @@ export class FarcBase<
   }: FarcConstructorParameters<state, env, basePath> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
+    if (browserLocation) this.browserLocation = browserLocation
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -201,9 +220,25 @@ export class FarcBase<
       }
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
 
-      const { action, imageAspectRatio, intents } = await handler(context)
+      const {
+        action,
+        browserLocation = this.browserLocation,
+        imageAspectRatio,
+        intents,
+      } = await handler(context)
       const parsedIntents = intents ? parseIntents(intents) : null
       const intentData = getIntentData(parsedIntents)
+
+      // If the user is coming from a browser, and a `browserLocation` is set,
+      // then we will redirect the user to that location.
+      const browser = new UAParser(c.req.header('user-agent')).getBrowser()
+      if (browser.name && browserLocation) 
+        return c.redirect(
+          browserLocation.startsWith('http')
+            ? browserLocation
+            : `${url.origin + resolve(this.basePath, browserLocation)}`,
+          302,
+        )
 
       // The OG route also needs context, so we will need to pass the current derived context,
       // via a query parameter to the OG image route (/image).

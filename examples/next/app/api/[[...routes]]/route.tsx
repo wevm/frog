@@ -3,7 +3,7 @@
 import { Button, Farc, TextInput } from 'farc'
 import { handle } from 'farc/vercel'
 
-const app = new Farc({ basePath: '/api' })
+const app = new Farc({ basePath: '/api', browserLocation: '../' })
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context

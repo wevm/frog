@@ -3,7 +3,7 @@ import { Button, Farc, TextInput } from 'farc'
 import { app as todoApp } from './todos.js'
 
 export const app = new Farc({
-  // basePath: '/api',
+  browserLocation: '/dev',
   verify: false,
 })
 
