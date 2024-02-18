@@ -605,21 +605,23 @@ function Data() {
       class="bg-background-100 border rounded-md overflow-hidden"
       style={{ height: 'min-content' }}
       x-data="{
-        rows: [
-          { property: 'fc:frame', value: frame.version },
-          { property: 'fc:frame:image', value: frame.imageUrl },
-          { property: 'fc:frame:aspect_ratio', value: frame.imageAspectRatio },
-          { property: 'fc:frame:post_url', value: frame.postUrl },
-          { property: 'og:image', value: frame.image || 'Not Provided' },
-          { property: 'og:title', value: frame.title || 'Not Provided' },
-          ...(frame.input?.text ? [{ property: 'fc:frame:input:text', value: frame.input.text }] : []),
-          ...(frame.buttons.map(button => ({
-            property: `fc:frame:button:${button.index}`,
-            value: `
-              <span>${button.title}</span>${button.type ? `, <span>${button.type}</span>` : ''}${button.target ? `, <span>${button.target}</span>` : ''}
-            `
-          }))),
-        ]
+        get rows() {
+          return [
+            { property: 'fc:frame', value: frame.version },
+            { property: 'fc:frame:image', value: frame.imageUrl },
+            { property: 'fc:frame:aspect_ratio', value: frame.imageAspectRatio },
+            { property: 'fc:frame:post_url', value: frame.postUrl },
+            { property: 'og:image', value: frame.image || 'Not Provided' },
+            { property: 'og:title', value: frame.title || 'Not Provided' },
+            ...(frame.input?.text ? [{ property: 'fc:frame:input:text', value: frame.input.text }] : []),
+            ...(frame.buttons.map(button => ({
+              property: `fc:frame:button:${button.index}`,
+              value: `
+                <span>${button.title}</span>${button.type ? `, <span>${button.type}</span>` : ''}${button.target ? `, <span>${button.target}</span>` : ''}
+              `
+            }))),
+          ]
+        },
       }"
     >
       <template x-for="(row, index) in rows">
