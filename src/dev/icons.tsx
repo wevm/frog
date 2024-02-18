@@ -16,7 +16,7 @@ export const externalLinkIcon = (
   </svg>
 )
 
-export const mintIcon = (
+export const warpIcon = (
   <svg
     aria-hidden="true"
     fill="none"

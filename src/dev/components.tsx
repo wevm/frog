@@ -6,7 +6,7 @@ import {
   fileTextIcon,
   globeIcon,
   imageIcon,
-  mintIcon,
+  warpIcon,
   refreshIcon,
   stopwatchIcon,
 } from './icons.js'
@@ -75,7 +75,6 @@ export function Preview(props: PreviewProps) {
   const { baseUrl, contextHtml, frame, log, routes, state } = props
   return (
     <div
-      class="flex flex-col items-center p-4"
       x-data={`{
         data: {
           baseUrl: '${baseUrl}',
@@ -92,6 +91,12 @@ export function Preview(props: PreviewProps) {
         get baseUrl() { return this.data.baseUrl },
         get frame() { return this.data.frame },
         get log() { return this.data.log },
+
+        get contextHtml() { return this.data.contextHtml },
+        get routes() { return this.data.routes },
+        get state() { return this.data.state },
+        get buttonCount() { return this.frame.buttons?.length ?? 0 },
+        get hasIntents() { return Boolean(this.frame.input || this.frame.buttons.length) },
 
         async getFrame() {
           const response = await fetch(this.baseUrl + '/dev/frame', {
@@ -149,31 +154,73 @@ export function Preview(props: PreviewProps) {
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         }
       }`}
+      class="flex w-full h-full"
+      style={{
+        paddingLeft: '1.5rem',
+        gap: '1.5rem',
+        maxWidth: '1512px',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}
     >
       <div
-        class="grid gap-2 w-full"
-        style={{ maxWidth: '68rem' }}
-        x-data="{
-          get contextHtml() { return data.contextHtml },
-          get routes() { return data.routes },
-          get state() { return data.state },
-          get buttonCount() { return frame.buttons?.length ?? 0 },
-          get hasIntents() { return Boolean(frame.input || frame.buttons.length) },
-        }"
+        class="bg-background-200 border rounded-md overflow-hidden h-full"
+        style={{
+          marginTop: '1.5rem',
+          maxHeight: '554px',
+          minWidth: '350px',
+        }}
+      >
+        <div class="bg-background-100 scrollbars h-full">
+          <Timeline />
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col scrollbars h-full w-full gap-4"
+        style={{
+          paddingTop: '1.5rem',
+          paddingBottom: '1.5rem',
+          paddingRight: '1.5rem',
+        }}
       >
         <Navigator />
 
-        <div class="container gap-4 mt-1.5" style={{ minHeight: '25.6rem' }}>
-          <Frame />
+        <div class="flex flex-row gap-4">
+          <div class="flex flex-col gap-4">
+            <Metrics />
+            <div style={{ minWidth: '532.5px', minHeight: '411px' }}>
+              <Frame />
+            </div>
+          </div>
           <Data />
         </div>
 
-        <div class="border bg-background-100 divide-y md:divide-y-0 md:divide-x rounded-md container">
-          <div class="p-4 scrollbars" style={{ height: '22.75rem' }}>
-            <div class="text-sm" x-html="contextHtml" />
-          </div>
-          <div class="scrollbars" style={{ height: '22.75rem' }}>
-            <Timeline />
+        <div>
+          <div class="border rounded-md bg-background-100 h-full overflow-hidden">
+            <div
+              class="bg-background-200 border flex flex-row gap-6 text-sm px-4"
+              style={{ borderLeft: '0', borderRight: '0', borderTop: '0' }}
+            >
+              <button type="button" class="bg-transparent py-3 text-gray-700">
+                Request/Response
+              </button>
+              <button
+                type="button"
+                class="bg-transparent py-3 border-gray-1000"
+                style={{
+                  borderBottomWidth: '2px',
+                  marginBottom: '-1px',
+                }}
+              >
+                Context
+              </button>
+              <button type="button" class="bg-transparent py-3 text-gray-700">
+                Meta Tags
+              </button>
+            </div>
+
+            <div class="p-4 text-sm" x-html="contextHtml" />
           </div>
         </div>
       </div>
@@ -282,7 +329,7 @@ function Navigator() {
           <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
             <span
               class="font-sans text-sm text-gray-1000"
-              style={{ lineHeight: '2rem' }}
+              style={{ lineHeight: '1.85rem' }}
               x-text="formatUrl(state.context.url)"
             />
           </div>
@@ -377,7 +424,7 @@ function Img() {
       class="border object-cover w-full rounded-t-lg"
       style={{
         minHeight: '269px',
-        maxHeight: '526px',
+        maxHeight: '532.5px',
       }}
       {...{
         ':alt': `frame.title ?? 'Farcaster frame'`,
@@ -517,7 +564,7 @@ function Button() {
 
       <template x-if="type === 'mint'">
         <button class={buttonClass} type="button">
-          <div>{mintIcon}</div>
+          <div>{warpIcon}</div>
           {innerHtml}
         </button>
       </template>
@@ -554,75 +601,46 @@ function Button() {
 
 function Data() {
   return (
-    <div class="flex flex-col gap-2 w-full">
-      <div class="flex flex-row gap-2" style={{ height: '1.75rem' }}>
-        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-xs w-fit">
-          {stopwatchIcon}
-          <div class="text-gray-1000" x-text="formatSpeed(log.metrics.speed)" />
-        </div>
-
-        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-xs w-fit">
-          {fileTextIcon}
+    <div
+      class="bg-background-100 border rounded-md overflow-hidden"
+      style={{ height: 'min-content' }}
+      x-data="{
+        rows: [
+          { property: 'fc:frame', value: frame.version },
+          { property: 'fc:frame:image', value: frame.imageUrl },
+          { property: 'fc:frame:aspect_ratio', value: frame.imageAspectRatio },
+          { property: 'fc:frame:post_url', value: frame.postUrl },
+          { property: 'og:image', value: frame.image || 'Not Provided' },
+          { property: 'og:title', value: frame.title || 'Not Provided' },
+          ...(frame.input?.text ? [{ property: 'fc:frame:input:text', value: frame.input.text }] : []),
+          ...(frame.buttons.map(button => ({
+            property: `fc:frame:button:${button.index}`,
+            value: `
+              <span>${button.title}</span>${button.type ? ` <span>${button.type}</span>` : ''}${button.target ? ` <span>${button.target}</span>` : ''}
+            `
+          }))),
+        ]
+      }"
+    >
+      <template x-for="(row, index) in rows">
+        <div
+          class="flex flex-row"
+          {...{
+            ':style':
+              'index !== rows.length - 1 && { borderBottomWidth: `1px` }',
+          }}
+        >
           <div
-            class="text-gray-1000"
-            x-text="formatFileSize(log.metrics.htmlSize)"
+            class="text-sm text-gray-700 p-3 font-medium"
+            x-text="row.property"
+            style={{ minWidth: '12rem' }}
+          />
+          <div
+            class="text-sm text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap"
+            x-html="row.value"
           />
         </div>
-
-        <div class="bg-background-100 border rounded-md items-center flex text-gray-700 px-1.5 rounded-md font-mono gap-1.5 h-full text-xs w-fit">
-          {imageIcon}
-          <div
-            class="text-gray-1000"
-            x-text="formatFileSize(log.metrics.imageSize)"
-          />
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-1 w-full scrollbars font-mono text-gray-900 text-sm">
-        <div>
-          fc:frame <span class="text-gray-1000" x-text="frame.version" />
-        </div>
-        <div class="text-ellipsis overflow-hidden whitespace-nowrap">
-          fc:frame:image <span class="text-gray-1000" x-text="frame.imageUrl" />
-        </div>
-        <div>
-          fc:frame:image:aspect_ratio{' '}
-          <span class="text-gray-1000" x-text="frame.imageAspectRatio" />
-        </div>
-        <div class="text-ellipsis overflow-hidden whitespace-nowrap">
-          fc:frame:post_url{' '}
-          <span class="text-gray-1000" x-text="frame.postUrl" />
-        </div>
-        <div class="text-ellipsis overflow-hidden whitespace-nowrap">
-          og:image{' '}
-          <span class="text-gray-1000" x-text="frame.title || 'unset'" />
-        </div>
-        <div class="text-ellipsis overflow-hidden whitespace-nowrap">
-          og:title{' '}
-          <span class="text-gray-1000" x-text="frame.title || 'unset'" />
-        </div>
-
-        <template x-if="frame.input">
-          <div>
-            <div class="text-ellipsis overflow-hidden whitespace-nowrap">
-              fc:frame:input:text{' '}
-              <span class="text-gray-1000" x-text="frame.input.text" />
-            </div>
-          </div>
-        </template>
-
-        <template x-for="button in frame.buttons">
-          <div class="text-ellipsis overflow-hidden whitespace-nowrap">
-            fc:frame:button:
-            <span x-text="button.index" />{' '}
-            <span class="text-gray-1000" x-text="button.type" />
-            <span x-text="button.title ? ', ' : ''" />
-            <span class="text-gray-1000" x-text="button.title" />
-            <span x-text="button.target ? ', ' : ''" />
-            <span class="text-gray-1000" x-text="button.target" />
-          </div>
-        </template>
-      </div>
+      </template>
 
       {/* TODO: Add property errors */}
       {/* <div> */}
@@ -632,79 +650,98 @@ function Data() {
   )
 }
 
+function Metrics() {
+  return (
+    <div
+      class="bg-background-100 border rounded-md flex flex-row gap-2 divide-x"
+      style={{ justifyContent: 'space-around' }}
+    >
+      <div
+        class="items-center flex font-mono gap-1.5 text-base justify-center"
+        style={{ flex: '1', padding: '0.65rem' }}
+      >
+        <span class="text-gray-700">{stopwatchIcon}</span>
+        <div class="text-gray-1000" x-text="formatSpeed(log.metrics.speed)" />
+      </div>
+
+      <div
+        class="items-center flex font-mono gap-1.5 text-base justify-center"
+        style={{ flex: '1', padding: '0.65rem' }}
+      >
+        <span class="text-gray-700">{fileTextIcon}</span>
+        <div
+          class="text-gray-1000"
+          x-text="formatFileSize(log.metrics.htmlSize)"
+        />
+      </div>
+
+      <div
+        class="items-center flex font-mono gap-1.5 text-base justify-center"
+        style={{ flex: '1', padding: '0.65rem' }}
+      >
+        <span class="text-gray-700">{imageIcon}</span>
+        <div
+          class="text-gray-1000"
+          x-text="formatFileSize(log.metrics.imageSize)"
+        />
+      </div>
+    </div>
+  )
+}
+
 function Timeline() {
   return (
     <div
-      class="w-full flex divide-y-reverse"
+      class="w-full flex"
       style={{
         flexDirection: 'column-reverse',
         justifyContent: 'flex-end',
       }}
     >
-      <template x-for="log in logs">
-        <div x-data="{ expanded: false }">
-          <button
-            type="button"
-            class="bg-transparent flex flex-col p-4 gap-2 w-full"
-            x-on:click="expanded = !expanded"
+      <template x-for="(log, index) in logs">
+        <button
+          type="button"
+          class="bg-transparent flex flex-col p-4 gap-2 w-full"
+          {...{
+            ':style':
+              '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
+          }}
+        >
+          <div
+            class="flex flex-row"
+            style={{ justifyContent: 'space-between' }}
           >
-            <div
-              class="flex flex-row"
-              style={{ justifyContent: 'space-between' }}
-            >
-              <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
-                <div
-                  class="flex items-center border px-1.5 rounded-sm text-gray-900"
-                  x-text="log.method"
-                  style={{ textTransform: 'uppercase' }}
-                />
-                <div
-                  class="flex items-center border px-1.5 rounded-sm"
-                  x-text="log.response.status"
-                  style={{ textTransform: 'uppercase' }}
-                  {...{
-                    ':class': `{
-                      'border-green-100': log.response.success,
-                      'text-green-900': log.response.success,
-                      'border-red-100': !log.response.success,
-                      'text-red-900': !log.response.success,
-                    }`,
-                  }}
-                />
-                <span x-text="formatSpeed(log.metrics.speed)" />
-              </div>
-              <span
-                class="font-mono text-gray-700 text-xs"
-                x-text="formatTime(log.timestamp)"
+            <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
+              <div
+                class="flex items-center border px-1.5 rounded-sm text-gray-900"
+                x-text="log.method"
+                style={{ textTransform: 'uppercase' }}
               />
+              <div
+                class="flex items-center border px-1.5 rounded-sm"
+                x-text="log.response.status"
+                style={{ textTransform: 'uppercase' }}
+                {...{
+                  ':class': `{
+                    'border-green-100': log.response.success,
+                    'text-green-900': log.response.success,
+                    'border-red-100': !log.response.success,
+                    'text-red-900': !log.response.success,
+                  }`,
+                }}
+              />
+              <span x-text="formatSpeed(log.metrics.speed)" />
             </div>
-
-            <div class="flex gap-1.5 font-mono text-gray-1000 text-sm">
-              <span x-text="`${formatUrl(log.url)}`" />
-            </div>
-          </button>
-
-          {/* TODO: Error formatting, show "metrics" */}
-          <div class="flex flex-col px-4 pb-4 gap-4" x-show="expanded">
-            <template x-if="log.body">
-              <div class="flex flex-col gap-2">
-                <div class="text-xs font-medium text-gray-700">Body</div>
-                <div class="text-gray-700 scrollbars bg-gray-alpha-100 p-2 rounded-md">
-                  <pre x-text="JSON.stringify(log.body, null, 2)" />
-                </div>
-              </div>
-            </template>
-
-            <template x-if="log.response">
-              <div class="flex flex-col gap-2">
-                <div class="text-xs font-medium text-gray-700">Response</div>
-                <div class="text-gray-700 scrollbars bg-gray-alpha-100 p-2 rounded-md">
-                  <pre x-text="JSON.stringify(log.response, null, 2)" />
-                </div>
-              </div>
-            </template>
+            <span
+              class="font-mono text-gray-700 text-xs"
+              x-text="formatTime(log.timestamp)"
+            />
           </div>
-        </div>
+
+          <div class="flex gap-1.5 font-mono text-gray-1000 text-xs">
+            <span x-text="`${formatUrl(log.url)}`" />
+          </div>
+        </button>
       </template>
     </div>
   )
@@ -1281,8 +1318,11 @@ export function Styles() {
     ${colors}
 
     :root {
-      color-scheme: dark;
+      --page-margin: 1rem;
+      --page-width: 93rem;
+      --page-width-with-margin: calc(var(--page-width) + calc(2 * var(--page-margin)));
 
+      color-scheme: dark;
       font-family: Inter, arial, sans-serif;
       font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
     }
@@ -1319,7 +1359,6 @@ export function Styles() {
       line-height: 1.5;
       scrollbar-color: var(--a2) transparent;
       scrollbar-width: thin;
-      scrollbar-gutter: stable;
       text-rendering: optimizeLegibility;
 
       -webkit-font-smoothing: antialiased;
@@ -1337,6 +1376,7 @@ export function Styles() {
     }
 
     body {
+      height: 100vh;
       margin: 0;
       line-height: inherit;
     }
@@ -1387,6 +1427,12 @@ export function Styles() {
       color: inherit;
       margin: 0;
       padding: 0;
+    }
+
+    table {
+      text-indent: 0;
+      border-color: inherit;
+      border-collapse: collapse;
     }
 
     button,
@@ -1471,8 +1517,8 @@ export function Styles() {
     .gap-1\\.5 { gap: 0.375rem; }
     .gap-2 { gap: 0.5rem; }
     .gap-2\\.5 { gap: 0.625rem; }
-    .gap-3 { gap: 0.75rem; }
     .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
     .grid { display: grid; }
     .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1490,6 +1536,7 @@ export function Styles() {
     .object-cover { object-fit: cover; }
     .overflow-hidden { overflow: hidden; }
     .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 0.75rem; }
     .p-4 { padding: 1rem; }
     .pb-0 { padding-bottom: 0; }
     .pb-4 { padding-bottom: 1rem; }
@@ -1502,6 +1549,7 @@ export function Styles() {
     .py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .py-2\\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
     .relative { position: relative; }
     .rounded-bl-md { border-bottom-left-radius: 0.375rem; }
     .rounded-br-md { border-bottom-right-radius: 0.375rem; }
@@ -1548,6 +1596,18 @@ export function Styles() {
       }
     }
 
+    .sr-only {
+      border-width: 0;
+      clip: rect(0, 0, 0, 0);
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+
     .md\\:divide-y-0 > * + * {
       border-top-width: 0px;
       border-bottom-width: 0px;
@@ -1558,14 +1618,9 @@ export function Styles() {
       }
     }
 
-    .md\\:divide-x > * + * {
+    .divide-x > * + * {
       border-right-width: 0;
       border-left-width: 1px;
-    }
-    @media screen and (max-width: 768px) {
-      .md\\:divide-x > * + * {
-        border-left-width: 0;
-      }
     }
   `
   // biome-ignore lint/security/noDangerouslySetInnerHtml:
