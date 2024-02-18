@@ -8,7 +8,7 @@ import { version } from './version.js'
 export const cli = cac('farc')
 
 cli
-  .command('[entry]', 'Start a development server for the given entry file')
+  .command('[entry]', 'Start a development server at an optional entrypoint (default: (src|api)/index.{tsx,jsx,ts,js}).')
   .alias('dev')
   .option('-h, --host', 'Expose host URL')
   .option('-p, --port [number]', 'Port used by the server (default: 5173)')
