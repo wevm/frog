@@ -28,9 +28,9 @@ export async function dev(
     plugins: [
       devServer({
         entry: entry_resolved,
-        // Note: we are not relying on the default export so we can be compatible with 
+        // Note: we are not relying on the default export so we can be compatible with
         // runtimes that rely on it (ie. Vercel Serverless Functions).
-        export: 'app'
+        export: 'app',
       }),
     ],
   })
