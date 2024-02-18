@@ -78,19 +78,25 @@ export function Preview(props: PreviewProps) {
   return (
     <div
       x-data={`{
-        data: {
+        init() {
+          if (!this.logs || this.logs.length === 0) this.logs = [${JSON.stringify(
+            props,
+          )}]
+        },
+        data: $persist({
           baseUrl: '${baseUrl}',
           contextHtml: ${JSON.stringify(contextHtml)},
           frame: ${JSON.stringify(frame)},
           request: ${JSON.stringify(request)},
           routes: ${JSON.stringify(routes)},
           state: ${JSON.stringify(state)},
-        },
-        history: [],
-        id: -1,
-        inputText: '',
-        logs: [${JSON.stringify(props)}],
-        selectedLogIndex: -1,
+        }).using(sessionStorage),
+
+        history: $persist([]).using(sessionStorage),
+        id: $persist(-1).using(sessionStorage),
+        inputText: $persist('').using(sessionStorage),
+        logs: $persist([]).using(sessionStorage),
+        selectedLogIndex: $persist(-1).using(sessionStorage),
 
         get baseUrl() { return this.data.baseUrl },
         get frame() { return this.data.frame },
@@ -102,15 +108,15 @@ export function Preview(props: PreviewProps) {
         get buttonCount() { return this.frame.buttons?.length ?? 0 },
         get hasIntents() { return Boolean(this.frame.input || this.frame.buttons.length) },
 
-        async getFrame() {
-          const response = await fetch(this.baseUrl + '/dev/frame', {
+        async getFrame(url = this.baseUrl, replaceLogs = false) {
+          const response = await fetch(url + '/dev/frame', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
           })
           const json = await response.json()
-          this.logs = [...this.logs, json]
+          this.logs = replaceLogs ? [json] : [...this.logs, json]
           this.selectedLogIndex = -1
           return json
         },
@@ -289,8 +295,10 @@ function Navigator() {
         class="bg-background-100 border rounded-md text-gray-700 px-2 rounded-r-md h-full"
         type="button"
         x-on:click={`
-          const body = selectedLogIndex ? logs[selectedLogIndex]?.request.body : history[id]?.body
-          if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
+          const selectedLog = logs[selectedLogIndex]
+          const body = selectedLog ? selectedLog.request.body : history[id]?.body
+          if (selectedLog && selectedLog.request.type === 'initial') getFrame().then((json) => data = json).catch(console.error)
+          else if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
           else getFrame().then((json) => data = json).catch(console.error)
         `}
       >
@@ -343,13 +351,25 @@ function Navigator() {
           }}
         >
           <template x-for="(route, index) in routes">
-            <a
-              class="display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900"
-              x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
+            <button
+              type="button"
+              class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left"
               style={{ textDecoration: 'none' }}
-              {...{
-                ':href': `route === '/' ? '/dev' : route + '/dev'`,
-              }}
+              x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
+              x-on:click="
+                const nextRoute = route === '/' ? '/dev' : route + '/dev'
+                window.history.pushState({}, '', nextRoute)
+                const nextFrame = window.location.toString().replace('/dev', '')
+                getFrame(nextFrame, true)
+                  .then((json) => {
+                    data = json
+                    history = []
+                    id = -1
+                    inputText = ''
+                    open = false
+                  })
+                  .catch(console.error)
+              "
             />
           </template>
         </div>
@@ -502,10 +522,12 @@ function Button() {
     <div
       class="relative"
       x-data={`{
-        ...button,
         open: false,
-        target: button.target,
-        url: button.type === 'link' && button.target ? button.target : undefined,
+        get index() { return button.index },
+        get target() { return button.target },
+        get title() { return button.title },
+        get type() { return button.type },
+        get url() { return button.type === 'link' && button.target ? button.target : undefined },
       }`}
     >
       <template x-if="type === 'link'">
@@ -658,11 +680,13 @@ function Metrics() {
       class="bg-background-100 border rounded-md flex flex-row divide-x"
       style={{ justifyContent: 'space-around' }}
       x-data={`{
-        metrics: [
-          { icon: '${stopwatchIcon}', name: 'speed', value: formatSpeed(request.metrics.speed) },
-          { icon: '${fileTextIcon}', name: 'frame size', value: formatFileSize(request.metrics.htmlSize) },
-          { icon: '${imageIcon}', name: 'image size', value: formatFileSize(request.metrics.imageSize) },
-        ]
+        get metrics() {
+          return [
+            { icon: '${stopwatchIcon}', name: 'speed', value: formatSpeed(request.metrics.speed) },
+            { icon: '${fileTextIcon}', name: 'frame size', value: formatFileSize(request.metrics.htmlSize) },
+            { icon: '${imageIcon}', name: 'image size', value: formatFileSize(request.metrics.imageSize) },
+          ]
+        }
       }`}
     >
       <template x-for="metric in metrics">
@@ -1558,6 +1582,7 @@ export function Styles() {
     .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
     .text-center { text-align: center; }
     .text-ellipsis { text-overflow: ellipsis; }
+    .text-left { text-align: left; }
     .text-right { text-align: right; }
     .text-base { font-size: 1rem; }
     .text-sm { font-size: 0.875rem; }
@@ -1672,11 +1697,18 @@ export function Styles() {
 export function Scripts() {
   return (
     <>
+      {/* Alpine Plugins */}
       {/* TODO: Vendor into project */}
       <script
         defer
         src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"
       />
+      <script
+        defer
+        src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"
+      />
+
+      {/* Alpine Core */}
       <script
         defer
         src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
