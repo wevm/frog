@@ -3,7 +3,9 @@
   "files": {
     "ignore": [
       "coverage",
+      ".next",
       "node_modules",
+      "src/_lib",
       "src/vendor",
       "tsconfig.json",
       "tsconfig.*.json"
