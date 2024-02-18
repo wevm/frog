@@ -616,7 +616,7 @@ function Data() {
           ...(frame.buttons.map(button => ({
             property: `fc:frame:button:${button.index}`,
             value: `
-              <span>${button.title}</span>${button.type ? ` <span>${button.type}</span>` : ''}${button.target ? ` <span>${button.target}</span>` : ''}
+              <span>${button.title}</span>${button.type ? `, <span>${button.type}</span>` : ''}${button.target ? `, <span>${button.target}</span>` : ''}
             `
           }))),
         ]
@@ -657,15 +657,15 @@ function Metrics() {
       style={{ justifyContent: 'space-around' }}
     >
       <div
-        class="items-center flex font-mono gap-1.5 text-base justify-center"
-        style={{ flex: '1', padding: '0.65rem' }}
+        class="items-center flex font-mono gap-1.5 text-sm justify-center"
+        style={{ flex: '1', padding: '0.685rem' }}
       >
         <span class="text-gray-700">{stopwatchIcon}</span>
         <div class="text-gray-1000" x-text="formatSpeed(log.metrics.speed)" />
       </div>
 
       <div
-        class="items-center flex font-mono gap-1.5 text-base justify-center"
+        class="items-center flex font-mono gap-1.5 text-sm justify-center"
         style={{ flex: '1', padding: '0.65rem' }}
       >
         <span class="text-gray-700">{fileTextIcon}</span>
@@ -676,7 +676,7 @@ function Metrics() {
       </div>
 
       <div
-        class="items-center flex font-mono gap-1.5 text-base justify-center"
+        class="items-center flex font-mono gap-1.5 text-sm justify-center"
         style={{ flex: '1', padding: '0.65rem' }}
       >
         <span class="text-gray-700">{imageIcon}</span>
