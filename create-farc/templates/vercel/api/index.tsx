@@ -1,7 +1,7 @@
 import { Button, Farc, TextInput } from 'farc'
 import { handle } from 'farc/vercel'
 
-const app = new Farc({ basePath: '/api' })
+export const app = new Farc({ basePath: '/api' })
 
 export const config = {
   // runtime: 'edge', // Uncomment to use Edge Runtime
@@ -59,9 +59,3 @@ app.frame('/', (context) => {
 
 export const GET = handle(app)
 export const POST = handle(app)
-
-if (process.env.NODE_ENV === 'development') {
-  const { serve } = await import('bun')
-  const server = serve(app)
-  console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)
-}

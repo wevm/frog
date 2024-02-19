@@ -1,8 +1,10 @@
 import { Buffer } from 'node:buffer'
+import { resolve } from 'node:path'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
+import { UAParser } from 'ua-parser-js'
 
 import {
   type FrameContext,
@@ -31,6 +33,56 @@ export type FarcConstructorParameters<
    * @example '/api' (commonly for Vercel Serverless Functions)
    */
   basePath?: basePath | string | undefined
+  /**
+   * Location (URL or path relative to `basePath`) to redirect to when the user
+   * is coming to the page via a browser.
+   *
+   * For instance, a user may reach the frame page in their
+   * browser by clicking on the link beneath the frame on Warpcast.
+   * We may want to redirect them to a different page (ie. a mint page, etc)
+   * when they arrive via their browser.
+   *
+   * @example (Absolute Path)
+   * Parameters:
+   *   basePath: '/api'
+   *   browserLocation: '/'
+   *
+   * https://example.com/api -> https://example.com/
+   * https://example.com/api/foo -> https://example.com/
+   *
+   * @example (Absolute Path)
+   * Parameters:
+   *   basePath: '/api'
+   *   browserLocation: '/mint'
+   *
+   * https://example.com/api -> https://example.com/mint
+   * https://example.com/api/foo -> https://example.com/mint
+   *
+   * @example (Absolute Path with `:path` template)
+   * Parameters
+   *   basePath: '/api'
+   *   browserLocation: '/:path'
+   *
+   * https://example.com/api -> https://example.com/
+   * https://example.com/api/foo -> https://example.com/foo
+   * https://example.com/api/foo/bar -> https://example.com/foo/bar
+   *
+   * @example (Relative Path)
+   * Parameters:
+   *   basePath: '/api'
+   *   browserLocation: './dev'
+   *
+   * https://example.com/api -> https://example.com/api/dev
+   * https://example.com/api/foo -> https://example.com/api/foo/dev
+   *
+   * @example (URL)
+   * Parameters:
+   *   browserLocation: 'https://google.com/:path'
+   *
+   * https://example.com/api -> https://google.com/api
+   * https://example.com/api/foo -> https://google.com/api/foo
+   */
+  browserLocation?: string | undefined
   /**
    * Options to forward to the `Hono` instance.
    */
@@ -68,7 +120,10 @@ export type FarcConstructorParameters<
 
 export type FrameOptions = Pick<FarcConstructorParameters, 'verify'>
 
-export type FrameHandlerReturnType = {
+export type FrameHandlerReturnType = Pick<
+  FarcConstructorParameters,
+  'browserLocation'
+> & {
   /**
    * Path of the next frame.
    *
@@ -141,6 +196,8 @@ export class FarcBase<
 
   /** Base path of the server instance. */
   basePath: string
+  /** URL to redirect to when the user is coming to the page via a browser. */
+  browserLocation: string | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
@@ -154,6 +211,7 @@ export class FarcBase<
 
   constructor({
     basePath,
+    browserLocation,
     honoOptions,
     hubApiUrl,
     initialState,
@@ -161,6 +219,7 @@ export class FarcBase<
   }: FarcConstructorParameters<state, env, basePath> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
+    if (browserLocation) this.browserLocation = browserLocation
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -201,9 +260,28 @@ export class FarcBase<
       }
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
 
-      const { action, imageAspectRatio, intents } = await handler(context)
+      const {
+        action,
+        browserLocation = this.browserLocation,
+        imageAspectRatio,
+        intents,
+      } = await handler(context)
       const parsedIntents = intents ? parseIntents(intents) : null
       const intentData = getIntentData(parsedIntents)
+
+      // If the user is coming from a browser, and a `browserLocation` is set,
+      // then we will redirect the user to that location.
+      const browser = new UAParser(c.req.header('user-agent')).getBrowser()
+      const browserLocation_ = browserLocation
+        ?.replace(':path', path.replace(/(^\/)|(\/$)/, ''))
+        .replace('//', '/')
+      if (browser.name && browserLocation_)
+        return c.redirect(
+          browserLocation_.startsWith('http')
+            ? browserLocation_
+            : `${url.origin + resolve(this.basePath, browserLocation_)}`,
+          302,
+        )
 
       // The OG route also needs context, so we will need to pass the current derived context,
       // via a query parameter to the OG image route (/image).

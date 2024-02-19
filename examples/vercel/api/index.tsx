@@ -5,7 +5,7 @@ export const config = {
   runtime: 'edge',
 }
 
-const app = new Farc({ basePath: '/api' })
+export const app = new Farc({ basePath: '/api' })
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context
@@ -59,8 +59,3 @@ app.frame('/', (context) => {
 
 export const GET = handle(app)
 export const POST = handle(app)
-
-if (process.env.NODE_ENV === 'development') {
-  const server = Bun.serve(app)
-  console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)
-}

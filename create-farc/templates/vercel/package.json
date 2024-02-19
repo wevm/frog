@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot api/index.tsx",
+    "dev": "farc dev",
     "build": "farc vercel-build"
   },
   "dependencies": {

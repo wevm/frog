@@ -1,7 +1,6 @@
-import * as Bun from 'bun'
 import { Button, Farc, TextInput } from 'farc'
 
-const app = new Farc()
+export const app = new Farc()
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context
@@ -52,6 +51,3 @@ app.frame('/', (context) => {
     ],
   }
 })
-
-const server = Bun.serve(app)
-console.log(`𝑭𝒂𝒓𝒄 ▶︎ http://localhost:${server.port}/dev`)
