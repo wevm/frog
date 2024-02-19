@@ -1,12 +1,12 @@
 import { Buffer } from 'node:buffer'
 import { detect } from 'detect-browser'
-// TODO: maybe write our own "modern" universal path (or resolve) module.
-// We are not using `node:path` to remain compatible with Edge runtimes.
-import { default as p } from 'path-browserify'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
+// TODO: maybe write our own "modern" universal path (or resolve) module.
+// We are not using `node:path` to remain compatible with Edge runtimes.
+import { default as p } from 'path-browserify'
 
 import {
   type FrameContext,
