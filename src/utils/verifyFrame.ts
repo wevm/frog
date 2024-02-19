@@ -1,5 +1,6 @@
 import { hexToBytes } from '@noble/curves/abstract/utils'
 import { type TrustedData } from '../types.js'
+import { parsePath } from './parsePath.js'
 
 export type VerifyFrameParameters = {
   fetchOptions?: RequestInit
@@ -29,6 +30,6 @@ export async function verifyFrame({
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`)
 
-  if (!frameUrl?.startsWith(url))
+  if (!parsePath(frameUrl)?.startsWith(parsePath(url)))
     throw new Error(`Invalid frame url: ${frameUrl}. Expected: ${url}.`)
 }

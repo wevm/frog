@@ -7,7 +7,8 @@ export function fromQuery<returnType>(query: object): returnType {
     else if (decoded.startsWith('#O_'))
       decoded = JSON.parse(decoded.replace('#O_', ''))
 
-    obj[key] = decoded
+    // Omit any encoded ampersands.
+    obj[key.replace(/^amp;/, '')] = decoded
   }
   return obj as returnType
 }
