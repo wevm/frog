@@ -48,7 +48,7 @@
     "fast-glob": "3.3.2",
     "fs-extra": "^11.2.0",
     "happy-dom": "^13.3.8",
-    "hono-og": "0.0.10",
+    "hono-og": "0.0.11",
     "immer": "^10.0.3",
     "shiki": "^1.0.0",
     "ua-parser-js": "^2.0.0-beta.2",
