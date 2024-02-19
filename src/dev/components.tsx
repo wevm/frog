@@ -167,7 +167,7 @@ export function Preview(props: PreviewProps) {
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         }
       }`}
-      class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-6 md:gap-4 pb-6 md:pb-0"
+      class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-4 md:gap-6 pb-6 md:pb-0"
       style={{
         maxWidth: '1512px',
         marginLeft: 'auto',
@@ -200,7 +200,7 @@ export function Preview(props: PreviewProps) {
               style={{ borderLeft: '0', borderRight: '0', borderTop: '0' }}
             >
               <button type="button" class="bg-transparent py-3 text-gray-700">
-                Request/Response
+                Request & Response
               </button>
               <button
                 type="button"
@@ -261,7 +261,7 @@ function Navigator() {
             {chevronLeftIcon}
           </span>
         </button>
-        <div class="bg-gray-alpha-400 h-full" style={{ width: '1px' }} />
+        <div class="bg-gray-alpha-300 h-full" style={{ width: '1px' }} />
         <button
           aria-label="forward"
           class="text-gray-700 bg-background-100 px-2 rounded-r-md"
@@ -375,12 +375,16 @@ function Navigator() {
         </div>
       </div>
 
-      <button
-        type="button"
-        class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-      >
-        {farcasterIcon}
-      </button>
+      <div style={{ display: 'contents' }} x-data="{ open: false }">
+        <button
+          type="button"
+          class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+          x-on:click="open = true"
+        >
+          {farcasterIcon}
+        </button>
+        <FarcasterDialog />
+      </div>
     </div>
   )
 }
@@ -432,7 +436,7 @@ function Frame() {
 function Img() {
   return (
     <img
-      class="border object-cover w-full rounded-t-lg"
+      class="border object-cover w-full rounded-t-lg border-gray-200"
       style={{
         minHeight: '269px',
         maxHeight: '532.5px',
@@ -469,7 +473,7 @@ function Input() {
 
 function Button() {
   const buttonClass =
-    'bg-gray-200 border-gray-300 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
+    'bg-gray-100 border-gray-300 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
   const innerHtml = (
     <span
       class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-1000 font-medium"
@@ -714,10 +718,10 @@ function Timeline() {
       <template x-for="(log, index) in logs">
         <button
           type="button"
-          class=" flex flex-col p-4 gap-2 w-full border-gray-200 hover:bg-gray-200"
+          class=" flex flex-col p-4 gap-2 w-full border-gray-200 hover:bg-gray-100"
           {...{
             ':class':
-              'index === selectedLogIndex ? "bg-gray-200" : "bg-transparent"',
+              'index === selectedLogIndex ? "bg-gray-100" : "bg-transparent"',
             ':style':
               '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
             ':tabIndex': 'logs.length - index',
@@ -765,6 +769,38 @@ function Timeline() {
         </button>
       </template>
     </div>
+  )
+}
+
+function FarcasterDialog() {
+  return (
+    <template x-teleport="body">
+      <div
+        class="flex items-center justify-center p-6"
+        x-show="open"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          position: 'fixed',
+          inset: '0',
+        }}
+      >
+        <div
+          class="bg-background-100 flex flex-col scrollbars border rounded-md p-6 w-full border-gray-100"
+          style={{ maxWidth: '450px' }}
+          {...{
+            '@click.outside': 'open = false',
+            '@keyup.escape': 'open = false',
+            'x-trap.noscroll': 'open',
+          }}
+        >
+          <button type="button" x-on:click="open = false">
+            Close
+          </button>
+          <h1>Sign in with Farcaster</h1>
+          <p>Scan with your phone's camera to continue.</p>
+        </div>
+      </div>
+    </template>
   )
 }
 
@@ -873,7 +909,7 @@ export function Styles() {
       --background-100:#0a0a0a;
       --background-200:#000;
       --focus-border:0 0 0 1px var(--gray-alpha-300),0px 0px 0px 2px hsla(var(--blue-900-value),0.75);
-      --focus-color:var(--blue-900)
+      --focus-color:var(--blue-900);
 
       --gray-100:hsla(var(--gray-100-value),1);
       --gray-200:hsla(var(--gray-200-value),1);
@@ -1364,7 +1400,7 @@ export function Styles() {
       box-sizing: border-box;
       border-width: 0;
       border-style: solid;
-      border-color: var(--gray-alpha-400);
+      border-color: var(--gray-alpha-200);
     }
 
     ::selection {
@@ -1629,8 +1665,8 @@ export function Styles() {
       border-left-width: 1px;
     }
 
-    .hover\\:bg-gray-200 {
-      &:hover { background-color: var(--gray-200) !important; }
+    .hover\\:bg-gray-100 {
+      &:hover { background-color: var(--gray-100) !important; }
     }
 
     .h-sidebar { height: 316px }
@@ -1665,8 +1701,8 @@ export function Styles() {
       .md\\:h-full {
         height: 100%;
       }
-      .md\\:gap-4 {
-        gap: 1rem;
+      .md\\:gap-6 {
+        gap: 1.5rem;
       }
       .md\\:mt-6 {
         margin-top: 1.5rem;
