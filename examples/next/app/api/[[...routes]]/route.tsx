@@ -3,7 +3,10 @@
 import { Button, Farc, TextInput } from 'farc'
 import { handle } from 'farc/vercel'
 
-const app = new Farc({ basePath: '/api', browserLocation: '../:path' })
+const app = new Farc({ basePath: '/api', browserLocation: '/:path' })
+
+// Uncomment to use Edge Runtime
+// export const runtime = 'edge'
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context
