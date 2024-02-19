@@ -1,10 +1,12 @@
 import { Buffer } from 'node:buffer'
-import { resolve } from 'node:path'
+import { detect } from 'detect-browser'
+// TODO: maybe write our own "modern" universal path (or resolve) module.
+// We are not using `node:path` to remain compatible with Edge runtimes.
+import { default as p } from 'path-browserify'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
-import { UAParser } from 'ua-parser-js'
 
 import {
   type FrameContext,
@@ -271,15 +273,15 @@ export class FarcBase<
 
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
-      const browser = new UAParser(c.req.header('user-agent')).getBrowser()
+      const browser = detect(c.req.header('user-agent'))
       const browserLocation_ = browserLocation
         ?.replace(':path', path.replace(/(^\/)|(\/$)/, ''))
-        .replace('//', '/')
-      if (browser.name && browserLocation_)
+        .replace(/^\/\//, '/')
+      if (browser?.name && browserLocation_)
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
-            : `${url.origin + resolve(this.basePath, browserLocation_)}`,
+            : `${url.origin + p.resolve(this.basePath, browserLocation_)}`,
           302,
         )
 
