@@ -13,10 +13,10 @@ import {
   type PreviewProps,
   Scripts,
   Styles,
+  QRCode,
 } from './components.js'
 import {
   fetchFrame,
-  generateMatrix,
   getCodeHtml,
   getImageSize,
   getRoutes,
@@ -310,97 +310,17 @@ export function routes<
         token: string
       }
 
-      // 4. Generate QR code matrix for deeplink
-      const matrix = generateMatrix(
-        response.result.signedKeyRequest.deeplinkUrl,
-        'H',
+      // 4. Return QR code matrix for deeplink
+      const rendered = await c.render(
+        <QRCode url={response.result.signedKeyRequest.deeplinkUrl} />,
       )
-
-      const logoMargin = 10
-      const logoSize = 50
-      const size = 200
-
-      const dots = []
-      const cellSize = size / matrix.length
-      const qrList = [
-        { x: 0, y: 0 },
-        { x: 1, y: 0 },
-        { x: 0, y: 1 },
-      ] as const
-      for (const item of qrList) {
-        const x1 = (matrix.length - 7) * cellSize * item.x
-        const y1 = (matrix.length - 7) * cellSize * item.y
-        for (let i = 0; i < 3; i++) {
-          const fill = i % 2 !== 0 ? 'white' : 'black'
-          const height = cellSize * (7 - i * 2)
-          const rx = (i - 2) * -5 + (i === 0 ? 2 : 0)
-          const ry = (i - 2) * -5 + (i === 0 ? 2 : 0)
-          const width = cellSize * (7 - i * 2)
-          const x = x1 + cellSize * i
-          const y = y1 + cellSize * i
-          const props = { fill, height, rx, ry, width, x, y }
-          const dot = <rect {...props} />
-          dots.push(dot)
-        }
-      }
-
-      const clearArenaSize = Math.floor((logoSize + logoMargin * 2) / cellSize)
-      const matrixMiddleStart = matrix.length / 2 - clearArenaSize / 2
-      const matrixMiddleEnd = matrix.length / 2 + clearArenaSize / 2 - 1
-
-      for (let i = 0; i < matrix.length; i++) {
-        const row = matrix[i]
-        for (let j = 0; j < row.length; j++) {
-          if (matrix[i][j]) {
-            if (
-              !(
-                (i < 7 && j < 7) ||
-                (i > matrix.length - 8 && j < 7) ||
-                (i < 7 && j > matrix.length - 8)
-              )
-            ) {
-              if (
-                !(
-                  i > matrixMiddleStart &&
-                  i < matrixMiddleEnd &&
-                  j > matrixMiddleStart &&
-                  j < matrixMiddleEnd
-                )
-              ) {
-                const cx = i * cellSize + cellSize / 2
-                const cy = j * cellSize + cellSize / 2
-                const r = cellSize / 3
-                const props = { cx, cy, r }
-                dots.push(<circle {...props} fill="black" />)
-              }
-            }
-          }
-        }
-      }
-
-      // const logoPosition = size / 2 - logoSize / 2
-      const logoWrapperSize = logoSize + logoMargin * 2
-
-      console.log({ response })
-      console.log(response.result.signedKeyRequest)
-      console.log(matrix)
+      const code = await rendered.text()
 
       // TODO: Add keys to secure cookie
-      return c.render(
-        <svg height={size} style={{ all: 'revert' }} width={size}>
-          <title>QR Code</title>
-          <defs>
-            <clipPath id="clip-wrapper">
-              <rect height={logoWrapperSize} width={logoWrapperSize} />
-            </clipPath>
-            <clipPath id="clip-logo">
-              <rect height={logoSize} width={logoSize} />
-            </clipPath>
-          </defs>
-          <rect fill="transparent" height={size} width={size} />
-          {dots}
-        </svg>,
-      )
+      return c.json({
+        code,
+        url: response.result.signedKeyRequest.deeplinkUrl,
+      })
     })
 }
 

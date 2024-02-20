@@ -10,7 +10,6 @@ import { Window } from 'happy-dom'
 import { type Context } from 'hono'
 import { inspectRoutes } from 'hono/dev'
 import { createCssVariablesTheme, getHighlighter } from 'shiki'
-import QRCodeUtil from 'qrcode'
 
 import {
   type FrameContext,
@@ -378,22 +377,4 @@ export async function fetchFrame({
   const t1 = performance.now()
   const speed = t1 - t0
   return { response, speed }
-}
-
-export function generateMatrix(
-  value: string,
-  errorCorrectionLevel: QRCodeUtil.QRCodeErrorCorrectionLevel,
-) {
-  const arr = Array.prototype.slice.call(
-    QRCodeUtil.create(value, { errorCorrectionLevel }).modules.data,
-    0,
-  )
-  const sqrt = Math.sqrt(arr.length)
-  return arr.reduce(
-    (rows, key, index) =>
-      (index % sqrt === 0
-        ? rows.push([key])
-        : rows[rows.length - 1].push(key)) && rows,
-    [],
-  )
 }

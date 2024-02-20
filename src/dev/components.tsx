@@ -2,6 +2,7 @@ import {
   checkCircledIcon,
   chevronLeftIcon,
   chevronRightIcon,
+  cross1Icon,
   crossCircledIcon,
   externalLinkIcon,
   farcasterIcon,
@@ -83,20 +84,20 @@ export function Preview(props: PreviewProps) {
             props,
           )}]
         },
-        data: $persist({
+        data: {
           baseUrl: '${baseUrl}',
           contextHtml: ${JSON.stringify(contextHtml)},
           frame: ${JSON.stringify(frame)},
           request: ${JSON.stringify(request)},
           routes: ${JSON.stringify(routes)},
           state: ${JSON.stringify(state)},
-        }).using(sessionStorage),
+        },
 
-        history: $persist([]).using(sessionStorage),
-        id: $persist(-1).using(sessionStorage),
-        inputText: $persist('').using(sessionStorage),
-        logs: $persist([]).using(sessionStorage),
-        selectedLogIndex: $persist(-1).using(sessionStorage),
+        history: [],
+        id: -1,
+        inputText: '',
+        logs: [],
+        selectedLogIndex: -1,
 
         get baseUrl() { return this.data.baseUrl },
         get frame() { return this.data.frame },
@@ -200,7 +201,7 @@ export function Preview(props: PreviewProps) {
               style={{ borderLeft: '0', borderRight: '0', borderTop: '0' }}
             >
               <button type="button" class="bg-transparent py-3 text-gray-700">
-                Request & Response
+                Request
               </button>
               <button
                 type="button"
@@ -327,8 +328,8 @@ function Navigator() {
           </div>
           <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
             <span
-              class="font-sans text-sm text-gray-1000"
-              style={{ lineHeight: '1.85rem' }}
+              class="font-sans text-gray-1000"
+              style={{ lineHeight: '1.9rem', fontSize: '13px' }}
               x-text="formatUrl(state.context.url)"
             />
           </div>
@@ -381,7 +382,7 @@ function Navigator() {
           class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
           x-on:click="open = true"
         >
-          {farcasterIcon}
+          <div style={{ height: '30px', width: '30px' }}>{farcasterIcon}</div>
         </button>
         <FarcasterDialog />
       </div>
@@ -473,7 +474,7 @@ function Input() {
 
 function Button() {
   const buttonClass =
-    'bg-gray-100 border-gray-300 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
+    'bg-gray-100 border-gray-200 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
   const innerHtml = (
     <span
       class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-1000 font-medium"
@@ -531,7 +532,7 @@ function Button() {
         get target() { return button.target },
         get title() { return button.title },
         get type() { return button.type },
-        get url() { return button.type === 'link' && button.target ? button.target : undefined },
+        url: button.type === 'link' && button.target ? button.target : undefined,
       }`}
     >
       <template x-if="type === 'link'">
@@ -784,7 +785,9 @@ function FarcasterDialog() {
         }}
         x-show="open"
         x-data="{
-          dots: undefined,
+          code: undefined,
+          copied: false,
+          url: undefined,
         }"
         x-init="
           $watch('open', async (open) => {
@@ -795,35 +798,216 @@ function FarcasterDialog() {
                 'Content-Type': 'application/json',
               },
             })
-            const html = await response.text()
-            dots = html
+            const json = await response.json()
+            code = json.code
+            url = json.url
           })
         "
       >
         <div
-          class="bg-background-100 flex flex-col scrollbars border rounded-md p-6 w-full border-gray-100"
-          style={{ maxWidth: '450px' }}
+          class="bg-background-100 relative flex flex-col gap-4 scrollbars p-6 border-gray-alpha-100 border"
+          style={{ borderRadius: '1.5rem' }}
           {...{
             '@click.outside': 'open = false',
             '@keyup.escape': 'open = false',
             'x-trap.noscroll': 'open',
           }}
         >
-          <button type="button" x-on:click="open = false">
-            Close
+          <button
+            type="button"
+            class="bg-transparent text-gray-800 hover:bg-gray-100 rounded-full flex items-center justify-center"
+            style={{
+              position: 'absolute',
+              height: '2rem',
+              width: '2rem',
+              top: '1.25rem',
+              right: '1rem',
+            }}
+            x-on:click="open = false"
+          >
+            <span class="sr-only"> Close</span>
+            {cross1Icon}
           </button>
-          <h1>Sign in with Farcaster</h1>
-          <p>Scan with your phone's camera to continue.</p>
+          <h1 class="text-base font-bold text-gray-1000 text-center">
+            Scan with Phone
+          </h1>
+          <p
+            class="text-sm text-gray-700 leading-snug text-center"
+            style={{ maxWidth: '17rem' }}
+          >
+            Scan with your phone's camera to sign in with your Farcaster
+            account.
+          </p>
 
           <div
-            class="border p-6 rounded-md"
-            style={{ backgroundColor: 'white' }}
-          >
-            <div style={{ userSelect: 'none' }} x-html="dots" />
-          </div>
+            x-html={`code ?? '<div class="border border-gray-100" style="border-radius:1.5rem;height:276px;width:276px;" />'`}
+          />
+
+          <button
+            type="button"
+            class="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1"
+            x-on:click="
+              if (copied) return
+              navigator.clipboard.writeText(url)
+              copied = true
+              setTimeout(() => copied = false, 2000)
+            "
+            x-text="copied ? 'Copied!' : 'Copy to Clipboard'"
+          />
         </div>
       </div>
     </template>
+  )
+}
+
+type QRCodeProps = {
+  url: string
+}
+
+export async function QRCode(props: QRCodeProps) {
+  const { url } = props
+
+  // 1. Create QR code
+  const { create } = await import('qrcode')
+  const arr = Array.prototype.slice.call(
+    create(url, { errorCorrectionLevel: 'H' }).modules.data,
+    0,
+  )
+  const sqrt = Math.sqrt(arr.length)
+  const matrix = arr.reduce(
+    (rows, key, index) =>
+      (index % sqrt === 0
+        ? rows.push([key])
+        : rows[rows.length - 1].push(key)) && rows,
+    [],
+  )
+
+  // 2. Add corners
+  const logoMargin = 10
+  const logoSize = 60
+  const size = 250
+
+  const dots = []
+  const cellSize = size / matrix.length
+  const qrList = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+  ] as const
+  for (const item of qrList) {
+    const x1 = (matrix.length - 7) * cellSize * item.x
+    const y1 = (matrix.length - 7) * cellSize * item.y
+    for (let i = 0; i < 3; i++) {
+      const className = i % 2 !== 0 ? 'light' : 'dark'
+      const height = cellSize * (7 - i * 2)
+      const rx = (i - 2) * -5 + (i === 0 ? 2 : 0)
+      const ry = (i - 2) * -5 + (i === 0 ? 2 : 0)
+      const width = cellSize * (7 - i * 2)
+      const x = x1 + cellSize * i
+      const y = y1 + cellSize * i
+      const props = { class: className, height, rx, ry, width, x, y }
+      const dot = <rect {...props} />
+      dots.push(dot)
+    }
+  }
+
+  // 3. Add dots
+  const clearArenaSize = Math.floor((logoSize + logoMargin * 2) / cellSize)
+  const matrixMiddleStart = matrix.length / 2 - clearArenaSize / 2
+  const matrixMiddleEnd = matrix.length / 2 + clearArenaSize / 2 - 1
+
+  for (let i = 0; i < matrix.length; i++) {
+    const row = matrix[i]
+    for (let j = 0; j < row.length; j++) {
+      if (matrix[i][j]) {
+        if (
+          !(
+            (i < 7 && j < 7) ||
+            (i > matrix.length - 8 && j < 7) ||
+            (i < 7 && j > matrix.length - 8)
+          )
+        ) {
+          if (
+            !(
+              i > matrixMiddleStart &&
+              i < matrixMiddleEnd &&
+              j > matrixMiddleStart &&
+              j < matrixMiddleEnd
+            )
+          ) {
+            const cx = i * cellSize + cellSize / 2
+            const cy = j * cellSize + cellSize / 2
+            const r = cellSize / 3
+            const props = { cx, cy, r }
+            dots.push(<circle {...props} class="dark" />)
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Render
+  const logoWrapperSize = logoSize + logoMargin * 2
+
+  return (
+    <div
+      class="border border-gray-100 p-3 w-fit"
+      style={{ borderRadius: '1.5rem' }}
+    >
+      <div
+        class="relative"
+        style={{
+          height: `${size}px`,
+          userSelect: 'none',
+          width: `${size}px`,
+        }}
+      >
+        <div
+          class="flex items-center justify-center"
+          style={{ inset: '0', position: 'absolute' }}
+        >
+          <div
+            class="flex items-center justify-center rounded-lg"
+            style={{
+              backgroundColor: '#7866BB',
+              color: 'white',
+              height: `${logoSize - logoMargin}px`,
+              width: `${logoSize - logoMargin}px`,
+            }}
+          >
+            {farcasterIcon}
+          </div>
+        </div>
+
+        <style
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{
+            __html: `
+              .dark { fill: white; }
+              .light { fill: black; }
+              @media (prefers-color-scheme: light) {
+                .dark { fill: black; }
+                .light { fill: white; }
+              }
+            `,
+          }}
+        />
+
+        <svg height={size} style={{ all: 'revert' }} width={size}>
+          <title>QR Code</title>
+          <defs>
+            <clipPath id="clip-wrapper">
+              <rect height={logoWrapperSize} width={logoWrapperSize} />
+            </clipPath>
+            <clipPath id="clip-logo">
+              <rect height={logoSize} width={logoSize} />
+            </clipPath>
+          </defs>
+          <rect fill="transparent" height={size} width={size} />
+          {dots}
+        </svg>
+      </div>
+    </div>
   )
 }
 
@@ -1423,7 +1607,7 @@ export function Styles() {
       box-sizing: border-box;
       border-width: 0;
       border-style: solid;
-      border-color: var(--gray-alpha-200);
+      border-color: var(--gray-200);
     }
 
     ::selection {
@@ -1602,6 +1786,7 @@ export function Styles() {
     .justify-center { justify-content: center; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
     .mx-4 { margin-left: 1rem; margin-right: 1rem; }
     .mt-1 { margin-top: 0.25rem; }
     .mt-1\\.5 { margin-top: 0.375rem; }
@@ -1631,9 +1816,11 @@ export function Styles() {
     .pt-6 { padding-top: 1.5rem; }
     .p-6 { padding: 1.5rem; }
     .relative { position: relative; }
+    .rounded-full { border-radius: 9999px; }
     .rounded-bl-md { border-bottom-left-radius: 0.375rem; }
     .rounded-br-md { border-bottom-right-radius: 0.375rem; }
     .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
     .rounded-md { border-radius: 0.375rem; }
     .rounded-sm { border-radius: 0.25rem; }
     .rounded-l-md { border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; }

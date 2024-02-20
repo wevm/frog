@@ -42,7 +42,6 @@
     "hono": "^4"
   },
   "dependencies": {
-    "@farcaster/auth-client": "^0.1.0",
     "@farcaster/core": "^0.13.7",
     "@noble/curves": "^1.3.0",
     "@wevm/hono-vite-dev-server": "0.6.0-0",
