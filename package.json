@@ -9,6 +9,7 @@
     "changeset:version": "changeset version && pnpm install --lockfile-only",
     "clean": "rimraf src/_lib src/tsconfig.build.tsbuildinfo",
     "create-farc": "node --import tsx ./create-farc/bin.ts",
+    "docs:dev": "pnpm --filter site dev",
     "format": "biome format . --write",
     "lint": "biome check . --apply-unsafe",
     "postinstall": "pnpm build && pnpm preconstruct",
