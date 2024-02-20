@@ -26,6 +26,7 @@ const html = `
 
   <meta property="fc:frame:image" content="http://example.com/image">
   <meta property="fc:frame:post_url" content="http://localhost:3001">
+  <meta property="fc:frame:state" content="frog">
   <meta property="og:image" content="https://example.com/og">
 `
 const selector = 'meta[property^="fc:"], meta[property^="og:"]'
@@ -49,6 +50,7 @@ test('parseFrameProperties', () => {
     imageUrl: 'http://example.com/image',
     input: undefined,
     postUrl: 'http://localhost:3001',
+    state: 'frog',
     title: '',
     version: 'vNext',
   })
