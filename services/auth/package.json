@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {
+    "hono": "^4.0.5",
+    "viem": "^2.7.10"
+  },
+  "devDependencies": {
+    "vercel": "^32.4.1"
+  }
+}

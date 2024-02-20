@@ -97,6 +97,19 @@ importers:
         specifier: ^4.7.1
         version: 4.7.1
 
+  services/auth:
+    dependencies:
+      hono:
+        specifier: ^4.0.5
+        version: 4.0.5
+      viem:
+        specifier: ^2.7.10
+        version: 2.7.11(typescript@5.3.3)
+    devDependencies:
+      vercel:
+        specifier: ^32.4.1
+        version: 32.7.2
+
   site:
     dependencies:
       '@types/react':
@@ -5244,6 +5257,11 @@ packages:
   /hono@4.0.4:
     resolution: {integrity: sha512-WIwMh3b9TrtcdGpJ9ljA74bK/njL6f9S0nH3eBIKVAudnuHDqyVi4k0P8etD9HVU3xu74a9KBg3xA6UlXGEIZg==}
     engines: {node: '>=16.0.0'}
+
+  /hono@4.0.5:
+    resolution: {integrity: sha512-6LEGL1Pf3+dLjVA0NJxAB/3FJ6S3W5qxd/XOG7Wl9YOrpMRZT9lt83R4Ojs8dO6GbAUSutI7zTyjStnSn9sbEg==}
+    engines: {node: '>=16.0.0'}
+    dev: false
 
   /hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}

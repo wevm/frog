@@ -14,6 +14,7 @@ app.frame('/', (context) => {
     action: '/action',
     image: (
       <div
+        tw="flex"
         style={{
           alignItems: 'center',
           background:
@@ -21,7 +22,6 @@ app.frame('/', (context) => {
               ? 'linear-gradient(to right, #432889, #17101F)'
               : 'black',
           backgroundSize: '100% 100%',
-          display: 'flex',
           flexDirection: 'column',
           flexWrap: 'nowrap',
           height: '100%',

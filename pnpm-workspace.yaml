@@ -1,6 +1,7 @@
 packages:
   - 'create-frog'
   - 'playground'
+  - 'services/*'
   - 'site'
   - 'src'
   - 'templates/*'
