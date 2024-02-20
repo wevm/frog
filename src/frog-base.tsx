@@ -112,13 +112,13 @@ export type FrogConstructorParameters<
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
    * - When `true`, the frame will go through verification and throw an error if it fails.
-   * - When `false`, the frame will not go through verification.
-   * - When `undefined`, the frame will go through verification, but not throw an error if it fails.
+   * - When `"silent"`, the frame will go through verification, but not throw an error if it fails.
    * Instead, the frame will receive `verified: false` in its context.
+   * - When `false`, the frame will not go through verification.
    *
    * @default true.
    */
-  verify?: boolean | undefined
+  verify?: boolean | 'silent' | undefined
 }
 
 export type FrameOptions = Pick<FrogConstructorParameters, 'verify'>
@@ -209,9 +209,8 @@ export class FrogBase<
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   secret: string | undefined
-  // TODO: default to `true` once devtools has auth.
   /** Whether or not frames should be verified. */
-  verify: boolean = process.env.NODE_ENV !== 'development'
+  verify: FrogConstructorParameters['verify'] = true
 
   constructor({
     basePath,

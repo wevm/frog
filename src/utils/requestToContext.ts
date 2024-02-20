@@ -1,4 +1,5 @@
 import { type Context } from 'hono'
+import type { FrogConstructorParameters } from '../frog-base.js'
 import { type FrameContext } from '../types.js'
 import { deserializeJson } from './deserializeJson.js'
 import { parsePath } from './parsePath.js'
@@ -6,7 +7,7 @@ import { verifyFrame } from './verifyFrame.js'
 
 type RequestToContextOptions = {
   hubApiUrl: string
-  verify?: boolean
+  verify?: FrogConstructorParameters['verify']
 }
 
 type RequestToContextReturnType<state = unknown> = Pick<
@@ -30,17 +31,21 @@ export async function requestToContext<state>(
     ? deserializeJson(untrustedData.state)
     : ({} as any)
 
-  const message = await (() => {
-    if (!verify) return
-    if (!trustedData) return
-    return verifyFrame({
-      hubApiUrl,
-      frameUrl: untrustedData.url,
-      trustedData,
-      url: request.url,
-    }).catch((err) => {
-      if (verify) throw err
-    })
+  const verified = await (async () => {
+    if (verify === false) return false
+    if (!trustedData) return false
+    try {
+      await verifyFrame({
+        hubApiUrl,
+        frameUrl: untrustedData.url,
+        trustedData,
+        url: request.url,
+      })
+      return true
+    } catch (err) {
+      if (verify === 'silent') return false
+      throw err
+    }
   })()
 
   return {
@@ -50,6 +55,6 @@ export async function requestToContext<state>(
     frameData: untrustedData,
     status: request.method === 'POST' ? 'response' : 'initial',
     url: request.url,
-    verified: Boolean(message),
+    verified,
   }
 }
