@@ -4,6 +4,7 @@ import { app as todoApp } from './todos.js'
 
 export const app = new Farc({
   browserLocation: '/:path/dev',
+  secret: process.env.SECRET,
   verify: false,
 })
 

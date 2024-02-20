@@ -4,17 +4,19 @@ import { inspectRoutes } from 'hono/dev'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
-
+import { setSignedCookie, setCookie } from 'hono/cookie'
+import { type CookieOptions } from 'hono/utils/cookie'
 import { bytesToHex } from '@noble/curves/abstract/utils'
+
 import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
 import {
   Fonts,
   Preview,
   type PreviewProps,
+  QRCode,
   Scripts,
   Styles,
-  QRCode,
 } from './components.js'
 import {
   fetchFrame,
@@ -23,8 +25,15 @@ import {
   getRoutes,
   htmlToFrame,
   htmlToState,
-  validatePostBody,
+  validateFramePostBody,
 } from './utils.js'
+import { type SignedKeyRequest } from './types.js'
+
+// TODO: Lock down options
+const cookieOptions = {
+  secure: true,
+  sameSite: 'Strict',
+} as CookieOptions
 
 export function routes<
   state,
@@ -147,7 +156,7 @@ export function routes<
     })
     .post(
       `${parsePath(path)}/dev/frame/action`,
-      validator('json', validatePostBody),
+      validator('json', validateFramePostBody),
       async (c) => {
         const baseUrl = c.req.url.replace('/dev/frame/action', '')
         const json = c.req.valid('json')
@@ -207,7 +216,7 @@ export function routes<
     )
     .post(
       `${parsePath(path)}/dev/frame/redirect`,
-      validator('json', validatePostBody),
+      validator('json', validateFramePostBody),
       async (c) => {
         const baseUrl = c.req.url.replace('/dev/frame/redirect', '')
         const json = c.req.valid('json')
@@ -244,20 +253,21 @@ export function routes<
       },
     )
     .get(`${parsePath(path)}/dev/frame/auth/code`, async (c) => {
-      // TODO: Configure
+      // TODO: Add to configuration options
       const fid = process.env.APP_FID
       const mnemonic = process.env.APP_MNEMONIC
       if (!fid || !mnemonic) throw new Error('Missing APP_FID or APP_MNEMONIC')
-      const app = { fid, mnemonic } as const
+      const request = { fid, mnemonic } as const
 
       // 1. Create keypair
       const privateKeyBytes = ed25519.utils.randomPrivateKey()
       const publicKeyBytes = ed25519.getPublicKey(privateKeyBytes)
-      // const privateKey = `0x${bytesToHex(privateKeyBytes)}`
+      const privateKey = `0x${bytesToHex(privateKeyBytes)}`
       const publicKey = `0x${bytesToHex(publicKeyBytes)}` as const
 
       // 2. Sign key request
-      const account = mnemonicToAccount(app.mnemonic)
+      // TODO: Sign via API by default if user does not provide mnemonic
+      const account = mnemonicToAccount(request.mnemonic)
       const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
       const signature = await account.signTypedData({
         domain: {
@@ -275,7 +285,7 @@ export function routes<
         },
         primaryType: 'SignedKeyRequest',
         message: {
-          requestFid: BigInt(app.fid),
+          requestFid: BigInt(request.fid),
           key: publicKey,
           deadline: BigInt(deadline),
         },
@@ -292,7 +302,7 @@ export function routes<
           body: JSON.stringify({
             deadline,
             key: publicKey,
-            requestFid: app.fid,
+            requestFid: request.fid,
             signature,
           }),
         },
@@ -302,31 +312,81 @@ export function routes<
             result: { signedKeyRequest: SignedKeyRequest }
           }>,
       )
-      type SignedKeyRequest = {
-        deeplinkUrl: string
-        key: string
-        requestFid: number
-        state: string
-        token: string
-      }
+
+      const { token, deeplinkUrl: url } = response.result.signedKeyRequest
 
       // 4. Return QR code matrix for deeplink
-      const rendered = await c.render(
-        <QRCode url={response.result.signedKeyRequest.deeplinkUrl} />,
-      )
+      const rendered = await c.render(<QRCode url={url} />)
       const code = await rendered.text()
 
-      // TODO: Add keys to secure cookie
-      return c.json({
-        code,
-        url: response.result.signedKeyRequest.deeplinkUrl,
-      })
+      // TODO: Should `app.secret` be required?
+      {
+        const value = JSON.stringify({ privateKey, publicKey })
+        if (app.secret)
+          await setSignedCookie(c, 'session', value, app.secret, cookieOptions)
+        else setCookie(c, 'session', value, cookieOptions)
+      }
+
+      return c.json({ code, token, url })
+    })
+    .get(`${parsePath(path)}/dev/frame/auth/status/:token`, async (c) => {
+      // @ts-ignore TODO: Fix inference on path param
+      const token = c.req.param('token') as string
+      const response = await fetch(
+        `https://api.warpcast.com/v2/signed-key-request?token=${token}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      ).then(
+        (response) =>
+          response.json() as Promise<{
+            result: { signedKeyRequest: SignedKeyRequest }
+          }>,
+      )
+      const { state = 'pending', userFid } =
+        response.result?.signedKeyRequest ?? {}
+
+      if (state === 'completed') {
+        const response = await fetch(
+          `${app.hubApiUrl}/v1/userDataByFid?fid=${userFid}`,
+        ).then(
+          (response) =>
+            response.json() as Promise<{
+              messages: {
+                data: {
+                  type: 'MESSAGE_TYPE_USER_DATA_ADD'
+                  userDataBody: {
+                    type: 'USER_DATA_TYPE_PFP' | 'USER_DATA_TYPE_USERNAME'
+                    value: string
+                  }
+                }
+              }[]
+            }>,
+        )
+
+        const pfp = response.messages.find(
+          (message) =>
+            message.data.type === 'MESSAGE_TYPE_USER_DATA_ADD' &&
+            message.data.userDataBody.type === 'USER_DATA_TYPE_PFP',
+        )?.data.userDataBody.value
+        const username = response.messages.find(
+          (message) =>
+            message.data.type === 'MESSAGE_TYPE_USER_DATA_ADD' &&
+            message.data.userDataBody.type === 'USER_DATA_TYPE_USERNAME',
+        )?.data.userDataBody.value
+
+        setCookie(
+          c,
+          'user',
+          JSON.stringify({ userFid, pfp, username }),
+          cookieOptions,
+        )
+        return c.json({ state, userFid, pfp, token, username })
+      }
+
+      return c.json({ state })
     })
 }
-
-// const { response: statusResponse, data: statusData } = await appClient.status({
-//   channelToken: createChannelData.channelToken,
-// })
-// if (statusResponse.status !== 202)
-//   throw new Error(`error status: ${statusResponse.statusText}`)
-// console.log('status', statusData.state)

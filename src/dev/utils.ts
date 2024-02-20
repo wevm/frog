@@ -289,7 +289,7 @@ export async function getImageSize(url: string) {
   return blob.size
 }
 
-export function validatePostBody(
+export function validateFramePostBody(
   value: Record<string, string | File>,
   c: Context,
 ) {

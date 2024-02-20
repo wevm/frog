@@ -83,6 +83,15 @@ export function Preview(props: PreviewProps) {
           if (!this.logs || this.logs.length === 0) this.logs = [${JSON.stringify(
             props,
           )}]
+
+          if (this.user && this.user.token)
+            this.fetchAuthStatus(this.user.token)
+              .then((data) => {
+                if (data.state !== 'completed') return
+                const { state: _, ...rest } = data
+                this.user = rest
+              })
+              .catch(console.log)
         },
         data: {
           baseUrl: '${baseUrl}',
@@ -98,6 +107,7 @@ export function Preview(props: PreviewProps) {
         inputText: '',
         logs: [],
         selectedLogIndex: -1,
+        user: $persist(null),
 
         get baseUrl() { return this.data.baseUrl },
         get frame() { return this.data.frame },
@@ -145,6 +155,26 @@ export function Preview(props: PreviewProps) {
           const json = await response.json()
           this.logs = [...this.logs, { ...this.logs.at(-1), request: json }]
           this.selectedLogIndex = -1
+          return json
+        },
+        async fetchAuthCode() {
+          const response = await fetch(this.baseUrl + '/dev/frame/auth/code', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          return json
+        },
+        async fetchAuthStatus(token) {
+          const response = await fetch(this.baseUrl + '/dev/frame/auth/status/' + token, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
           return json
         },
 
@@ -376,16 +406,32 @@ function Navigator() {
         </div>
       </div>
 
-      <div style={{ display: 'contents' }} x-data="{ open: false }">
+      <template x-if="user">
+        {/* TODO: Dropdown to log out and view connected account info */}
         <button
           type="button"
           class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-          x-on:click="open = true"
+          x-on:click="user = null"
         >
-          <div style={{ height: '30px', width: '30px' }}>{farcasterIcon}</div>
+          <img
+            {...{ ':src': 'user.pfp' }}
+            style={{ height: '30px', width: '30px' }}
+          />
         </button>
-        <FarcasterDialog />
-      </div>
+      </template>
+
+      <template x-if="!user">
+        <div style={{ display: 'contents' }} x-data="{ open: false }">
+          <button
+            type="button"
+            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+            x-on:click="open = true"
+          >
+            <div style={{ height: '30px', width: '30px' }}>{farcasterIcon}</div>
+          </button>
+          <FarcasterDialog />
+        </div>
+      </template>
     </div>
   )
 }
@@ -787,20 +833,42 @@ function FarcasterDialog() {
         x-data="{
           code: undefined,
           copied: false,
+          timedOut: false,
           url: undefined,
+
+          async auth() {
+            this.timedOut = false
+            const data = await fetchAuthCode()
+            this.code = data.code
+            this.token = data.token
+            this.url = data.url
+
+            const timeout = 300_000
+            const interval = 1_500
+            const deadline = Date.now() + timeout
+
+            while (Date.now() < deadline) {
+              // Stop polling if dialog is closed
+              if (!this.open) return
+
+              const data = await fetchAuthStatus(token)
+              if (data.state === 'completed') {
+                const { state: _, ...rest } = data
+                user = rest
+                this.open = false
+                return
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, interval))
+            }
+
+            this.timedOut = true
+          },
         }"
         x-init="
           $watch('open', async (open) => {
             if (!open) return
-            const response = await fetch(baseUrl + '/dev/frame/auth/code', {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            })
-            const json = await response.json()
-            code = json.code
-            url = json.url
+            auth()
           })
         "
       >
@@ -839,9 +907,30 @@ function FarcasterDialog() {
             account.
           </p>
 
-          <div
-            x-html={`code ?? '<div class="border border-gray-100" style="border-radius:1.5rem;height:276px;width:276px;" />'`}
-          />
+          <div class="relative">
+            <div
+              x-html={`code ?? '<div class="border border-gray-100" style="border-radius:1.5rem;height:276px;width:276px;" />'`}
+              {...{ ':style': "timedOut && { opacity: '0.1' }" }}
+            />
+            {/* TODO: A11y to notify of live region */}
+            <div
+              class="flex items-center justify-center flex-col gap-4"
+              style={{
+                position: 'absolute',
+                inset: '0',
+              }}
+              x-show="timedOut"
+            >
+              <div class="font-medium text-gray-1000">Code timed out</div>
+              <button
+                class="bg-gray-1000 border border-gray-200 py-2 px-4 text-gray-100 font-medium text-sm rounded-md"
+                type="button"
+                x-on:click="auth()"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
 
           <button
             type="button"
@@ -853,6 +942,10 @@ function FarcasterDialog() {
               setTimeout(() => copied = false, 2000)
             "
             x-text="copied ? 'Copied!' : 'Copy to Clipboard'"
+            {...{
+              ':disabled': 'timedOut',
+              ':style': "timedOut && { opacity: '0.4' }",
+            }}
           />
         </div>
       </div>
@@ -978,20 +1071,6 @@ export async function QRCode(props: QRCodeProps) {
             {farcasterIcon}
           </div>
         </div>
-
-        <style
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-          dangerouslySetInnerHTML={{
-            __html: `
-              .dark { fill: white; }
-              .light { fill: black; }
-              @media (prefers-color-scheme: light) {
-                .dark { fill: black; }
-                .light { fill: white; }
-              }
-            `,
-          }}
-        />
 
         <svg height={size} style={{ all: 'revert' }} width={size}>
           <title>QR Code</title>
@@ -1935,7 +2014,15 @@ export function Styles() {
         min-width: 350px;
       }
     }
+
+    .dark { fill: white; }
+    .light { fill: black; }
+    @media (prefers-color-scheme: light) {
+      .dark { fill: black; }
+      .light { fill: white; }
+    }
   `
+
   // biome-ignore lint/security/noDangerouslySetInnerHtml:
   return <style dangerouslySetInnerHTML={{ __html: styles }} />
 }
