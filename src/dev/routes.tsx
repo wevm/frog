@@ -2,6 +2,7 @@ import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { type Env, type Schema } from 'hono'
 import {
+  deleteCookie,
   getCookie,
   getSignedCookie,
   setCookie,
