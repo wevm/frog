@@ -6,11 +6,10 @@
     "dev": "farc dev"
   },
   "dependencies": {
-    "bun": "latest",
     "farc": "main",
     "hono": "^4"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "typescript": "latest"
   }
 }

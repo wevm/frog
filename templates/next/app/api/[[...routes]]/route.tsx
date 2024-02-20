@@ -1,11 +1,12 @@
+/** @jsxImportSource farc/jsx */
+
 import { Button, Farc, TextInput } from 'farc'
 import { handle } from 'farc/vercel'
 
-export const app = new Farc({ basePath: '/api' })
+const app = new Farc({ basePath: '/api' })
 
-export const config = {
-  // runtime: 'edge', // Uncomment to use Edge Runtime
-}
+// Uncomment to use Edge Runtime
+// export const runtime = 'edge'
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context

@@ -5,10 +5,22 @@ export default function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <p>
+            Get started by editing&nbsp;
+            <code className={styles.code}>app/page.tsx</code>
+          </p>
+          <p>
+            Head to{' '}
+            <a
+              href="/api/dev"
+              style={{ display: 'inline', fontWeight: 'semibold' }}
+            >
+              <code className={styles.code}>localhost:3000/api</code>
+            </a>{' '}
+            for your frame endpoint.
+          </p>
+        </div>
         <div>
           <a
             href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"

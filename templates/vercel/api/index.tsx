@@ -1,9 +1,10 @@
 import { Button, Farc, TextInput } from 'farc'
 import { handle } from 'farc/vercel'
 
-export const config = {
-  runtime: 'edge',
-}
+// Uncomment to use Edge Runtime.
+// export const config = {
+//   runtime: 'edge',
+// }
 
 export const app = new Farc({ basePath: '/api' })
 
