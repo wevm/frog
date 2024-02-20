@@ -1,12 +1,12 @@
-import { Button, Farc, TextInput } from 'farc'
-import { handle } from 'farc/vercel'
+import { Button, Frog, TextInput } from 'frog'
+import { handle } from 'frog/vercel'
 
 // Uncomment to use Edge Runtime.
 // export const config = {
 //   runtime: 'edge',
 // }
 
-export const app = new Farc({ basePath: '/api' })
+export const app = new Frog({ basePath: '/api' })
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context

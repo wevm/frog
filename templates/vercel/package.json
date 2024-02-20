@@ -2,12 +2,12 @@
   "name": "example-vercel-edge",
   "type": "module",
   "scripts": {
-    "build": "farc vercel-build",
-    "dev": "farc dev",
+    "build": "frog vercel-build",
+    "dev": "frog dev",
     "deploy": "vercel"
   },
   "dependencies": {
-    "farc": "~0.0.1",
+    "frog": "1.0.0-alpha.0",
     "hono": "^4.0.1"
   },
   "devDependencies": {

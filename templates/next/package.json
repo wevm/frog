@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "farc": "~0.0.1",
+    "frog": "1.0.0-alpha.0",
     "hono": "^4.0.1",
     "react": "^18",
     "react-dom": "^18",

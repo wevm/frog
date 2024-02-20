@@ -3,7 +3,7 @@ import { inspectRoutes } from 'hono/dev'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { validator } from 'hono/validator'
 
-import { type FarcBase } from '../farc-base.js'
+import type { FrogBase } from '../frog-base.js'
 import { parsePath } from '../utils/parsePath.js'
 import {
   Fonts,
@@ -27,7 +27,7 @@ export function routes<
   env extends Env,
   schema extends Schema,
   basePath extends string,
->(app: FarcBase<state, env, schema, basePath>, path: string) {
+>(app: FrogBase<state, env, schema, basePath>, path: string) {
   app.hono
     .use(`${parsePath(path)}/dev`, (c, next) =>
       jsxRenderer((props) => {

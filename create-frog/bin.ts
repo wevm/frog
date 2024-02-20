@@ -7,7 +7,7 @@ import { getTemplates } from './utils/getTemplates.js'
 const require = createRequire(import.meta.url)
 const pkg = require('../package.json')
 
-const cli = cac('create-farc')
+const cli = cac('create-frog')
 
 const templates = getTemplates()
 

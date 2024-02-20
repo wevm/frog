@@ -1,3 +1,3 @@
-# 𝑭𝒂𝒓𝒄
+# Frog 🐸
 
 The Framework for Farcaster Frames.

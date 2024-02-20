@@ -2,8 +2,8 @@
 
 ## Overview
 
-Farc is a framework built on top of [Hono](https://hono.dev) for building Farcaster Frames. 
-Farc enables you to build frames with [JSX](https://hono.dev/guides/jsx), and integrate it instantly to any platform (Next.js, Vercel, Cloudflare, etc).
+Frog is a framework built on top of [Hono](https://hono.dev) for building Farcaster Frames. 
+Frog enables you to build frames with [JSX](https://hono.dev/guides/jsx), and integrate it instantly to any platform (Next.js, Vercel, Cloudflare, etc).
 
 ## Quick Start
 
@@ -14,19 +14,19 @@ Scaffold a new project with the command line:
 :::code-group
 
 ```bash [npm]
-npm init farc
+npm init frog
 ```
 
 ```bash [pnpm]
-pnpm create farc
+pnpm create frog
 ```
 
 ```bash [yarn]
-yarn create farc
+yarn create frog
 ```
 
 ```bash [bun]
-bunx create-farc
+bunx create-frog
 ```
 
 :::
@@ -39,30 +39,30 @@ Scaffold a new project and deploy it instantly with Vercel:
 
 ## Manual Installation
 
-You can install Farc in an existing project, or start from scratch, by installing Farc as a dependency.
+You can install Frog in an existing project, or start from scratch, by installing Frog as a dependency.
 
 ::::steps
 
 ### Install
 
-First, we will install `farc` as a dependency in our project.
+First, we will install `frog` as a dependency in our project.
 
 :::code-group
 
 ```bash [npm]
-npm i farc
+npm i frog
 ```
 
 ```bash [pnpm]
-pnpm i farc
+pnpm i frog
 ```
 
 ```bash [yarn]
-yarn add farc
+yarn add frog
 ```
 
 ```bash [bun]
-bun i farc
+bun i frog
 ```
 
 :::
@@ -71,9 +71,9 @@ bun i farc
 
 
 ```tsx [src/frame.tsx]
-import { Button, Farc } from 'farc'
+import { Button, Frog } from 'frog'
 
-export const app = new Farc()
+export const app = new Frog()
 
 app.frame('/', context => {
   const { buttonValue, status } = context
@@ -105,10 +105,10 @@ After that, let's add a script to our `package.json` to serve our frame.
   "name": "example",
   "version": "0.0.0",
   "scripts": { 
-    "dev": "farc dev", // [!code focus]
+    "dev": "frog dev", // [!code focus]
   },
   "devDependencies": {
-    "farc": "latest"
+    "frog": "latest"
   }
 }
 ```
@@ -125,7 +125,7 @@ Then open up your browser to `http://localhost:5173/dev`, and you can see your f
 
 ### Next steps
 
-Now that you have your first frame up and running, you can check out Farc's [Concepts](#TODO) to learn more about
+Now that you have your first frame up and running, you can check out Frog's [Concepts](#TODO) to learn more about
 how to build, structure, and deploy your frames.
 
 ::::

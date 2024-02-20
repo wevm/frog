@@ -1,7 +1,8 @@
 import { defineConfig } from 'vocs'
 
 export default defineConfig({
-  title: 'Farc',
+  title: 'Frog',
+  rootDir: '.',
   sidebar: [
     {
       text: 'Getting Started',
@@ -50,10 +51,10 @@ export default defineConfig({
     {
       text: 'Reference',
       items: [
-        { text: 'Farc' },
-        { text: 'Farc.frame' },
-        { text: 'Farc.hono' },
-        { text: 'Farc.route' },
+        { text: 'Frog' },
+        { text: 'Frog.frame' },
+        { text: 'Frog.hono' },
+        { text: 'Frog.route' },
         { text: 'Intents' },
       ],
     },

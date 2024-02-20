@@ -1,9 +1,9 @@
-/** @jsxImportSource farc/jsx */
+/** @jsxImportSource frog/jsx */
 
-import { Button, Farc, TextInput } from 'farc'
-import { handle } from 'farc/vercel'
+import { Button, Frog, TextInput } from 'frog'
+import { handle } from 'frog/vercel'
 
-const app = new Farc({ basePath: '/api' })
+const app = new Frog({ basePath: '/api' })
 
 // Uncomment to use Edge Runtime
 // export const runtime = 'edge'

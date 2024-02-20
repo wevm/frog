@@ -18,10 +18,10 @@ import {
 } from '../types.js'
 import { deserializeJson } from '../utils/deserializeJson.js'
 import {
-  type FarcMetaTagPropertyName,
   type Frame,
   type FrameButton,
   type FrameMetaTagPropertyName,
+  type FrogMetaTagPropertyName,
 } from './types.js'
 
 export function htmlToMetaTags(html: string, selector: string) {
@@ -166,13 +166,13 @@ export type State = {
 }
 
 export function htmlToState(html: string) {
-  const metaTags = htmlToMetaTags(html, 'meta[property^="farc:"]')
+  const metaTags = htmlToMetaTags(html, 'meta[property^="frog:"]')
 
-  const properties: Partial<Record<FarcMetaTagPropertyName, string>> = {}
+  const properties: Partial<Record<FrogMetaTagPropertyName, string>> = {}
   for (const metaTag of metaTags) {
     const property = metaTag.getAttribute(
       'property',
-    ) as FarcMetaTagPropertyName | null
+    ) as FrogMetaTagPropertyName | null
     if (!property) continue
 
     const content = metaTag.getAttribute('content') ?? ''
@@ -180,7 +180,7 @@ export function htmlToState(html: string) {
   }
 
   return {
-    context: deserializeJson<FrameContext>(properties['farc:context']),
+    context: deserializeJson<FrameContext>(properties['frog:context']),
   }
 }
 

@@ -5,7 +5,7 @@ import { dev } from './commands/dev.js'
 import { build as build_vercel } from './commands/vercel-build.js'
 import { version } from './version.js'
 
-export const cli = cac('farc')
+export const cli = cac('frog')
 
 cli
   .command(

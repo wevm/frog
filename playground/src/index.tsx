@@ -1,8 +1,8 @@
-import { Button, Farc, TextInput } from 'farc'
+import { Button, Frog, TextInput } from 'frog'
 
 import { app as todoApp } from './todos.js'
 
-export const app = new Farc({
+export const app = new Frog({
   browserLocation: '/:path/dev',
   verify: false,
 })

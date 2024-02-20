@@ -66,4 +66,4 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
 
-export type FarcMetaTagPropertyName = 'farc:context' | 'farc:prev_context'
+export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'

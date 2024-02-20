@@ -1,12 +1,12 @@
 {
-  "name": "farc",
-  "version": "0.0.1",
+  "name": "frog",
+  "version": "1.0.0-alpha.0",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
   "typings": "_lib/index.d.ts",
   "bin": {
-    "farc": "./_lib/cli/index.js"
+    "frog": "./_lib/cli/index.js"
   },
   "sideEffects": false,
   "exports": {

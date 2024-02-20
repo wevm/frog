@@ -3,12 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "farc dev",
+    "dev": "frog dev",
     "wrangler:dev": "wrangler dev src/index.tsx",
     "wrangler:deploy": "wrangler deploy --minify src/index.tsx"
   },
   "dependencies": {
-    "farc": "~0.0.1",
+    "frog": "1.0.0-alpha.0",
     "hono": "^4"
   },
   "devDependencies": {

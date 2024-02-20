@@ -21,7 +21,7 @@ import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 
-export type FarcConstructorParameters<
+export type FrogConstructorParameters<
   state = undefined,
   env extends Env = Env,
   basePath extends string = '/',
@@ -117,10 +117,10 @@ export type FarcConstructorParameters<
   verify?: boolean | undefined
 }
 
-export type FrameOptions = Pick<FarcConstructorParameters, 'verify'>
+export type FrameOptions = Pick<FrogConstructorParameters, 'verify'>
 
 export type FrameHandlerReturnType = Pick<
-  FarcConstructorParameters,
+  FrogConstructorParameters,
   'browserLocation'
 > & {
   /**
@@ -156,16 +156,16 @@ export type FrameHandlerReturnType = Pick<
 }
 
 /**
- * A Farc instance.
+ * A Frog instance.
  *
- * @param parameters - {@link FarcConstructorParameters}
- * @returns instance. {@link FarcBase}
+ * @param parameters - {@link FrogConstructorParameters}
+ * @returns instance. {@link FrogBase}
  *
  * @example
  * ```
- * import { Farc } from 'farc'
+ * import { Frog } from 'frog'
  *
- * const app = new Farc()
+ * const app = new Frog()
  *
  * app.frame('/', (context) => {
  *   const { buttonValue, inputText, status } = context
@@ -185,7 +185,7 @@ export type FrameHandlerReturnType = Pick<
  * })
  * ```
  */
-export class FarcBase<
+export class FrogBase<
   state = undefined,
   env extends Env = Env,
   schema extends Schema = {},
@@ -215,7 +215,7 @@ export class FarcBase<
     hubApiUrl,
     initialState,
     verify,
-  }: FarcConstructorParameters<state, env, basePath> = {}) {
+  }: FrogConstructorParameters<state, env, basePath> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
@@ -330,7 +330,7 @@ export class FarcBase<
             <meta property="fc:frame:state" content={nextFrameState} />
             {parsedIntents}
 
-            <meta property="farc:context" content={serializeJson(context)} />
+            <meta property="frog:context" content={serializeJson(context)} />
           </head>
           <body
             style={{
@@ -367,7 +367,7 @@ export class FarcBase<
     subEnv extends Env,
     subSchema extends Schema,
     subBasePath extends string,
-  >(path: subPath, farc: FarcBase<any, subEnv, subSchema, subBasePath>) {
-    return this.hono.route(path, farc.hono)
+  >(path: subPath, frog: FrogBase<any, subEnv, subSchema, subBasePath>) {
+    return this.hono.route(path, frog.hono)
   }
 }

@@ -8,13 +8,13 @@ import { getTemplates } from './utils/getTemplates.js'
 export type CreateParameters = { name: string; template: string }
 
 export async function create(params: CreateParameters) {
-  intro('Welcome to Farc!')
+  intro('Welcome to Frog! 🐸')
 
   const displayName =
     params.name ||
     ((await text({
       message: 'Enter the name of your project',
-      placeholder: 'my-first-farc',
+      placeholder: 'my-first-frog',
       validate(value) {
         if (!value) return 'Please enter a name.'
         return

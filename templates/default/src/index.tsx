@@ -1,6 +1,6 @@
-import { Button, Farc, TextInput } from 'farc'
+import { Button, Frog, TextInput } from 'frog'
 
-export const app = new Farc()
+export const app = new Frog()
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context
