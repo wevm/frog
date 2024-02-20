@@ -1,10 +1,11 @@
+import { ed25519 } from '@noble/curves/ed25519'
 import { type Env, type Schema } from 'hono'
 import { inspectRoutes } from 'hono/dev'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { validator } from 'hono/validator'
-import { ed25519 } from '@noble/curves/ed25519'
 import { mnemonicToAccount } from 'viem/accounts'
 
+import { bytesToHex } from '@noble/curves/abstract/utils'
 import { type FarcBase } from '../farc-base.js'
 import { parsePath } from '../utils/parsePath.js'
 import {
@@ -24,7 +25,6 @@ import {
   htmlToState,
   validatePostBody,
 } from './utils.js'
-import { bytesToHex } from '@noble/curves/abstract/utils'
 
 export function routes<
   state,
