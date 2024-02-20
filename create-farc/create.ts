@@ -39,7 +39,7 @@ export async function create(params: CreateParameters) {
 
   const templateDir = resolve(
     import.meta.dirname,
-    `../../templates/${templateName}`,
+    `../templates/${templateName}`,
   )
 
   const gitignore = fs
