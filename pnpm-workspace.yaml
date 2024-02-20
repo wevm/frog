@@ -1,5 +1,6 @@
 packages:
   - 'create-farc'
   - 'playground'
-  - 'templates/*'
+  - 'site'
   - 'src'
+  - 'templates/*'
