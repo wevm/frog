@@ -25,6 +25,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20",
     "@types/path-browserify": "latest",
+    "@types/qrcode": "^1.5.5",
     "@vitest/coverage-v8": "^1.2.2",
     "bun": "^1.0.28",
     "fast-glob": "^3.3.2",
