@@ -9,8 +9,8 @@ import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
 import { type Context } from 'hono'
 import { inspectRoutes } from 'hono/dev'
-import { createCssVariablesTheme, getHighlighter } from 'shiki'
 import QRCodeUtil from 'qrcode'
+import { createCssVariablesTheme, getHighlighter } from 'shiki'
 
 import {
   type FrameContext,
