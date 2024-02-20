@@ -6,7 +6,7 @@
     "dev": "farc dev"
   },
   "dependencies": {
-    "farc": "main",
+    "farc": "~0.0.1",
     "hono": "^4"
   },
   "devDependencies": {

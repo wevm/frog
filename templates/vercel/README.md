@@ -1,11 +1,4 @@
-To install dependencies:
-```sh
-pnpm install
 ```
-
-To run:
-```sh
-pnpm dev
+npm install
+npm run dev
 ```
-
-open http://localhost:5173
