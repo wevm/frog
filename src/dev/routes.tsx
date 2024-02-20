@@ -253,7 +253,7 @@ export function routes<
       // 1. Create keypair
       const privateKeyBytes = ed25519.utils.randomPrivateKey()
       const publicKeyBytes = ed25519.getPublicKey(privateKeyBytes)
-      const privateKey = `0x${bytesToHex(privateKeyBytes)}`
+      // const privateKey = `0x${bytesToHex(privateKeyBytes)}`
       const publicKey = `0x${bytesToHex(publicKeyBytes)}` as const
 
       // 2. Sign key request
@@ -378,14 +378,14 @@ export function routes<
         }
       }
 
-      const logoPosition = size / 2 - logoSize / 2
+      // const logoPosition = size / 2 - logoSize / 2
       const logoWrapperSize = logoSize + logoMargin * 2
 
       console.log({ response })
       console.log(response.result.signedKeyRequest)
       console.log(matrix)
 
-      // TODO: Add public and private keys to cookie
+      // TODO: Add keys to secure cookie
       return c.render(
         <svg height={size} style={{ all: 'revert' }} width={size}>
           <title>QR Code</title>

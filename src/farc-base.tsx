@@ -1,4 +1,3 @@
-import { Buffer } from 'node:buffer'
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
@@ -21,8 +20,6 @@ import { parsePath } from './utils/parsePath.js'
 import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
-
-globalThis.Buffer = Buffer
 
 export type FarcConstructorParameters<
   state = undefined,
