@@ -43,7 +43,7 @@ export async function create(params: CreateParameters) {
   )
 
   const gitignore = fs
-    .readFileSync(resolve(templateDir, '.gitignore'))
+    .readFileSync(resolve(templateDir, '_gitignore'))
     .toString()
 
   // @ts-ignore
@@ -56,6 +56,12 @@ export async function create(params: CreateParameters) {
       return !path || !ig.ignores(path)
     },
   })
+
+  // Replace dotfiles
+  for (const file of fs.readdirSync(destDir)) {
+    if (!file.startsWith('_')) continue
+    fs.renameSync(resolve(destDir, file), resolve(destDir, `.${file.slice(1)}`))
+  }
 
   // Replace package.json properties
   const pkgJson = fs.readJsonSync(resolve(destDir, 'package.json'))

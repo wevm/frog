@@ -1,9 +1,9 @@
 import { dirname, relative, resolve } from 'node:path'
 import glob from 'fast-glob'
-import { copy } from 'fs-extra'
+import { copy, rename } from 'fs-extra'
 
 await rewriteHonoJsx()
-copyTemplates()
+await prepareTemplates()
 
 async function rewriteHonoJsx() {
   const files = await glob('./src/_lib/**/*.js')
@@ -28,9 +28,18 @@ async function rewriteHonoJsx() {
   }
 }
 
-function copyTemplates() {
-  copy(
+async function prepareTemplates() {
+  await copy(
     resolve(import.meta.dirname, '../templates'),
     resolve(import.meta.dirname, '../create-farc/templates'),
+    {
+      filter: (src) => !src.includes('node_modules'),
+    },
   )
+
+  const dotfiles = await glob(
+    resolve(import.meta.dirname, '../create-farc/**/.*'),
+  )
+  for (const dotfile of dotfiles)
+    await rename(dotfile, dotfile.replace('/.', '/_'))
 }
