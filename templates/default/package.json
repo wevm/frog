@@ -1,0 +1,15 @@
+{
+  "name": "example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "farc dev"
+  },
+  "dependencies": {
+    "farc": "~0.0.1",
+    "hono": "^4"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}

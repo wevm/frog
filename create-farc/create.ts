@@ -1,12 +1,11 @@
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { relative, resolve } from 'node:path'
 import { intro, log, outro, select, text } from '@clack/prompts'
 import { default as fs } from 'fs-extra'
+import { default as ignore } from 'ignore'
 import { default as pc } from 'picocolors'
+import { getTemplates } from './utils/getTemplates.js'
 
-export type CreateParameters = { name: string; template: 'default' | 'vercel' }
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+export type CreateParameters = { name: string; template: string }
 
 export async function create(params: CreateParameters) {
   intro('Welcome to Farc!')
@@ -25,27 +24,38 @@ export async function create(params: CreateParameters) {
 
   const destDir = resolve(process.cwd(), name)
 
+  const templates = getTemplates()
+
   const templateName =
     params.template ||
     ((await select({
       message: 'Choose a template',
-      options: [
-        { value: 'default', label: 'Default' },
-        { value: 'vercel', label: 'Vercel' },
-      ],
+      options: templates.map((template) => ({
+        name: template,
+        value: template,
+      })),
       initialValue: 'default',
     })) as string)
 
-  const templateDir = resolve(__dirname, `../templates/${templateName}`)
+  const templateDir = resolve(
+    import.meta.dirname,
+    `../../templates/${templateName}`,
+  )
+
+  const gitignore = fs
+    .readFileSync(resolve(templateDir, '.gitignore'))
+    .toString()
+
+  // @ts-ignore
+  const ig = ignore().add(gitignore)
 
   // Copy contents
-  fs.copySync(templateDir, destDir)
-
-  // Replace dotfiles
-  for (const file of fs.readdirSync(destDir)) {
-    if (!file.startsWith('_')) continue
-    fs.renameSync(resolve(destDir, file), resolve(destDir, `.${file.slice(1)}`))
-  }
+  fs.copySync(templateDir, destDir, {
+    filter(src) {
+      const path = relative(templateDir, src)
+      return !path || !ig.ignores(path)
+    },
+  })
 
   // Replace package.json properties
   const pkgJson = fs.readJsonSync(resolve(destDir, 'package.json'))

@@ -1,0 +1,15 @@
+{
+  "name": "playground",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "node --import tsx ../src/cli/index.ts"
+  },
+  "dependencies": {
+    "farc": "workspace:*",
+    "hono": "^4"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.1"
+  }
+}

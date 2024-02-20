@@ -2,18 +2,21 @@
 import { createRequire } from 'node:module'
 import { cac } from 'cac'
 import { type CreateParameters, create } from './create.js'
+import { getTemplates } from './utils/getTemplates.js'
 
 const require = createRequire(import.meta.url)
 const pkg = require('../package.json')
 
 const cli = cac('create-farc')
 
+const templates = getTemplates()
+
 cli
   .usage('[options]')
   .option('-n, --name [name]', 'Name of project.')
   .option(
     '-t, --template [template]',
-    'Project template to use. Templates: default, vercel',
+    `Project template to use. Templates: ${templates.join(',')}`,
   )
 
 cli.help()

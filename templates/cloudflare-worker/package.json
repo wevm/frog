@@ -1,0 +1,17 @@
+{
+  "name": "worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "farc dev",
+    "wrangler:dev": "wrangler dev src/index.tsx",
+    "wrangler:deploy": "wrangler deploy --minify src/index.tsx"
+  },
+  "dependencies": {
+    "farc": "~0.0.1",
+    "hono": "^4"
+  },
+  "devDependencies": {
+    "wrangler": "latest"
+  }
+}
