@@ -26,6 +26,7 @@
     "@vitest/coverage-v8": "^1.2.2",
     "bun": "^1.0.28",
     "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
     "hono": "^4",
     "picocolors": "^1.0.0",
     "rimraf": "^5.0.5",

@@ -2,6 +2,7 @@
 coverage
 _lib
 node_modules
+create-farc/templates
 tsconfig.*.tsbuildinfo
 tsconfig.tsbuildinfo
 .vercel
