@@ -7,3 +7,4 @@ create-frog/templates
 tsconfig.*.tsbuildinfo
 tsconfig.tsbuildinfo
 .vercel
+.env

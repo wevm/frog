@@ -4,7 +4,8 @@ import { app as todoApp } from './todos.js'
 
 export const app = new Frog({
   browserLocation: '/:path/dev',
-  verify: false,
+  secret: process.env.SECRET,
+  verify: true,
 })
 
 app.frame('/', (context) => {

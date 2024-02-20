@@ -1,7 +1,18 @@
+import { bytesToHex } from '@noble/curves/abstract/utils'
+import { ed25519 } from '@noble/curves/ed25519'
 import { type Env, type Schema } from 'hono'
+import {
+  deleteCookie,
+  getCookie,
+  getSignedCookie,
+  setCookie,
+  setSignedCookie,
+} from 'hono/cookie'
 import { inspectRoutes } from 'hono/dev'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import { type CookieOptions } from 'hono/utils/cookie'
 import { validator } from 'hono/validator'
+import { mnemonicToAccount } from 'viem/accounts'
 
 import type { FrogBase } from '../frog-base.js'
 import { parsePath } from '../utils/parsePath.js'
@@ -9,9 +20,11 @@ import {
   Fonts,
   Preview,
   type PreviewProps,
+  QRCode,
   Scripts,
   Styles,
 } from './components.js'
+import { type SignedKeyRequest } from './types.js'
 import {
   fetchFrame,
   getCodeHtml,
@@ -19,8 +32,14 @@ import {
   getRoutes,
   htmlToFrame,
   htmlToState,
-  validatePostBody,
+  validateFramePostBody,
 } from './utils.js'
+
+// TODO: Lock down options
+const cookieOptions = {
+  secure: true,
+  sameSite: 'Strict',
+} as CookieOptions
 
 export function routes<
   state,
@@ -51,10 +70,12 @@ export function routes<
       const t0 = performance.now()
       const response = await fetch(baseUrl)
       const t1 = performance.now()
-
       const speed = t1 - t0
-      const response2 = response.clone()
-      const htmlSize = await response2.blob().then((b) => b.size)
+
+      const htmlSize = await response
+        .clone()
+        .blob()
+        .then((b) => b.size)
       const text = await response.text()
 
       const frame = htmlToFrame(text)
@@ -98,10 +119,12 @@ export function routes<
       const t0 = performance.now()
       const response = await fetch(baseUrl)
       const t1 = performance.now()
-
       const speed = t1 - t0
-      const response2 = response.clone()
-      const htmlSize = await response2.blob().then((b) => b.size)
+
+      const htmlSize = await response
+        .clone()
+        .blob()
+        .then((b) => b.size)
       const text = await response.text()
 
       const frame = htmlToFrame(text)
@@ -139,24 +162,42 @@ export function routes<
     })
     .post(
       `${parsePath(path)}/dev/frame/action`,
-      validator('json', validatePostBody),
+      validator('json', validateFramePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev/frame/action', '')
         const json = c.req.valid('json')
-        const { buttonIndex, castId, fid, inputText, postUrl, state } = json
+        const { buttonIndex, castId, inputText, postUrl, state } = json
+
+        let cookie: string | boolean | undefined
+        if (app.secret) cookie = await getSignedCookie(c, app.secret, 'session')
+        else cookie = getCookie(c, 'session')
+        const keypair = cookie
+          ? (JSON.parse(cookie) as
+              | { privateKey: `0x${string}`; publicKey: `0x${string}` }
+              | undefined)
+          : undefined
+
+        let fid: number
+        if (json.fid) fid = json.fid
+        else {
+          const cookie = getCookie(c, 'user')
+          if (cookie) fid = JSON.parse(cookie).userFid
+          else fid = 1
+        }
 
         const { response, speed } = await fetchFrame({
-          baseUrl,
           buttonIndex,
           castId,
           fid,
           inputText,
           postUrl,
           state,
+          privateKey: keypair?.privateKey,
         })
 
-        const response2 = response.clone()
-        const htmlSize = await response2.blob().then((b) => b.size)
+        const htmlSize = await response
+          .clone()
+          .blob()
+          .then((b) => b.size)
         const text = await response.text()
         const frame = htmlToFrame(text)
         const state_ = htmlToState(text)
@@ -164,8 +205,10 @@ export function routes<
           JSON.stringify(state_.context, null, 2),
           'json',
         )
-        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
         const imageSize = await getImageSize(frame.imageUrl)
+
+        const baseUrl = c.req.url.replace('/dev/frame/action', '')
+        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
         return c.json({
           baseUrl,
@@ -198,20 +241,36 @@ export function routes<
     )
     .post(
       `${parsePath(path)}/dev/frame/redirect`,
-      validator('json', validatePostBody),
+      validator('json', validateFramePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev/frame/redirect', '')
         const json = c.req.valid('json')
-        const { buttonIndex, castId, fid, inputText, postUrl, state } = json
+        const { buttonIndex, castId, inputText, postUrl, state } = json
+
+        let cookie: string | boolean | undefined
+        if (app.secret) cookie = await getSignedCookie(c, app.secret, 'session')
+        else cookie = getCookie(c, 'session')
+        const keypair = cookie
+          ? (JSON.parse(cookie) as
+              | { privateKey: `0x${string}`; publicKey: `0x${string}` }
+              | undefined)
+          : undefined
+
+        let fid: number
+        if (json.fid) fid = json.fid
+        else {
+          const cookie = getCookie(c, 'user')
+          if (cookie) fid = JSON.parse(cookie).userFid
+          else fid = 1
+        }
 
         const { response, speed } = await fetchFrame({
-          baseUrl,
           buttonIndex,
           castId,
           fid,
           inputText,
           postUrl,
           state,
+          privateKey: keypair?.privateKey,
         })
 
         return c.json({
@@ -235,4 +294,141 @@ export function routes<
         } satisfies PreviewProps['request'])
       },
     )
+    .post(`${parsePath(path)}/dev/frame/auth/logout`, async (c) => {
+      deleteCookie(c, 'session')
+      deleteCookie(c, 'user')
+      return c.json({ success: true })
+    })
+    .get(`${parsePath(path)}/dev/frame/auth/code`, async (c) => {
+      // TODO: Add to configuration options
+      const fid = process.env.APP_FID
+      const mnemonic = process.env.APP_MNEMONIC
+      if (!fid || !mnemonic) throw new Error('Missing APP_FID or APP_MNEMONIC')
+      const request = { fid, mnemonic } as const
+
+      // 1. Create keypair
+      const privateKeyBytes = ed25519.utils.randomPrivateKey()
+      const publicKeyBytes = ed25519.getPublicKey(privateKeyBytes)
+      const privateKey = `0x${bytesToHex(privateKeyBytes)}`
+      const publicKey = `0x${bytesToHex(publicKeyBytes)}` as const
+
+      // 2. Sign key request
+      // TODO: Sign via API by default if user does not provide mnemonic
+      const account = mnemonicToAccount(request.mnemonic)
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
+      const signature = await account.signTypedData({
+        domain: {
+          name: 'Farcaster SignedKeyRequestValidator',
+          version: '1',
+          chainId: 10,
+          verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
+        },
+        types: {
+          SignedKeyRequest: [
+            { name: 'requestFid', type: 'uint256' },
+            { name: 'key', type: 'bytes' },
+            { name: 'deadline', type: 'uint256' },
+          ],
+        },
+        primaryType: 'SignedKeyRequest',
+        message: {
+          requestFid: BigInt(request.fid),
+          key: publicKey,
+          deadline: BigInt(deadline),
+        },
+      })
+
+      // 3. Create key request to register public key
+      const response = await fetch(
+        'https://api.warpcast.com/v2/signed-key-requests',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            deadline,
+            key: publicKey,
+            requestFid: request.fid,
+            signature,
+          }),
+        },
+      ).then(
+        (response) =>
+          response.json() as Promise<{
+            result: { signedKeyRequest: SignedKeyRequest }
+          }>,
+      )
+
+      const { token, deeplinkUrl: url } = response.result.signedKeyRequest
+
+      // 4. Return QR code matrix for deeplink
+      const rendered = await c.render(<QRCode url={url} />)
+      const code = await rendered.text()
+
+      // TODO: Should `app.secret` be required?
+      {
+        const value = JSON.stringify({ privateKey, publicKey })
+        if (app.secret)
+          await setSignedCookie(c, 'session', value, app.secret, cookieOptions)
+        else setCookie(c, 'session', value, cookieOptions)
+      }
+
+      return c.json({ code, token, url })
+    })
+    .get(`${parsePath(path)}/dev/frame/auth/status/:token`, async (c) => {
+      // @ts-ignore TODO: Fix inference on path param
+      const token = c.req.param('token') as string
+      const response = await fetch(
+        `https://api.warpcast.com/v2/signed-key-request?token=${token}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      ).then(
+        (response) =>
+          response.json() as Promise<{
+            result: { signedKeyRequest: SignedKeyRequest }
+          }>,
+      )
+      const { state = 'pending', userFid } =
+        response.result?.signedKeyRequest ?? {}
+
+      if (state === 'completed') {
+        const response = await fetch(
+          `${app.hubApiUrl}/v1/userDataByFid?fid=${userFid}`,
+        ).then(
+          (response) =>
+            response.json() as Promise<{
+              messages: {
+                data: {
+                  type: 'MESSAGE_TYPE_USER_DATA_ADD'
+                  userDataBody: {
+                    type: 'USER_DATA_TYPE_PFP' | 'USER_DATA_TYPE_USERNAME'
+                    value: string
+                  }
+                }
+              }[]
+            }>,
+        )
+
+        const pfp = response.messages.find(
+          (message) =>
+            message.data.type === 'MESSAGE_TYPE_USER_DATA_ADD' &&
+            message.data.userDataBody.type === 'USER_DATA_TYPE_PFP',
+        )?.data.userDataBody.value
+        const username = response.messages.find(
+          (message) =>
+            message.data.type === 'MESSAGE_TYPE_USER_DATA_ADD' &&
+            message.data.userDataBody.type === 'USER_DATA_TYPE_USERNAME',
+        )?.data.userDataBody.value
+
+        setCookie(c, 'user', JSON.stringify({ userFid }), cookieOptions)
+        return c.json({ state, userFid, pfp, token, username })
+      }
+
+      return c.json({ state })
+    })
 }

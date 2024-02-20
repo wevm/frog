@@ -2,6 +2,7 @@ import {
   checkCircledIcon,
   chevronLeftIcon,
   chevronRightIcon,
+  cross1Icon,
   crossCircledIcon,
   externalLinkIcon,
   farcasterIcon,
@@ -82,21 +83,31 @@ export function Preview(props: PreviewProps) {
           if (!this.logs || this.logs.length === 0) this.logs = [${JSON.stringify(
             props,
           )}]
+
+          if (this.user && this.user.token)
+            this.fetchAuthStatus(this.user.token)
+              .then((data) => {
+                if (data.state !== 'completed') return
+                const { state: _, ...rest } = data
+                this.user = rest
+              })
+              .catch(console.log)
         },
-        data: $persist({
+        data: {
           baseUrl: '${baseUrl}',
           contextHtml: ${JSON.stringify(contextHtml)},
           frame: ${JSON.stringify(frame)},
           request: ${JSON.stringify(request)},
           routes: ${JSON.stringify(routes)},
           state: ${JSON.stringify(state)},
-        }).using(sessionStorage),
+        },
 
-        history: $persist([]).using(sessionStorage),
-        id: $persist(-1).using(sessionStorage),
-        inputText: $persist('').using(sessionStorage),
-        logs: $persist([]).using(sessionStorage),
-        selectedLogIndex: $persist(-1).using(sessionStorage),
+        history: [],
+        id: -1,
+        inputText: '',
+        logs: [],
+        selectedLogIndex: -1,
+        user: $persist(null),
 
         get baseUrl() { return this.data.baseUrl },
         get frame() { return this.data.frame },
@@ -146,6 +157,37 @@ export function Preview(props: PreviewProps) {
           this.selectedLogIndex = -1
           return json
         },
+        async fetchAuthCode() {
+          const response = await fetch(this.baseUrl + '/dev/frame/auth/code', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          return json
+        },
+        async fetchAuthStatus(token) {
+          const response = await fetch(this.baseUrl + '/dev/frame/auth/status/' + token, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          return json
+        },
+        async logout(body) {
+          const response = await fetch(this.baseUrl + '/dev/frame/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          this.user = null
+          return json
+        },
 
         formatFileSize(sizeInBytes) {
           if (sizeInBytes < 1024) return sizeInBytes + 'b'
@@ -167,7 +209,7 @@ export function Preview(props: PreviewProps) {
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         }
       }`}
-      class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-6 md:gap-4 pb-6 md:pb-0"
+      class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-4 md:gap-6 pb-6 md:pb-0"
       style={{
         maxWidth: '1512px',
         marginLeft: 'auto',
@@ -200,7 +242,7 @@ export function Preview(props: PreviewProps) {
               style={{ borderLeft: '0', borderRight: '0', borderTop: '0' }}
             >
               <button type="button" class="bg-transparent py-3 text-gray-700">
-                Request/Response
+                Request
               </button>
               <button
                 type="button"
@@ -261,7 +303,7 @@ function Navigator() {
             {chevronLeftIcon}
           </span>
         </button>
-        <div class="bg-gray-alpha-400 h-full" style={{ width: '1px' }} />
+        <div class="bg-gray-alpha-300 h-full" style={{ width: '1px' }} />
         <button
           aria-label="forward"
           class="text-gray-700 bg-background-100 px-2 rounded-r-md"
@@ -327,8 +369,8 @@ function Navigator() {
           </div>
           <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
             <span
-              class="font-sans text-sm text-gray-1000"
-              style={{ lineHeight: '1.85rem' }}
+              class="font-sans text-gray-1000"
+              style={{ lineHeight: '1.9rem', fontSize: '13px' }}
               x-text="formatUrl(state.context.url)"
             />
           </div>
@@ -375,12 +417,32 @@ function Navigator() {
         </div>
       </div>
 
-      <button
-        type="button"
-        class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-      >
-        {farcasterIcon}
-      </button>
+      <template x-if="user">
+        {/* TODO: Dropdown to log out and view connected account info */}
+        <button
+          type="button"
+          class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+          x-on:click="logout()"
+        >
+          <img
+            {...{ ':src': 'user.pfp' }}
+            style={{ height: '30px', width: '30px' }}
+          />
+        </button>
+      </template>
+
+      <template x-if="!user">
+        <div style={{ display: 'contents' }} x-data="{ open: false }">
+          <button
+            type="button"
+            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+            x-on:click="open = true"
+          >
+            <div style={{ height: '30px', width: '30px' }}>{farcasterIcon}</div>
+          </button>
+          <FarcasterDialog />
+        </div>
+      </template>
     </div>
   )
 }
@@ -432,7 +494,7 @@ function Frame() {
 function Img() {
   return (
     <img
-      class="border object-cover w-full rounded-t-lg"
+      class="border object-cover w-full rounded-t-lg border-gray-200"
       style={{
         minHeight: '269px',
         maxHeight: '532.5px',
@@ -469,7 +531,7 @@ function Input() {
 
 function Button() {
   const buttonClass =
-    'bg-gray-200 border-gray-300 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
+    'bg-gray-100 border-gray-200 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
   const innerHtml = (
     <span
       class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-1000 font-medium"
@@ -527,7 +589,7 @@ function Button() {
         get target() { return button.target },
         get title() { return button.title },
         get type() { return button.type },
-        get url() { return button.type === 'link' && button.target ? button.target : undefined },
+        url: button.type === 'link' && button.target ? button.target : undefined,
       }`}
     >
       <template x-if="type === 'link'">
@@ -717,10 +779,10 @@ function Timeline() {
       <template x-for="(log, index) in logs">
         <button
           type="button"
-          class=" flex flex-col p-4 gap-2 w-full border-gray-200 hover:bg-gray-200"
+          class=" flex flex-col p-4 gap-2 w-full border-gray-200 hover:bg-gray-100"
           {...{
             ':class':
-              'index === selectedLogIndex ? "bg-gray-200" : "bg-transparent"',
+              'index === selectedLogIndex ? "bg-gray-100" : "bg-transparent"',
             ':style':
               '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
             ':tabIndex': 'logs.length - index',
@@ -767,6 +829,277 @@ function Timeline() {
           </div>
         </button>
       </template>
+    </div>
+  )
+}
+
+function FarcasterDialog() {
+  return (
+    <template x-teleport="body">
+      <div
+        class="flex items-center justify-center p-6"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          position: 'fixed',
+          inset: '0',
+        }}
+        x-show="open"
+        x-data="{
+          code: undefined,
+          copied: false,
+          timedOut: false,
+          url: undefined,
+
+          async auth() {
+            this.timedOut = false
+            const data = await fetchAuthCode()
+            this.code = data.code
+            this.token = data.token
+            this.url = data.url
+
+            const timeout = 300_000
+            const interval = 1_500
+            const deadline = Date.now() + timeout
+
+            while (Date.now() < deadline) {
+              // Stop polling if dialog is closed
+              if (!this.open) return
+
+              const data = await fetchAuthStatus(token)
+              if (data.state === 'completed') {
+                const { state: _, ...rest } = data
+                user = rest
+                this.open = false
+                return
+              }
+
+              await new Promise((resolve) => setTimeout(resolve, interval))
+            }
+
+            this.timedOut = true
+          },
+        }"
+        x-init="
+          $watch('open', async (open) => {
+            if (!open) return
+            auth()
+          })
+        "
+      >
+        <div
+          class="bg-background-100 relative flex flex-col gap-4 scrollbars p-6 border-gray-alpha-100 border"
+          style={{ borderRadius: '1.5rem' }}
+          {...{
+            '@click.outside': 'open = false',
+            '@keyup.escape': 'open = false',
+            'x-trap.noscroll': 'open',
+          }}
+        >
+          <button
+            type="button"
+            class="bg-transparent text-gray-800 hover:bg-gray-100 rounded-full flex items-center justify-center"
+            style={{
+              position: 'absolute',
+              height: '2rem',
+              width: '2rem',
+              top: '1.25rem',
+              right: '1rem',
+            }}
+            x-on:click="open = false"
+          >
+            <span class="sr-only"> Close</span>
+            {cross1Icon}
+          </button>
+          <h1 class="text-base font-bold text-gray-1000 text-center">
+            Scan with Phone
+          </h1>
+          <p
+            class="text-sm text-gray-700 leading-snug text-center"
+            style={{ maxWidth: '17rem' }}
+          >
+            Scan with your phone's camera to sign in with your Farcaster
+            account.
+          </p>
+
+          <div class="relative">
+            <div
+              x-html={`code ?? '<div class="border border-gray-100" style="border-radius:1.5rem;height:276px;width:276px;" />'`}
+              {...{ ':style': "timedOut && { opacity: '0.1' }" }}
+            />
+            {/* TODO: A11y to notify of live region */}
+            <div
+              class="flex items-center justify-center flex-col gap-4"
+              style={{
+                position: 'absolute',
+                inset: '0',
+              }}
+              x-show="timedOut"
+            >
+              <div class="font-medium text-gray-1000">Code timed out</div>
+              <button
+                class="bg-gray-1000 border border-gray-200 py-2 px-4 text-gray-100 font-medium text-sm rounded-md"
+                type="button"
+                x-on:click="auth()"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1"
+            x-on:click="
+              if (copied) return
+              navigator.clipboard.writeText(url)
+              copied = true
+              setTimeout(() => copied = false, 2000)
+            "
+            x-text="copied ? 'Copied!' : 'Copy to Clipboard'"
+            {...{
+              ':disabled': 'timedOut',
+              ':style': "timedOut && { opacity: '0.4' }",
+            }}
+          />
+        </div>
+      </div>
+    </template>
+  )
+}
+
+type QRCodeProps = {
+  url: string
+}
+
+export async function QRCode(props: QRCodeProps) {
+  const { url } = props
+
+  // 1. Create QR code
+  const { create } = await import('qrcode')
+  const arr = Array.prototype.slice.call(
+    create(url, { errorCorrectionLevel: 'H' }).modules.data,
+    0,
+  )
+  const sqrt = Math.sqrt(arr.length)
+  const matrix = arr.reduce(
+    (rows, key, index) =>
+      (index % sqrt === 0
+        ? rows.push([key])
+        : rows[rows.length - 1].push(key)) && rows,
+    [],
+  )
+
+  // 2. Add corners
+  const logoMargin = 10
+  const logoSize = 60
+  const size = 250
+
+  const dots = []
+  const cellSize = size / matrix.length
+  const qrList = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+  ] as const
+  for (const item of qrList) {
+    const x1 = (matrix.length - 7) * cellSize * item.x
+    const y1 = (matrix.length - 7) * cellSize * item.y
+    for (let i = 0; i < 3; i++) {
+      const className = i % 2 !== 0 ? 'light' : 'dark'
+      const height = cellSize * (7 - i * 2)
+      const rx = (i - 2) * -5 + (i === 0 ? 2 : 0)
+      const ry = (i - 2) * -5 + (i === 0 ? 2 : 0)
+      const width = cellSize * (7 - i * 2)
+      const x = x1 + cellSize * i
+      const y = y1 + cellSize * i
+      const props = { class: className, height, rx, ry, width, x, y }
+      const dot = <rect {...props} />
+      dots.push(dot)
+    }
+  }
+
+  // 3. Add dots
+  const clearArenaSize = Math.floor((logoSize + logoMargin * 2) / cellSize)
+  const matrixMiddleStart = matrix.length / 2 - clearArenaSize / 2
+  const matrixMiddleEnd = matrix.length / 2 + clearArenaSize / 2 - 1
+
+  for (let i = 0; i < matrix.length; i++) {
+    const row = matrix[i]
+    for (let j = 0; j < row.length; j++) {
+      if (matrix[i][j]) {
+        if (
+          !(
+            (i < 7 && j < 7) ||
+            (i > matrix.length - 8 && j < 7) ||
+            (i < 7 && j > matrix.length - 8)
+          )
+        ) {
+          if (
+            !(
+              i > matrixMiddleStart &&
+              i < matrixMiddleEnd &&
+              j > matrixMiddleStart &&
+              j < matrixMiddleEnd
+            )
+          ) {
+            const cx = i * cellSize + cellSize / 2
+            const cy = j * cellSize + cellSize / 2
+            const r = cellSize / 3
+            const props = { cx, cy, r }
+            dots.push(<circle {...props} class="dark" />)
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Render
+  const logoWrapperSize = logoSize + logoMargin * 2
+
+  return (
+    <div
+      class="border border-gray-100 p-3 w-fit"
+      style={{ borderRadius: '1.5rem' }}
+    >
+      <div
+        class="relative"
+        style={{
+          height: `${size}px`,
+          userSelect: 'none',
+          width: `${size}px`,
+        }}
+      >
+        <div
+          class="flex items-center justify-center"
+          style={{ inset: '0', position: 'absolute' }}
+        >
+          <div
+            class="flex items-center justify-center rounded-lg"
+            style={{
+              backgroundColor: '#7866BB',
+              color: 'white',
+              height: `${logoSize - logoMargin}px`,
+              width: `${logoSize - logoMargin}px`,
+            }}
+          >
+            {farcasterIcon}
+          </div>
+        </div>
+
+        <svg height={size} style={{ all: 'revert' }} width={size}>
+          <title>QR Code</title>
+          <defs>
+            <clipPath id="clip-wrapper">
+              <rect height={logoWrapperSize} width={logoWrapperSize} />
+            </clipPath>
+            <clipPath id="clip-logo">
+              <rect height={logoSize} width={logoSize} />
+            </clipPath>
+          </defs>
+          <rect fill="transparent" height={size} width={size} />
+          {dots}
+        </svg>
+      </div>
     </div>
   )
 }
@@ -876,7 +1209,7 @@ export function Styles() {
       --background-100:#0a0a0a;
       --background-200:#000;
       --focus-border:0 0 0 1px var(--gray-alpha-300),0px 0px 0px 2px hsla(var(--blue-900-value),0.75);
-      --focus-color:var(--blue-900)
+      --focus-color:var(--blue-900);
 
       --gray-100:hsla(var(--gray-100-value),1);
       --gray-200:hsla(var(--gray-200-value),1);
@@ -1367,7 +1700,7 @@ export function Styles() {
       box-sizing: border-box;
       border-width: 0;
       border-style: solid;
-      border-color: var(--gray-alpha-400);
+      border-color: var(--gray-200);
     }
 
     ::selection {
@@ -1546,6 +1879,7 @@ export function Styles() {
     .justify-center { justify-content: center; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
     .mx-4 { margin-left: 1rem; margin-right: 1rem; }
     .mt-1 { margin-top: 0.25rem; }
     .mt-1\\.5 { margin-top: 0.375rem; }
@@ -1575,9 +1909,11 @@ export function Styles() {
     .pt-6 { padding-top: 1.5rem; }
     .p-6 { padding: 1.5rem; }
     .relative { position: relative; }
+    .rounded-full { border-radius: 9999px; }
     .rounded-bl-md { border-bottom-left-radius: 0.375rem; }
     .rounded-br-md { border-bottom-right-radius: 0.375rem; }
     .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
     .rounded-md { border-radius: 0.375rem; }
     .rounded-sm { border-radius: 0.25rem; }
     .rounded-l-md { border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; }
@@ -1598,7 +1934,7 @@ export function Styles() {
 
     .scrollbars {
       overflow: auto;
-      scrollbar-color: var(--gray-alpha-400) transparent;
+      scrollbar-color: var(--gray-alpha-500) transparent;
       scrollbar-width: thin;
     }
 
@@ -1632,8 +1968,8 @@ export function Styles() {
       border-left-width: 1px;
     }
 
-    .hover\\:bg-gray-200 {
-      &:hover { background-color: var(--gray-200) !important; }
+    .hover\\:bg-gray-100 {
+      &:hover { background-color: var(--gray-100) !important; }
     }
 
     .h-sidebar { height: 316px }
@@ -1656,7 +1992,7 @@ export function Styles() {
       }
       .md\\:scrollbars {
         overflow: auto;
-        scrollbar-color: var(--gray-alpha-400) transparent;
+        scrollbar-color: var(--gray-alpha-500) transparent;
         scrollbar-width: thin;
       }
       .md\\:order-0 {
@@ -1668,8 +2004,8 @@ export function Styles() {
       .md\\:h-full {
         height: 100%;
       }
-      .md\\:gap-4 {
-        gap: 1rem;
+      .md\\:gap-6 {
+        gap: 1.5rem;
       }
       .md\\:mt-6 {
         margin-top: 1.5rem;
@@ -1692,7 +2028,15 @@ export function Styles() {
         min-width: 350px;
       }
     }
+
+    .dark { fill: white; }
+    .light { fill: black; }
+    @media (prefers-color-scheme: light) {
+      .dark { fill: black; }
+      .light { fill: white; }
+    }
   `
+
   // biome-ignore lint/security/noDangerouslySetInnerHtml:
   return <style dangerouslySetInnerHTML={{ __html: styles }} />
 }

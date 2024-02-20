@@ -4,7 +4,7 @@ import {
   NobleEd25519Signer,
   makeFrameAction,
 } from '@farcaster/core'
-import { bytesToHex } from '@noble/curves/abstract/utils'
+import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
 import { type Context } from 'hono'
@@ -296,7 +296,7 @@ export async function getImageSize(url: string) {
   return blob.size
 }
 
-export function validatePostBody(
+export function validateFramePostBody(
   value: Record<string, string | File>,
   c: Context,
 ) {
@@ -312,9 +312,9 @@ export function validatePostBody(
   const state = value.state as string | undefined
 
   // TODO: Make dynamic
-  const fid = 2
+  const fid = value.fid ? parseInt(value.fid as string) : undefined
   const castId = {
-    fid,
+    fid: 1,
     hash: new Uint8Array(
       Buffer.from('0000000000000000000000000000000000000000', 'hex'),
     ),
@@ -324,15 +324,14 @@ export function validatePostBody(
 }
 
 export async function fetchFrame({
-  baseUrl,
   buttonIndex,
   castId,
   fid,
   inputText,
   postUrl,
   state,
+  privateKey,
 }: {
-  baseUrl: string
   buttonIndex: number
   castId: {
     fid: number
@@ -342,56 +341,14 @@ export async function fetchFrame({
   inputText: string | undefined
   postUrl: string
   state: string | undefined
+  privateKey: `0x${string}` | undefined
 }) {
-  const privateKeyBytes = ed25519.utils.randomPrivateKey()
-  // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
-
-  // const key = bytesToHex(publicKeyBytes)
-  // const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
-  //
-  // const account = privateKeyToAccount(bytesToHex(privateKeyBytes))
-  // const requestFid = 1
-
-  // const signature = await account.signTypedData({
-  //   domain: {
-  //     name: 'Farcaster SignedKeyRequestValidator',
-  //     version: '1',
-  //     chainId: 10,
-  //     verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
-  //   },
-  //   types: {
-  //     SignedKeyRequest: [
-  //       { name: 'requestFid', type: 'uint256' },
-  //       { name: 'key', type: 'bytes' },
-  //       { name: 'deadline', type: 'uint256' },
-  //     ],
-  //   },
-  //   primaryType: 'SignedKeyRequest',
-  //   message: {
-  //     requestFid: BigInt(requestFid),
-  //     key,
-  //     deadline: BigInt(deadline),
-  //   },
-  // })
-
-  // const response = await fetch(
-  //   'https://api.warpcast.com/v2/signed-key-requests',
-  //   {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify({
-  //       deadline,
-  //       key,
-  //       requestFid,
-  //       signature,
-  //     }),
-  //   },
-  // )
+  const privateKeyBytes = privateKey
+    ? hexToBytes(privateKey.slice(2))
+    : ed25519.utils.randomPrivateKey()
 
   const frameActionBody = FrameActionBody.create({
-    url: Buffer.from(baseUrl),
+    url: Buffer.from(postUrl),
     buttonIndex,
     castId,
     inputText: inputText ? Buffer.from(inputText) : undefined,
@@ -422,7 +379,7 @@ export async function fetchFrame({
         network: 1,
         state,
         timestamp: message.data?.timestamp,
-        url: baseUrl,
+        url: postUrl,
       },
       trustedData: {
         messageBytes: Buffer.from(Message.encode(message).finish()).toString(

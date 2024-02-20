@@ -66,4 +66,46 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
 
+export type SignedKeyRequest = {
+  token: string
+  deeplinkUrl: string
+  key: string
+  requestFid: number
+  isSponsored: boolean
+} & (
+  | {
+      state: 'pending'
+      signerUser: {
+        fid: number
+        username: string
+        displayName: string
+        pfp: { url: string; verified: false }
+        profile: {
+          bio: {
+            text: string
+            mentions: string[]
+            channelMentions: string[]
+          }
+          location: { placeId: string; description: string }
+        }
+        followerCount: number
+        followingCount: number
+        activeOnFcNetwork: boolean
+        viewerContext: { following: boolean; followedBy: boolean }
+      }
+      signerUserMetadata: {
+        createdAt: number
+        usersCount: number
+        viewerContext: { existingKeysCountForViewer: number }
+      }
+      userFid: undefined
+    }
+  | {
+      state: 'approved' | 'completed'
+      signerUser: undefined
+      signerUserMetadata: undefined
+      userFid: number
+    }
+)
+
 export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'

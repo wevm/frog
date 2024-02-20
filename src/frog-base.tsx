@@ -105,6 +105,10 @@ export type FrogConstructorParameters<
    */
   initialState?: state | undefined
   /**
+   * Secret key used to sign secret data.
+   */
+  secret?: string | undefined
+  /**
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
    * - When `true`, the frame will go through verification and throw an error if it fails.
@@ -204,6 +208,7 @@ export class FrogBase<
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
+  secret: string | undefined
   // TODO: default to `true` once devtools has auth.
   /** Whether or not frames should be verified. */
   verify: boolean = process.env.NODE_ENV !== 'development'
