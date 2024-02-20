@@ -4,7 +4,12 @@ import { inspectRoutes } from 'hono/dev'
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
-import { setSignedCookie, setCookie } from 'hono/cookie'
+import {
+  getSignedCookie,
+  getCookie,
+  setSignedCookie,
+  setCookie,
+} from 'hono/cookie'
 import { type CookieOptions } from 'hono/utils/cookie'
 import { bytesToHex } from '@noble/curves/abstract/utils'
 
@@ -158,18 +163,34 @@ export function routes<
       `${parsePath(path)}/dev/frame/action`,
       validator('json', validateFramePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev/frame/action', '')
         const json = c.req.valid('json')
-        const { buttonIndex, castId, fid, inputText, postUrl, state } = json
+        const { buttonIndex, castId, inputText, postUrl, state } = json
+
+        let cookie: string | boolean | undefined
+        if (app.secret) cookie = await getSignedCookie(c, app.secret, 'session')
+        else cookie = getCookie(c, 'session')
+        const keypair = cookie
+          ? (JSON.parse(cookie) as
+              | { privateKey: `0x${string}`; publicKey: `0x${string}` }
+              | undefined)
+          : undefined
+
+        let fid: number
+        if (json.fid) fid = json.fid
+        else {
+          const cookie = getCookie(c, 'user')
+          if (cookie) fid = JSON.parse(cookie).userFid
+          else fid = 1
+        }
 
         const { response, speed } = await fetchFrame({
-          baseUrl,
           buttonIndex,
           castId,
           fid,
           inputText,
           postUrl,
           state,
+          privateKey: keypair?.privateKey,
         })
 
         const htmlSize = await response
@@ -183,8 +204,10 @@ export function routes<
           JSON.stringify(state_.context, null, 2),
           'json',
         )
-        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
         const imageSize = await getImageSize(frame.imageUrl)
+
+        const baseUrl = c.req.url.replace('/dev/frame/action', '')
+        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
         return c.json({
           baseUrl,
@@ -219,18 +242,34 @@ export function routes<
       `${parsePath(path)}/dev/frame/redirect`,
       validator('json', validateFramePostBody),
       async (c) => {
-        const baseUrl = c.req.url.replace('/dev/frame/redirect', '')
         const json = c.req.valid('json')
-        const { buttonIndex, castId, fid, inputText, postUrl, state } = json
+        const { buttonIndex, castId, inputText, postUrl, state } = json
+
+        let cookie: string | boolean | undefined
+        if (app.secret) cookie = await getSignedCookie(c, app.secret, 'session')
+        else cookie = getCookie(c, 'session')
+        const keypair = cookie
+          ? (JSON.parse(cookie) as
+              | { privateKey: `0x${string}`; publicKey: `0x${string}` }
+              | undefined)
+          : undefined
+
+        let fid: number
+        if (json.fid) fid = json.fid
+        else {
+          const cookie = getCookie(c, 'user')
+          if (cookie) fid = JSON.parse(cookie).userFid
+          else fid = 1
+        }
 
         const { response, speed } = await fetchFrame({
-          baseUrl,
           buttonIndex,
           castId,
           fid,
           inputText,
           postUrl,
           state,
+          privateKey: keypair?.privateKey,
         })
 
         return c.json({
@@ -380,12 +419,7 @@ export function routes<
             message.data.userDataBody.type === 'USER_DATA_TYPE_USERNAME',
         )?.data.userDataBody.value
 
-        setCookie(
-          c,
-          'user',
-          JSON.stringify({ userFid, pfp, username }),
-          cookieOptions,
-        )
+        setCookie(c, 'user', JSON.stringify({ userFid }), cookieOptions)
         return c.json({ state, userFid, pfp, token, username })
       }
 

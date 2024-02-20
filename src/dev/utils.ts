@@ -4,7 +4,7 @@ import {
   NobleEd25519Signer,
   makeFrameAction,
 } from '@farcaster/core'
-import { bytesToHex } from '@noble/curves/abstract/utils'
+import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { Window } from 'happy-dom'
 import { type Context } from 'hono'
@@ -312,9 +312,9 @@ export function validateFramePostBody(
   const state = value.state as string | undefined
 
   // TODO: Make dynamic
-  const fid = 2
+  const fid = value.fid ? parseInt(value.fid as string) : undefined
   const castId = {
-    fid,
+    fid: 1,
     hash: new Uint8Array(
       Buffer.from('0000000000000000000000000000000000000000', 'hex'),
     ),
@@ -324,15 +324,14 @@ export function validateFramePostBody(
 }
 
 export async function fetchFrame({
-  baseUrl,
   buttonIndex,
   castId,
   fid,
   inputText,
   postUrl,
   state,
+  privateKey,
 }: {
-  baseUrl: string
   buttonIndex: number
   castId: {
     fid: number
@@ -342,11 +341,14 @@ export async function fetchFrame({
   inputText: string | undefined
   postUrl: string
   state: string | undefined
+  privateKey: `0x${string}` | undefined
 }) {
-  const privateKeyBytes = ed25519.utils.randomPrivateKey()
+  const privateKeyBytes = privateKey
+    ? hexToBytes(privateKey.slice(2))
+    : ed25519.utils.randomPrivateKey()
 
   const frameActionBody = FrameActionBody.create({
-    url: Buffer.from(baseUrl),
+    url: Buffer.from(postUrl),
     buttonIndex,
     castId,
     inputText: inputText ? Buffer.from(inputText) : undefined,
@@ -377,7 +379,7 @@ export async function fetchFrame({
         network: 1,
         state,
         timestamp: message.data?.timestamp,
-        url: baseUrl,
+        url: postUrl,
       },
       trustedData: {
         messageBytes: Buffer.from(Message.encode(message).finish()).toString(

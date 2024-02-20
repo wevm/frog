@@ -123,9 +123,6 @@ importers:
       '@noble/curves':
         specifier: ^1.3.0
         version: 1.3.0
-      '@wevm/hono-vite-dev-server':
-        specifier: 0.6.0-0
-        version: 0.6.0-0(hono@4.0.4)
       cac:
         specifier: ^6.7.14
         version: 6.7.14
@@ -3072,22 +3069,6 @@ packages:
       loupe: 2.3.7
       pretty-format: 29.7.0
     dev: true
-
-  /@wevm/hono-vite-dev-server@0.6.0-0(hono@4.0.4):
-    resolution: {integrity: sha512-aBoAXanv5XT948Z6E+JFyJe3+1OSK+GfJIN5wZ5CDwD1wC3YnyyWflpiJwuvgC9sEIfWTriDMtRyJ56jHmpP5Q==}
-    engines: {node: '>=18.14.1'}
-    peerDependencies:
-      hono: '*'
-    dependencies:
-      '@hono/node-server': 1.8.1
-      hono: 4.0.4
-      miniflare: 3.20240129.3
-      minimatch: 9.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-    dev: false
 
   /@wevm/vercel-og@0.6.10:
     resolution: {integrity: sha512-NM0OhZwc1rJlxO8CwY8qs2uUnwKxLGXLUwhxM5J4Z7gXkyKYvqmGpmxMTh3MJf3LgGObCFlCukwDyzL26ZgSLw==}

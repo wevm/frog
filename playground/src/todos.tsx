@@ -11,7 +11,7 @@ export const app = new Frog<State>({
     todos: [],
   },
   secret: process.env.SECRET,
-  verify: false,
+  verify: true,
 })
 
 app.frame('/', ({ buttonValue, deriveState, inputText }) => {
