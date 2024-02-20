@@ -1,6 +1,19 @@
 import { defineConfig } from 'vocs'
 
 export default defineConfig({
+  iconUrl: '/icon.png',
+  logoUrl: {
+    light: '/logo-light.svg',
+    dark: '/logo-dark.svg',
+  },
+  markdown: {
+    code: {
+      themes: {
+        light: 'poimandres',
+        dark: 'poimandres',
+      },
+    },
+  },
   title: 'Frog',
   rootDir: '.',
   sidebar: [
@@ -59,4 +72,10 @@ export default defineConfig({
       ],
     },
   ],
+  theme: {
+    accentColor: {
+      light: 'rgb(33, 131, 88)',
+      dark: 'rgb(61, 214, 140)',
+    },
+  },
 })
