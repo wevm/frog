@@ -9,6 +9,7 @@ import {
   getCookie,
   setSignedCookie,
   setCookie,
+  deleteCookie,
 } from 'hono/cookie'
 import { type CookieOptions } from 'hono/utils/cookie'
 import { bytesToHex } from '@noble/curves/abstract/utils'
@@ -293,6 +294,11 @@ export function routes<
         } satisfies PreviewProps['request'])
       },
     )
+    .post(`${parsePath(path)}/dev/frame/auth/logout`, async (c) => {
+      deleteCookie(c, 'session')
+      deleteCookie(c, 'user')
+      return c.json({ success: true })
+    })
     .get(`${parsePath(path)}/dev/frame/auth/code`, async (c) => {
       // TODO: Add to configuration options
       const fid = process.env.APP_FID

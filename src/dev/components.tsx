@@ -177,6 +177,17 @@ export function Preview(props: PreviewProps) {
           const json = await response.json()
           return json
         },
+        async logout(body) {
+          const response = await fetch(this.baseUrl + '/dev/frame/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const json = await response.json()
+          this.user = null
+          return json
+        },
 
         formatFileSize(sizeInBytes) {
           if (sizeInBytes < 1024) return sizeInBytes + 'b'
@@ -411,7 +422,7 @@ function Navigator() {
         <button
           type="button"
           class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-          x-on:click="user = null"
+          x-on:click="logout()"
         >
           <img
             {...{ ':src': 'user.pfp' }}
