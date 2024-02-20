@@ -291,7 +291,7 @@ export class FarcBase<
       })
 
       // We need to pass some context to the next frame to derive button values, state, etc.
-      const nextFrameParams = toSearchParams({
+      const nextFrameState = serializeJson({
         initialUrl: context.initialUrl,
         previousIntentData: intentData,
         previousState: context.deriveState(),
@@ -319,14 +319,15 @@ export class FarcBase<
             />
             <meta
               property="fc:frame:post_url"
-              content={`${
+              content={
                 action
                   ? url.origin +
                     parsePath(this.basePath) +
                     parsePath(action || '')
                   : context.url
-              }?${nextFrameParams}`}
+              }
             />
+            <meta property="fc:frame:state" content={nextFrameState} />
             {parsedIntents}
 
             <meta property="farc:context" content={serializeJson(context)} />

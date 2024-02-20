@@ -28,6 +28,7 @@ export type FrameDebug = Pretty<
     invalidButtons: readonly FrameButton['index'][]
     postUrl: string
     postUrlTooLong: boolean
+    stateTooLong: boolean
     valid: boolean
   }
 >
@@ -58,6 +59,7 @@ export type FrameMetaTagPropertyName =
   | 'fc:frame:image:aspect_ratio'
   | 'fc:frame:input:text'
   | 'fc:frame:post_url'
+  | 'fc:frame:state'
   | 'og:image'
   | 'og:title'
   | `fc:frame:button:${FrameButton['index']}:action`

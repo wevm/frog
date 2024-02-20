@@ -60,6 +60,7 @@ export type FrameData = {
   inputText?: string | undefined
   messageHash: string
   network: number
+  state?: string | undefined
   timestamp: number
   url: string
 }

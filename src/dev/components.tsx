@@ -554,6 +554,7 @@ function Button() {
                 buttonIndex: index,
                 inputText,
                 postUrl: target ?? frame.postUrl,
+                state: frame.state,
               }
               postFrameRedirect(body)
                 .then((json) => {
@@ -591,6 +592,7 @@ function Button() {
               buttonIndex: index,
               inputText,
               postUrl: target ?? frame.postUrl,
+              state: frame.state,
             }
             postFrameAction(body)
               .then((json) => {
@@ -624,6 +626,7 @@ function Data() {
             { property: 'fc:frame:image', value: frame.imageUrl, status: 'valid' },
             { property: 'fc:frame:aspect_ratio', value: frame.imageAspectRatio, status: 'valid' },
             { property: 'fc:frame:post_url', value: frame.postUrl, status: frame.debug.postUrlTooLong ? 'error' : 'valid' },
+            { property: 'fc:frame:state', value: frame.state, status: frame.debug.stateTooLong ? 'error' : 'valid' },
             { property: 'og:image', value: frame.image || 'Not Provided', status: frame.image ? 'valid' : 'error' },
             { property: 'og:title', value: frame.title || 'Not Provided', status: frame.title ? 'valid' : 'error' },
             ...(frame.input?.text ? [{ property: 'fc:frame:input:text', value: frame.input.text, status: frame.debug.inputTextTooLong ? 'error' : 'valid' }] : []),

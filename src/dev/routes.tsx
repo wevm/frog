@@ -143,7 +143,7 @@ export function routes<
       async (c) => {
         const baseUrl = c.req.url.replace('/dev/frame/action', '')
         const json = c.req.valid('json')
-        const { buttonIndex, castId, fid, inputText, postUrl } = json
+        const { buttonIndex, castId, fid, inputText, postUrl, state } = json
 
         const { response, speed } = await fetchFrame({
           baseUrl,
@@ -152,15 +152,16 @@ export function routes<
           fid,
           inputText,
           postUrl,
+          state,
         })
 
         const response2 = response.clone()
         const htmlSize = await response2.blob().then((b) => b.size)
         const text = await response.text()
         const frame = htmlToFrame(text)
-        const state = htmlToState(text)
+        const state_ = htmlToState(text)
         const contextHtml = await getCodeHtml(
-          JSON.stringify(state.context, null, 2),
+          JSON.stringify(state_.context, null, 2),
           'json',
         )
         const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
@@ -191,7 +192,7 @@ export function routes<
             url: postUrl,
           },
           routes,
-          state,
+          state: state_,
         } satisfies PreviewProps)
       },
     )
@@ -201,7 +202,7 @@ export function routes<
       async (c) => {
         const baseUrl = c.req.url.replace('/dev/frame/redirect', '')
         const json = c.req.valid('json')
-        const { buttonIndex, castId, fid, inputText, postUrl } = json
+        const { buttonIndex, castId, fid, inputText, postUrl, state } = json
 
         const { response, speed } = await fetchFrame({
           baseUrl,
@@ -210,6 +211,7 @@ export function routes<
           fid,
           inputText,
           postUrl,
+          state,
         })
 
         return c.json({
