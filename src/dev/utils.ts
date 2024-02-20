@@ -10,6 +10,7 @@ import { Window } from 'happy-dom'
 import { type Context } from 'hono'
 import { inspectRoutes } from 'hono/dev'
 import { createCssVariablesTheme, getHighlighter } from 'shiki'
+import QRCodeUtil from 'qrcode'
 
 import {
   type FrameContext,
@@ -333,51 +334,6 @@ export async function fetchFrame({
   postUrl: string
 }) {
   const privateKeyBytes = ed25519.utils.randomPrivateKey()
-  // const publicKeyBytes = await ed.getPublicKeyAsync(privateKeyBytes)
-
-  // const key = bytesToHex(publicKeyBytes)
-  // const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
-  //
-  // const account = privateKeyToAccount(bytesToHex(privateKeyBytes))
-  // const requestFid = 1
-
-  // const signature = await account.signTypedData({
-  //   domain: {
-  //     name: 'Farcaster SignedKeyRequestValidator',
-  //     version: '1',
-  //     chainId: 10,
-  //     verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
-  //   },
-  //   types: {
-  //     SignedKeyRequest: [
-  //       { name: 'requestFid', type: 'uint256' },
-  //       { name: 'key', type: 'bytes' },
-  //       { name: 'deadline', type: 'uint256' },
-  //     ],
-  //   },
-  //   primaryType: 'SignedKeyRequest',
-  //   message: {
-  //     requestFid: BigInt(requestFid),
-  //     key,
-  //     deadline: BigInt(deadline),
-  //   },
-  // })
-
-  // const response = await fetch(
-  //   'https://api.warpcast.com/v2/signed-key-requests',
-  //   {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify({
-  //       deadline,
-  //       key,
-  //       requestFid,
-  //       signature,
-  //     }),
-  //   },
-  // )
 
   const frameActionBody = FrameActionBody.create({
     url: Buffer.from(baseUrl),
@@ -422,4 +378,22 @@ export async function fetchFrame({
   const t1 = performance.now()
   const speed = t1 - t0
   return { response, speed }
+}
+
+export function generateMatrix(
+  value: string,
+  errorCorrectionLevel: QRCodeUtil.QRCodeErrorCorrectionLevel,
+) {
+  const arr = Array.prototype.slice.call(
+    QRCodeUtil.create(value, { errorCorrectionLevel }).modules.data,
+    0,
+  )
+  const sqrt = Math.sqrt(arr.length)
+  return arr.reduce(
+    (rows, key, index) =>
+      (index % sqrt === 0
+        ? rows.push([key])
+        : rows[rows.length - 1].push(key)) && rows,
+    [],
+  )
 }

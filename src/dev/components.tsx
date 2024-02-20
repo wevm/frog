@@ -777,12 +777,28 @@ function FarcasterDialog() {
     <template x-teleport="body">
       <div
         class="flex items-center justify-center p-6"
-        x-show="open"
         style={{
           backgroundColor: 'rgba(0, 0, 0, 0.6)',
           position: 'fixed',
           inset: '0',
         }}
+        x-show="open"
+        x-data="{
+          dots: undefined,
+        }"
+        x-init="
+          $watch('open', async (open) => {
+            if (!open) return
+            const response = await fetch(baseUrl + '/dev/frame/auth/code', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+            const html = await response.text()
+            dots = html
+          })
+        "
       >
         <div
           class="bg-background-100 flex flex-col scrollbars border rounded-md p-6 w-full border-gray-100"
@@ -798,6 +814,13 @@ function FarcasterDialog() {
           </button>
           <h1>Sign in with Farcaster</h1>
           <p>Scan with your phone's camera to continue.</p>
+
+          <div
+            class="border p-6 rounded-md"
+            style={{ backgroundColor: 'white' }}
+          >
+            <div style={{ userSelect: 'none' }} x-html="dots" />
+          </div>
         </div>
       </div>
     </template>
@@ -1631,7 +1654,7 @@ export function Styles() {
 
     .scrollbars {
       overflow: auto;
-      scrollbar-color: var(--gray-alpha-400) transparent;
+      scrollbar-color: var(--gray-alpha-500) transparent;
       scrollbar-width: thin;
     }
 
@@ -1689,7 +1712,7 @@ export function Styles() {
       }
       .md\\:scrollbars {
         overflow: auto;
-        scrollbar-color: var(--gray-alpha-400) transparent;
+        scrollbar-color: var(--gray-alpha-500) transparent;
         scrollbar-width: thin;
       }
       .md\\:order-0 {
