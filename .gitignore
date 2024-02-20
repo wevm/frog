@@ -2,6 +2,8 @@
 coverage
 _lib
 node_modules
+site/dist
+create-frog/templates
 tsconfig.*.tsbuildinfo
 tsconfig.tsbuildinfo
 .vercel

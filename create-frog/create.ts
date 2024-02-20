@@ -8,13 +8,13 @@ import { getTemplates } from './utils/getTemplates.js'
 export type CreateParameters = { name: string; template: string }
 
 export async function create(params: CreateParameters) {
-  intro('Welcome to Farc!')
+  intro('Welcome to Frog! 🐸')
 
   const displayName =
     params.name ||
     ((await text({
       message: 'Enter the name of your project',
-      placeholder: 'my-first-farc',
+      placeholder: 'my-first-frog',
       validate(value) {
         if (!value) return 'Please enter a name.'
         return
@@ -39,11 +39,11 @@ export async function create(params: CreateParameters) {
 
   const templateDir = resolve(
     import.meta.dirname,
-    `../../templates/${templateName}`,
+    `../templates/${templateName}`,
   )
 
   const gitignore = fs
-    .readFileSync(resolve(templateDir, '.gitignore'))
+    .readFileSync(resolve(templateDir, '_gitignore'))
     .toString()
 
   // @ts-ignore
@@ -56,6 +56,12 @@ export async function create(params: CreateParameters) {
       return !path || !ig.ignores(path)
     },
   })
+
+  // Replace dotfiles
+  for (const file of fs.readdirSync(destDir)) {
+    if (!file.startsWith('_')) continue
+    fs.renameSync(resolve(destDir, file), resolve(destDir, `.${file.slice(1)}`))
+  }
 
   // Replace package.json properties
   const pkgJson = fs.readJsonSync(resolve(destDir, 'package.json'))

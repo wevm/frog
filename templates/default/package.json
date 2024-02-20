@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "farc dev"
+    "dev": "frog dev"
   },
   "dependencies": {
-    "farc": "~0.0.1",
+    "frog": "1.0.0-alpha.0",
     "hono": "^4"
   },
   "devDependencies": {

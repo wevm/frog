@@ -1,11 +1,11 @@
-import { Button, Farc, TextInput } from 'farc'
+import { Button, Frog, TextInput } from 'Frog'
 
 type State = {
   index: number
   todos: { completed: boolean; name: string }[]
 }
 
-export const app = new Farc<State>({
+export const app = new Frog<State>({
   initialState: {
     index: -1,
     todos: [],

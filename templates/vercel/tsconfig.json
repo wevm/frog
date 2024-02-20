@@ -8,7 +8,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "farc/jsx",
+    "jsxImportSource": "frog/jsx",
 
     /* Linting */
     "strict": true,

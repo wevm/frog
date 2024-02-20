@@ -1,7 +1,6 @@
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-// TODO: replace w/ @hono/vite-dev-server once https://github.com/honojs/vite-plugins/pull/86 merged.
-import devServer from '@wevm/hono-vite-dev-server'
+import devServer from '@hono/vite-dev-server'
 import pc from 'picocolors'
 import { createLogger, createServer } from 'vite'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
@@ -41,7 +40,7 @@ export async function dev(
   logger.clearScreen('info')
   logger.info('')
   logger.info(
-    `  ${pc.green('[running]')} ${pc.bold('farc')}@${pc.dim(`v${version}`)}`,
+    `  ${pc.green('[running]')} ${pc.bold('frog')}@${pc.dim(`v${version}`)}`,
   )
   logger.info('')
   server.printUrls()

@@ -1,6 +1,6 @@
 import { type Context } from 'hono'
 import { type FrameContext } from '../types.js'
-import { fromQuery } from './fromQuery.js'
+import { deserializeJson } from './deserializeJson.js'
 import { parsePath } from './parsePath.js'
 import { verifyFrame } from './verifyFrame.js'
 
@@ -26,9 +26,9 @@ export async function requestToContext<state>(
 ): Promise<RequestToContextReturnType<state>> {
   const { trustedData, untrustedData } =
     (await request.json().catch(() => {})) || {}
-  const { initialUrl, previousState, previousIntentData } = fromQuery<
-    FrameContext<string, state>
-  >(request.query())
+  const { initialUrl, previousState, previousIntentData } = untrustedData?.state
+    ? deserializeJson(untrustedData.state)
+    : ({} as any)
 
   const message = await (() => {
     if (!verify) return

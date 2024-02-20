@@ -1,0 +1,131 @@
+# Getting started [Get up and running in under a minute]
+
+## Overview
+
+Frog is a framework built on top of [Hono](https://hono.dev) for building Farcaster Frames. 
+Frog enables you to build frames with [JSX](https://hono.dev/guides/jsx), and integrate it instantly to any platform (Next.js, Vercel, Cloudflare, etc).
+
+## Quick Start
+
+### Bootstrap via CLI
+
+Scaffold a new project with the command line:
+
+:::code-group
+
+```bash [npm]
+npm init frog
+```
+
+```bash [pnpm]
+pnpm create frog
+```
+
+```bash [yarn]
+yarn create frog
+```
+
+```bash [bun]
+bunx create-frog
+```
+
+:::
+
+### Bootstrap via Vercel
+
+Scaffold a new project and deploy it instantly with Vercel:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwevm%2Ffarc%2Ftree%2Fmain%2Ftemplates%2Fvercel)
+
+## Manual Installation
+
+You can install Frog in an existing project, or start from scratch, by installing Frog as a dependency.
+
+::::steps
+
+### Install
+
+First, we will install `frog` as a dependency in our project.
+
+:::code-group
+
+```bash [npm]
+npm i frog
+```
+
+```bash [pnpm]
+pnpm i frog
+```
+
+```bash [yarn]
+yarn add frog
+```
+
+```bash [bun]
+bun i frog
+```
+
+:::
+
+### Build your First Frame
+
+
+```tsx [src/frame.tsx]
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', context => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: ${buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
+### Add Scripts to `package.json`
+
+After that, let's add a script to our `package.json` to serve our frame.
+
+```json [package.json]
+{
+  "name": "example",
+  "version": "0.0.0",
+  "scripts": { 
+    "dev": "frog dev", // [!code focus]
+  },
+  "devDependencies": {
+    "frog": "latest"
+  }
+}
+```
+
+### Run
+
+Next, run the development server:
+
+```bash [Terminal]
+npm run dev
+```
+
+Then open up your browser to `http://localhost:5173/dev`, and you can see your first frame!
+
+### Next steps
+
+Now that you have your first frame up and running, you can check out Frog's [Concepts](#TODO) to learn more about
+how to build, structure, and deploy your frames.
+
+::::

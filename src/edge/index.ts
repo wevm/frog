@@ -7,4 +7,4 @@ export {
 } from '../components/Button.js'
 export { TextInput, type TextInputProps } from '../components/TextInput.js'
 
-export { FarcBase as Farc } from '../farc-base.js'
+export { FrogBase as Frog } from '../frog-base.js'

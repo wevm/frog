@@ -1,7 +1,7 @@
 import { handle as handle_hono } from 'hono/vercel'
 
-import type { FarcBase } from '../farc-base.js'
+import type { FrogBase } from '../frog-base.js'
 
-export function handle<state>(app: FarcBase<state>) {
+export function handle<state>(app: FrogBase<state>) {
   return handle_hono(app.hono).bind(app.hono)
 }

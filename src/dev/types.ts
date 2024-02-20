@@ -28,6 +28,7 @@ export type FrameDebug = Pretty<
     invalidButtons: readonly FrameButton['index'][]
     postUrl: string
     postUrlTooLong: boolean
+    stateTooLong: boolean
     valid: boolean
   }
 >
@@ -58,13 +59,12 @@ export type FrameMetaTagPropertyName =
   | 'fc:frame:image:aspect_ratio'
   | 'fc:frame:input:text'
   | 'fc:frame:post_url'
+  | 'fc:frame:state'
   | 'og:image'
   | 'og:title'
   | `fc:frame:button:${FrameButton['index']}:action`
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
-
-export type FarcMetaTagPropertyName = 'farc:context' | 'farc:prev_context'
 
 export type SignedKeyRequest = {
   token: string
@@ -107,3 +107,5 @@ export type SignedKeyRequest = {
       userFid: number
     }
 )
+
+export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'

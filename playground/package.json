@@ -6,7 +6,7 @@
     "dev": "node --import tsx ../src/cli/index.ts"
   },
   "dependencies": {
-    "farc": "workspace:*",
+    "frog": "workspace:*",
     "hono": "^4"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 ---
-"farc": patch
+"frog": patch
 ---
 
 Initial release.

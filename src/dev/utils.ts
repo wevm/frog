@@ -18,10 +18,10 @@ import {
 } from '../types.js'
 import { deserializeJson } from '../utils/deserializeJson.js'
 import {
-  type FarcMetaTagPropertyName,
   type Frame,
   type FrameButton,
   type FrameMetaTagPropertyName,
+  type FrogMetaTagPropertyName,
 } from './types.js'
 
 export function htmlToMetaTags(html: string, selector: string) {
@@ -40,6 +40,7 @@ export function parseProperties(metaTags: readonly HTMLMetaElement[]) {
     'fc:frame:image:aspect_ratio',
     'fc:frame:input:text',
     'fc:frame:post_url',
+    'fc:frame:state',
     'og:image',
     'og:title',
   ])
@@ -65,6 +66,7 @@ export function parseProperties(metaTags: readonly HTMLMetaElement[]) {
     '1.91:1'
   const imageUrl = properties['fc:frame:image'] ?? ''
   const postUrl = properties['fc:frame:post_url'] ?? ''
+  const state = properties['fc:frame:state'] ?? ''
   const title = properties['og:title'] ?? ''
   const version = (properties['fc:frame'] as FrameVersion) ?? 'vNext'
 
@@ -74,6 +76,7 @@ export function parseProperties(metaTags: readonly HTMLMetaElement[]) {
     imageUrl,
     input,
     postUrl,
+    state,
     title,
     version,
   }
@@ -163,13 +166,13 @@ export type State = {
 }
 
 export function htmlToState(html: string) {
-  const metaTags = htmlToMetaTags(html, 'meta[property^="farc:"]')
+  const metaTags = htmlToMetaTags(html, 'meta[property^="frog:"]')
 
-  const properties: Partial<Record<FarcMetaTagPropertyName, string>> = {}
+  const properties: Partial<Record<FrogMetaTagPropertyName, string>> = {}
   for (const metaTag of metaTags) {
     const property = metaTag.getAttribute(
       'property',
-    ) as FarcMetaTagPropertyName | null
+    ) as FrogMetaTagPropertyName | null
     if (!property) continue
 
     const content = metaTag.getAttribute('content') ?? ''
@@ -177,7 +180,7 @@ export function htmlToState(html: string) {
   }
 
   return {
-    context: deserializeJson<FrameContext>(properties['farc:context']),
+    context: deserializeJson<FrameContext>(properties['frog:context']),
   }
 }
 
@@ -194,6 +197,7 @@ export function htmlToFrame(html: string) {
   const inputTextTooLong = properties.input?.text
     ? properties.input.text.length > 32
     : false
+  const stateTooLong = properties.state.length > 4096
 
   const { buttonsAreOutOfOrder, invalidButtons } = validateButtons(buttons)
 
@@ -202,6 +206,7 @@ export function htmlToFrame(html: string) {
   const valid = !(
     postUrlTooLong ||
     inputTextTooLong ||
+    stateTooLong ||
     Boolean(invalidButtons.length)
   )
 
@@ -211,6 +216,7 @@ export function htmlToFrame(html: string) {
     imageUrl: properties.imageUrl,
     input: properties.input,
     postUrl: properties.postUrl,
+    state: properties.state,
     version: properties.version,
   }
 
@@ -225,6 +231,7 @@ export function htmlToFrame(html: string) {
       inputTextTooLong,
       invalidButtons,
       postUrlTooLong,
+      stateTooLong,
       valid,
     },
     title: properties.title,
@@ -302,6 +309,8 @@ export function validateFramePostBody(
   // TODO: Sanitize input
   const inputText = value.inputText as string | undefined
 
+  const state = value.state as string | undefined
+
   // TODO: Make dynamic
   const fid = 2
   const castId = {
@@ -311,7 +320,7 @@ export function validateFramePostBody(
     ),
   }
 
-  return { buttonIndex, castId, fid, inputText, postUrl }
+  return { buttonIndex, castId, fid, inputText, postUrl, state }
 }
 
 export async function fetchFrame({
@@ -321,6 +330,7 @@ export async function fetchFrame({
   fid,
   inputText,
   postUrl,
+  state,
 }: {
   baseUrl: string
   buttonIndex: number
@@ -331,6 +341,7 @@ export async function fetchFrame({
   fid: number
   inputText: string | undefined
   postUrl: string
+  state: string | undefined
 }) {
   const privateKeyBytes = ed25519.utils.randomPrivateKey()
 
@@ -364,6 +375,7 @@ export async function fetchFrame({
           : undefined,
         messageHash: `0x${bytesToHex(message.hash)}`,
         network: 1,
+        state,
         timestamp: message.data?.timestamp,
         url: baseUrl,
       },

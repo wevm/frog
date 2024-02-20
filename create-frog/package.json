@@ -1,9 +1,9 @@
 {
-  "name": "create-farc",
+  "name": "create-frog",
   "version": "0.0.1",
   "type": "module",
   "bin": {
-    "create-farc": "./_lib/bin.js"
+    "create-frog": "./_lib/bin.js"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
@@ -13,5 +13,5 @@
     "ignore": "^5.3.1",
     "picocolors": "^1.0.0"
   },
-  "repository": "wevm/farc"
+  "repository": "wevm/frog"
 }

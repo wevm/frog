@@ -2,23 +2,23 @@ import { type Env, type Schema } from 'hono'
 
 import { routes as devRoutes } from './dev/routes.js'
 import {
-  FarcBase,
   type FrameHandlerReturnType,
   type FrameOptions,
-} from './farc-base.js'
+  FrogBase,
+} from './frog-base.js'
 import { type FrameContext } from './types.js'
 
 /**
- * A Farc instance.
+ * A Frog instance.
  *
- * @param parameters - {@link FarcConstructorParameters}
- * @returns instance. {@link FarcBase}
+ * @param parameters - {@link FrogConstructorParameters}
+ * @returns instance. {@link FrogBase}
  *
  * @example
  * ```
- * import { Farc } from 'farc'
+ * import { Frog } from 'frog'
  *
- * const app = new Farc()
+ * const app = new Frog()
  *
  * app.frame('/', (context) => {
  *   const { buttonValue, inputText, status } = context
@@ -38,12 +38,12 @@ import { type FrameContext } from './types.js'
  * })
  * ```
  */
-export class Farc<
+export class Frog<
   state = undefined,
   env extends Env = Env,
   schema extends Schema = {},
   basePath extends string = '/',
-> extends FarcBase<state, env, schema, basePath> {
+> extends FrogBase<state, env, schema, basePath> {
   override frame<path extends string>(
     path: path,
     handler: (
