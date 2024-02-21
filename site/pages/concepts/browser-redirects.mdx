@@ -1,0 +1,104 @@
+# Browser Redirects
+
+By design, when using the `.frame` API, **Frog** only renders the HTML `<head>{:html}` and `<meta>{:html}` tags to construct a frame.
+It does not render a full HTML document to optimize on frame load performance.
+
+This means that when the user navigates to your Frame URL via the browser, the browser will render a blank page.
+
+If you want to render a full HTML document for a Frame, you can use the `browserLocation` property to redirect the user 
+to a new URL that contains the document.
+
+For instance, a user may reach the frame page in their browser by clicking on the link beneath the frame on Warpcast.
+We may want to redirect them to a different page (ie. a mint page, etc) using `browserLocation` when they arrive via their browser.
+
+## Examples
+
+### Basic (`Frog` Instance)
+
+In the example below, when a user navigates to the `/frame` path of the website via their web browser, 
+they will be redirected to the `/` path as `browserLocation` is set on the `Frog` instance.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({
+  browserLocation: '/' // [!code hl]
+})
+ 
+app.frame('/frame', (context) => {
+  return {/* ... */}
+})
+```
+
+### Basic (Return Property)
+
+In the example below, when a user navigates to the `/frame` path of the website via their web browser, 
+they will be redirected to the `/` path as `browserLocation` is set on the return object.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/frame', (context) => {
+  return {
+    browserLocation: '/' // [!code hl]
+    /* ... */
+  }
+})
+```
+
+### Path Interpolation
+
+We may want to redirect the user to a page based on the path.
+
+In the example below, when a user navigates to the `/frame/:foo/:bar` (e.g. `/frame/a/b`) path of the website via their web browser, 
+they will be redirected to the `/:foo/:bar` path (e.g. `/a/b`), provided that the `browserLocation` and the route share the same template variables (e.g. `:foo` and `:bar`).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({
+  browserLocation: '/:foo/:bar' // [!code hl]
+})
+ 
+app.frame('/frame/:foo/:bar', (context) => { // [!code hl]
+  return {/* ... */}
+})
+```
+
+### With Base Paths
+
+`browserLocation` also works with `basePath` on the `Frog` instance.
+
+In the example below, when a user navigates to the `/api/foo` path of the website via their web browser, 
+they will be redirected to the `/foo` path.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({
+  basePath: '/api', // [!code hl]
+  browserLocation: '/:path', // [!code hl]
+})
+ 
+app.frame('/foo', (context) => { // [!code hl]
+  return {/* ... */}
+})
+
+app.frame('/bar', (context) => { // [!code hl]
+  return {/* ... */}
+})
+```

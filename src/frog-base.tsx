@@ -15,6 +15,7 @@ import {
 import { fromQuery } from './utils/fromQuery.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getIntentData } from './utils/getIntentData.js'
+import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestToContext } from './utils/requestToContext.js'
@@ -304,9 +305,8 @@ export class FrogBase<
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
       const browser = detect(c.req.header('user-agent'))
-      const browserLocation_ = browserLocation
-        ?.replace(':path', path.replace(/(^\/)|(\/$)/, ''))
-        .replace(/^\/\//, '/')
+
+      const browserLocation_ = parseBrowserLocation(c, browserLocation, path)
       if (browser?.name && browserLocation_)
         return c.redirect(
           browserLocation_.startsWith('http')

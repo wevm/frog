@@ -198,7 +198,8 @@ export default defineConfig({
           link: '/concepts/images-intents',
         },
         {
-          text: 'Browser Redirects 🚧',
+          text: 'Browser Redirects',
+          link: '/concepts/browser-redirects',
         },
         {
           text: 'State Management 🚧',
