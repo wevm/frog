@@ -208,6 +208,7 @@ export class FrogBase<
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
+  use: Hono<env, schema, basePath>['use']
   secret: string | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
@@ -230,6 +231,7 @@ export class FrogBase<
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
+    this.use = this.hono.use.bind(this.hono)
 
     if (initialState) this._initialState = initialState
   }

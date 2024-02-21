@@ -115,6 +115,9 @@ importers:
       '@types/react':
         specifier: latest
         version: 18.2.57
+      frog:
+        specifier: workspace:*
+        version: link:../src
       react:
         specifier: latest
         version: 18.2.0

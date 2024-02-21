@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@types/react": "latest",
+    "frog": "main",
     "react": "latest",
     "react-dom": "latest",
     "typescript": "latest",

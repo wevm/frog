@@ -1,6 +1,7 @@
 import { defineConfig } from 'vocs'
 
 export default defineConfig({
+  description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
   logoUrl: {
     light: '/logo-light.svg',
@@ -9,7 +10,7 @@ export default defineConfig({
   markdown: {
     code: {
       themes: {
-        light: 'poimandres',
+        light: 'vitesse-light',
         dark: 'poimandres',
       },
     },
@@ -25,7 +26,14 @@ export default defineConfig({
       text: 'Concepts',
       items: [
         {
-          text: 'Structure & Routing',
+          text: 'Structure',
+          link: '/concepts/structure',
+        },
+        {
+          text: 'Routing',
+        },
+        {
+          text: 'Context',
         },
         {
           text: 'Actions',
@@ -38,6 +46,12 @@ export default defineConfig({
         },
         {
           text: 'State Management',
+        },
+        {
+          text: 'Frame Verification',
+        },
+        {
+          text: 'Devtools',
         },
       ],
     },

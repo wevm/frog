@@ -70,7 +70,9 @@ bun i frog
 ### Build your First Frame
 
 
-```tsx [src/frame.tsx]
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
 import { Button, Frog } from 'frog'
 
 export const app = new Frog()
@@ -79,7 +81,7 @@ app.frame('/', (context) => {
   const { buttonValue, status } = context
   return {
     image: (
-      <div style={{ fontSize: 60 }}>
+      <div style={{ display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
           <div>Select your fruit!</div>
         ) : (
