@@ -24,10 +24,7 @@ export function Timeline() {
             selectedLogIndex = index
           `}
         >
-          <div
-            class="flex flex-row"
-            style={{ justifyContent: 'space-between' }}
-          >
+          <div class="flex flex-row items-center justify-between">
             <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
               <div
                 class="flex items-center border px-1.5 rounded-sm text-gray-900"

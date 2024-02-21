@@ -2,6 +2,7 @@ import { AuthDialog } from './AuthDialog.js'
 import {
   chevronLeftIcon,
   chevronRightIcon,
+  externalLinkIcon,
   farcasterIcon,
   globeIcon,
   refreshIcon,
@@ -136,7 +137,6 @@ export function Navigator() {
             <button
               type="button"
               class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left"
-              style={{ textDecoration: 'none' }}
               x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
               x-on:click="
                 const nextRoute = route === '/' ? '/dev' : route + '/dev'
@@ -158,17 +158,70 @@ export function Navigator() {
       </div>
 
       <template x-if="user">
-        {/* TODO: Dropdown to log out and view connected account info */}
-        <button
-          type="button"
-          class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-          x-on:click="logout()"
-        >
-          <img
-            {...{ ':src': 'user.pfp' }}
-            style={{ height: '30px', width: '30px' }}
-          />
-        </button>
+        <div class="relative grid h-full" x-data="{ open: false }">
+          <button
+            type="button"
+            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+            x-on:click="open = true"
+          >
+            <img
+              {...{ ':src': 'user.pfp' }}
+              style={{ height: '30px', width: '30px' }}
+            />
+          </button>
+
+          <div
+            x-show="open"
+            class="border bg-background-100 rounded-xl w-full overflow-hidden"
+            style={{
+              position: 'absolute',
+              marginTop: '4px',
+              top: '100%',
+              right: '0',
+              width: '225px',
+              zIndex: '10',
+            }}
+            x-data="{ url: new URL(data.request.url) }"
+            {...{
+              '@click.outside': 'open = false',
+              '@keyup.escape': 'open = false',
+              'x-trap': 'open',
+            }}
+          >
+            <div class="text-sm p-4">
+              <div x-text="user.displayName ?? user.username" />
+              <div class="text-gray-700" x-text="`fid: ${user.userFid}`" />
+            </div>
+
+            <div class="px-4">
+              <div class="border-t w-full" />
+            </div>
+
+            <div class="py-2">
+              <a
+                type="button"
+                class="bg-transparent flex items-center justify-between font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
+                style={{ textDecoration: 'none' }}
+                target="_blank"
+                rel="noopener noreferrer"
+                {...{
+                  ':href': '`https://warpcast.com/${user.username}`',
+                }}
+              >
+                <span>Warpcast Profile</span>
+                <div style={{ marginTop: '1px' }}> {externalLinkIcon}</div>
+              </a>
+
+              <button
+                type="button"
+                class="bg-transparent display-block font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
+                x-on:click="logout()"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
       </template>
 
       <template x-if="!user">

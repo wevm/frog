@@ -389,17 +389,19 @@ export function routes<
 
         let pfp = undefined
         let username = undefined
+        let displayName = undefined
         for (const message of response.messages) {
           if (message.data.type !== 'MESSAGE_TYPE_USER_DATA_ADD') continue
 
-          if (message.data.userDataBody.type === 'USER_DATA_TYPE_PFP')
-            pfp = message.data.userDataBody.value
-          if (message.data.userDataBody.type === 'USER_DATA_TYPE_USERNAME')
-            username = message.data.userDataBody.value
+          const type = message.data.userDataBody.type
+          const value = message.data.userDataBody.value
+          if (type === 'USER_DATA_TYPE_PFP') pfp = value
+          if (type === 'USER_DATA_TYPE_USERNAME') username = value
+          if (type === 'USER_DATA_TYPE_DISPLAY') displayName = value
         }
 
         setCookie(c, 'user', JSON.stringify({ token, userFid }), cookieOptions)
-        return c.json({ state, userFid, pfp, token, username })
+        return c.json({ state, userFid, pfp, token, username, displayName })
       }
 
       return c.json({ state })

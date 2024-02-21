@@ -734,6 +734,7 @@ export function Styles() {
     /** Utilities **/
 
     .border { border-width: 1px; }
+    .border-t { border-top-width: 1px; }
     .border-t-0 { border-top-width: 0; }
     .cursor-pointer { cursor: pointer; }
     .display-block { display: block; }
@@ -743,6 +744,7 @@ export function Styles() {
     .font-bold { font-weight: 700; }
     .font-mono { font-family: "Roboto Mono",Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace; }
     .flex { display: flex; }
+    .flex-grow { flex-grow: 1; }
     .flex-col { flex-direction: column; }
     .flex-row { flex-direction: row; }
     .flex-wrap { flex-wrap: wrap; }
@@ -762,6 +764,7 @@ export function Styles() {
     .h-10 { height: 2.5rem; }
     .items-center { align-items: center; }
     .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
     .mx-auto { margin-left: auto; margin-right: auto; }
@@ -783,6 +786,7 @@ export function Styles() {
     .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
     .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
     .py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
@@ -800,6 +804,7 @@ export function Styles() {
     .rounded-lg { border-radius: 0.5rem; }
     .rounded-xl { border-radius: 0.75rem; }
     .rounded-md { border-radius: 0.375rem; }
+    .rounded-t-md { border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; } 
     .rounded-sm { border-radius: 0.25rem; }
     .rounded-l-md { border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; }
     .rounded-r-md { border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
@@ -911,6 +916,14 @@ export function Styles() {
       }
       .lg\\:min-w-sidebar {
         min-width: 350px;
+      }
+      .lg\\:divide-x > *:not(template) + *:not(template) {
+        border-right-width: 0;
+        border-left-width: 1px;
+      }
+      .lg\\:divide-y-0 > *:not(template) + *:not(template)  {
+        border-top-width: 0;
+        border-bottom-width: 0;
       }
     }
 

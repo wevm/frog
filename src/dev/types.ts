@@ -120,7 +120,10 @@ export type UserDataByFidResponse = {
     data: {
       type: 'MESSAGE_TYPE_USER_DATA_ADD'
       userDataBody: {
-        type: 'USER_DATA_TYPE_PFP' | 'USER_DATA_TYPE_USERNAME'
+        type:
+          | 'USER_DATA_TYPE_PFP'
+          | 'USER_DATA_TYPE_USERNAME'
+          | 'USER_DATA_TYPE_DISPLAY'
         value: string
       }
     }

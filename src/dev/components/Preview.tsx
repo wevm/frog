@@ -103,6 +103,7 @@ export function Preview(props: PreviewProps) {
         inputText: '',
         logs: [],
         selectedLogIndex: -1,
+        tab: $persist('context'),
         user: $persist(null),
 
         async getFrame(url = this.data.request.url, replaceLogs = false) {
