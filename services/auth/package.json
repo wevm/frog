@@ -1,4 +1,6 @@
 {
+  "name": "auth",
+  "private": true,
   "scripts": {
     "start": "vercel dev",
     "deploy": "vercel"
