@@ -60,3 +60,6 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+        env:
+          APP_FID: ${{ secrets.APP_FID }}
+          APP_MNEMONIC: ${{ secrets.APP_MNEMONIC }}

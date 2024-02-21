@@ -10,7 +10,7 @@ export const app = new Frog<State>({
     index: -1,
     todos: [],
   },
-  verify: true,
+  verify: 'silent',
 })
 
 app.frame('/', ({ buttonValue, deriveState, inputText }) => {

@@ -1,6 +1,5 @@
-// TODO: TSDoc
-
 import {
+  type FrameContext,
   type FrameImageAspectRatio,
   type FrameVersion,
   type Pretty,
@@ -40,7 +39,6 @@ export type FrameButton = {
   | { type: 'link'; target: `http://${string}` | `https://${string}` }
   | {
       type: 'mint'
-      // TODO: tighten type
       target: `eip155:${string}`
     }
   | {
@@ -66,7 +64,16 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
 
-export type SignedKeyRequest = {
+export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'
+
+export type State = {
+  context: FrameContext
+}
+
+export type SignedKeyRequestResponse = {
+  result: { signedKeyRequest: SignedKeyRequest }
+}
+type SignedKeyRequest = {
   token: string
   deeplinkUrl: string
   key: string
@@ -108,4 +115,14 @@ export type SignedKeyRequest = {
     }
 )
 
-export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'
+export type UserDataByFidResponse = {
+  messages: {
+    data: {
+      type: 'MESSAGE_TYPE_USER_DATA_ADD'
+      userDataBody: {
+        type: 'USER_DATA_TYPE_PFP' | 'USER_DATA_TYPE_USERNAME'
+        value: string
+      }
+    }
+  }[]
+}

@@ -1,11 +1,8 @@
 import { describe, expect, test } from 'vitest'
 
-import {
-  htmlToMetaTags,
-  parseButtons,
-  parseProperties,
-  validateButtons,
-} from './utils.js'
+import { validateButtons } from './validateButtons.js'
+import { htmlToMetaTags } from './htmlToMetaTags.js'
+import { parseButtons } from './parseButtons.js'
 
 const html = `
   <meta property="fc:frame" content="vNext">
@@ -31,61 +28,6 @@ const html = `
 `
 const selector = 'meta[property^="fc:"], meta[property^="og:"]'
 const metaTags = htmlToMetaTags(html, selector)
-
-test('htmlToMetaTags', () => {
-  const html = `
-    <title>foo</title>
-    <meta property="fc:frame" content="vNext">
-    <meta property="og:image" content="https://example.com/og">
-    <foo>bar</foo>
-  `
-  expect(htmlToMetaTags(html, selector).length).toEqual(2)
-})
-
-test('parseFrameProperties', () => {
-  const frameProperties = parseProperties(metaTags)
-  expect(frameProperties).toEqual({
-    image: 'https://example.com/og',
-    imageAspectRatio: '1.91:1',
-    imageUrl: 'http://example.com/image',
-    input: undefined,
-    postUrl: 'http://localhost:3001',
-    state: 'frog',
-    title: '',
-    version: 'vNext',
-  })
-})
-
-describe('parseFrameButtons', () => {
-  test('default', () => {
-    const buttons = parseButtons(metaTags)
-    expect(buttons).toEqual([
-      {
-        title: 'foo',
-        index: 1,
-        type: 'post',
-      },
-      {
-        title: 'bar',
-        index: 2,
-        target: 'https://example.com',
-        type: 'link',
-      },
-      {
-        title: 'baz',
-        index: 3,
-        target: 'https://example.com/redirect',
-        type: 'post_redirect',
-      },
-      {
-        title: 'mint',
-        index: 4,
-        target: 'eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df',
-        type: 'mint',
-      },
-    ])
-  })
-})
 
 describe('validateFrameButtons', () => {
   test('default', () => {
