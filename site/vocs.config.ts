@@ -190,9 +190,6 @@ export default defineConfig({
           link: '/concepts/routing',
         },
         {
-          text: 'Context',
-        },
-        {
           text: 'Connecting Frames (Actions)',
         },
         {
@@ -235,6 +232,10 @@ export default defineConfig({
     {
       text: 'Reference',
       items: [
+        {
+          text: 'Context',
+          link: '/reference/context',
+        },
         { text: 'Frog' },
         { text: 'Frog.frame' },
         { text: 'Frog.hono' },

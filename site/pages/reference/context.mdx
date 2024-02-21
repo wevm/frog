@@ -1,0 +1,366 @@
+# Context
+
+The `context` object is the parameter of the route handlers. It contains context about the current frame.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (context) => { // [!code focus]
+  return {/* ... */}
+})
+```
+
+## buttonIndex
+
+- **Type**: `number`
+
+The index of the button that was previously clicked.
+
+For example, if the user clicked `"Banana"`, then `buttonIndex` will be `2`.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {buttonIndex} // [!code focus]
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, // [!code focus]
+      <Button value="banana">Banana</Button>, // [!code focus]
+      <Button value="mango">Mango</Button> // [!code focus]
+    ]
+  }
+})
+```
+
+## buttonValue
+
+- **Type**: `string`
+
+The value of the button that was previously clicked.
+
+For example, if the user clicked `"Banana"`, then `buttonValue` will be `"banana"`.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonValue } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {buttonValue} // [!code focus]
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, // [!code focus]
+      <Button value="banana">Banana</Button>, // [!code focus]
+      <Button value="mango">Mango</Button> // [!code focus]
+    ]
+  }
+})
+```
+
+## deriveState
+
+- **Type**: `(state: State) => void`
+
+Derives new state from the state of the previous frame. 
+
+Internally uses [Immers's `produce` function](https://immerjs.github.io/immer/produce/) to create a draft of the state, and then applies the changes to the state.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+type State = {     // [!code focus]
+  values: string[] // [!code focus]
+} // [!code focus]
+ 
+export const app = new Frog<State>({ // [!code focus]
+  initialState: { // [!code focus]
+    values: [] // [!code focus]
+  } // [!code focus]
+}) // [!code focus]
+ 
+app.frame('/', (context) => {
+  const { buttonValue, deriveState } = context
+  const { values } = deriveState(state => { // [!code focus]
+    if (buttonValue) state.values.push(buttonValue) // [!code focus]
+  }) // [!code focus]
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {values.map(value => <div>{value}</div>)} // [!code focus]
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>,
+    ]
+  }
+})
+```
+
+## frameData
+
+- **Type**: `FrameData`
+
+Data from the frame that was passed via the `POST` body from a Farcaster Client. [See more.](https://docs.farcaster.xyz/reference/frames/spec#frame-signature-packet)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { frameData } = context
+  const { castId, fid, messageHash, network, timestamp, url } = frameData // [!code focus]
+  return {/* ... */}
+})
+```
+
+## initialUrl
+
+- **Type**: `string`
+
+Initial/start URL of the frame set.
+
+If the user clicks `<Button.Reset>{:jsx}`, they will be directed to this URL.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { initialUrl } = context // [!code focus]
+  return {/* ... */}
+})
+```
+
+## inputText
+
+- **Type**: `string`
+
+The value of the input that was previously interacted with.
+
+For example, if the user typed `"Banana"`, then `inputText` will be `"Banana"`.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { inputText } = context  // [!code focus]
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {inputText} // [!code focus]
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Type your fruit..." />, // [!code focus]
+      <Button>Submit</Button>,
+    ]
+  }
+})
+```
+
+## previousIntentData
+
+- **Type**: `string[]`
+
+The data of the previous intents.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  return {
+    action: '/result', // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select your fruit
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, // [!code focus]
+      <Button value="banana">Banana</Button>, // [!code focus]
+      <Button value="mango">Mango</Button> // [!code focus]
+    ]
+  }
+})
+
+app.frame('/result', (context) => { // [!code focus]
+  const { buttonValue, previousIntentData } = context
+  console.log(previousIntentData) // [!code focus]
+// @log:   ['button;value:apple', 'button;value:banana', 'button;value:mango']
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {buttonValue}
+      </div>
+    ),
+    intents: [
+      <Button.Reset>Reset</Button.Reset>,
+    ]
+  }
+})
+```
+
+## previousState
+
+- **Type**: `State`
+
+The state of the previous frame.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+type State = {     
+  values: string[] 
+} 
+ 
+export const app = new Frog<State>({ 
+  initialState: { 
+    values: [] 
+  } 
+}) 
+ 
+app.frame('/', (context) => {
+  const { buttonValue, deriveState, previousState } = context // [!code focus]
+  const { values } = deriveState(state => { 
+    if (buttonValue) state.values.push(buttonValue)
+  })
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {values.map(value => <div>{value}</div>)}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>,
+    ]
+  }
+})
+```
+
+## request
+
+- **Type**: `Request`
+
+[Hono request object](https://hono.dev/api/request).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { request } = context // [!code focus]
+  return {/* ... */}
+})
+```
+
+## status
+
+- **Type**: `"initial" | "redirect" | "response"`
+
+Status of the frame in the frame lifecycle.
+
+- `initial` - The frame has not yet been interacted with.
+- `redirect` - The frame interaction is a redirect (button of type `'post_redirect'`).
+- `response` - The frame has been interacted with (user presses button).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { status } = context // [!code focus]
+  return {/* ... */}
+})
+```
+
+## verified
+
+- **Type**: `boolean`
+
+Whether or not the [`frameData`](#framedata) (and [`buttonIndex`](#buttonindex), [`buttonValue`](#buttonvalue), [`inputText`](#inputtext)) was verified by the Farcaster Hub API.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { verified } = context // [!code focus]
+  return {/* ... */}
+})
+```
+
+## url
+
+- **Type**: `string`
+
+URL of the frame.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { url } = context // [!code focus]
+  return {/* ... */}
+})
+```

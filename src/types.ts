@@ -44,7 +44,7 @@ export type FrameContext<path extends string = string, state = unknown> = {
    */
   status: 'initial' | 'redirect' | 'response'
   /**
-   * Whether or not the {@link FrameContext`verified`} was verified by the Farcaster Hub API.
+   * Whether or not the {@link FrameContext`frameData`} was verified by the Farcaster Hub API.
    */
   verified: boolean
   /**
