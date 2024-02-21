@@ -206,7 +206,8 @@ export default defineConfig({
           link: '/concepts/state-management',
         },
         {
-          text: 'Frame Verification 🚧',
+          text: 'Frame Verification',
+          link: '/concepts/frame-verification',
         },
         {
           text: 'Devtools 🚧',

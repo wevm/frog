@@ -1,0 +1,108 @@
+# Frame Verification
+
+When a frame responds to a `POST` request from a Farcaster Client, we may want to verify the body of the
+request against a Farcaster Hub to make sure that the contents of the `frameData` (such as `buttonIndex`, `fid`, `castId`, etc) legitimately belong to the
+user that interacted with it.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+
+// ---cut---
+app.frame('/', (context) => {
+  const { frameData } = context
+  const { buttonIndex, fid, castId } = frameData // [!code focus]
+  return {/* .... */}
+})
+```
+
+The body of a `POST` request contains a **signed message** (`trustedData`), and an **unsigned message** (`untrustedData`), 
+which is eventually converted to the `frameData` object in context. This may contain things like:
+
+- The index of the button clicked (`buttonIndex`)
+- Value of the text input (`inputText`)
+- The user's FID (`fid`)
+
+To verify frames with **Frog**, we can utilize the `verify` flag on either the `Frog` instance, or the frame return object. 
+
+By default, frame verification is **turned on**, and is validated against using the default Hub API: `api.hub.wevm.dev` 
+(but you can provide your own).
+
+
+## Examples
+
+### Supplying a Hub API URL
+
+We can set a custom Hub API URL to use for verification by providing it to the `Frog` instance.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+  hubApiUrl: 'https://my.hub.com' // [!code focus]
+})
+
+app.frame('/', (context) => {
+  const { frameData, verified } = context 
+  const { buttonIndex, fid, castId } = frameData
+  if (!verified) console.log('Frame verification failed') 
+  return {/* .... */}
+})
+```
+
+### Silent Verification
+
+We can verify "silently" by setting the `verify` flag to `"silent"` on the `Frog` instance.
+
+This means the frame will go through verification, but not throw an error if it fails. 
+Instead, the frame will receive `verified: false` in its context.
+
+:::warning
+The `"silent"` flag is an inversion of control to the consumer. Only use `"silent"` if you know what you are doing.
+:::
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+  verify: 'silent' // [!code focus]
+})
+
+app.frame('/', (context) => {
+  const { frameData, verified } = context // [!code focus]
+  const { buttonIndex, fid, castId } = frameData
+  if (!verified) console.log('Frame verification failed') // [!code focus]
+  return {/* .... */}
+})
+```
+
+### Per-Frame Verification
+
+We can also verify frames on a per-frame basis by setting the `verify` flag on the frame return object.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { frameData, verified } = context
+  const { buttonIndex, fid, castId } = frameData
+  return {
+    verify: false, // [!code focus]
+    /* .... */
+  }
+})
+```
