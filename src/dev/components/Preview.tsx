@@ -1,10 +1,10 @@
 import { type Frame as FrameType, type State } from '../types.js'
-import { Frame } from './Frame.js'
 import { Data } from './Data.js'
-import { Navigator } from './Navigator.js'
+import { Frame } from './Frame.js'
 import { Metrics } from './Metrics.js'
-import { Timeline } from './Timeline.js'
+import { Navigator } from './Navigator.js'
 import { Tabs } from './Tabs.js'
+import { Timeline } from './Timeline.js'
 
 export type PreviewProps = {
   frame: FrameType

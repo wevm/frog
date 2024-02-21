@@ -1,5 +1,5 @@
-import { type FrameMetaTagPropertyName } from '../types.js'
 import { type FrameImageAspectRatio, type FrameVersion } from '../../types.js'
+import { type FrameMetaTagPropertyName } from '../types.js'
 
 export function parseProperties(metaTags: readonly HTMLMetaElement[]) {
   const validPropertyNames = new Set<FrameMetaTagPropertyName>([

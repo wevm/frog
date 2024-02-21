@@ -1,3 +1,4 @@
+import { AuthDialog } from './AuthDialog.js'
 import {
   chevronLeftIcon,
   chevronRightIcon,
@@ -5,7 +6,6 @@ import {
   globeIcon,
   refreshIcon,
 } from './icons.js'
-import { AuthDialog } from './AuthDialog.js'
 
 export function Navigator() {
   return (

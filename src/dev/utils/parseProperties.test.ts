@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 
-import { parseProperties } from './parseProperties.js'
 import { htmlToMetaTags } from './htmlToMetaTags.js'
+import { parseProperties } from './parseProperties.js'
 
 const html = `
   <meta property="fc:frame" content="vNext">

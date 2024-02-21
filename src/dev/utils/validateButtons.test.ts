@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
 
-import { validateButtons } from './validateButtons.js'
 import { htmlToMetaTags } from './htmlToMetaTags.js'
 import { parseButtons } from './parseButtons.js'
+import { validateButtons } from './validateButtons.js'
 
 const html = `
   <meta property="fc:frame" content="vNext">
