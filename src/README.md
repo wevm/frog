@@ -4,7 +4,7 @@
   <a href="https://frog.fm">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/wevm/frog/blob/main/.github/logo-dark.png">
-      <img alt="frog logo" src="https://github.com/wevm/frog/blob/main/.github/logo-light.png" width="auto" height="40">
+      <img alt="frog logo" src="https://github.com/wevm/frog/blob/main/.github/logo-light.png" width="auto" height="90">
     </picture>
   </a>
 </p>
