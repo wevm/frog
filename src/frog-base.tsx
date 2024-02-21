@@ -1,6 +1,6 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
-import { ImageResponse, ImageResponseOptions } from 'hono-og'
+import { ImageResponse, type ImageResponseOptions } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
