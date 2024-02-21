@@ -182,8 +182,8 @@ export default defineConfig({
       text: 'Concepts',
       items: [
         {
-          text: 'Structure',
-          link: '/concepts/structure',
+          text: 'Overview',
+          link: '/concepts/overview',
         },
         {
           text: 'Routing',
@@ -194,19 +194,19 @@ export default defineConfig({
           link: '/concepts/actions',
         },
         {
-          text: 'Images & Intents',
+          text: 'Images & Intents 🚧',
         },
         {
-          text: 'Browser Redirects',
+          text: 'Browser Redirects 🚧',
         },
         {
-          text: 'State Management',
+          text: 'State Management 🚧',
         },
         {
-          text: 'Frame Verification',
+          text: 'Frame Verification 🚧',
         },
         {
-          text: 'Devtools',
+          text: 'Devtools 🚧',
         },
       ],
     },
@@ -214,19 +214,19 @@ export default defineConfig({
       text: 'Platforms',
       items: [
         {
-          text: 'Bun',
+          text: 'Bun 🚧',
         },
         {
-          text: 'Cloudflare',
+          text: 'Cloudflare 🚧',
         },
         {
-          text: 'Next.js',
+          text: 'Next.js 🚧',
         },
         {
-          text: 'Node.js',
+          text: 'Node.js 🚧',
         },
         {
-          text: 'Vercel',
+          text: 'Vercel 🚧',
         },
       ],
     },
@@ -237,11 +237,11 @@ export default defineConfig({
           text: 'Context',
           link: '/reference/context',
         },
-        { text: 'Frog' },
-        { text: 'Frog.frame' },
-        { text: 'Frog.hono' },
-        { text: 'Frog.route' },
-        { text: 'Intents' },
+        { text: 'Frog 🚧' },
+        { text: 'Frog.frame 🚧' },
+        { text: 'Frog.hono 🚧' },
+        { text: 'Frog.route 🚧' },
+        { text: 'Intents 🚧' },
       ],
     },
   ],
