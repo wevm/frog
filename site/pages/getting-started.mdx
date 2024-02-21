@@ -5,6 +5,34 @@
 Frog is a framework built on top of [Hono](https://hono.dev) for building Farcaster Frames. 
 Frog enables you to build frames with [JSX](https://hono.dev/guides/jsx), integrated onto any platform (Next.js, Vercel, Cloudflare, etc).
 
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: ${buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
 ## Quick Start
 
 ### Bootstrap via CLI
