@@ -10,7 +10,6 @@ export const app = new Frog<State>({
     index: -1,
     todos: [],
   },
-  secret: process.env.SECRET,
   verify: true,
 })
 

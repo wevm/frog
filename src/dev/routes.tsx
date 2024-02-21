@@ -350,8 +350,8 @@ export function routes<
           signature: string
         }
 
-        requestFid = response.requestFid
         deadline = response.deadline
+        requestFid = response.requestFid
         signature = response.signature
       }
 

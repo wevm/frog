@@ -91,7 +91,14 @@ export type FrogConstructorParameters<
         appFid?: string | undefined
         /** Custom app mnemonic to auth with. */
         appMnemonic?: string | undefined
-        /** Secret key used to sign secret data. */
+        /**
+         * Key used to sign secret data.
+         *
+         * It's strongly recommended to add a strong secret key before deploying to production.
+         *
+         * @example
+         * '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz'
+         */
         secret?: string | undefined
       }
     | undefined
