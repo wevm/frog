@@ -161,8 +161,8 @@ importers:
         specifier: ^4
         version: 4.0.4
       hono-og:
-        specifier: 0.0.14
-        version: 0.0.14(hono@4.0.4)
+        specifier: 0.0.15
+        version: 0.0.15(hono@4.0.4)
       immer:
         specifier: ^10.0.3
         version: 10.0.3
@@ -3120,6 +3120,15 @@ packages:
       yoga-wasm-web: 0.3.3
     dev: false
 
+  /@wevm/vercel-og@0.6.11:
+    resolution: {integrity: sha512-TMiWcnKruntlFKE1G1MYZYitNKBbUdJB5U0btf0vjWrBcakQMtBCTRRnD5b1soBeRAUR/n0voVge+CrJbSmbOA==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@resvg/resvg-wasm': 2.4.0
+      satori: 0.10.9
+      yoga-wasm-web: 0.3.3
+    dev: false
+
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
@@ -5319,12 +5328,12 @@ packages:
       hono: 4.0.5
     dev: false
 
-  /hono-og@0.0.14(hono@4.0.4):
-    resolution: {integrity: sha512-n2UWs4cgKi5eKf23B+ZRWqNO/tIqVTrHPfGKfHeNFHN4jeyc8W3VD3dhars3nO2hWph3Ly65tjmRw/lGMseBAA==}
+  /hono-og@0.0.15(hono@4.0.4):
+    resolution: {integrity: sha512-BKY/5sFOuqhBcKrieCGjT+7ql8MbIJMFa8AdmEkt21bkJUlzA3uxX1FWKUZNB7ol/jCUf3Htb2ZLNVSg/NIRwA==}
     peerDependencies:
       hono: '>=3'
     dependencies:
-      '@wevm/vercel-og': 0.6.10
+      '@wevm/vercel-og': 0.6.11
       hono: 4.0.4
       workers-og: 0.0.20
     dev: false

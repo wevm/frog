@@ -1,0 +1,138 @@
+# Images & Intents
+
+Farcaster Frames have two main UI components: 
+
+- an **Image**, and 
+- a set of **Intents**
+
+![Images & Intents](/images-intents.png)
+
+## Image
+
+In Farcaster Frames, an **Image** behaves similarly to an [Open Graph image](https://ogp.me/), and shares the same constraints.
+
+**Frog** uses [Satori](https://github.com/vercel/satori) & [Resvg](https://github.com/yisibl/resvg-js) under-the-hood to compile JSX elements to a static image.
+Check out Vercel's [Open Graph Image Generation page](https://vercel.com/docs/functions/og-image-generation) to learn more about the internals of **Frog's** image renderer, and the constraints and best practices for creating OG images.
+
+In **Frog**, an **Image** can be rendered via the `image` return property:
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: ( // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+        {status === 'initial' ? ( // [!code focus]
+          <div>Select your fruit!</div> // [!code focus]
+        ) : ( // [!code focus]
+          <div>Selected: {buttonValue}</div> // [!code focus]
+        )} // [!code focus]
+      </div> // [!code focus]
+    ), // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
+:::tip[Tip]
+You can use the [OG Image Playground](https://og-playground.vercel.app/) to quickly prototype your image.
+:::
+
+### Image Options
+
+**Frog** also exposes options that you can use to customize the image. 
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+// ---cut---
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    imageOptions: { width: 600, height: 600 }, // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
+| Property | Type | Default | Description |
+| -------- | -------- | -------- | -------- |
+| `width`    | `number`     | `1200`     | The width of the image. |
+| `height`    | `number`     | `630`     | The height of the image. |
+| `emoji`    | `"twemoji"` `"blobmoji"` `"noto"` `"openmoji"`     |      | The emoji set to use.|
+| `debug` | `boolean` | `false` | Debug mode flag. |
+| `fonts` | `Font[]` | – | The fonts to use. |
+
+[Read more on Image Options.](https://vercel.com/docs/functions/og-image-generation/og-image-api#fonts-parameters-within-options)
+
+## Intents
+
+**Intents** are the interactive elements in a Farcaster Frame. They are the buttons and/or text inputs that users can interact with.
+
+**Frog** currently supports the following **Intents**:
+
+- [`<Button>{:jsx}`](/reference/intents#button)
+- [`<TextInput>{:jsx}`](/reference/intents#textinput)
+
+:::note
+Read the [Intents API](/reference/intents).
+:::
+
+In **Frog**, **Intents** are rendered via the `intent` return property:
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog' // [!code focus]
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonValue, inputText, status } = context
+  const fruit = inputText || buttonValue
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {fruit}</div>
+        )}
+      </div>
+    ),
+    intents: [ // [!code focus]
+      <TextInput placeholder="Enter a custom fruit..." />, // [!code focus]
+      <Button value="apple">Apple</Button>, // [!code focus]
+      <Button value="banana">Banana</Button>, // [!code focus]
+      <Button value="mango">Mango</Button> // [!code focus]
+    ] // [!code focus]
+  }
+})
+```
+
+

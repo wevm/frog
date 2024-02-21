@@ -194,7 +194,8 @@ export default defineConfig({
           link: '/concepts/actions',
         },
         {
-          text: 'Images & Intents 🚧',
+          text: 'Images & Intents',
+          link: '/concepts/images-intents',
         },
         {
           text: 'Browser Redirects 🚧',

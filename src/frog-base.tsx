@@ -1,6 +1,6 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
-import { ImageResponse } from 'hono-og'
+import { ImageResponse, ImageResponseOptions } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { type Env, type Schema } from 'hono/types'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
@@ -156,6 +156,15 @@ export type FrameHandlerReturnType = Pick<
    * <div style={{ fontSize: 60 }}>Hello World</div>
    */
   image: JSX.Element
+  /**
+   * Image options.
+   *
+   * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
+   *
+   * @example
+   * { width: 1200, height: 630 }
+   */
+  imageOptions: ImageResponseOptions
   /**
    * The aspect ratio of the OG Image.
    *

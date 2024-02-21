@@ -10,16 +10,11 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
+app.frame('/', () => {
   return {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        {status === 'initial' ? (
-          <div>Select your fruit!</div>
-        ) : (
-          <div>Selected: {buttonValue}</div>
-        )}
+        Select your fruit!
       </div>
     ),
     intents: [
@@ -111,7 +106,7 @@ app.frame('/', (context) => {
         {status === 'initial' ? (
           <div>Select your fruit!</div>
         ) : (
-          <div>Selected: ${buttonValue}</div>
+          <div>Selected: {buttonValue}</div>
         )}
       </div>
     ),
