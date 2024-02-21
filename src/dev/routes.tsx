@@ -168,7 +168,8 @@ export function routes<
         const { buttonIndex, castId, inputText, postUrl, state } = json
 
         let cookie: string | boolean | undefined
-        if (app.secret) cookie = await getSignedCookie(c, app.secret, 'session')
+        if (app.devtools?.secret)
+          cookie = await getSignedCookie(c, app.devtools.secret, 'session')
         else cookie = getCookie(c, 'session')
         const keypair = cookie
           ? (JSON.parse(cookie) as
