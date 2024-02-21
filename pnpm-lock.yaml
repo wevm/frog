@@ -104,7 +104,7 @@ importers:
         version: 4.0.5
       viem:
         specifier: ^2.7.10
-        version: 2.7.11(typescript@5.3.3)
+        version: 2.7.11(typescript@4.9.5)
     devDependencies:
       vercel:
         specifier: ^32.4.1
@@ -116,8 +116,8 @@ importers:
         specifier: latest
         version: 18.2.57
       frog:
-        specifier: workspace:*
-        version: link:../src
+        specifier: main
+        version: 1.0.0-alpha.0-main.20240221T005947(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -1378,6 +1378,22 @@ packages:
     dependencies:
       '@hono/node-server': 1.8.1
       hono: 4.0.4
+      miniflare: 3.20240129.3
+      minimatch: 9.0.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
+
+  /@hono/vite-dev-server@0.7.0(hono@4.0.5):
+    resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: '*'
+    dependencies:
+      '@hono/node-server': 1.8.1
+      hono: 4.0.5
       miniflare: 3.20240129.3
       minimatch: 9.0.3
     transitivePeerDependencies:
@@ -3122,6 +3138,20 @@ packages:
       typescript: 5.3.3
     dev: false
 
+  /abitype@1.0.0(typescript@4.9.5):
+    resolution: {integrity: sha512-NMeMah//6bJ56H5XRj8QCV4AwuW6hB6zqz2LnhhLdcWVQOsXki6/Pn3APeqxCma62nXIcmZWdu1DlHWS74umVQ==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3 >=3.22.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      zod:
+        optional: true
+    dependencies:
+      typescript: 4.9.5
+    dev: false
+
   /abitype@1.0.0(typescript@5.3.3):
     resolution: {integrity: sha512-NMeMah//6bJ56H5XRj8QCV4AwuW6hB6zqz2LnhhLdcWVQOsXki6/Pn3APeqxCma62nXIcmZWdu1DlHWS74umVQ==}
     peerDependencies:
@@ -4788,6 +4818,43 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
+  /frog@1.0.0-alpha.0-main.20240221T005947(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3):
+    resolution: {integrity: sha512-h7u6T8wKtiGujm5nNpfkyzLBLwANbtnWd3g/uuccWG1LhK+OCW7QQE21M6Gbcyv6F/dbwj6FY12cKxJzxb8UGA==}
+    hasBin: true
+    peerDependencies:
+      hono: ^4
+    dependencies:
+      '@farcaster/core': 0.13.8(typescript@5.3.3)
+      '@hono/vite-dev-server': 0.7.0(hono@4.0.5)
+      '@noble/curves': 1.3.0
+      cac: 6.7.14
+      detect-browser: 5.3.0
+      fast-glob: 3.3.2
+      fs-extra: 11.2.0
+      happy-dom: 13.3.8
+      hono: 4.0.5
+      hono-og: 0.0.13(hono@4.0.5)
+      immer: 10.0.3
+      path-browserify: 1.0.1
+      qrcode: 1.5.3
+      shiki: 1.1.6
+      viem: 2.7.11(typescript@5.3.3)
+      vite: 5.1.3(@types/node@20.11.19)
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
   /fs-extra@11.1.0:
     resolution: {integrity: sha512-0rcTq621PD5jM/e0a3EJoGC/1TC5ZBCERW82LQuwfGnCa1V8w7dpYH1yNu+SLb6E5dkeCBzKEyLGlFrnr+dUyw==}
     engines: {node: '>=14.14'}
@@ -5250,6 +5317,15 @@ packages:
     dependencies:
       '@wevm/vercel-og': 0.6.10
       hono: 4.0.4
+    dev: false
+
+  /hono-og@0.0.13(hono@4.0.5):
+    resolution: {integrity: sha512-I5CYcV6E7Y9lxM1lhbobJASq3EJspMhCUX0HJ2j4M5ULbbwIW+sVOrJPFoiNsWCtZEbuWBt3vbI9kFiyAy7XBA==}
+    peerDependencies:
+      hono: '>=3'
+    dependencies:
+      '@wevm/vercel-og': 0.6.10
+      hono: 4.0.5
     dev: false
 
   /hono@3.12.12:
@@ -8684,7 +8760,6 @@ packages:
     resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
   /typescript@5.3.3:
     resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
@@ -8977,6 +9052,29 @@ packages:
       abitype: 0.9.8(typescript@5.3.3)
       isows: 1.0.3(ws@8.13.0)
       typescript: 5.3.3
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /viem@2.7.11(typescript@4.9.5):
+    resolution: {integrity: sha512-qlEPF9YOgPVqjTyom73TVAekAYrIe68megO07u55p7pKWgLt0i9KD6Mrmiw7pd7oHh86vIppcygwQMDNGX1YAw==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@adraffy/ens-normalize': 1.10.0
+      '@noble/curves': 1.2.0
+      '@noble/hashes': 1.3.2
+      '@scure/bip32': 1.3.2
+      '@scure/bip39': 1.2.1
+      abitype: 1.0.0(typescript@4.9.5)
+      isows: 1.0.3(ws@8.13.0)
+      typescript: 4.9.5
       ws: 8.13.0
     transitivePeerDependencies:
       - bufferutil
