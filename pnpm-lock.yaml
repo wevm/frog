@@ -161,8 +161,8 @@ importers:
         specifier: ^4
         version: 4.0.4
       hono-og:
-        specifier: 0.0.13
-        version: 0.0.13(hono@4.0.4)
+        specifier: 0.0.14
+        version: 0.0.14(hono@4.0.4)
       immer:
         specifier: ^10.0.3
         version: 10.0.3
@@ -5310,15 +5310,6 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /hono-og@0.0.13(hono@4.0.4):
-    resolution: {integrity: sha512-I5CYcV6E7Y9lxM1lhbobJASq3EJspMhCUX0HJ2j4M5ULbbwIW+sVOrJPFoiNsWCtZEbuWBt3vbI9kFiyAy7XBA==}
-    peerDependencies:
-      hono: '>=3'
-    dependencies:
-      '@wevm/vercel-og': 0.6.10
-      hono: 4.0.4
-    dev: false
-
   /hono-og@0.0.13(hono@4.0.5):
     resolution: {integrity: sha512-I5CYcV6E7Y9lxM1lhbobJASq3EJspMhCUX0HJ2j4M5ULbbwIW+sVOrJPFoiNsWCtZEbuWBt3vbI9kFiyAy7XBA==}
     peerDependencies:
@@ -5326,6 +5317,16 @@ packages:
     dependencies:
       '@wevm/vercel-og': 0.6.10
       hono: 4.0.5
+    dev: false
+
+  /hono-og@0.0.14(hono@4.0.4):
+    resolution: {integrity: sha512-n2UWs4cgKi5eKf23B+ZRWqNO/tIqVTrHPfGKfHeNFHN4jeyc8W3VD3dhars3nO2hWph3Ly65tjmRw/lGMseBAA==}
+    peerDependencies:
+      hono: '>=3'
+    dependencies:
+      '@wevm/vercel-og': 0.6.10
+      hono: 4.0.4
+      workers-og: 0.0.20
     dev: false
 
   /hono@3.12.12:
@@ -5793,6 +5794,10 @@ packages:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  /just-camel-case@6.2.0:
+    resolution: {integrity: sha512-ICenRLXwkQYLk3UyvLQZ+uKuwFVJ3JHFYFn7F2782G2Mv2hW8WPePqgdhpnjGaqkYtSVWnyCESZhGXUmY3/bEg==}
+    dev: false
 
   /kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
@@ -7940,6 +7945,22 @@ packages:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
     dev: true
 
+  /satori@0.10.13:
+    resolution: {integrity: sha512-klCwkVYMQ/ZN5inJLHzrUmGwoRfsdP7idB5hfpJ1jfiJk1ErDitK8Hkc6Kll1+Ox2WtqEuGecSZLnmup3CGzvQ==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@shuding/opentype.js': 1.4.0-beta.0
+      css-background-parser: 0.1.0
+      css-box-shadow: 1.0.0-3
+      css-to-react-native: 3.2.0
+      emoji-regex: 10.3.0
+      escape-html: 1.0.3
+      linebreak: 1.1.0
+      parse-css-color: 0.2.1
+      postcss-value-parser: 4.2.0
+      yoga-wasm-web: 0.3.3
+    dev: false
+
   /satori@0.10.9:
     resolution: {integrity: sha512-XU9EELUEZuioT4acLIpCXxHcFzrsC8muvg0MY28d+TlqwxbkTzBmWbw+3+hnCzXT7YZ0Qm8k3eXktDaEu+qmEw==}
     engines: {node: '>=16'}
@@ -9404,6 +9425,15 @@ packages:
       '@cloudflare/workerd-linux-64': 1.20240129.0
       '@cloudflare/workerd-linux-arm64': 1.20240129.0
       '@cloudflare/workerd-windows-64': 1.20240129.0
+
+  /workers-og@0.0.20:
+    resolution: {integrity: sha512-GgWLpfpGxzgqYnT2HdBybXdAePn7+W5zQUl+NUbnggp2zeCaliZdQh5su7XXM5TSAlveSAiwRrG/kOFSIXiOKQ==}
+    dependencies:
+      '@resvg/resvg-wasm': 2.4.0
+      just-camel-case: 6.2.0
+      satori: 0.10.13
+      yoga-wasm-web: 0.3.3
+    dev: false
 
   /wrangler@3.28.3:
     resolution: {integrity: sha512-pLuvWA5W8FhjI/a7Mr5F491KOqNMYzyWVN7dmwr+52sPv2BFrfN1v6btmhHYotSblCH8yfs5DmuxwdKuVPMw9w==}

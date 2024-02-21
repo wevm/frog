@@ -249,7 +249,7 @@ export function routes<
 
         let cookie: string | boolean | undefined
         if (app.devtools?.secret)
-          cookie = await getSignedCookie(c, app.devtools?.secret, 'session')
+          cookie = await getSignedCookie(c, app.devtools.secret, 'session')
         else cookie = getCookie(c, 'session')
         const keypair = cookie
           ? (JSON.parse(cookie) as
