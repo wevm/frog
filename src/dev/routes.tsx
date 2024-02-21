@@ -339,7 +339,7 @@ export function routes<
         })
       } else {
         const response = (await fetch(
-          `https://auth.frog.fm/signed-key-requests/${publicKey}`,
+          `https://auth.frog.fm/api/signed-key-requests/${publicKey}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
