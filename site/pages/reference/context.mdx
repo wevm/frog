@@ -102,13 +102,13 @@ export const app = new Frog<State>({ // [!code focus]
  
 app.frame('/', (context) => {
   const { buttonValue, deriveState } = context
-  const { values } = deriveState(state => { // [!code focus]
-    if (buttonValue) state.values.push(buttonValue) // [!code focus]
+  const state = deriveState(previousState => { // [!code focus]
+    if (buttonValue) previousState.values.push(buttonValue) // [!code focus]
   }) // [!code focus]
   return {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        {values.map(value => <div>{value}</div>)} // [!code focus]
+        {state.values.map(value => <div>{value}</div>)} // [!code focus]
       </div>
     ),
     intents: [
@@ -263,8 +263,8 @@ export const app = new Frog<State>({
  
 app.frame('/', (context) => {
   const { buttonValue, deriveState, previousState } = context // [!code focus]
-  const { values } = deriveState(state => { 
-    if (buttonValue) state.values.push(buttonValue)
+  const state = deriveState(previousState => { 
+    if (buttonValue) previousState.values.push(buttonValue)
   })
   return {
     image: (

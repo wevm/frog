@@ -202,7 +202,8 @@ export default defineConfig({
           link: '/concepts/browser-redirects',
         },
         {
-          text: 'State Management 🚧',
+          text: 'State Management',
+          link: '/concepts/state-management',
         },
         {
           text: 'Frame Verification 🚧',

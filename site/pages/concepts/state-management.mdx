@@ -1,0 +1,50 @@
+# State Management
+
+State Management in **Frog** looks a bit different to what you might be used to with client-side web frameworks such as: React, Vue, Svelte, etc. 
+The critical difference is that **Frog** has no sense of "reactivity" and "interactivity" as it is purely server-side image rendering.
+
+State Management in **Frog** is achieved through "state derivation", and we can use the `deriveState` function to
+derive new state based on the previous state.
+
+Essentially, `state = deriveState(previousState)`.
+
+Here's an example of a simple counter:
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+type State = {     // [!code focus]
+  count: number // [!code focus]
+} // [!code focus]
+ 
+export const app = new Frog<State>({ // [!code focus]
+  initialState: { // [!code focus]
+    count: 0 // [!code focus]
+  } // [!code focus]
+}) // [!code focus]
+ 
+app.frame('/', (context) => {
+  const { buttonValue, deriveState } = context  // [!code focus]
+  const state = deriveState(previousState => { // [!code focus]
+    if (buttonValue === 'inc') previousState.count++ // [!code focus]
+    if (buttonValue === 'dec') previousState.count-- // [!code focus]
+  }) // [!code focus]
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Count: {state.count} // [!code focus]
+      </div>
+    ),
+    intents: [
+      <Button value="inc">Increment</Button>, // [!code focus]
+      <Button value="dec">Decrement</Button>, // [!code focus]
+    ]
+  }
+})
+```
+
+:::note
+**Frog** internally uses [Immer's `produce` function](https://immerjs.github.io/immer/produce/) for `deriveState`.
+:::
