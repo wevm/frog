@@ -83,6 +83,19 @@ export type FrogConstructorParameters<
    */
   browserLocation?: string | undefined
   /**
+   * Options for built-in devtools.
+   */
+  devtools?:
+    | {
+        /** Custom app fid to auth with. */
+        appFid?: string | undefined
+        /** Custom app mnemonic to auth with. */
+        appMnemonic?: string | undefined
+        /** Secret key used to sign secret data. */
+        secret?: string | undefined
+      }
+    | undefined
+  /**
    * Options to forward to the `Hono` instance.
    */
   honoOptions?: HonoOptions<env> | undefined
@@ -104,10 +117,6 @@ export type FrogConstructorParameters<
    * ```
    */
   initialState?: state | undefined
-  /**
-   * Secret key used to sign secret data.
-   */
-  secret?: string | undefined
   /**
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
@@ -201,6 +210,7 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
+  devtools: FrogConstructorParameters['devtools'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
@@ -209,13 +219,13 @@ export class FrogBase<
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   use: Hono<env, schema, basePath>['use']
-  secret: string | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
   constructor({
     basePath,
     browserLocation,
+    devtools,
     honoOptions,
     hubApiUrl,
     initialState,
@@ -224,6 +234,7 @@ export class FrogBase<
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
+    if (devtools) this.devtools = devtools
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (typeof verify !== 'undefined') this.verify = verify
 

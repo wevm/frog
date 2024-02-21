@@ -122,9 +122,7 @@ export function Preview(props: PreviewProps) {
         async getFrame(url = this.baseUrl, replaceLogs = false) {
           const response = await fetch(url + '/dev/frame', {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
           })
           const json = await response.json()
           this.logs = replaceLogs ? [json] : [...this.logs, json]
@@ -135,9 +133,7 @@ export function Preview(props: PreviewProps) {
           const response = await fetch(this.baseUrl + '/dev/frame/action', {
             method: 'POST',
             body: JSON.stringify(body),
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
           })
           const json = await response.json()
           this.logs = [...this.logs, json]
@@ -148,9 +144,7 @@ export function Preview(props: PreviewProps) {
           const response = await fetch(this.baseUrl + '/dev/frame/redirect', {
             method: 'POST',
             body: JSON.stringify(body),
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
           })
           const json = await response.json()
           this.logs = [...this.logs, { ...this.logs.at(-1), request: json }]
@@ -160,9 +154,7 @@ export function Preview(props: PreviewProps) {
         async fetchAuthCode() {
           const response = await fetch(this.baseUrl + '/dev/frame/auth/code', {
             method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
           })
           const json = await response.json()
           return json
@@ -180,9 +172,7 @@ export function Preview(props: PreviewProps) {
         async logout(body) {
           const response = await fetch(this.baseUrl + '/dev/frame/auth/logout', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
           })
           const json = await response.json()
           this.user = null

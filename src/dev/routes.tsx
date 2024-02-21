@@ -300,65 +300,75 @@ export function routes<
       return c.json({ success: true })
     })
     .get(`${parsePath(path)}/dev/frame/auth/code`, async (c) => {
-      // TODO: Add to configuration options
-      const fid = process.env.APP_FID
-      const mnemonic = process.env.APP_MNEMONIC
-      if (!fid || !mnemonic) throw new Error('Missing APP_FID or APP_MNEMONIC')
-      const request = { fid, mnemonic } as const
-
       // 1. Create keypair
       const privateKeyBytes = ed25519.utils.randomPrivateKey()
       const publicKeyBytes = ed25519.getPublicKey(privateKeyBytes)
       const privateKey = `0x${bytesToHex(privateKeyBytes)}`
       const publicKey = `0x${bytesToHex(publicKeyBytes)}` as const
 
-      // 2. Sign key request
-      // TODO: Sign via API by default if user does not provide mnemonic
-      const account = mnemonicToAccount(request.mnemonic)
-      const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
-      const signature = await account.signTypedData({
-        domain: {
-          name: 'Farcaster SignedKeyRequestValidator',
-          version: '1',
-          chainId: 10,
-          verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
-        },
-        types: {
-          SignedKeyRequest: [
-            { name: 'requestFid', type: 'uint256' },
-            { name: 'key', type: 'bytes' },
-            { name: 'deadline', type: 'uint256' },
-          ],
-        },
-        primaryType: 'SignedKeyRequest',
-        message: {
-          requestFid: BigInt(request.fid),
-          key: publicKey,
-          deadline: BigInt(deadline),
-        },
-      })
+      // 2. Sign key request. By default, use hosted service.
+      let deadline: number
+      let requestFid: string
+      let signature: string
+      if (app.devtools?.appFid && app.devtools?.appMnemonic) {
+        const account = mnemonicToAccount(app.devtools.appMnemonic)
+        deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
+        requestFid = app.devtools.appFid
+        signature = await account.signTypedData({
+          domain: {
+            name: 'Farcaster SignedKeyRequestValidator',
+            version: '1',
+            chainId: 10,
+            verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
+          },
+          types: {
+            SignedKeyRequest: [
+              { name: 'requestFid', type: 'uint256' },
+              { name: 'key', type: 'bytes' },
+              { name: 'deadline', type: 'uint256' },
+            ],
+          },
+          primaryType: 'SignedKeyRequest',
+          message: {
+            requestFid: BigInt(app.devtools.appFid),
+            key: publicKey,
+            deadline: BigInt(deadline),
+          },
+        })
+      } else {
+        const response = (await fetch(
+          `https://auth.frog.fm/signed-key-requests/${publicKey}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ).then((response) => response.json())) as {
+          deadline: number
+          requestFid: string
+          signature: string
+        }
+
+        requestFid = response.requestFid
+        deadline = response.deadline
+        signature = response.signature
+      }
 
       // 3. Create key request to register public key
-      const response = await fetch(
+      const response = (await fetch(
         'https://api.warpcast.com/v2/signed-key-requests',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deadline,
             key: publicKey,
-            requestFid: request.fid,
+            requestFid,
             signature,
           }),
         },
-      ).then(
-        (response) =>
-          response.json() as Promise<{
-            result: { signedKeyRequest: SignedKeyRequest }
-          }>,
-      )
+      ).then((response) => response.json())) as {
+        result: { signedKeyRequest: SignedKeyRequest }
+      }
 
       const { token, deeplinkUrl: url } = response.result.signedKeyRequest
 
@@ -366,53 +376,49 @@ export function routes<
       const rendered = await c.render(<QRCode url={url} />)
       const code = await rendered.text()
 
-      // TODO: Should `app.secret` be required?
-      {
-        const value = JSON.stringify({ privateKey, publicKey })
-        if (app.secret)
-          await setSignedCookie(c, 'session', value, app.secret, cookieOptions)
-        else setCookie(c, 'session', value, cookieOptions)
-      }
+      // 5. Save keypair in cookie
+      const value = JSON.stringify({ privateKey, publicKey })
+      if (app.devtools?.secret)
+        await setSignedCookie(
+          c,
+          'session',
+          value,
+          app.devtools?.secret,
+          cookieOptions,
+        )
+      else setCookie(c, 'session', value, cookieOptions)
 
       return c.json({ code, token, url })
     })
     .get(`${parsePath(path)}/dev/frame/auth/status/:token`, async (c) => {
       // @ts-ignore TODO: Fix inference on path param
       const token = c.req.param('token') as string
-      const response = await fetch(
+      const response = (await fetch(
         `https://api.warpcast.com/v2/signed-key-request?token=${token}`,
         {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         },
-      ).then(
-        (response) =>
-          response.json() as Promise<{
-            result: { signedKeyRequest: SignedKeyRequest }
-          }>,
-      )
+      ).then((response) => response.json())) as {
+        result: { signedKeyRequest: SignedKeyRequest }
+      }
       const { state = 'pending', userFid } =
         response.result?.signedKeyRequest ?? {}
 
       if (state === 'completed') {
-        const response = await fetch(
+        const response = (await fetch(
           `${app.hubApiUrl}/v1/userDataByFid?fid=${userFid}`,
-        ).then(
-          (response) =>
-            response.json() as Promise<{
-              messages: {
-                data: {
-                  type: 'MESSAGE_TYPE_USER_DATA_ADD'
-                  userDataBody: {
-                    type: 'USER_DATA_TYPE_PFP' | 'USER_DATA_TYPE_USERNAME'
-                    value: string
-                  }
-                }
-              }[]
-            }>,
-        )
+        ).then((response) => response.json())) as {
+          messages: {
+            data: {
+              type: 'MESSAGE_TYPE_USER_DATA_ADD'
+              userDataBody: {
+                type: 'USER_DATA_TYPE_PFP' | 'USER_DATA_TYPE_USERNAME'
+                value: string
+              }
+            }
+          }[]
+        }
 
         const pfp = response.messages.find(
           (message) =>

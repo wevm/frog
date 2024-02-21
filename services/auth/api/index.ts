@@ -9,13 +9,14 @@ export const config = {
 const app = new Hono()
 
 app.get('/signed-key-requests/:publicKey', async (c) => {
-  const publicKey = c.req.param('publicKey') as `0x${string}`
+  const key = c.req.param('publicKey') as `0x${string}`
 
-  const fid = process.env.APP_FID
-  const mnemonic = process.env.APP_MNEMONIC
-  if (!fid || !mnemonic) throw new Error('Missing APP_FID or APP_MNEMONIC')
+  const appFid = process.env.APP_FID
+  const appMnemonic = process.env.APP_MNEMONIC
+  if (!appFid) throw new Error('Missing APP_FID')
+  if (!appMnemonic) throw new Error('Missing APP_MNEMONIC')
 
-  const account = mnemonicToAccount(mnemonic)
+  const account = mnemonicToAccount(appMnemonic)
   const deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
   const signature = await account.signTypedData({
     domain: {
@@ -33,13 +34,13 @@ app.get('/signed-key-requests/:publicKey', async (c) => {
     },
     primaryType: 'SignedKeyRequest',
     message: {
-      requestFid: BigInt(fid),
-      key: publicKey,
+      requestFid: BigInt(appFid),
+      key,
       deadline: BigInt(deadline),
     },
   })
 
-  return c.json({ signature })
+  return c.json({ deadline, signature, requestFid: appFid })
 })
 
 export default handle(app)
