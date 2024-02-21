@@ -1,3 +1,1 @@
-# Frog 🐸
-
-The Framework for Farcaster Frames.
+src/README.md
