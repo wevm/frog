@@ -1,5 +1,6 @@
 import { Button, Frog, TextInput } from 'frog'
 
+import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
 
 export const app = new Frog({
@@ -145,3 +146,4 @@ app.frame('/falsy-intents', () => {
 })
 
 app.route('/todos', todoApp)
+app.route('/routing', routingApp)

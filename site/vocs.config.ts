@@ -31,12 +31,13 @@ export default defineConfig({
         },
         {
           text: 'Routing',
+          link: '/concepts/routing',
         },
         {
           text: 'Context',
         },
         {
-          text: 'Actions',
+          text: 'Connecting Frames (Actions)',
         },
         {
           text: 'Images & Intents',

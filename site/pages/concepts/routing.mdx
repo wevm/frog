@@ -1,0 +1,152 @@
+# Routing [Overview of Routing in Frog]
+
+Similar to `.post`, `.get`, `.put`, etc in other Web Frameworks, **Frog** uses `.frame` to define a new frame route.
+
+Internally, the frame route automatically handles `GET` and `POST` requests sent by Farcaster clients such as Warpcast to
+get frame metadata.
+
+## Basic
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (context) => { // [!code focus]
+  return {/* ... */}
+})
+
+app.frame('/foo', (context) => { // [!code focus]
+  return {/* ... */}
+})
+
+app.frame('/bar', (context) => { // [!code focus]
+  return {/* ... */}
+})
+```
+
+## Grouping
+
+You can group routes by using the `app.route` method.
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+import { Frog } from 'frog'
+import { app as exampleApp } from './example' // [!code focus]
+ 
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  return {/* ... */}
+})
+
+app.route('/example', exampleApp) // [!code focus]
+```
+
+```tsx twoslash [src/example.tsx] filename="./example.tsx"
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  return {/* ... */}
+})
+```
+
+:::
+
+## Base Path
+
+You can specify a base path for your app with the `basePath` constructor parameter.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog({ basePath: '/api' }) // [!code focus]
+```
+
+## Path Parameters
+
+You can extract path parameters using `context.request.param(){:js}`
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+export const app = new Frog()
+// ---cut---
+app.frame('/user/:name', (context) => { // [!code focus]
+  const name = context.request.param('name') // [!code focus]
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        gm, {name} // [!code focus]
+      </div>
+    ),
+  }
+})
+```
+
+You can extract all parameters at once:
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+export const app = new Frog()
+// ---cut---
+app.frame('/posts/:id/comment/:commentId', (context) => { // [!code focus]
+  const { id, commentId } = context.request.param() // [!code focus]
+  // ...
+})
+```
+
+You can specify optional parameters:
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+export const app = new Frog()
+// ---cut---
+// @log: Matches `/api/animal` and `/api/animal/:type`
+app.frame('/api/animal/:type?', (context) => { // [!code focus]
+  const { id, commentId } = context.request.param() // [!code focus]
+  // ...
+})
+```
+
+## Regular Expressions
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+export const app = new Frog()
+// ---cut---
+app.frame('/post/:date{[0-9]+}/:title{[a-z]+}', (context) => { // [!code focus]
+  const { date, title } = context.request.param() // [!code focus]
+  // ...
+})
+```
+
+## Hono Routes (GET, POST, etc)
+
+You can also define `GET`, `POST`, etc routes via the [Hono](https://hono.dev) instance.
+
+```tsx twoslash
+// @noErrors
+import { Button, Frog } from 'frog'
+ 
+// ---cut---
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  return {/* ... */}
+})
+
+app.hono.get('/healthcheck', (context) => { // [!code focus]
+  return context.text('im ok')
+})
+```

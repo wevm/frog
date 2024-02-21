@@ -21,7 +21,7 @@ app.frame('/', (context) => {
   const { buttonValue, status } = context
   return {
     image: (
-      <div style={{ display: 'flex', fontSize: 60 }}>
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
           <div>Select your fruit!</div>
         ) : (
@@ -48,7 +48,7 @@ Below, we will break down high-level concepts of the above example.
 
 Before we can instantiate an application, we need to import the `Frog` class.
 
-```tsx [twoslash]
+```tsx twoslash
 import { Button, Frog } from 'frog' // [!code focus]
  
 export const app = new Frog()
@@ -64,7 +64,7 @@ export const app = new Frog()
 
 We instantiate a new **Frog** application by calling the `Frog` class.
 
-```tsx [twoslash]
+```tsx twoslash
 // @noErrors
 import { Button, Frog } from 'frog'
  
@@ -97,7 +97,7 @@ Similar to `.post`, `.get`, `.put`, etc in other Web Frameworks, **Frog** uses `
 Internally, the frame route automatically handles `GET` and `POST` requests sent by Farcaster clients such as Warpcast to
 get frame metadata.
 
-```tsx [twoslash]
+```tsx twoslash
 // @noErrors
 import { Button, Frog } from 'frog'
  
@@ -111,7 +111,7 @@ app.frame('/', (context) => { // [!code focus]
 
 You can also define multiple routes by specifying alternative paths.
 
-```tsx [twoslash]
+```tsx twoslash
 // @noErrors
 import { Button, Frog } from 'frog'
  
@@ -133,7 +133,7 @@ app.frame('/bar', (context) => { // [!code focus]
 
 You can also define `GET`, `POST`, etc routes via the [Hono](https://hono.dev) instance.
 
-```tsx [twoslash]
+```tsx twoslash
 // @noErrors
 import { Button, Frog } from 'frog'
  
@@ -162,7 +162,7 @@ The `context` parameter in the frame route contains properties about the frame, 
 - The [current URL](#TODO) of the frame,
 - and [more](#TODO).
 
-```tsx [twoslash]
+```tsx twoslash
 // @noErrors
 import { Button, Frog } from 'frog'
  
@@ -195,7 +195,7 @@ app.frame('/', (context) => {
   const { buttonValue, status } = context
   return {
     image: ( // [!code focus]
-      <div style={{ display: 'flex', fontSize: 60 }}> // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
         {status === 'initial' ? ( // [!code focus]
           <div>Select your fruit!</div> // [!code focus]
         ) : ( // [!code focus]
