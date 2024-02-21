@@ -1,0 +1,124 @@
+# Connecting Frames (Actions) [An overview of linking frames together]
+
+When building Frames, it is likely that you may want to connect them together (via the [Frame Specification's `post_url`](https://docs.farcaster.xyz/reference/frames/spec#optional-properties)).
+
+**Frog** makes it intuitive to connect Frames together with a concept called **Actions**.
+
+Let's start by building a couple of frames below: one that asks the user for their favorite fruit, and another that displays the user's response.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+// Frame to capture user's favorite fruit.
+app.frame('/', () => {
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select your favorite fruit:
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+// Frame to display user's response.
+app.frame('/submit', (context) => {
+  const { buttonValue } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {buttonValue}
+      </div>
+    )
+  }
+})
+```
+
+Right now, these frames are not linked to each other. This means, that if a user 
+navigates to `/` and interacts with the buttons, the frame will just `POST` to itself
+instead of `POST`ing to `/submit`.
+
+To connect these frames together, we can utilize the [`action` property](#TODO) on the handler return type. 
+You can think of the `action` property as an alias for [`post_url` in the Frame Specification](https://docs.farcaster.xyz/reference/frames/spec#optional-properties).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+// ---cut---
+// Frame to capture user's favorite fruit.
+app.frame('/', () => {
+  return {
+    action: '/submit', // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select your favorite fruit:
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+// Frame to display user's response.
+app.frame('/submit', (context) => {
+  const { buttonValue } = context
+// ...
+```
+
+Now, when a user clicks on a button in the first frame, the `POST` request will be sent to `/submit` instead of `/`.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+// ---cut---
+// Frame to capture user's favorite fruit.
+app.frame('/', () => {
+  return {
+    action: '/submit',
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select your favorite fruit:
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+// @log:        ^ 1. User clicks.
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+// Frame to display user's response.
+app.frame('/submit', (context) => {
+  const { buttonValue } = context
+// @log:           ^ 2. "Apple"
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {buttonValue}
+      </div>
+    )
+  }
+})
+```
+
+As you can see, the example above is another variant of the "Select Fruit" example shown on the [Getting Started](/getting-started) page, 
+except that these frames hold "less" state, yet yield the same behavior.

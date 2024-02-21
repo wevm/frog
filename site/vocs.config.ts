@@ -191,6 +191,7 @@ export default defineConfig({
         },
         {
           text: 'Connecting Frames (Actions)',
+          link: '/concepts/actions',
         },
         {
           text: 'Images & Intents',
