@@ -1,7 +1,10 @@
 import { serve } from 'bun'
 import { Button, Frog, TextInput } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context

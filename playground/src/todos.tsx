@@ -6,6 +6,7 @@ type State = {
 }
 
 export const app = new Frog<State>({
+  hubApiUrl: 'https://api.hub.wevm.dev',
   initialState: {
     index: -1,
     todos: [],

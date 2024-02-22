@@ -28,8 +28,7 @@ which is eventually converted to the `frameData` object in context. This may con
 
 To verify frames with **Frog**, we can utilize the `verify` flag on either the `Frog` instance, or the frame return object. 
 
-By default, frame verification is **turned on**, and is validated against using the default Hub API: `api.hub.wevm.dev` 
-(but you can provide your own).
+By default, frame verification is **turned on** provided you have supplied a [Hub API URL to the `Frog` instance](/concepts/frame-verification#supplying-a-hub-api-url).
 
 
 ## Examples
@@ -45,7 +44,7 @@ We can set a custom Hub API URL to use for verification by providing it to the `
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  hubApiUrl: 'https://my.hub.com' // [!code focus]
+  hubApiUrl: 'https://api.hub.wevm.dev' // [!code focus]
 })
 
 app.frame('/', (context) => {
@@ -55,6 +54,13 @@ app.frame('/', (context) => {
   return {/* .... */}
 })
 ```
+
+:::warning
+Feel free to use our public Hub API URL: `https://api.hub.wevm.dev`.
+
+However, please note that this URL is not guaranteed to be stable. 
+It is recommended to use your own Hub API URL in production.
+:::
 
 ### Silent Verification
 

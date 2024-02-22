@@ -246,7 +246,7 @@ export class FrogBase<
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
-  hubApiUrl = 'https://api.hub.wevm.dev'
+  hubApiUrl: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
