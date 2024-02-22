@@ -208,13 +208,16 @@ export function Preview(props: PreviewProps) {
         marginRight: 'auto',
       }}
     >
-      <div class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:min-w-sidebar lg:min-w-sidebar">
+      <div class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:max-h-sidebar md:min-w-sidebar lg:min-w-sidebar">
         <div class="bg-background-100 scrollbars h-full">
           <Timeline />
         </div>
       </div>
 
-      <div class="flex flex-col md:scrollbars md:h-full w-full gap-4 pt-6 md:pb-6 pr-0 md:pr-6 order-0 md:order-1">
+      <div
+        class="flex flex-col md:scrollbars md:h-full w-full gap-4 pt-6 md:pb-6 pr-0 md:pr-6 order-0 md:order-1"
+        style={{ scrollbarGutter: 'stable' }}
+      >
         <Navigator />
 
         <div class="flex flex-col lg:flex-row gap-4">

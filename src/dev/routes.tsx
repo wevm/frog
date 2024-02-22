@@ -79,13 +79,11 @@ export function routes<
 
     const clonedResponse = response.clone()
     const text = await response.text()
-    const frame = htmlToFrame(text)
+    const imageSize = await getImageSize(text)
+    const frame = htmlToFrame(text, imageSize)
     const state = htmlToState(text)
 
-    const [htmlSize, imageSize] = await Promise.all([
-      getHtmlSize(clonedResponse),
-      getImageSize(frame.imageUrl),
-    ])
+    const htmlSize = await getHtmlSize(clonedResponse)
     const request = {
       type: 'initial',
       method: 'get',
@@ -177,13 +175,11 @@ export function routes<
 
         const clonedResponse = response.clone()
         const text = await response.text()
-        const frame = htmlToFrame(text)
+        const imageSize = await getImageSize(text)
+        const frame = htmlToFrame(text, imageSize)
         const state = htmlToState(text)
 
-        const [htmlSize, imageSize] = await Promise.all([
-          getHtmlSize(clonedResponse),
-          getImageSize(frame.imageUrl),
-        ])
+        const htmlSize = await getHtmlSize(clonedResponse)
         const request = {
           type: 'response',
           body: {

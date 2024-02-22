@@ -900,8 +900,9 @@ export function Styles() {
       .md\\:mt-6 {
         margin-top: 1.5rem;
       }
-      .md\\:h-sidebar {
-        height: 554px;
+      .md\\:h-sidebar { height: calc(100% - 3rem); }
+      .md\\:max-h-sidebar {
+        max-height: 554px;
       }
       .md\\:min-w-sidebar {
         min-width: 300px;

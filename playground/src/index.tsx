@@ -50,7 +50,7 @@ app.frame('/', (context) => {
       </div>
     ),
     intents: [
-      <TextInput placeholder="Enter custom fruit..." />,
+      <TextInput placeholder="Enter custom fruit" />,
       <Button value="apples">Apples</Button>,
       <Button value="oranges">Oranges</Button>,
       <Button value="bananas">Bananas</Button>,
@@ -144,9 +144,15 @@ app.frame('/falsy-intents', () => {
   }
 })
 
-app.frame('/static-image', () => {
+app.frame('/mint', () => {
   return {
-    image: 'https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg',
+    image: 'https://basepaint.xyz/api/art/image?day=191',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button.Mint target="eip155:7777777:0xba5e05cb26b78eda3a2f8e3b3814726305dcac83:191">
+        Mint
+      </Button.Mint>,
+    ],
   }
 })
 

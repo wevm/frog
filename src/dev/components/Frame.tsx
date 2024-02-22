@@ -1,4 +1,5 @@
 import { externalLinkIcon, warpIcon } from './icons.js'
+import { MintDialog } from './MintDialog.js'
 
 export function Frame() {
   return (
@@ -198,10 +199,13 @@ function Button() {
       </template>
 
       <template x-if="type === 'mint'">
-        <button class={buttonClass} type="button">
-          <div>{warpIcon}</div>
-          {innerHtml}
-        </button>
+        <div style={{ display: 'contents' }} x-data="{ open: false }">
+          <button class={buttonClass} type="button" x-on:click="open = true">
+            <div>{warpIcon}</div>
+            {innerHtml}
+          </button>
+          <MintDialog />
+        </div>
       </template>
 
       <template x-if="type === 'post'">

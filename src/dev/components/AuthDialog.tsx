@@ -74,7 +74,7 @@ export function AuthDialog() {
             }}
             x-on:click="open = false"
           >
-            <span class="sr-only"> Close</span>
+            <span class="sr-only">Close</span>
             {cross1Icon}
           </button>
           <h1 class="text-base font-bold text-gray-1000 text-center">
@@ -122,7 +122,7 @@ export function AuthDialog() {
               if (copied) return
               navigator.clipboard.writeText(url)
               copied = true
-              setTimeout(() => copied = false, 2000)
+              setTimeout(() => copied = false, 1_000)
             "
             x-text="copied ? 'Copied!' : 'Copy to Clipboard'"
             {...{

@@ -29,6 +29,12 @@ export type FrameDebug = Pretty<
     postUrlTooLong: boolean
     stateTooLong: boolean
     valid: boolean
+    validations: readonly {
+      property: string
+      value: string
+      status: 'valid' | 'invalid'
+      message?: string | undefined
+    }[]
   }
 >
 
