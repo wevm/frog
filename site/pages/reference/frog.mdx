@@ -1,0 +1,212 @@
+# Frog [Frog API Reference]
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog() // [!code focus]
+```
+
+## Constructor Parameters
+
+### basePath 
+
+- **Type:** `string`
+
+The base path for the server instance.
+
+For instance, if you are deploying your server to Vercel Serverless, you probably want to specify `/api`.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  basePath: '/api' // [!code focus]
+})
+```
+
+### browserLocation
+
+- **Type:** `string`
+
+Location (URL or path relative to `basePath`) to redirect to when the user
+is coming to the page via a browser.
+
+For instance, a user may reach the frame page in their
+browser by clicking on the link beneath the frame on Warpcast.
+We may want to redirect them to a different page (ie. a mint page, etc)
+when they arrive via their browser.
+
+[Read more.](/concepts/browser-redirects)
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  basePath: '/api',
+  browserLocation: '/:path' // [!code focus]
+})
+```
+
+### devtools
+
+- **Type:** `{ appFid?: string; appMnemonic?: string; secret?: string; }`
+
+Options for built-in devtools.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+
+const app = new Frog({
+  devtools: { // [!code focus]
+    secret: '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz' // [!code focus]
+  } // [!code focus]
+})
+```
+
+### honoOptions
+
+- **Type:** `HonoOptions`
+
+Options to forward to the `Hono` instance.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  honoOptions: { // [!code focus]
+    getPath: (req) => '/' + req.headers.get('host') + req.url.replace(/^https?:\/\/[^/]+(\/[^?]*)/, '$1'), // [!code focus]
+  } // [!code focus]
+})
+```
+
+### hubApiUrl
+
+- **Type:** `string`
+
+Farcaster Hub API URL.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  hubApiUrl: 'https://api.hub.wevm.dev' // [!code focus]
+})
+```
+
+### initialState 
+
+Initial state for the frames.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+type State = {
+  index: number
+  todos: string[]
+}
+
+const app = new Frog<State>({
+  initialState: { // [!code focus]
+    index: 0, // [!code focus]
+    todos: [] // [!code focus]
+  } // [!code focus]
+})
+```
+
+### verify
+
+- **Type:** `boolean | "silent" | undefined`
+- **Default:** `true`
+
+Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
+
+- When `true`, the frame will go through verification and throw an error if it fails.
+- When `"silent"`, the frame will go through verification, but not throw an error if it fails. Instead, the frame will receive `verified: false` in its context.
+- When `false`, the frame will not go through verification.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  verify: 'silent' // [!code focus]
+})
+```
+
+## Return Type
+
+A `Frog` instance containing:
+
+### basePath
+
+- **Type:** `string`
+
+The base path for the server instance.
+
+### browserLocation
+
+- **Type:** `string`
+
+URL to redirect to when the user is coming to the page via a browser.
+
+### devtools
+
+- **Type:** `{ appFid?: string; appMnemonic?: string; secret?: string; }`
+
+Options for built-in devtools.
+
+### frame
+
+- **Type:** `Frog['frame']`
+
+[The `.frame` method.](/reference/frog-frame)
+
+### hono
+
+- **Type:** `Hono`
+
+The `Hono` instance.
+
+### hubApiUrl
+
+- **Type:** `string`
+
+Farcaster Hub API URL.
+
+### fetch
+
+- **Type:** `Hono['fetch']`
+
+Hono's `fetch` method.
+
+### get
+
+- **Type:** `Hono['get']`
+
+Hono's `get` method.
+
+### post
+
+- **Type:** `Hono['post']`
+
+Hono's `post` method.
+
+### use
+
+- **Type:** `Hono['use']`
+
+Hono's `use` method.
+
+### verify
+
+- **Type:** `boolean`
+
+Whether or not frames should be verified.

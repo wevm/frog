@@ -241,7 +241,7 @@ export default defineConfig({
           text: 'Context',
           link: '/reference/context',
         },
-        { text: 'Frog 🚧' },
+        { text: 'Frog', link: '/reference/frog' },
         { text: 'Frog.frame 🚧' },
         { text: 'Frog.hono 🚧' },
         { text: 'Frog.route 🚧' },
