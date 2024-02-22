@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "dev": "frog dev",
+    "serve": "tsx src/index.tsx"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1",
+    "hono": "^4",
+    "frog": "main"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^3.12.2"
+  }
+}

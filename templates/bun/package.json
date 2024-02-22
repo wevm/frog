@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "frog dev",
+    "serve": "bun run src/index.tsx"
+  },
+  "dependencies": {
+    "hono": "^4",
+    "frog": "main"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
