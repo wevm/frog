@@ -218,10 +218,12 @@ export default defineConfig({
       text: 'Platforms',
       items: [
         {
-          text: 'Bun 🚧',
+          text: 'Bun',
+          link: '/platforms/bun',
         },
         {
-          text: 'Cloudflare 🚧',
+          text: 'Cloudflare Workers',
+          link: '/platforms/cloudflare-workers',
         },
         {
           text: 'Next.js 🚧',

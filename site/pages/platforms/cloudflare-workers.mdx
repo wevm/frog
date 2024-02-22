@@ -1,0 +1,128 @@
+# Cloudflare Workers
+
+[Cloudflare Workers](https://workers.cloudflare.com/) enable you to deploy serverless code instantly across the globe to give it exceptional performance, reliability, and scale.
+
+## Quick Start
+
+You can scaffold a Frog project with Cloudflare Workers integrated via the `create-frog` CLI:
+
+:::code-group
+
+```bash [npm]
+npm init frog -- -t cloudflare-worker
+```
+
+```bash [pnpm]
+pnpm create frog -t cloudflare-worker
+```
+
+```bash [yarn]
+yarn create frog -t cloudflare-worker
+```
+
+```bash [bun]
+bunx create-frog -t cloudflare-worker
+```
+
+:::
+
+## Manual Installation
+
+:::steps
+
+### Install Wrangler
+
+```bash
+npm install wrangler --save-dev
+```
+
+### Build your Frame
+
+Next, scaffold your frame:
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
+### Export Default
+
+After that, we export our app via the `default` export.
+
+```tsx twoslash  [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+export default app // [!code focus]
+```
+
+### Add Scripts to `package.json`
+
+Then we will add a Wrangler scripts to our `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "frog dev", 
+    "wrangler:dev": "wrangler dev src/index.tsx",  // [!code focus]
+    "wrangler:deploy": "wrangler deploy --minify src/index.tsx" // [!code focus]
+  },
+  "dependencies": {
+    "hono": "^4",
+    "frog": "main"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "wrangler": "latest",
+  }
+}
+
+```
+
+:::

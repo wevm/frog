@@ -1,0 +1,132 @@
+# Bun
+
+[Bun](https://bun.sh/) is a JavaScript runtime (similar to Node.js & Deno) designed speed, complete with a bundler, test runner, and Node.js-compatible package manager.
+
+## Quick Start
+
+You can scaffold a Frog project with Bun integrated via the `create-frog` CLI:
+
+:::code-group
+
+```bash [npm]
+npm init frog -- -t bun
+```
+
+```bash [pnpm]
+pnpm create frog -t bun
+```
+
+```bash [yarn]
+yarn create frog -t bun
+```
+
+```bash [bun]
+bunx create-frog -t bun
+```
+
+:::
+
+## Manual Installation
+
+:::steps
+
+### Install Bun
+
+If Bun is not already installed on your system, you will need to install it:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+### Build your Frame
+
+Next, scaffold your frame:
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
+### Add Bun Server
+
+After that, we will append a Bun server to the file.
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+Bun.serve({ // [!code focus]
+  fetch: app.fetch, // [!code focus]
+  port: 3000, // [!code focus]
+}) // [!code focus]
+console.log('Server is running on port 3000') // [!code focus]
+```
+
+### Add Scripts to `package.json`
+
+Then we will add a `serve` script to serve our Bun server.
+
+```json
+{
+  "scripts": {
+    "dev": "frog dev", 
+    "serve": "bun run src/index.tsx" // [!code focus]
+  },
+  "dependencies": {
+    "hono": "^4",
+    "frog": "main"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
+
+```
+
+:::
