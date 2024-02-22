@@ -115,18 +115,25 @@ Then we will add a `serve` script to serve our Bun server.
 ```json
 {
   "scripts": {
-    "dev": "frog dev", 
+    "dev": "frog dev", // [!code focus]
     "serve": "bun run src/index.tsx" // [!code focus]
   },
   "dependencies": {
-    "hono": "^4",
-    "frog": "main"
+    "hono": "latest",
+    "frog": "latest"
   },
   "devDependencies": {
     "@types/bun": "latest"
   }
 }
-
 ```
+
+### Navigate to Frame
+
+Then, we can navigate to our frame in the browser:
+
+`npm run dev`
+
+`http://localhost:5173`
 
 :::

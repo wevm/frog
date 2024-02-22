@@ -1,0 +1,139 @@
+# Next.js
+
+[Next.js](https://nextjs.org/docs) is a React framework for building full-stack web applications.
+
+## Quick Start
+
+You can scaffold a Frog project with Next.js integrated via the `create-frog` CLI:
+
+:::code-group
+
+```bash [npm]
+npm init frog -- -t next
+```
+
+```bash [pnpm]
+pnpm create frog -t next
+```
+
+```bash [yarn]
+yarn create frog -t next
+```
+
+```bash [bun]
+bunx create-frog -t next
+```
+
+:::
+
+## Manual Installation
+
+:::steps
+
+### Install Next.js
+
+```bash
+npm install next@latest react@latest react-dom@latest
+```
+
+### Build your Frame
+
+Next, scaffold your frame:
+
+```tsx twoslash [app/api/[[...routes]]/route.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog'
+import { handle } from 'frog/vercel'
+
+const app = new Frog({ basePath: '/api' })
+
+// Uncomment to use Edge Runtime
+// export const runtime = 'edge'
+
+app.frame('/', (context) => {
+  const { buttonValue, inputText, status } = context
+  const fruit = inputText || buttonValue
+  return {
+    image: (
+      <div
+        style={{
+          alignItems: 'center',
+          background:
+            status === 'response'
+              ? 'linear-gradient(to right, #432889, #17101F)'
+              : 'black',
+          backgroundSize: '100% 100%',
+          display: 'flex',
+          flexDirection: 'column',
+          flexWrap: 'nowrap',
+          height: '100%',
+          justifyContent: 'center',
+          textAlign: 'center',
+          width: '100%',
+        }}
+      >
+        <div
+          style={{
+            color: 'white',
+            fontSize: 60,
+            fontStyle: 'normal',
+            letterSpacing: '-0.025em',
+            lineHeight: 1.4,
+            marginTop: 30,
+            padding: '0 120px',
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {status === 'response'
+            ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
+            : 'Welcome!'}
+        </div>
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Enter custom fruit..." />,
+      <Button value="apples">Apples</Button>,
+      <Button value="oranges">Oranges</Button>,
+      <Button value="bananas">Bananas</Button>,
+      status === 'response' && <Button.Reset>Reset</Button.Reset>,
+    ],
+  }
+})
+
+export const GET = handle(app)
+export const POST = handle(app)
+```
+
+### Add Scripts to `package.json`
+
+Then we will add a Wrangler scripts to our `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev", // [!code focus]
+    "build": "next build", // [!code focus]
+    "start": "next start", // [!code focus]
+    "lint": "next lint" // [!code focus]
+  },
+  "dependencies": {
+    "hono": "latest",
+    "frog": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+}
+
+```
+
+### Navigate to Frame
+
+Then, we can navigate to our frame in the browser:
+
+`npm run dev`
+
+`http://localhost:3000/api`
+
+:::

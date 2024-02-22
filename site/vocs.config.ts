@@ -226,13 +226,16 @@ export default defineConfig({
           link: '/platforms/cloudflare-workers',
         },
         {
-          text: 'Next.js 🚧',
+          text: 'Next.js',
+          link: '/platforms/next',
         },
         {
-          text: 'Node.js 🚧',
+          text: 'Node.js',
+          link: '/platforms/node',
         },
         {
-          text: 'Vercel 🚧',
+          text: 'Vercel',
+          link: '/platforms/vercel',
         },
       ],
     },

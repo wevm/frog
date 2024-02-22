@@ -1,27 +1,25 @@
-# Cloudflare Workers
-
-[Cloudflare Workers](https://workers.cloudflare.com/) enable you to deploy serverless code instantly across the globe to give it exceptional performance, reliability, and scale.
+# Node.js
 
 ## Quick Start
 
-You can scaffold a Frog project with Cloudflare Workers integrated via the `create-frog` CLI:
+You can scaffold a Frog project with Node.js integrated via the `create-frog` CLI:
 
 :::code-group
 
 ```bash [npm]
-npm init frog -- -t cloudflare-worker
+npm init frog -- -t node
 ```
 
 ```bash [pnpm]
-pnpm create frog -t cloudflare-worker
+pnpm create frog -t node
 ```
 
 ```bash [yarn]
-yarn create frog -t cloudflare-worker
+yarn create frog -t node
 ```
 
 ```bash [bun]
-bunx create-frog -t cloudflare-worker
+bunx create-frog -t node
 ```
 
 :::
@@ -29,12 +27,6 @@ bunx create-frog -t cloudflare-worker
 ## Manual Installation
 
 :::steps
-
-### Install Wrangler
-
-```bash
-npm install wrangler --save-dev
-```
 
 ### Build your Frame
 
@@ -68,13 +60,14 @@ app.frame('/', (context) => {
 })
 ```
 
-### Export Default
+### Add Node Server
 
-After that, we export our app via the `default` export.
+After that, we will append a Node server to the file.
 
-```tsx twoslash  [src/index.tsx]
+```tsx twoslash [src/index.tsx]
 /** @jsxImportSource frog/jsx */
 // ---cut---
+import { serve } from '@hono/node-server' // [!code focus]
 import { Button, Frog } from 'frog'
 
 export const app = new Frog()
@@ -99,29 +92,32 @@ app.frame('/', (context) => {
   }
 })
 
-export default app // [!code focus]
+serve({ // [!code focus]
+  fetch: app.fetch, // [!code focus]
+  port: 3000, // [!code focus]
+}) // [!code focus]
+console.log(`Server is running on port ${port}`) // [!code focus]
 ```
 
 ### Add Scripts to `package.json`
 
-Then we will add a Wrangler scripts to our `package.json`:
+Then we will add a `serve` script to serve our Node server.
 
 ```json
 {
   "scripts": {
     "dev": "frog dev", // [!code focus]
-    "wrangler:dev": "wrangler dev src/index.tsx",  // [!code focus]
-    "wrangler:deploy": "wrangler deploy --minify src/index.tsx" // [!code focus]
+    "serve": "tsx src/index.tsx" // [!code focus]
   },
   "dependencies": {
     "hono": "latest",
     "frog": "latest"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "wrangler": "latest",
+    "tsx": "latest"
   }
 }
+
 ```
 
 ### Navigate to Frame
@@ -130,6 +126,6 @@ Then, we can navigate to our frame in the browser:
 
 `npm run dev`
 
-`http://localhost:5173`
+`http://localhost:5173/api`
 
 :::
