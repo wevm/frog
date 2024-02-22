@@ -1,3 +1,4 @@
+import { serve } from 'bun'
 import { Button, Frog, TextInput } from 'frog'
 
 export const app = new Frog()
@@ -52,7 +53,7 @@ app.frame('/', (context) => {
   }
 })
 
-Bun.serve({
+serve({
   fetch: app.fetch,
   port: 3000,
 })

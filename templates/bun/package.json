@@ -9,6 +9,7 @@
     "frog": "main"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "bun": "latest"
   }
 }
