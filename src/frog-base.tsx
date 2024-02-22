@@ -402,9 +402,9 @@ export class FrogBase<
         initialState: this._initialState,
         request: c.req,
       })
-      const { image } = await handler(context)
+      const { image, imageOptions } = await handler(context)
       if (typeof image === 'string') return c.redirect(image, 302)
-      return new ImageResponse(image)
+      return new ImageResponse(image, imageOptions)
     })
   }
 
