@@ -11,6 +11,7 @@ import {
   type FrameContext,
   type FrameImageAspectRatio,
   type FrameIntents,
+  type Pretty,
 } from './types.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getFrameContext } from './utils/getFrameContext.js'
@@ -284,7 +285,7 @@ export class FrogBase<
   frame<path extends string>(
     path: path,
     handler: (
-      context: FrameContext<path, state>,
+      context: Pretty<FrameContext<path, state>>,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
     options: FrameOptions = {},
   ) {

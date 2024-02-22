@@ -18,7 +18,7 @@ export type FrameContext<path extends string = string, state = unknown> = {
    * Data from the frame that was passed via the POST body.
    * The {@link FrameContext`verified`} flag indicates whether the data is trusted or not.
    */
-  frameData?: FrameData
+  frameData?: Pretty<FrameData>
   /**
    * Initial URL of the frame set.
    */
