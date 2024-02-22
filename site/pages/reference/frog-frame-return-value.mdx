@@ -1,0 +1,233 @@
+# Frog.frame Return Value
+
+The return value of a frame is an object returned from the `.frame` handler.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  return { // [!code focus]
+    // ... // [!code focus]
+  } // [!code focus]
+})
+```
+
+## action
+
+- **Type:** `string`
+
+Path of the next frame to perform a `POST` request.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    action: '/submit', // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select a frog
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
+### browserLocation
+
+- **Type:** `string`
+
+Location (URL or path relative to `basePath`) to redirect to when the user
+is coming to the page via a browser.
+
+For instance, a user may reach the frame page in their
+browser by clicking on the link beneath the frame on Warpcast.
+We may want to redirect them to a different page (ie. a mint page, etc)
+when they arrive via their browser.
+
+[Read more.](/concepts/browser-redirects)
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/frame/foo', (context) => {
+  const { buttonIndex } = context
+  return {
+    browserLocation: '/foo', // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select a frog
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
+## image
+
+- **Type:** `string`
+
+The Image to render for the frame. Can either be a JSX element, or URL.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    action: '/submit',
+    image: ( // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+        Select a frog // [!code focus]
+      </div> // [!code focus]
+    ), // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    action: '/submit',
+    image: 'https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg', // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
+## imageAspectRatio
+
+- **Type:** `"1.91:1" | "1:1"`
+
+The aspect ratio of the image to render for the frame.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    image: ( 
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
+        Select a frog 
+      </div> 
+    ), 
+    imageAspectRatio: '1:1', // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
+## imageOptions
+
+- **Type:** `ImageResponseOptions`
+
+[Options for the image](https://vercel.com/docs/functions/og-image-generation/og-image-api) to render for the frame.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    image: ( 
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
+        Select a frog 
+      </div> 
+    ), 
+    imageOptions: { // [!code focus]
+      height: 600, // [!code focus]
+      width: 600, // [!code focus]
+    }, // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
+## intents
+
+A set of intents (ie. buttons, text inputs, etc) to render for the frame
+(beneath the image).
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    image: ( 
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
+        Select a frog 
+      </div> 
+    ), 
+    intents: [ // [!code focus]
+      <Button value="apple">Apple</Button>, // [!code focus]
+      <Button value="banana">Banana</Button>, // [!code focus]
+      <Button value="mango">Mango</Button> // [!code focus]
+    ] // [!code focus]
+  }
+})
+```

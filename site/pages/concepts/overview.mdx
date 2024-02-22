@@ -153,12 +153,12 @@ This only scratches the surface of Routing in **Frog**. For more advanced routin
 
 The `context` parameter in the frame route contains properties about the frame, such as: 
 
-- The [frame data](/reference/context#framedata) (ie. `trustedData`/`untrustedData`),
-- The [button index/value](/reference/context#buttonvalue) or [input value](/reference/context#inputvalue) that was interacted with,
-- A function to [derive and set state](/reference/context#derivestate),
-- The [initial/start URL](/reference/context#initialurl) of the frame,
-- The [current URL](/reference/context#url) of the frame,
-- and [more](/reference/context).
+- The [frame data](/reference/frog-frame-context#framedata) (ie. `trustedData`/`untrustedData`),
+- The [button index/value](/reference/frog-frame-context#buttonvalue) or [input value](/reference/frog-frame-context#inputvalue) that was interacted with,
+- A function to [derive and set state](/reference/frog-frame-context#derivestate),
+- The [initial/start URL](/reference/frog-frame-context#initialurl) of the frame,
+- The [current URL](/reference/frog-frame-context#url) of the frame,
+- and [more](/reference/frog-frame-context).
 
 ```tsx twoslash
 // @noErrors
@@ -173,7 +173,7 @@ app.frame('/', (context) => { // [!code focus]
 })
 ```
 
-[Read more on Context](/reference/context).
+[Read more on Context](/reference/frog-frame-context).
 
 ## Images & Intents 
 

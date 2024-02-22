@@ -84,25 +84,3 @@ app.frame('/', (context) => {
   return {/* .... */}
 })
 ```
-
-### Per-Frame Verification
-
-We can also verify frames on a per-frame basis by setting the `verify` flag on the frame return object.
-
-```tsx twoslash
-// @noErrors
-/** @jsxImportSource frog/jsx */
-// ---cut---
-import { Frog } from 'frog'
- 
-export const app = new Frog()
-
-app.frame('/', (context) => {
-  const { frameData, verified } = context
-  const { buttonIndex, fid, castId } = frameData
-  return {
-    verify: false, // [!code focus]
-    /* .... */
-  }
-})
-```

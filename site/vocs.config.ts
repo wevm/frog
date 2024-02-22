@@ -237,12 +237,13 @@ export default defineConfig({
     {
       text: 'Reference',
       items: [
-        {
-          text: 'Context',
-          link: '/reference/context',
-        },
         { text: 'Frog', link: '/reference/frog' },
-        { text: 'Frog.frame 🚧' },
+        { text: 'Frog.frame', link: '/reference/frog-frame' },
+        { text: 'Frog.frame Context', link: '/reference/frog-frame-context' },
+        {
+          text: 'Frog.frame Return Value',
+          link: '/reference/frog-frame-return-value',
+        },
         { text: 'Frog.hono 🚧' },
         { text: 'Frog.route 🚧' },
         { text: 'Intents 🚧' },

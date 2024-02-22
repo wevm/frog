@@ -161,6 +161,12 @@ export type FrameHandlerReturnType = Pick<
    */
   image: string | JSX.Element
   /**
+   * The aspect ratio of the OG Image.
+   *
+   * @example '1:1'
+   */
+  imageAspectRatio?: FrameImageAspectRatio | undefined
+  /**
    * Image options.
    *
    * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
@@ -169,12 +175,6 @@ export type FrameHandlerReturnType = Pick<
    * { width: 1200, height: 630 }
    */
   imageOptions?: ImageResponseOptions
-  /**
-   * The aspect ratio of the OG Image.
-   *
-   * @example '1:1'
-   */
-  imageAspectRatio?: FrameImageAspectRatio | undefined
   /**
    * A set of intents (ie. buttons, text inputs, etc) to render for the frame
    * (beneath the OG image).
