@@ -6,7 +6,11 @@ import { handle } from 'frog/vercel'
 //   runtime: 'edge',
 // }
 
-export const app = new Frog({ basePath: '/api' })
+export const app = new Frog({
+  basePath: '/api',
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
   const { buttonValue, inputText, status } = context

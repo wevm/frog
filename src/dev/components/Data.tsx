@@ -48,6 +48,7 @@ export function Data() {
                   copied = true
                   setTimeout(() => copied = false, 1_000)
                 "
+                type="button"
               />
               <div
                 role="gridcell"

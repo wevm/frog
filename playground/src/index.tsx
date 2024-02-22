@@ -5,6 +5,7 @@ import { app as todoApp } from './todos.js'
 
 export const app = new Frog({
   browserLocation: '/:path/dev',
+  hubApiUrl: 'https://api.hub.wevm.dev',
   verify: 'silent',
 })
 

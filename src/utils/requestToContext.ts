@@ -6,7 +6,7 @@ import { parsePath } from './parsePath.js'
 import { verifyFrame } from './verifyFrame.js'
 
 type RequestToContextOptions = {
-  hubApiUrl: string
+  hubApiUrl?: string | undefined
   verify?: FrogConstructorParameters['verify']
 }
 
@@ -34,6 +34,7 @@ export async function requestToContext<state>(
   const verified = await (async () => {
     if (verify === false) return false
     if (!trustedData) return false
+    if (!hubApiUrl) return false
     try {
       await verifyFrame({
         hubApiUrl,

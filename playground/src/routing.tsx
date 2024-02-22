@@ -1,6 +1,8 @@
 import { Frog } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({
+  hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/:name', (context) => {
   const name = context.request.param('name')

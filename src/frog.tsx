@@ -6,7 +6,7 @@ import {
   type FrameOptions,
   FrogBase,
 } from './frog-base.js'
-import { type FrameContext } from './types.js'
+import { type FrameContext, type Pretty } from './types.js'
 
 /**
  * A Frog instance.
@@ -47,7 +47,7 @@ export class Frog<
   override frame<path extends string>(
     path: path,
     handler: (
-      context: FrameContext<path, state>,
+      context: Pretty<FrameContext<path, state>>,
     ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
     options: FrameOptions = {},
   ) {

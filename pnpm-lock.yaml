@@ -194,6 +194,9 @@ importers:
       '@types/bun':
         specifier: latest
         version: 1.0.6
+      bun:
+        specifier: latest
+        version: 1.0.28
 
   templates/cloudflare-worker:
     dependencies:

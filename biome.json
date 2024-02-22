@@ -5,6 +5,7 @@
       "coverage",
       ".next",
       "node_modules",
+      "site/dist",
       "src/_lib",
       "src/vendor",
       "tsconfig.json",
