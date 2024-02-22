@@ -17,7 +17,7 @@ export function htmlToFrame(html: string) {
   const inputTextTooLong = properties.input?.text
     ? properties.input.text.length > 32
     : false
-  const stateTooLong = properties.state.length > 4096
+  const stateTooLong = properties.state.length > 4_096
 
   const { buttonsAreOutOfOrder, invalidButtons } = validateButtons(buttons)
 
