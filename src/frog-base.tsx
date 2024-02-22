@@ -151,12 +151,15 @@ export type FrameHandlerReturnType = Pick<
    */
   action?: string | undefined
   /**
-   * The OG Image to render for the frame.
+   * The OG Image to render for the frame. Can either be a JSX element, or URL.
    *
    * @example
    * <div style={{ fontSize: 60 }}>Hello World</div>
+   *
+   * @example
+   * "https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg"
    */
-  image: JSX.Element
+  image: string | JSX.Element
   /**
    * Image options.
    *
@@ -165,7 +168,7 @@ export type FrameHandlerReturnType = Pick<
    * @example
    * { width: 1200, height: 630 }
    */
-  imageOptions: ImageResponseOptions
+  imageOptions?: ImageResponseOptions
   /**
    * The aspect ratio of the OG Image.
    *
@@ -297,6 +300,7 @@ export class FrogBase<
         action,
         browserLocation = this.browserLocation,
         imageAspectRatio,
+        image,
         intents,
       } = await handler(context)
       const parsedIntents = intents ? parseIntents(intents) : null
@@ -335,20 +339,28 @@ export class FrogBase<
           <head>
             <meta property="fc:frame" content="vNext" />
             <meta
-              property="fc:frame:image"
-              content={`${parsePath(
-                context.url,
-              )}/image?${frameImageParams.toString()}`}
-            />
-            <meta
               property="fc:frame:image:aspect_ratio"
               content={imageAspectRatio ?? '1.91:1'}
             />
             <meta
+              property="fc:frame:image"
+              content={
+                typeof image === 'string'
+                  ? image
+                  : `${parsePath(
+                      context.url,
+                    )}/image?${frameImageParams.toString()}`
+              }
+            />
+            <meta
               property="og:image"
-              content={`${parsePath(
-                context.url,
-              )}/image?${frameImageParams.toString()}`}
+              content={
+                typeof image === 'string'
+                  ? image
+                  : `${parsePath(
+                      context.url,
+                    )}/image?${frameImageParams.toString()}`
+              }
             />
             <meta
               property="fc:frame:post_url"
@@ -391,6 +403,7 @@ export class FrogBase<
         request: c.req,
       })
       const { image } = await handler(context)
+      if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image)
     })
   }
