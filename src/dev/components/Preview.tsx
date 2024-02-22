@@ -77,7 +77,7 @@ export function Preview(props: PreviewProps) {
 
           try {
             const userCookie = this.getCookie('user')
-            const user = userCookie ? JSON.parse(decodeURIComponent(userCookie)) : null
+            const user = userCookie ? JSON.parse(decodeURIComponent(userCookie)) : {}
             if (user.token)
               this.fetchAuthStatus(user.token)
                 .then((data) => {
