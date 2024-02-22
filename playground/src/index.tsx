@@ -144,5 +144,11 @@ app.frame('/falsy-intents', () => {
   }
 })
 
+app.frame('/static-image', () => {
+  return {
+    image: 'https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg',
+  }
+})
+
 app.route('/todos', todoApp)
 app.route('/routing', routingApp)
