@@ -1,5 +1,5 @@
-import { externalLinkIcon, warpIcon } from './icons.js'
 import { MintDialog } from './MintDialog.js'
+import { externalLinkIcon, warpIcon } from './icons.js'
 
 export function Frame() {
   return (
