@@ -48,6 +48,28 @@ app.frame('/', (context) => {
 You can use the [OG Image Playground](https://og-playground.vercel.app/) to quickly prototype your image.
 :::
 
+You can also specify an image URL:
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: 'https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg', // [!code focus]
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
 ### Image Options
 
 **Frog** also exposes options that you can use to customize the image. 
@@ -80,6 +102,18 @@ app.frame('/', (context) => {
 })
 ```
 
+You can also pass a set of default options to the `Frog` constructor:
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({
+  imageOptions: { height: 600, width: 600 }
+})
+```
+
 | Property | Type | Default | Description |
 | -------- | -------- | -------- | -------- |
 | `width`    | `number`     | `1200`     | The width of the image. |
@@ -87,6 +121,7 @@ app.frame('/', (context) => {
 | `emoji`    | `"twemoji"` `"blobmoji"` `"noto"` `"openmoji"`     |      | The emoji set to use.|
 | `debug` | `boolean` | `false` | Debug mode flag. |
 | `fonts` | `Font[]` | – | The fonts to use. |
+| `headers` | `HeadersInit` | – | Headers for the image response. |
 
 [Read more on Image Options.](https://vercel.com/docs/functions/og-image-generation/og-image-api#fonts-parameters-within-options)
 

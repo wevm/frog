@@ -114,6 +114,15 @@ export type FrogConstructorParameters<
    */
   hubApiUrl?: string | undefined
   /**
+   * Default image options.
+   *
+   * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
+   *
+   * @example
+   * { width: 1200, height: 630 }
+   */
+  imageOptions?: ImageResponseOptions | undefined
+  /**
    * Initial state for the frames.
    *
    * @example
@@ -174,7 +183,7 @@ export type FrameHandlerReturnType = Pick<
    * @example
    * { width: 1200, height: 630 }
    */
-  imageOptions?: ImageResponseOptions
+  imageOptions?: ImageResponseOptions | undefined
   /**
    * A set of intents (ie. buttons, text inputs, etc) to render for the frame
    * (beneath the OG image).
@@ -224,6 +233,9 @@ export class FrogBase<
   schema extends Schema = {},
   basePath extends string = '/',
 > {
+  // Note: not using native `private` fields to avoid tslib being injected
+  // into bundled code.
+  _imageOptions: ImageResponseOptions | undefined
   _initialState: state = undefined as state
 
   /** Base path of the server instance. */
@@ -248,6 +260,7 @@ export class FrogBase<
     devtools,
     honoOptions,
     hubApiUrl,
+    imageOptions,
     initialState,
     verify,
   }: FrogConstructorParameters<state, env, basePath> = {}) {
@@ -256,6 +269,7 @@ export class FrogBase<
     if (browserLocation) this.browserLocation = browserLocation
     if (devtools) this.devtools = devtools
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
+    if (imageOptions) this._imageOptions = imageOptions
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
@@ -402,7 +416,8 @@ export class FrogBase<
         initialState: this._initialState,
         request: c.req,
       })
-      const { image, imageOptions } = await handler(context)
+      const { image, imageOptions = this._imageOptions } =
+        await handler(context)
       if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image, imageOptions)
     })
