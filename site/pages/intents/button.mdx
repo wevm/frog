@@ -1,0 +1,39 @@
+# Button
+
+## Import
+
+```tsx twoslash
+import { Button } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue } = context
+  return {
+    image: /* ... */,
+    intents: [
+      <Button value="apple">Apple</Button>, // [!code focus]
+      <Button value="banana">Banana</Button>, // [!code focus]
+      <Button value="mango">Mango</Button> // [!code focus]
+      <Button>Skip</Button>, // [!code focus]
+    ]
+  }
+})
+```
+
+## Props
+
+### value (optional)
+
+- **Type:** `string`
+
+The value of the button. Casts to the `buttonValue` context property when clicked.

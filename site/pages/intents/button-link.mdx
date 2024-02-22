@@ -1,0 +1,39 @@
+# Button.Link
+
+## Import
+
+```tsx twoslash
+import { Button } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue } = context
+  return {
+    image: /* ... */,
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>,
+      <Button.Link href="https://google.com">Google</Button.Link>, // [!code focus]
+    ]
+  }
+})
+```
+
+## Props
+
+### href
+
+- **Type:** `string`
+
+URL to navigate to.

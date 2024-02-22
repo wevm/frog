@@ -1,0 +1,42 @@
+# Button.Mint
+
+Component for the [Farcaster Frame Mint Buttons](https://warpcast.notion.site/Frames-Mint-action-Public-cea0d2249e3e41dbafb2e9ab23107275).
+
+## Import
+
+```tsx twoslash
+import { Button } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue } = context
+  return {
+    image: /* ... */,
+    intents: [
+      <Button.Mint   // [!code focus]
+        href="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df:69420"  // [!code focus]
+      >  // [!code focus]
+        Mint  // [!code focus]
+      </Button.Mint>, // [!code focus]
+    ]
+  }
+})
+```
+
+## Props
+
+### target
+
+- **Type:** `string`
+
+The [CAIP-10 address](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) with optional token ID.

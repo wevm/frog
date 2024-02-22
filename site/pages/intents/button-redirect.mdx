@@ -1,0 +1,41 @@
+# Button.Redirect
+
+Component for the [Farcaster Frame `post_redirect`](https://docs.farcaster.xyz/reference/frames/spec#rendering-frames-1) intent.
+
+## Import
+
+```tsx twoslash
+import { Button } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { buttonValue } = context
+  return {
+    image: /* ... */,
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>,
+      <Button.Redirect location="https://google.com">Google</Button.Redirect>, // [!code focus]
+    ]
+  }
+})
+```
+
+## Props
+
+### location
+
+- **Type:** `string`
+
+URL to redirect to.

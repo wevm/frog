@@ -1,0 +1,36 @@
+# TextInput
+
+## Import
+
+```tsx twoslash
+import { TextInput } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (context) => {
+  const { inputText } = context
+  return {
+    image: /* ... */,
+    intents: [
+      <TextInput placeholder="Enter your fruit..." />, // [!code focus]
+    ]
+  }
+})
+```
+
+## Props
+
+### placeholder (optional)
+
+- **Type:** `string`
+
+The placeholder for the text input.

@@ -235,7 +235,18 @@ export default defineConfig({
       ],
     },
     {
-      text: 'Reference',
+      text: 'Intent Reference',
+      items: [
+        { text: 'Button', link: '/intents/button' },
+        { text: 'Button.Link', link: '/intents/button-link' },
+        { text: 'Button.Mint', link: '/intents/button-mint' },
+        { text: 'Button.Redirect', link: '/intents/button-redirect' },
+        { text: 'Button.Reset', link: '/intents/button-reset' },
+        { text: 'TextInput', link: '/intents/textinput' },
+      ],
+    },
+    {
+      text: 'Frog Reference',
       items: [
         { text: 'Frog', link: '/reference/frog' },
         { text: 'Frog.frame', link: '/reference/frog-frame' },
@@ -244,9 +255,7 @@ export default defineConfig({
           text: 'Frog.frame Return Value',
           link: '/reference/frog-frame-return-value',
         },
-        { text: 'Frog.hono 🚧' },
-        { text: 'Frog.route 🚧' },
-        { text: 'Intents 🚧' },
+        { text: 'Frog.hono', link: '/reference/frog-hono' },
       ],
     },
   ],
