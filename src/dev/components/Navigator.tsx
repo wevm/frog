@@ -190,7 +190,7 @@ export function Navigator() {
           >
             <div class="text-sm p-4">
               <div x-text="user.displayName ?? user.username" />
-              <div class="text-gray-700" x-text="`fid: ${user.userFid}`" />
+              <div class="text-gray-700" x-text="`FID #${user.userFid}`" />
             </div>
 
             <div class="px-4">

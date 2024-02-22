@@ -21,6 +21,7 @@ export type PreviewProps = {
           success: boolean
           status: number
           statusText: string
+          error?: string | undefined
         }
         timestamp: number
         url: string
@@ -38,6 +39,7 @@ export type PreviewProps = {
           success: boolean
           status: number
           statusText: string
+          error?: string | undefined
         }
         timestamp: number
         url: string
@@ -53,7 +55,8 @@ export type PreviewProps = {
           success: boolean
           status: number
           statusText: string
-          location: string
+          location?: string
+          error?: string | undefined
         }
         timestamp: number
         url: string
@@ -103,7 +106,7 @@ export function Preview(props: PreviewProps) {
         inputText: '',
         logs: [],
         selectedLogIndex: -1,
-        tab: $persist('context'),
+        tab: $persist('request'),
         user: $persist(null),
 
         async getFrame(url = this.data.request.url, replaceLogs = false) {
@@ -223,7 +226,7 @@ export function Preview(props: PreviewProps) {
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex flex-col gap-4">
             <Metrics />
-            <div class="lg:min-w-frame" style={{ minHeight: '411px' }}>
+            <div class="lg:min-w-frame lg:min-h-frame">
               <Frame />
             </div>
           </div>

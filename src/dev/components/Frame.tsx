@@ -183,6 +183,8 @@ function Button() {
                   // TODO: show error
                   if (json.response.status !== 302) return
                   url = json.response.location
+                  data = { ...logs.at(-1), request: json }
+                  inputText = ''
                   open = true
                 })
                 .catch(console.error)
@@ -221,12 +223,12 @@ function Button() {
             }
             postFrameAction(body)
               .then((json) => {
-                const nextId = id + 1
+                const nextHistoryId = id + 1
                 const item = { body, url: json.state.context.url }
-                if (nextId < history.length) history = [...history.slice(0, nextId), item]
+                if (nextHistoryId < history.length) history = [...history.slice(0, nextHistoryId), item]
                 else history = [...history, item]
                 data = json
-                id = nextId
+                id = nextHistoryId
                 inputText = ''
               })
               .catch(console.error)

@@ -744,7 +744,6 @@ export function Styles() {
     .font-bold { font-weight: 700; }
     .font-mono { font-family: "Roboto Mono",Menlo,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New,monospace; }
     .flex { display: flex; }
-    .flex-grow { flex-grow: 1; }
     .flex-col { flex-direction: column; }
     .flex-row { flex-direction: row; }
     .flex-wrap { flex-wrap: wrap; }
@@ -767,6 +766,7 @@ export function Styles() {
     .justify-between { justify-content: space-between; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
+    .min-w-36 { min-width: 9rem; }
     .mx-auto { margin-left: auto; margin-right: auto; }
     .mx-4 { margin-left: 1rem; margin-right: 1rem; }
     .mt-1 { margin-top: 0.25rem; }
@@ -926,6 +926,10 @@ export function Styles() {
         border-top-width: 0;
         border-bottom-width: 0;
       }
+      .lg\\:min-h-frame {
+        min-height: 411px;
+      }
+      .lg\\:w-1\\/2 { width: 50%; }
     }
 
     .dark { fill: white; }

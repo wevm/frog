@@ -234,15 +234,33 @@ export function routes<
         const fid = (json.fid ?? c.var.fid ?? 1) as number
 
         const { buttonIndex, castId, inputText, postUrl, state } = json
-        const { response, speed } = await fetchFrame({
-          buttonIndex,
-          castId,
-          fid,
-          inputText,
-          postUrl,
-          state,
-          privateKey,
-        })
+        let response
+        let speed
+        let error
+        const t0 = performance.now()
+        try {
+          const result = await fetchFrame({
+            buttonIndex,
+            castId,
+            fid,
+            inputText,
+            postUrl,
+            state,
+            privateKey,
+          })
+          response = result.response
+          speed = result.speed
+        } catch (error) {
+          response = {
+            redirected: false,
+            status: 500,
+            statusText: 'Internal Server Error',
+          }
+          const t1 = performance.now()
+          speed = t1 - t0
+          console.log((error as Error).cause)
+          error = (error as Error).cause
+        }
 
         return c.json({
           type: 'redirect',
@@ -254,6 +272,7 @@ export function routes<
           metrics: { speed },
           response: {
             success: response.redirected,
+            error,
             location: response.url,
             status: response.ok ? 302 : response.status,
             statusText: response.statusText,

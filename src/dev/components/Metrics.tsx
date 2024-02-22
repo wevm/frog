@@ -9,8 +9,8 @@ export function Metrics() {
         get metrics() {
           return [
             { icon: '${stopwatchIcon}', name: 'speed', value: formatSpeed(data.request.metrics.speed) },
-            { icon: '${fileTextIcon}', name: 'frame size', value: formatFileSize(data.request.metrics.htmlSize) },
-            { icon: '${imageIcon}', name: 'image size', value: formatFileSize(data.request.metrics.imageSize) },
+            { icon: '${fileTextIcon}', name: 'frame size', value: data.request.metrics.htmlSize ? formatFileSize(data.request.metrics.htmlSize) : '-' },
+            { icon: '${imageIcon}', name: 'image size', value: data.request.metrics.imageSize ? formatFileSize(data.request.metrics.imageSize) : '-' },
           ]
         }
       }`}

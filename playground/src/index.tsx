@@ -104,7 +104,7 @@ app.frame('/buttons', ({ buttonValue }) => {
       </div>
     ),
     intents: [
-      <Button.Redirect location="https://github.com/honojs/vite-plugins/tree/main/packages/dev-server">
+      <Button.Redirect location="http://github.com/honojs/vite-plugins/tree/main/packages/dev-server">
         Redirect
       </Button.Redirect>,
       <Button.Link href="https://www.example.com">Link</Button.Link>,

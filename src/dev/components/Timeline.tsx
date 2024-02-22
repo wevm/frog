@@ -10,7 +10,7 @@ export function Timeline() {
       <template x-for="(log, index) in logs">
         <button
           type="button"
-          class=" flex flex-col p-4 gap-2 w-full border-gray-200 hover:bg-gray-100"
+          class="flex flex-col gap-2 p-4 w-full border-gray-200 hover:bg-gray-100"
           {...{
             ':class':
               'index === selectedLogIndex ? "bg-gray-100" : "bg-transparent"',
@@ -19,7 +19,6 @@ export function Timeline() {
             ':tabIndex': 'logs.length - index',
           }}
           x-on:click={`
-            if (log.request.type === 'redirect') return
             data = log
             selectedLogIndex = index
           `}
@@ -53,7 +52,7 @@ export function Timeline() {
           </div>
 
           <div class="flex gap-1.5 font-mono text-gray-1000 text-xs">
-            <span x-text="`${formatUrl(log.request.url)}`" />
+            <span x-text="formatUrl(log.request.url)" />
           </div>
         </button>
       </template>
