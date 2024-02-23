@@ -12,15 +12,14 @@ export function Timeline() {
           type="button"
           class="flex flex-col gap-2 p-4 w-full border-gray-200 hover:bg-gray-100"
           {...{
-            ':class':
-              'index === selectedLogIndex ? "bg-gray-100" : "bg-transparent"',
+            ':class': 'index === logIndex ? "bg-gray-100" : "bg-transparent"',
             ':style':
               '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
             ':tabIndex': 'logs.length - index',
           }}
           x-on:click={`
             data = log
-            selectedLogIndex = index
+            logIndex = index
           `}
         >
           <div class="flex flex-row items-center justify-between">

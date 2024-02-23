@@ -12,7 +12,11 @@ export function Tabs() {
   const labelClass = 'text-gray-700 font-medium text-sm min-w-36'
   const valueClass = 'text-gray-1000 font-mono text-sm line-clamp-2 text-right'
   return (
-    <div>
+    <div
+      x-data="{
+        tab: $persist('request'),
+      }"
+    >
       <div class="border rounded-md bg-background-100 h-full">
         <ul
           role="tablist"
@@ -120,7 +124,11 @@ export function Tabs() {
           role="tabpanel"
           aria-labelledby="request"
           class="text-sm scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
+          x-data="{
+            get frameData() { return data.context.frameData },
+          }"
           x-show="tab === 'request'"
+          style={{ fontSize: '0.8125rem' }}
         >
           <div class="flex flex-col px-4 py-2 lg:w-1/2 divide-y">
             <div class={rowClass}>
@@ -128,7 +136,7 @@ export function Tabs() {
               <div
                 class="flex items-center border px-1.5 rounded-sm text-gray-1000 font-mono"
                 x-text="data.request.method"
-                style={{ fontSize: '0.8125rem', textTransform: 'uppercase' }}
+                style={{ textTransform: 'uppercase' }}
               />
             </div>
 
@@ -136,54 +144,36 @@ export function Tabs() {
               <div class={labelClass}>Time</div>
               <div
                 class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
                 x-text="new Date(data.request.timestamp).toLocaleString()"
               />
             </div>
 
             <div class={rowClass}>
               <div class={labelClass}>Host</div>
-              <div
-                class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
-                x-text="new URL(data.request.url).host"
-              />
+              <div class={valueClass} x-text="new URL(data.request.url).host" />
             </div>
 
             <div class={rowClass}>
               <div class={labelClass}>Request Path</div>
               <div
                 class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
                 x-text="new URL(data.request.url).pathname"
               />
             </div>
 
-            <div class={rowClass} x-show="user">
+            <div class={rowClass} x-show="frameData?.fid">
               <div class={labelClass}>FID</div>
-              <div
-                class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
-                x-text="`#${user.userFid}`"
-              />
+              <div class={valueClass} x-text="`#${frameData?.fid}`" />
             </div>
 
-            <div class={rowClass} x-show="data.request.body?.inputText">
+            <div class={rowClass} x-show="frameData?.inputText">
               <div class={labelClass}>Input Text</div>
-              <div
-                class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
-                x-text="data.request.body?.inputText"
-              />
+              <div class={valueClass} x-text="frameData?.inputText" />
             </div>
 
-            <div class={rowClass} x-show="data.request.body?.buttonIndex">
+            <div class={rowClass} x-show="frameData?.buttonIndex">
               <div class={labelClass}>Button Index</div>
-              <div
-                class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
-                x-text="data.request.body?.buttonIndex"
-              />
+              <div class={valueClass} x-text="frameData?.buttonIndex" />
             </div>
           </div>
 
@@ -192,7 +182,6 @@ export function Tabs() {
               <div class={labelClass}>Status Code</div>
               <div
                 class="flex flex-row gap-2 items-center font-mono"
-                style={{ fontSize: '0.8125rem' }}
                 {...{
                   ':class': `{
                     'text-green-900': data.request.response.success,
@@ -219,7 +208,6 @@ export function Tabs() {
               <div class={labelClass}>Response Time</div>
               <div
                 class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
                 x-text="formatSpeed(data.request.metrics.speed)"
               />
             </div>
@@ -228,7 +216,6 @@ export function Tabs() {
               <div class={labelClass}>Frame Size</div>
               <div
                 class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
                 x-text="formatFileSize(data.request.metrics.htmlSize)"
               />
             </div>
@@ -237,50 +224,21 @@ export function Tabs() {
               <div class={labelClass}>Image Size</div>
               <div
                 class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
                 x-text="formatFileSize(data.request.metrics.imageSize)"
               />
             </div>
 
             <div class={rowClass} x-show="data.request.response.location">
               <div class={labelClass}>Location</div>
-              <div
-                class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
-                x-text="data.request.response.location"
-              />
+              <div class={valueClass} x-text="data.request.response.location" />
             </div>
 
             <div class={rowClass} x-show="data.request.response.error">
               <div class={labelClass}>Error</div>
-              <div
-                class={valueClass}
-                style={{ fontSize: '0.8125rem' }}
-                x-text="data.request.response.error"
-              />
+              <div class={valueClass} x-text="data.request.response.error" />
             </div>
           </div>
         </section>
-
-        <section
-          id="context-section"
-          role="tabpanel"
-          aria-labelledby="context"
-          class="p-4 scrollbars"
-          style={{ fontSize: '0.8125rem' }}
-          x-html="data.tools.contextHtml"
-          x-show="tab === 'context'"
-        />
-
-        <section
-          id="meta-tags-section"
-          role="tabpanel"
-          aria-labelledby="meta-tags"
-          class="p-4 scrollbars"
-          style={{ fontSize: '0.8125rem' }}
-          x-html="data.tools.metaTagsHtml"
-          x-show="tab === 'meta-tags'"
-        />
       </div>
     </div>
   )

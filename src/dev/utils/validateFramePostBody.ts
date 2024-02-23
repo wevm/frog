@@ -5,10 +5,11 @@ export function validateFramePostBody(
   c: Context,
 ) {
   const buttonIndex = parseInt(value.buttonIndex as string)
-  if (buttonIndex < 1 || buttonIndex > 4) return c.text('Invalid data', 400)
+  if (buttonIndex < 1 || buttonIndex > 4)
+    return c.text('Invalid data, missing buttonIndex', 400)
 
   const postUrl = value.postUrl as string
-  if (!postUrl) return c.text('Invalid data', 400)
+  if (!postUrl) return c.text('Invalid data, missing postUrl', 400)
 
   const inputText = value.inputText as string | undefined
   const state = value.state as string | undefined

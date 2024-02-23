@@ -6,8 +6,8 @@ export function Frame() {
     <div
       class="w-full h-full"
       x-data="{
-        get buttonCount() { return data.frame.buttons?.length ?? 0 },
-        get hasIntents() { return Boolean(data.frame.input || data.frame.buttons.length) },
+        get buttonCount() { return frame.buttons?.length ?? 0 },
+        get hasIntents() { return Boolean(frame.input || frame.buttons.length) },
       }"
     >
       <div class="relative rounded-md relative w-full">
@@ -15,11 +15,11 @@ export function Frame() {
 
         <template x-if="hasIntents">
           <div class="bg-background-100 flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
-            <template x-if="data.frame.input">
+            <template x-if="frame.input">
               <Input />
             </template>
 
-            <template x-if="Boolean(data.frame.buttons.length)">
+            <template x-if="Boolean(frame.buttons.length)">
               <div
                 class="grid gap-2.5"
                 {...{
@@ -31,7 +31,7 @@ export function Frame() {
                   }`,
                 }}
               >
-                <template x-for="button in data.frame.buttons">
+                <template x-for="button in frame.buttons">
                   <Button />
                 </template>
               </div>
@@ -54,19 +54,19 @@ export function Frame() {
 function Img() {
   return (
     <img
-      class="border object-cover w-full rounded-t-lg border-gray-200"
+      class="bg-background-200 border object-cover w-full rounded-t-lg border-gray-200 text-background-200"
       style={{
         minHeight: '269px',
         maxHeight: '532.5px',
       }}
       {...{
-        ':alt': `data.frame.title ?? 'Farcaster frame'`,
+        ':alt': `frame.title ?? 'Farcaster frame'`,
         ':class': `{
           'rounded-lg': !hasIntents,
         }`,
-        ':src': 'data.frame.imageUrl',
+        ':src': 'frame.imageUrl',
         ':style': `{
-          aspectRatio: data.frame.imageAspectRatio.replace(':', '/'),
+          aspectRatio: frame.imageAspectRatio.replace(':', '/'),
         }`,
       }}
     />
@@ -82,8 +82,8 @@ function Input() {
       type="text"
       x-model="inputText"
       {...{
-        ':aria-label': 'data.frame.input.text',
-        ':placeholder': 'data.frame.input.text',
+        ':aria-label': 'frame.input.text',
+        ':placeholder': 'frame.input.text',
       }}
     />
   )
@@ -175,8 +175,8 @@ function Button() {
               const body = {
                 buttonIndex: index,
                 inputText,
-                postUrl: target ?? data.frame.postUrl,
-                state: data.frame.state,
+                postUrl: target ?? frame.postUrl,
+                state: frame.state,
               }
               postFrameRedirect(body)
                 .then((json) => {
@@ -218,17 +218,18 @@ function Button() {
             const body = {
               buttonIndex: index,
               inputText,
-              postUrl: target ?? data.frame.postUrl,
-              state: data.frame.state,
+              postUrl: target ?? frame.postUrl,
+              state: frame.state,
             }
             postFrameAction(body)
               .then((json) => {
-                const nextHistoryId = id + 1
-                const item = { body, url: json.state.context.url }
-                if (nextHistoryId < history.length) history = [...history.slice(0, nextHistoryId), item]
-                else history = [...history, item]
+                const nextStackIndex = stackIndex + 1
+                const item = { body, url: json.context.url }
+                if (nextStackIndex < stack.length) stack = [...stack.slice(0, nextStackIndex), item]
+                else stack = [...stack, item]
+
                 data = json
-                id = nextHistoryId
+                stackIndex = nextStackIndex
                 inputText = ''
               })
               .catch(console.error)

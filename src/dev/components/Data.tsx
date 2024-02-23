@@ -7,6 +7,85 @@ export function Data() {
       aria-colcount="16"
       class="bg-background-100 border rounded-md overflow-hidden"
       style={{ height: 'min-content' }}
+      x-data="{
+        get validations() {
+          const imageSize = data.request.metrics.imageSize
+          const limits = {
+            postUrl: 256,
+            inputText: 32,
+            state: 4_096,
+            image: 256,
+          }
+          const postUrlTooLong = frame.postUrl.length > limits.postUrl
+          const inputTextTooLong = frame.input?.text
+            ? frame.input.text.length > limits.inputText
+            : false
+          const stateTooLong = frame.state.length > limits.state
+          const imageTooLarge = imageSize ? imageSize / 1024 > limits.image : false
+
+          return [
+            {
+              property: 'fc:frame',
+              value: frame.version,
+              status: frame.version === 'vNext' ? 'valid' : 'invalid',
+              message: `Version is ${frame.version} and must be vNext.`,
+            },
+            {
+              property: 'fc:frame:image',
+              value: frame.imageUrl,
+              status: imageTooLarge ? 'invalid' : 'valid',
+              message: `Image is ${((imageSize ?? 1024) / 1024).toFixed(
+                2,
+              )} kilobytes and must be ${limits.image.toLocaleString()} kilobytes or less.`,
+            },
+            {
+              property: 'fc:frame:aspect_ratio',
+              value: frame.imageAspectRatio,
+              status: 'valid',
+            },
+            {
+              property: 'fc:frame:post_url',
+              value: frame.postUrl,
+              status: postUrlTooLong ? 'invalid' : 'valid',
+              message: `Post URL is ${
+                frame.postUrl.length
+              } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
+            },
+            {
+              property: 'fc:frame:state',
+              value: decodeURIComponent(frame.state),
+              status: stateTooLong ? 'invalid' : 'valid',
+              message: `State is ${
+                frame.state.length
+              } bytes and must be ${limits.state.toLocaleString()} bytes or less.`,
+            },
+            {
+              property: 'og:image',
+              value: frame.image,
+              status: 'valid',
+            },
+            ...(frame.input?.text
+              ? [
+                  {
+                    property: 'fc:frame:input:text',
+                    value: frame.input.text,
+                    status: inputTextTooLong ? 'invalid' : 'valid',
+                    message: `Input text is ${
+                      frame.input.text.length
+                    } bytes and must be ${limits.inputText.toLocaleString()} bytes or less. Keep in mind non-ASCII characters, like emoji, can take up more than 1 byte of space.`,
+                  },
+                ]
+              : []),
+            ...(frame.buttons.map((button) => ({
+                property: `fc:frame:button:${button.index}`,
+                value: `${button.title}${button.type ? `, ${button.type}` : ''}${
+                  button.target ? `, ${button.target}` : ''
+                }`,
+                status: 'valid',
+              }))),
+          ]
+        },
+      }"
     >
       <div class="sr-only" role="rowgroup">
         <div role="row">
@@ -23,7 +102,7 @@ export function Data() {
       </div>
 
       <div role="rowgroup" class="overflow-hidden divide-y">
-        <template x-for="(row, index) in data.frame.debug.validations">
+        <template x-for="(row, index) in validations">
           <div role="row" class="flex flex-col">
             <div
               class="items-center flex flex-row"

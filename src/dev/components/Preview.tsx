@@ -1,4 +1,5 @@
-import { type Frame as FrameType, type State } from '../types.js'
+import { type FrameContext } from '../../types.js'
+import { type Frame as FrameType } from '../types.js'
 import { Data } from './Data.js'
 import { Frame } from './Frame.js'
 import { Metrics } from './Metrics.js'
@@ -7,66 +8,45 @@ import { Tabs } from './Tabs.js'
 import { Timeline } from './Timeline.js'
 
 export type PreviewProps = {
-  frame: FrameType
-  request:
-    | {
-        type: 'initial'
-        method: 'get'
-        metrics: {
-          htmlSize: number
-          imageSize: number
-          speed: number
+  data: {
+    context: FrameContext
+    frame: FrameType
+    request:
+      | {
+          type: 'initial' | 'action'
+          method: 'get' | 'post'
+          metrics: {
+            htmlSize: number
+            imageSize: number
+            speed: number
+          }
+          response: {
+            success: boolean
+            status: number
+            statusText: string
+            error?: string | undefined
+          }
+          timestamp: number
+          url: string
         }
-        response: {
-          success: boolean
-          status: number
-          statusText: string
-          error?: string | undefined
+      | {
+          type: 'redirect'
+          method: 'post'
+          metrics: {
+            speed: number
+          }
+          response: {
+            success: boolean
+            status: number
+            statusText: string
+            location?: string
+            error?: string | undefined
+          }
+          timestamp: number
+          url: string
         }
-        timestamp: number
-        url: string
-      }
-    | {
-        type: 'response'
-        method: 'post'
-        body: object
-        metrics: {
-          htmlSize: number
-          imageSize: number
-          speed: number
-        }
-        response: {
-          success: boolean
-          status: number
-          statusText: string
-          error?: string | undefined
-        }
-        timestamp: number
-        url: string
-      }
-    | {
-        type: 'redirect'
-        method: 'post'
-        body: object
-        metrics: {
-          speed: number
-        }
-        response: {
-          success: boolean
-          status: number
-          statusText: string
-          location?: string
-          error?: string | undefined
-        }
-        timestamp: number
-        url: string
-      }
-  routes: readonly string[]
-  state: State
-  tools: {
-    contextHtml: string
-    metaTagsHtml: string
   }
+  routes: readonly string[]
 }
 
 export function Preview(props: PreviewProps) {
@@ -74,9 +54,8 @@ export function Preview(props: PreviewProps) {
     <div
       x-data={`{
         init() {
-          if (!this.logs || this.logs.length === 0) this.logs = [${JSON.stringify(
-            props,
-          )}]
+          if (!this.logs || this.logs.length === 0)
+            this.logs = [${JSON.stringify(props.data)}]
 
           try {
             const userCookie = this.getCookie('user')
@@ -92,79 +71,94 @@ export function Preview(props: PreviewProps) {
           } catch (e) {
             console.log({ e })
           }
+
+          $watch('logIndex', (logIndex) => this.saveState({ logIndex }))
+          $watch('logs', (logs) => this.saveState({ logs }))
+          $watch('stackIndex', (stackIndex) => this.saveState({ stackIndex }))
+          $watch('stack', (stack) => this.saveState({ stack }))
+
+          this.restoreState()
         },
-        data: {
-          frame: ${JSON.stringify(props.frame)},
-          request: ${JSON.stringify(props.request)},
-          routes: ${JSON.stringify(props.routes)},
-          state: ${JSON.stringify(props.state)},
-          tools: ${JSON.stringify(props.tools)},
+        data: ${JSON.stringify(props.data)},
+        routes: ${JSON.stringify(props.routes)},
+
+        get frame() {
+          const frame = this.data.frame
+          const contextString = this.toSearchParams(this.data.context).toString()
+          return {
+            ...frame,
+            image: frame.image.replace('_frog_image', contextString),
+            imageUrl: frame.imageUrl.replace('_frog_imageUrl', contextString),
+          }
         },
 
-        history: [],
-        id: -1,
         inputText: '',
+        logIndex: -1,
         logs: [],
-        selectedLogIndex: -1,
-        tab: $persist('request'),
+        stackIndex: -1,
+        stack: [],
         user: $persist(null),
 
         async getFrame(url = this.data.request.url, replaceLogs = false) {
-          const response = await fetch(url + '/dev/frame', {
+          const json = await fetch(url + '/dev/frame', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          })
-          const json = await response.json()
-          this.logs = replaceLogs ? [json] : [...this.logs, json]
-          this.selectedLogIndex = -1
-          return json
+          }).then((response) => response.json())
+          console.log('getFrame', json.data)
+
+          this.logs = replaceLogs ? [json.data] : [...this.logs, json.data]
+          this.routes = json.routes
+          this.logIndex = -1
+
+          return json.data
         },
         async postFrameAction(body) {
-          const response = await fetch(this.data.request.url + '/dev/frame/action', {
+          const json = await fetch(this.data.request.url + '/dev/frame/action', {
             method: 'POST',
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
-          })
-          const json = await response.json()
-          this.logs = [...this.logs, json]
-          this.selectedLogIndex = -1
-          return json
+          }).then((response) => response.json())
+          console.log('postFrameAction', json.data)
+
+          this.logs = [...this.logs, json.data]
+          this.routes = json.routes
+          this.logIndex = -1
+
+          return json.data
         },
         async postFrameRedirect(body) {
-          const response = await fetch(this.data.request.url + '/dev/frame/redirect', {
+          const json = await fetch(this.data.request.url + '/dev/frame/redirect', {
             method: 'POST',
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
-          })
-          const json = await response.json()
+          }).then((response) => response.json())
+
           this.logs = [...this.logs, { ...this.logs.at(-1), request: json }]
-          this.selectedLogIndex = -1
+          this.logIndex = -1
+
           return json
         },
         async fetchAuthCode() {
-          const response = await fetch(this.data.request.url + '/dev/frame/auth/code', {
+          const json = await fetch(this.data.request.url + '/dev/frame/auth/code', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          })
-          const json = await response.json()
+          }).then((response) => response.json())
           return json
         },
         async fetchAuthStatus(token) {
-          const response = await fetch(this.data.request.url + '/dev/frame/auth/status/' + token, {
+          const json = await fetch(this.data.request.url + '/dev/frame/auth/status/' + token, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
             },
-          })
-          const json = await response.json()
+          }).then((response) => response.json())
           return json
         },
         async logout(body) {
-          const response = await fetch(this.data.request.url + '/dev/frame/auth/logout', {
+          const json = await fetch(this.data.request.url + '/dev/frame/auth/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-          })
-          const json = await response.json()
+          }).then((response) => response.json())
           this.user = null
           return json
         },
@@ -189,6 +183,40 @@ export function Preview(props: PreviewProps) {
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         },
 
+        saveState(state) {
+          if (this.logs.length === 1) return
+
+          const nextState = {
+            logs: this.logs,
+            logIndex: this.logIndex,
+            stack: this.stack,
+            stackIndex: this.stackIndex,
+            ...state,
+          }
+          const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(nextState))
+          window.history.replaceState(null, null, '#state/' + compressed);
+        },
+        restoreState() {
+          if (!location.hash.startsWith('#state')) return
+          const state = location.hash.replace('#state/', '').trim()
+
+          try {
+            let restored = LZString.decompressFromEncodedURIComponent(state)
+            // Fallback incase there is an extra level of decoding:
+            // https://gitter.im/Microsoft/TypeScript?at=5dc478ab9c39821509ff189a
+            if (!restored) restored = LZString.decompressFromEncodedURIComponent(decodeURIComponent(state))
+            restored = JSON.parse(restored)
+
+            this.logs = restored.logs
+            this.logIndex = restored.logIndex
+            this.stack = restored.stack
+            this.stackIndex = restored.stackIndex
+
+            this.data = restored.logIndex > -1 ? restored.logs[restored.logIndex] : restored.logs.at(-1)
+          } catch (error) {
+            console.log('Failed to restore state', error.message)
+          }
+        },
         getCookie(name) {
           const cookieArr = document.cookie.split(";")
           for (let i = 0; i < cookieArr.length; i++) {
@@ -202,7 +230,27 @@ export function Preview(props: PreviewProps) {
               return cookie.substring(name.length + 1, cookie.length)
           }
           return null
-        }
+        },
+        toSearchParams(object) {
+          const params = new URLSearchParams()
+          for (const [key, value] of Object.entries(object)) {
+            const encoded = (() => {
+              if (typeof value === 'string') return encodeURIComponent(value)
+              if (typeof value === 'number') return value.toString()
+              if (typeof value === 'boolean') return value.toString()
+              if (typeof value === 'object' && value !== null) {
+                return encodeURIComponent(
+                  Array.isArray(value)
+                    ? '#A_' + value.join(',')
+                    : '#O_' + JSON.stringify(value),
+                )
+              }
+              return undefined
+            })()
+            if (encoded) params.set(key, encoded)
+          }
+          return params
+        },
       }`}
       class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-4 md:gap-6 pb-6 md:pb-0"
       style={{
@@ -211,27 +259,7 @@ export function Preview(props: PreviewProps) {
         marginRight: 'auto',
       }}
     >
-      <div
-        class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:max-h-sidebar md:min-w-sidebar lg:min-w-sidebar"
-        x-effect="
-          if (history.length === 0) return
-
-          const state = {
-            history,
-            id,
-            logs,
-            selectedLogIndex,
-          }
-          const compressed = LZString.compressToBase64(JSON.stringify(state))
-            .replace(/\+/g, '-') // Convert '+' to '-'
-            .replace(/\//g, '_') // Convert '/' to '_'
-            .replace(/=+$/, '') // Remove ending '='
-
-          // const url = new URL(window.location.href)
-          // url.searchParams.set('state', compressed)
-          // window.history.pushState({}, '', url);
-        "
-      >
+      <div class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:max-h-sidebar md:min-w-sidebar lg:min-w-sidebar">
         <div class="bg-background-100 scrollbars h-full">
           <Timeline />
         </div>

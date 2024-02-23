@@ -3,7 +3,7 @@ import { deserializeJson } from '../../utils/deserializeJson.js'
 import { type FrogMetaTagPropertyName } from '../types.js'
 import { htmlToMetaTags } from './htmlToMetaTags.js'
 
-export function htmlToState(html: string) {
+export function htmlToContext(html: string) {
   const metaTags = htmlToMetaTags(html, 'meta[property^="frog:"]')
 
   const properties: Partial<Record<FrogMetaTagPropertyName, string>> = {}
@@ -17,7 +17,5 @@ export function htmlToState(html: string) {
     properties[property] = content
   }
 
-  return {
-    context: deserializeJson<FrameContext>(properties['frog:context']),
-  }
+  return deserializeJson<FrameContext>(properties['frog:context'])
 }

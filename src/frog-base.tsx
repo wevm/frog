@@ -343,11 +343,12 @@ export class FrogBase<
 
       // The OG route also needs context, so we will need to pass the current derived context,
       // via a query parameter to the OG image route (/image).
-      const frameImageParams = toSearchParams({
+      const baseContext = {
         ...context,
         // We can't serialize `request` (aka `c.req`), so we'll just set it to undefined.
         request: undefined,
-      })
+      }
+      const frameImageParams = toSearchParams(baseContext)
 
       // We need to pass some context to the next frame to derive button values, state, etc.
       const nextFrameState = serializeJson({
@@ -398,7 +399,10 @@ export class FrogBase<
             <meta property="fc:frame:state" content={nextFrameState} />
             {parsedIntents}
 
-            <meta property="frog:context" content={serializeJson(context)} />
+            <meta
+              property="frog:context"
+              content={serializeJson(baseContext)}
+            />
           </head>
           <body
             style={{

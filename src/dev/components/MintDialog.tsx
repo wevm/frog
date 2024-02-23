@@ -48,10 +48,10 @@ export function MintDialog() {
                 maxHeight: '430.5px',
               }}
               {...{
-                ':alt': `data.frame.title ?? 'Farcaster frame'`,
-                ':src': 'data.frame.imageUrl',
+                ':alt': `frame.title ?? 'Farcaster frame'`,
+                ':src': 'frame.imageUrl',
                 ':style': `{
-                  aspectRatio: data.frame.imageAspectRatio.replace(':', '/'),
+                  aspectRatio: frame.imageAspectRatio.replace(':', '/'),
                 }`,
               }}
             />

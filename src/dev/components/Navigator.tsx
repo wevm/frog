@@ -17,30 +17,34 @@ export function Navigator() {
           class="text-gray-700 bg-background-100 px-2 rounded-l-md"
           type="button"
           x-on:click={`
-            const nextId = id - 1
-            if (nextId < 0)
-              return getFrame()
+            const nextStackIndex = stackIndex - 1
+            console.log(nextStackIndex)
+            if (nextStackIndex < 0) {
+              const initialUrl = logs[0].request.url
+              getFrame(initialUrl)
                 .then((json) => {
                   data = json
-                  id = -1
+                  stackIndex = -1
                   inputText = ''
                 })
                 .catch(console.error)
+              return
+            }
 
-            const body = history[nextId].body
+            const body = stack[nextStackIndex].body
             postFrameAction(body)
               .then((json) => {
                 data = json
-                id = nextId
+                stackIndex = nextStackIndex
                 inputText = ''
               })
               .catch(console.error)
           `}
           {...{
-            ':disabled': 'id === -1',
+            ':disabled': 'stackIndex === -1',
           }}
         >
-          <span {...{ ':style': "id === -1 && { opacity: '0.35' }" }}>
+          <span {...{ ':style': "stackIndex === -1 && { opacity: '0.35' }" }}>
             {chevronLeftIcon}
           </span>
         </button>
@@ -49,16 +53,16 @@ export function Navigator() {
           aria-label="forward"
           class="text-gray-700 bg-background-100 px-2 rounded-r-md"
           type="button"
-          x-data="{ get disabled() { return !history[id + 1] } }"
+          x-data="{ get disabled() { return !stack[stackIndex + 1] } }"
           x-on:click={`
-            let nextId = id + 1
-            if (!history[nextId]) return
+            let nextStackIndex = stackIndex + 1
+            if (!stack[nextStackIndex]) return
 
-            const body = history[nextId].body
+            const body = stack[nextStackIndex].body
             postFrameAction(body)
               .then((json) => {
                 data = json
-                id = nextId
+                stackIndex = nextStackIndex
                 inputText = ''
               })
               .catch(console.error)
@@ -78,10 +82,24 @@ export function Navigator() {
         class="bg-background-100 border rounded-md text-gray-700 px-2 rounded-r-md h-full"
         type="button"
         x-on:click={`
-          const selectedLog = logs[selectedLogIndex]
-          const body = selectedLog ? selectedLog.request.body : history[id]?.body
-          if (selectedLog && selectedLog.request.type === 'initial') getFrame().then((json) => data = json).catch(console.error)
-          else if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
+          const selectedLog = logs[logIndex]
+          if (selectedLog && selectedLog.request.type === 'initial') {
+            getFrame().then((json) => data = json).catch(console.error)
+            return 
+          }
+
+          let body = stack[stackIndex]?.body
+          if (selectedLog) {
+            const { buttonIndex, fid, inputText, state, url: postUrl } = selectedLog.context.frameData
+            body = {
+              buttonIndex,
+              fid,
+              inputText,
+              postUrl,
+              state,
+            }
+          }
+          if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
           else getFrame().then((json) => data = json).catch(console.error)
         `}
       >
@@ -112,7 +130,7 @@ export function Navigator() {
             <span
               class="font-sans text-gray-1000"
               style={{ lineHeight: '1.9rem', fontSize: '13px' }}
-              x-text="formatUrl(data.state.context.url)"
+              x-text="formatUrl(data.request.url)"
             />
           </div>
         </button>
@@ -133,20 +151,21 @@ export function Navigator() {
             'x-trap': 'open',
           }}
         >
-          <template x-for="(route, index) in data.routes">
+          <template x-for="(route, index) in routes">
             <button
               type="button"
               class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left"
               x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
               x-on:click="
                 const nextRoute = route === '/' ? '/dev' : route + '/dev'
-                window.history.pushState({}, '', nextRoute)
+                history.replaceState({}, '', nextRoute)
+
                 const nextFrame = window.location.toString().replace('/dev', '')
                 getFrame(nextFrame, true)
                   .then((json) => {
                     data = json
-                    history = []
-                    id = -1
+                    stack = []
+                    stackIndex = -1
                     inputText = ''
                     open = false
                   })

@@ -2,41 +2,26 @@ import {
   type FrameContext,
   type FrameImageAspectRatio,
   type FrameVersion,
-  type Pretty,
 } from '../types.js'
 
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
   debug?: FrameDebug | undefined
   imageAspectRatio: FrameImageAspectRatio
+  image: string
   imageUrl: string
   input?: FrameInput | undefined
   postUrl: string
+  state: string
   title: string
   version: FrameVersion
 }
 
-export type FrameDebug = Pretty<
-  Omit<Frame, 'debug' | 'title'> & {
-    buttonsAreOutOfOrder: boolean
-    fallbackImageToUrl: boolean
-    htmlTags: readonly string[]
-    image: string
-    imageAspectRatio: FrameImageAspectRatio
-    inputTextTooLong: boolean
-    invalidButtons: readonly FrameButton['index'][]
-    postUrl: string
-    postUrlTooLong: boolean
-    stateTooLong: boolean
-    valid: boolean
-    validations: readonly {
-      property: string
-      value: string
-      status: 'valid' | 'invalid'
-      message?: string | undefined
-    }[]
-  }
->
+export type FrameDebug = {
+  buttonsAreOutOfOrder: boolean
+  htmlTags: readonly string[]
+  invalidButtons: readonly FrameButton['index'][]
+}
 
 export type FrameButton = {
   index: 1 | 2 | 3 | 4

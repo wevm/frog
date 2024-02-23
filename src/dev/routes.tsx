@@ -26,13 +26,13 @@ import {
   type UserDataByFidResponse,
 } from './types.js'
 import { fetchFrame } from './utils/fetchFrame.js'
-import { getCodeHtml } from './utils/getCodeHtml.js'
 import { getHtmlSize } from './utils/getHtmlSize.js'
 import { getImageSize } from './utils/getImageSize.js'
 import { getRoutes } from './utils/getRoutes.js'
 import { htmlToFrame } from './utils/htmlToFrame.js'
-import { htmlToState } from './utils/htmlToState.js'
+import { htmlToContext } from './utils/htmlToState.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
+import { toSearchParams } from '../utils/toSearchParams.js'
 
 export function routes<
   state,
@@ -79,9 +79,14 @@ export function routes<
 
     const clonedResponse = response.clone()
     const text = await response.text()
-    const imageSize = await getImageSize(text)
-    const frame = htmlToFrame(text, imageSize)
-    const state = htmlToState(text)
+    const frame = htmlToFrame(text)
+    const context = htmlToContext(text)
+
+    // remove serialized context from image/imageUrl to save url space
+    // tip: search for `_frog_` to see where it's added back
+    const contextString = toSearchParams(context).toString()
+    frame.image = frame.imageUrl.replace(contextString, '_frog_image')
+    frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
 
     performance.measure('fetch', 'start', 'end')
     const measure = performance.getEntriesByName('fetch')[0]
@@ -93,7 +98,10 @@ export function routes<
     cleanedUrl.search = ''
     const cleanedUrlString = cleanedUrl.toString().replace(/\/$/, '')
 
-    const htmlSize = await getHtmlSize(clonedResponse)
+    const [htmlSize, imageSize] = await Promise.all([
+      getHtmlSize(clonedResponse),
+      getImageSize(text),
+    ])
     const request = {
       type: 'initial',
       method: 'get',
@@ -113,21 +121,13 @@ export function routes<
 
     const routes = getRoutes(url, inspectRoutes(app.hono))
 
-    const [contextHtml, metaTagsHtml] = await Promise.all([
-      getCodeHtml(JSON.stringify(state.context, null, 2), 'json'),
-      getCodeHtml(frame.debug.htmlTags.join('\n'), 'html'),
-    ])
-    const tools = {
-      contextHtml,
-      metaTagsHtml,
-    }
-
     return {
-      frame,
-      request,
+      data: {
+        context,
+        frame,
+        request,
+      },
       routes,
-      state,
-      tools,
     } satisfies PreviewProps
   }
 
@@ -191,17 +191,21 @@ export function routes<
 
         const clonedResponse = response.clone()
         const text = await response.text()
-        const imageSize = await getImageSize(text)
-        const frame = htmlToFrame(text, imageSize)
-        const state = htmlToState(text)
+        const frame = htmlToFrame(text)
+        const context = htmlToContext(text)
 
-        const htmlSize = await getHtmlSize(clonedResponse)
+        // remove serialized context from image/imageUrl to save url space
+        // tip: search for `_frog_` to see where it's added back
+        const contextString = toSearchParams(context).toString()
+        frame.image = frame.imageUrl.replace(contextString, '_frog_image')
+        frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
+
+        const [htmlSize, imageSize] = await Promise.all([
+          getHtmlSize(clonedResponse),
+          getImageSize(text),
+        ])
         const request = {
-          type: 'response',
-          body: {
-            ...json,
-            castId: { ...json.castId, hash: json.castId.hash.toString() },
-          },
+          type: 'action',
           method: 'post',
           metrics: {
             htmlSize,
@@ -219,21 +223,13 @@ export function routes<
 
         const routes = getRoutes(url, inspectRoutes(app.hono))
 
-        const [contextHtml, metaTagsHtml] = await Promise.all([
-          getCodeHtml(JSON.stringify(state.context, null, 2), 'json'),
-          getCodeHtml(frame.debug.htmlTags.join('\n'), 'html'),
-        ])
-        const tools = {
-          contextHtml,
-          metaTagsHtml,
-        }
-
         return c.json({
-          frame,
-          request,
+          data: {
+            context,
+            frame,
+            request,
+          },
           routes,
-          state,
-          tools,
         } satisfies PreviewProps)
       },
     )
@@ -280,10 +276,6 @@ export function routes<
 
         return c.json({
           type: 'redirect',
-          body: {
-            ...json,
-            castId: { ...json.castId, hash: json.castId.hash.toString() },
-          },
           method: 'post',
           metrics: { speed },
           response: {
@@ -295,7 +287,7 @@ export function routes<
           },
           timestamp,
           url: postUrl,
-        } satisfies PreviewProps['request'])
+        } satisfies PreviewProps['data']['request'])
       },
     )
 

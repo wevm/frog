@@ -1,3 +1,5 @@
+// If this changes, update in dev/components/Preview.tsx as well
+
 export function toSearchParams(object: object) {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(object)) {
