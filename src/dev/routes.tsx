@@ -246,8 +246,8 @@ export function routes<
         const fid = (json.fid ?? c.var.fid ?? 1) as number
 
         const { buttonIndex, castId, inputText, postUrl, state } = json
-        let response
-        let error
+        let response: Response
+        let error: string | undefined
         try {
           response = await fetchFrame({
             buttonIndex,
@@ -264,7 +264,7 @@ export function routes<
             redirected: false,
             status: 500,
             statusText: 'Internal Server Error',
-          }
+          } as Response
           error = `${(err as Error).cause}`.replace('Error: ', '')
         }
 

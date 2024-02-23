@@ -231,3 +231,34 @@ app.frame('/', (context) => {
   }
 })
 ```
+
+## title
+
+- **Type:** `string`
+
+Title of the frame (added as `og:title`).
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+export const app = new Frog()
+ 
+app.frame('/', (context) => {
+  const { buttonIndex } = context
+  return {
+    image: ( 
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
+        Select a frog 
+      </div> 
+    ), 
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ],
+    title: 'Hello Frog', // [!code focus]
+  }
+})
+```
+
+

@@ -164,7 +164,7 @@ export type FrameHandlerReturnType = Pick<
    * The OG Image to render for the frame. Can either be a JSX element, or URL.
    *
    * @example
-   * <div style={{ fontSize: 60 }}>Hello World</div>
+   * <div style={{ fontSize: 60 }}>Hello Frog</div>
    *
    * @example
    * "https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg"
@@ -196,6 +196,12 @@ export type FrameHandlerReturnType = Pick<
    * ]
    */
   intents?: FrameIntents | undefined
+  /**
+   * Title of the frame (added as `og:title`).
+   *
+   * @example 'Hello Frog'
+   */
+  title?: string | undefined
 }
 
 /**
@@ -317,6 +323,7 @@ export class FrogBase<
         imageAspectRatio,
         image,
         intents,
+        title = 'Frog Frame',
       } = await handler(context)
       const parsedIntents = intents ? parseIntents(intents) : null
       const intentData = getIntentData(parsedIntents)
@@ -377,6 +384,7 @@ export class FrogBase<
                     )}/image?${frameImageParams.toString()}`
               }
             />
+            <meta property="og:title" content={title} />
             <meta
               property="fc:frame:post_url"
               content={
