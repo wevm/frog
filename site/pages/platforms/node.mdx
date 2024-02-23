@@ -26,7 +26,7 @@ bunx create-frog -t node
 
 ## Manual Installation
 
-:::steps
+::::steps
 
 ### Build your Frame
 
@@ -37,7 +37,10 @@ Next, scaffold your frame:
 // ---cut---
 import { Button, Frog } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
   const { buttonValue, status } = context
@@ -60,6 +63,13 @@ app.frame('/', (context) => {
 })
 ```
 
+:::warning
+Feel free to use our public Hub API URL for [frame verification](https://docs.farcaster.xyz/reference/frames/spec#securing-frames:~:text=Unsigned%20messages%20can%20be%20spoofed%20and%20should%20usually%20be%20ignored.%20It%20is%20only%20safe%20to%20use%20them%20if%20you%20are%20performing%20an%20unauthenticated%20request.): `https://api.hub.wevm.dev`.
+
+However, please note that this URL is not guaranteed to be stable. 
+It is recommended to use your own Hub API URL in production.
+:::
+
 ### Add Node Server
 
 After that, we will append a Node server to the file.
@@ -71,7 +81,10 @@ After that, we will append a Node server to the file.
 import { serve } from '@hono/node-server' // [!code focus]
 import { Button, Frog } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
   const { buttonValue, status } = context
@@ -129,4 +142,54 @@ Then, we can navigate to our frame in the browser:
 
 `http://localhost:5173/api`
 
-:::
+### Bonus: Browser Redirects
+
+If a user navigates to your frame in the browser, we may want to redirect them 
+to another webpage that corresponds to the frame.
+
+In the example below, when a user navigates to the `/frame/foo` path of the website via their web browser, 
+they will be redirected to the `/foo` path.
+
+[Read more on Browser Redirects](/concepts/browser-redirects)
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { serve } from '@hono/node-server'
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({
+  browserLocation: '/:path', // [!code focus]
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
+
+app.frame('/frame/:path', (context) => { // [!code focus]
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+serve({
+  fetch: app.fetch,
+  port: 3000,
+})
+console.log(`Server is running on port ${port}`)
+```
+
+::::
