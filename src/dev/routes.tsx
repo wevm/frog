@@ -16,6 +16,7 @@ import { mnemonicToAccount } from 'viem/accounts'
 
 import { type FrogBase } from '../frog-base.js'
 import { parsePath } from '../utils/parsePath.js'
+import { toSearchParams } from '../utils/toSearchParams.js'
 import { Fonts } from './components/Fonts.js'
 import { Preview, type PreviewProps } from './components/Preview.js'
 import { QRCode } from './components/QRCode.js'
@@ -32,7 +33,6 @@ import { getRoutes } from './utils/getRoutes.js'
 import { htmlToFrame } from './utils/htmlToFrame.js'
 import { htmlToContext } from './utils/htmlToState.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
-import { toSearchParams } from '../utils/toSearchParams.js'
 
 export function routes<
   state,
