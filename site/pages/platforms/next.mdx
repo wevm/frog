@@ -28,12 +28,12 @@ bunx create-frog -t next
 
 ## Manual Installation
 
-:::steps
+::::steps
 
 ### Install Next.js
 
 ```bash
-npm install next@latest react@latest react-dom@latest
+npm install next@latest react@latest react-dom@latest vercel@latest
 ```
 
 ### Build your Frame
@@ -44,66 +44,84 @@ Next, scaffold your frame:
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/vercel'
 
-const app = new Frog({ basePath: '/api' })
-
-// Uncomment to use Edge Runtime
-// export const runtime = 'edge'
+const app = new Frog({ 
+  basePath: '/api',
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
-  const { buttonValue, inputText, status } = context
-  const fruit = inputText || buttonValue
+  const { buttonValue, status } = context
   return {
     image: (
-      <div
-        style={{
-          alignItems: 'center',
-          background:
-            status === 'response'
-              ? 'linear-gradient(to right, #432889, #17101F)'
-              : 'black',
-          backgroundSize: '100% 100%',
-          display: 'flex',
-          flexDirection: 'column',
-          flexWrap: 'nowrap',
-          height: '100%',
-          justifyContent: 'center',
-          textAlign: 'center',
-          width: '100%',
-        }}
-      >
-        <div
-          style={{
-            color: 'white',
-            fontSize: 60,
-            fontStyle: 'normal',
-            letterSpacing: '-0.025em',
-            lineHeight: 1.4,
-            marginTop: 30,
-            padding: '0 120px',
-            whiteSpace: 'pre-wrap',
-          }}
-        >
-          {status === 'response'
-            ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
-            : 'Welcome!'}
-        </div>
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
       </div>
     ),
     intents: [
-      <TextInput placeholder="Enter custom fruit..." />,
-      <Button value="apples">Apples</Button>,
-      <Button value="oranges">Oranges</Button>,
-      <Button value="bananas">Bananas</Button>,
-      status === 'response' && <Button.Reset>Reset</Button.Reset>,
-    ],
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+```
+
+:::warning
+Feel free to use our public Hub API URL for [frame verification](https://docs.farcaster.xyz/reference/frames/spec#securing-frames:~:text=Unsigned%20messages%20can%20be%20spoofed%20and%20should%20usually%20be%20ignored.%20It%20is%20only%20safe%20to%20use%20them%20if%20you%20are%20performing%20an%20unauthenticated%20request.): `https://api.hub.wevm.dev`.
+
+However, please note that this URL is not guaranteed to be stable. 
+It is recommended to use your own Hub API URL in production.
+:::
+
+### Add Handlers
+
+After that, we will add handlers to handle requests in the `api/` route:
+
+```tsx twoslash [app/api/[[...routes]]/route.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog'
+import { handle } from 'frog/vercel' // [!code focus]
+
+const app = new Frog({ 
+  basePath: '/api',
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
+
+// Uncomment to use Edge Runtime // [!code focus]
+// export const runtime = 'edge' // [!code focus]
+
+app.frame('/', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
   }
 })
 
-export const GET = handle(app)
-export const POST = handle(app)
+export const GET = handle(app) // [!code focus]
+export const POST = handle(app) // [!code focus]
 ```
+
 
 ### Add Scripts to `package.json`
 
@@ -114,6 +132,7 @@ Then we will add a Wrangler scripts to our `package.json`:
   "scripts": {
     "dev": "next dev", // [!code focus]
     "build": "next build", // [!code focus]
+    "deploy": "vercel", // [!code focus]
     "start": "next start", // [!code focus]
     "lint": "next lint" // [!code focus]
   },
@@ -122,7 +141,8 @@ Then we will add a Wrangler scripts to our `package.json`:
     "frog": "latest",
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "vercel": "latest",
   },
 }
 
@@ -136,4 +156,64 @@ Then, we can navigate to our frame in the browser:
 
 `http://localhost:3000/api`
 
-:::
+### Bonus: Deploy
+
+When ready, we can deploy our application.
+
+This example deploys to Vercel via the Vercel CLI (`vercel`), but you can use any platform that supports Next.js
+
+```bash
+npm run deploy
+```
+
+### Bonus: Add Browser Redirects
+
+If a user navigates to your frame in the browser, we may want to redirect them 
+to the correct Next.js page route that corresponds to the frame.
+
+In the example below, when a user navigates to the `/api/foo` path of the website via their web browser, 
+they will be redirected to the `/foo` path (ie. `/app/foo/page.tsx` in your Next.js App).
+
+[Read more on Browser Redirects](/concepts/browser-redirects)
+
+```tsx twoslash [app/api/[[...routes]]/route.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog'
+import { handle } from 'frog/vercel'
+
+const app = new Frog({ 
+  basePath: '/api',
+  browserLocation: '/:path', // [!code focus]
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
+
+// Uncomment to use Edge Runtime
+// export const runtime = 'edge'
+
+app.frame('/foo', (context) => {
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+export const GET = handle(app) 
+export const POST = handle(app) 
+```
+
+::::

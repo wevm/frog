@@ -26,7 +26,7 @@ bunx create-frog -t vercel
 
 ## Manual Installation
 
-:::steps
+::::steps
 
 ### Install Vercel
 
@@ -48,7 +48,11 @@ import { Button, Frog } from 'frog'
 //   runtime: 'edge',
 // }
 
-export const app = new Frog({ basePath: '/api' })
+export const app = new Frog({ 
+  basePath: '/api',
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
   const { buttonValue, status } = context
@@ -71,6 +75,13 @@ app.frame('/', (context) => {
 })
 ```
 
+:::warning
+Feel free to use our public Hub API URL for [frame verification](https://docs.farcaster.xyz/reference/frames/spec#securing-frames:~:text=Unsigned%20messages%20can%20be%20spoofed%20and%20should%20usually%20be%20ignored.%20It%20is%20only%20safe%20to%20use%20them%20if%20you%20are%20performing%20an%20unauthenticated%20request.): `https://api.hub.wevm.dev`.
+
+However, please note that this URL is not guaranteed to be stable. 
+It is recommended to use your own Hub API URL in production.
+:::
+
 ### Add Vercel Handlers
 
 After that, we will append Vercel handlers to the file.
@@ -86,7 +97,11 @@ import { handle } from 'frog/vercel' // [!code focus]
 //   runtime: 'edge',
 // }
 
-export const app = new Frog({ basePath: '/api' })
+export const app = new Frog({ 
+  basePath: '/api',
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
 
 app.frame('/', (context) => {
   const { buttonValue, status } = context
@@ -141,4 +156,67 @@ Then, we can navigate to our frame in the browser:
 
 `http://localhost:5173/api`
 
-:::
+### Bonus: Deploy
+
+When ready, we can deploy our application.
+
+This example deploys to Vercel via the Vercel CLI (`vercel`).
+
+```bash
+npm run deploy
+```
+
+### Bonus: Browser Redirects
+
+If a user navigates to your frame in the browser, we may want to redirect them 
+to another webpage that corresponds to the frame.
+
+In the example below, when a user navigates to the `/api/` path of the website via their web browser, 
+they will be redirected to the `/` path.
+
+[Read more on Browser Redirects](/concepts/browser-redirects)
+
+```tsx twoslash [src/index.tsx]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { handle } from 'frog/vercel' 
+
+// Uncomment to use Edge Runtime.
+// export const config = {
+//   runtime: 'edge',
+// }
+
+export const app = new Frog({ 
+  basePath: '/api',
+  browserLocation: '/:path' // [!code focus]
+  // Supply a Hub API URL to enable frame verification.
+  // hubApiUrl: 'https://api.hub.wevm.dev',
+})
+
+app.frame('/', (context) => { // [!code focus]
+  const { buttonValue, status } = context
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {status === 'initial' ? (
+          <div>Select your fruit!</div>
+        ) : (
+          <div>Selected: {buttonValue}</div>
+        )}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  }
+})
+
+export const GET = handle(app) 
+export const POST = handle(app) 
+```
+
+
+::::
