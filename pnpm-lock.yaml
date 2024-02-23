@@ -161,8 +161,8 @@ importers:
         specifier: ^4
         version: 4.0.4
       hono-og:
-        specifier: 0.0.15
-        version: 0.0.15(hono@4.0.4)
+        specifier: 0.0.16
+        version: 0.0.16(hono@4.0.4)
       immer:
         specifier: ^10.0.3
         version: 10.0.3
@@ -196,7 +196,7 @@ importers:
         version: 1.0.6
       bun:
         specifier: latest
-        version: 1.0.28
+        version: 1.0.29
 
   templates/cloudflare-worker:
     dependencies:
@@ -1915,8 +1915,24 @@ packages:
     dev: true
     optional: true
 
+  /@oven/bun-darwin-aarch64@1.0.29:
+    resolution: {integrity: sha512-OhlPQO0zE7rgZ2LpkLr3A3cOoS6V+V3QvkPtlwB5TLlnrbcs78rnRBse/ibl46GAA1HnEn1ugxbsjAJkZ31WVA==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@oven/bun-darwin-x64-baseline@1.0.28:
     resolution: {integrity: sha512-4/wnvq4/PufThDqaZLn4l7LXwTG4IO7+Scd1LQ5z4W783X7hPnaRWpps1/2lEIskrsCBdgpyLolEr/u0NhaM9w==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-darwin-x64-baseline@1.0.29:
+    resolution: {integrity: sha512-/4RLSFIO+a0wVBR6/OZqEZJX3lGjPKK30V1Nce+ziceuk2Hmm+MsmzK/704UDi9MWWtXdRhe9Ayd4yZ+C0kZww==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
@@ -1931,8 +1947,24 @@ packages:
     dev: true
     optional: true
 
+  /@oven/bun-darwin-x64@1.0.29:
+    resolution: {integrity: sha512-y7zjOWdUl7rtzt900XTYPwaSL0qBZpkGmHJNqEMmhVuqUclMwmQmqUnBDMoKwgW84nLQXkzcKyBZlOBNohpQZw==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@oven/bun-linux-aarch64@1.0.28:
     resolution: {integrity: sha512-PGECrkAVZDZdLFSGNZai8bcr06A8rrSWaMv4s3qEZ+IAGDNs5uFPasD8BaKdPWz7pXNTh3AFB203VwFq7atQkw==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-linux-aarch64@1.0.29:
+    resolution: {integrity: sha512-X8czxV2WBKSO4tctlmgImhYeWIuD4Abd2gvwUqwDliMsMhkNL/AiLcbgS3M7TCG+YFsqyIkOj2uf7nixs3hIPA==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
@@ -1947,8 +1979,24 @@ packages:
     dev: true
     optional: true
 
+  /@oven/bun-linux-x64-baseline@1.0.29:
+    resolution: {integrity: sha512-mZTBwBi94dU9229M2z24euFIMHbeHbMrrlzl3f+CKPzZxKPe5FG6EOudr8xRCoiuvZGgbvbkqZeRFJQjpVdOfg==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
   /@oven/bun-linux-x64@1.0.28:
     resolution: {integrity: sha512-lb8hkLylJ1m55AU5TGL3N6HAJVyCSMxzgdtzTkVsxMggkDYk0l3r4j3ktfqlCVi2Gb65b0BBIXA9/gowEMDG7w==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /@oven/bun-linux-x64@1.0.29:
+    resolution: {integrity: sha512-i9YbwQ2sh+IiruNq3nhKvZx0piZkMf/b58jkxbjxW+WfgNFpo0EMuj+ZwNDjF9VC6SMbsI9CoC6lmP4+CCM3nQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
@@ -3774,6 +3822,21 @@ packages:
       '@oven/bun-linux-aarch64': 1.0.28
       '@oven/bun-linux-x64': 1.0.28
       '@oven/bun-linux-x64-baseline': 1.0.28
+    dev: true
+
+  /bun@1.0.29:
+    resolution: {integrity: sha512-OQfMWb+UxgBA5Fnne/6GPmk3kh9HmECOIGG2P/m97QYmCthKMJlFBF8Q5TC+ayL5TvfVEXZxw7V4yHr1cqGK6w==}
+    cpu: [arm64, x64]
+    os: [darwin, linux]
+    hasBin: true
+    requiresBuild: true
+    optionalDependencies:
+      '@oven/bun-darwin-aarch64': 1.0.29
+      '@oven/bun-darwin-x64': 1.0.29
+      '@oven/bun-darwin-x64-baseline': 1.0.29
+      '@oven/bun-linux-aarch64': 1.0.29
+      '@oven/bun-linux-x64': 1.0.29
+      '@oven/bun-linux-x64-baseline': 1.0.29
     dev: true
 
   /busboy@1.6.0:
@@ -5741,6 +5804,16 @@ packages:
     dependencies:
       '@wevm/vercel-og': 0.6.11
       hono: 4.0.5
+      workers-og: 0.0.20
+    dev: false
+
+  /hono-og@0.0.16(hono@4.0.4):
+    resolution: {integrity: sha512-3BMsFG+CdYCOo458NJSfJ6L11hYIufydHFd9u+mJUGh1+xXcA73URPZahT+h3MsVOY/4XTRelebNrDuI0Asqog==}
+    peerDependencies:
+      hono: '>=3'
+    dependencies:
+      '@wevm/vercel-og': 0.6.11
+      hono: 4.0.4
       workers-og: 0.0.20
     dev: false
 
