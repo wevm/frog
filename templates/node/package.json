@@ -1,4 +1,6 @@
 {
+  "name": "node",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "frog dev",
