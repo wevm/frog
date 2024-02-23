@@ -13,7 +13,7 @@ export type ButtonRootProps = ButtonProps & {
 ButtonRoot.__type = 'button'
 export function ButtonRoot({
   children,
-  index = 0,
+  index = 1,
   target,
   value,
 }: ButtonRootProps) {
@@ -35,7 +35,7 @@ export type ButtonLinkProps = ButtonProps & {
 }
 
 ButtonLink.__type = 'button'
-export function ButtonLink({ children, index = 0, href }: ButtonLinkProps) {
+export function ButtonLink({ children, index = 1, href }: ButtonLinkProps) {
   return [
     <meta property={`fc:frame:button:${index}`} content={children} />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
@@ -48,7 +48,7 @@ export type ButtonMintProps = ButtonProps & {
 }
 
 ButtonMint.__type = 'button'
-export function ButtonMint({ children, index = 0, target }: ButtonMintProps) {
+export function ButtonMint({ children, index = 1, target }: ButtonMintProps) {
   return [
     <meta property={`fc:frame:button:${index}`} content={children} />,
     <meta property={`fc:frame:button:${index}:action`} content="mint" />,
@@ -64,7 +64,7 @@ export type ButtonRedirectProps = ButtonProps & {
 ButtonRedirect.__type = 'button'
 export function ButtonRedirect({
   children,
-  index = 0,
+  index = 1,
   location,
   target,
 }: ButtonRedirectProps) {
@@ -88,7 +88,7 @@ export function ButtonRedirect({
 export type ButtonResetProps = ButtonProps
 
 ButtonReset.__type = 'button'
-export function ButtonReset({ children, index = 0 }: ButtonResetProps) {
+export function ButtonReset({ children, index = 1 }: ButtonResetProps) {
   return (
     <meta
       property={`fc:frame:button:${index}`}

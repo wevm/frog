@@ -4,11 +4,11 @@ import { type FrameIntents } from '../types.js'
 
 type Counter = { button: number }
 
-export function parseIntents(intents_: FrameIntents) {
+export function parseIntents(
+  intents_: FrameIntents,
+  counter: Counter = { button: 1 },
+): JSXNode[] {
   const nodes = intents_ as unknown as JSXNode | JSXNode[]
-  const counter: Counter = {
-    button: 1,
-  }
 
   const intents = (() => {
     if (Array.isArray(nodes))
@@ -23,7 +23,7 @@ export function parseIntents(intents_: FrameIntents) {
   return (Array.isArray(intents) ? intents : [intents]).flat()
 }
 
-function parseIntent(node_: JSXNode, counter: Counter) {
+function parseIntent(node_: JSXNode, counter: Counter): JSXNode | JSXNode[] {
   // Check if the node is a "falsy" node (ie. `null`, `undefined`, `false`, etc).
   const node = (
     !node_ ? { children: [], props: {}, tag() {} } : node_
@@ -37,5 +37,36 @@ function parseIntent(node_: JSXNode, counter: Counter) {
     return {}
   })()
 
-  return (typeof node.tag === 'function' ? node.tag(props) : node) as JSXNode
+  const intent = (
+    typeof node.tag === 'function' ? node.tag(props) : node
+  ) as JSXNode
+
+  if (intent?.tag === '' && Object.keys(intent.props).length === 0)
+    throw new InvalidIntentComponentError()
+
+  if (typeof intent?.tag === 'function' && typeof node.tag === 'function') {
+    if (intent.children.length > 1) throw new InvalidIntentComponentError()
+    return parseIntent(node.tag(node.props), counter)
+  }
+  return intent
+}
+
+class InvalidIntentComponentError extends Error {
+  constructor() {
+    super(
+      [
+        'Intent components must return a single intent element.',
+        '',
+        'Example:',
+        '',
+        '```',
+        "import { Button } from 'frog'",
+        '',
+        'function CustomIntent() {',
+        '  return <Button>Foo</Button>',
+        '}',
+        '```',
+      ].join('\n'),
+    )
+  }
 }
