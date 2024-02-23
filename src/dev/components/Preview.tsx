@@ -90,7 +90,7 @@ export function Preview(props: PreviewProps) {
                 })
                 .catch(console.error)
           } catch (e) {
-            console.log(e)
+            console.log({ e })
           }
         },
         data: {
@@ -211,7 +211,27 @@ export function Preview(props: PreviewProps) {
         marginRight: 'auto',
       }}
     >
-      <div class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:max-h-sidebar md:min-w-sidebar lg:min-w-sidebar">
+      <div
+        class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:max-h-sidebar md:min-w-sidebar lg:min-w-sidebar"
+        x-effect="
+          if (history.length === 0) return
+
+          const state = {
+            history,
+            id,
+            logs,
+            selectedLogIndex,
+          }
+          const compressed = LZString.compressToBase64(JSON.stringify(state))
+            .replace(/\+/g, '-') // Convert '+' to '-'
+            .replace(/\//g, '_') // Convert '/' to '_'
+            .replace(/=+$/, '') // Remove ending '='
+
+          // const url = new URL(window.location.href)
+          // url.searchParams.set('state', compressed)
+          // window.history.pushState({}, '', url);
+        "
+      >
         <div class="bg-background-100 scrollbars h-full">
           <Timeline />
         </div>

@@ -36,19 +36,11 @@ export function Data() {
                 role="gridcell"
                 aria-colindex="1"
               />
-              <button
+              <div
                 role="gridcell"
                 aria-colindex="2"
                 class="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap"
-                x-data="{ copied: false }"
-                x-text="copied ? 'Copied!' : row.value"
-                x-on:click="
-                  if (copied) return
-                  navigator.clipboard.writeText(row.value)
-                  copied = true
-                  setTimeout(() => copied = false, 1_000)
-                "
-                type="button"
+                x-text="row.value"
               />
               <div
                 role="gridcell"

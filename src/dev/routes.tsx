@@ -89,6 +89,10 @@ export function routes<
     performance.clearMarks()
     performance.clearMeasures()
 
+    const cleanedUrl = new URL(url)
+    cleanedUrl.search = ''
+    const cleanedUrlString = cleanedUrl.toString().replace(/\/$/, '')
+
     const htmlSize = await getHtmlSize(clonedResponse)
     const request = {
       type: 'initial',
@@ -104,7 +108,7 @@ export function routes<
         statusText: response.statusText,
       },
       timestamp,
-      url,
+      url: cleanedUrlString,
     } as const
 
     const routes = getRoutes(url, inspectRoutes(app.hono))
@@ -300,7 +304,7 @@ export function routes<
   /////////////////////////////////////////////////////////////////////////////////////////
 
   const cookieOptions = {
-    maxAge: 7 * 86_400,
+    maxAge: 30 * 86_400,
     sameSite: 'Strict',
     secure: true,
   } as CookieOptions

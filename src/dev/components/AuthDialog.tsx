@@ -46,11 +46,9 @@ export function AuthDialog() {
             this.timedOut = true
           },
         }"
-        x-init="
-          $watch('open', async (open) => {
-            if (!open) return
-            auth()
-          })
+        x-effect="
+          if (!open) return
+          auth()
         "
       >
         <div

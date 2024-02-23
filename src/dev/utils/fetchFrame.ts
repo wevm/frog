@@ -72,8 +72,6 @@ export async function fetchFrame({
         },
       }),
     })
-  } catch (error) {
-    throw error
   } finally {
     // finally always called even after return or throw so we can mark the end to measure performance
     performance.mark('end')
