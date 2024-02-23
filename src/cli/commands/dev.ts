@@ -34,6 +34,9 @@ export async function dev(
     ],
   })
 
+  const module = await server.ssrLoadModule(entry_resolved)
+  const basePath = module.app?.basePath || '/'
+
   await server.listen()
 
   const logger = createLogger()
@@ -43,5 +46,9 @@ export async function dev(
     `  ${pc.green('[running]')} ${pc.bold('frog')}@${pc.dim(`v${version}`)}`,
   )
   logger.info('')
-  server.printUrls()
+  logger.info(
+    `  ${pc.green('➜')}  ${pc.bold('Local')}:   ${pc.cyan(
+      `http://localhost:${server.config.server.port}${basePath}`,
+    )}`,
+  )
 }
