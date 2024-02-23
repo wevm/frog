@@ -46,7 +46,7 @@ Right now, these frames are not linked to each other. This means, that if a user
 navigates to `/` and interacts with the buttons, the frame will just `POST` to itself
 instead of `POST`ing to `/submit`.
 
-To connect these frames together, we can utilize the [`action` property](#TODO) on the handler return type. 
+To connect these frames together, we can utilize the [`action` property](/concepts/actions) on the handler return type. 
 You can think of the `action` property as an alias for [`post_url` in the Frame Specification](https://docs.farcaster.xyz/reference/frames/spec#optional-properties).
 
 ```tsx twoslash

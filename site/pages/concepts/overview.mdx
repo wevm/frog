@@ -3,7 +3,7 @@
 **Frog** is built on top of [Hono](https://hono.dev/) (a fast & lightweight Web Framework), 
 extended with a first-class API for Farcaster Frames. 
 
-If you are familiar with other Web Frameworks such as [Express](#TODO), [Koa](#TODO), or [Fastify](#TODO),
+If you are familiar with other Web Frameworks such as [Express](https://expressjs.com/), [Koa](https://koajs.com/), or [Fastify](https://fastify.dev/),
 then the **Frog** (and Hono) API should seem familiar to you.
 
 At a high-level, the most basic **Frog** application looks like this:
@@ -55,7 +55,7 @@ export const app = new Frog()
 ```
 
 :::note
-**Frog** also exports a set of [Intents](#TODO) (e.g. `<Button>{:jsx}`, `<TextInput>{:jsx}`, etc) which are listed [here](#TODO).
+**Frog** also exports a set of [Intents](/intents/button) (e.g. `<Button>{:jsx}`, `<TextInput>{:jsx}`, etc).
 :::
 
 ## Instantiation
@@ -76,17 +76,17 @@ app.frame('/', (context) => {
 :::note
 **Why do we export `app`?**
 
-We export `app` so that the [Dev Server](#TODO) (`frog dev`) can use it.
+We export `app` so that the [Dev Server](/getting-started#add-scripts-to-packagejson) (`frog dev`) can use it.
 :::
 
-You can pass optional [constructor parameters](#TODO) to `new Frog(){:js}` to:
+You can pass optional [constructor parameters](/reference/frog#constructor-parameters) to `new Frog(){:js}` to:
 
-- Set a [Base Path](#TODO) for your application,
-- Set a [Redirect URL](#TODO) if the user is coming from a browser,
-- Set a custom [Hub API URL](#TODO),
-- Set custom [Hono Options](#TODO),
-- Set [Initial State](#TODO) for your frame,
-- Specify whether or not frames should be [verified](#TODO).
+- Set a [Base Path](/reference/frog#basepath) for your application,
+- Set a [Redirect URL](/reference/frog#browserlocation) if the user is coming from a browser,
+- Set a custom [Hub API URL](/reference/frog#hubapiurl),
+- Set custom [Hono Options](/reference/frog#honooptions),
+- Set [Initial State](/reference/frog#initialstate) for your frame,
+- Specify whether or not frames should be [verified](/reference/frog#verify).
 
 ## Routing
 
@@ -147,7 +147,7 @@ app.hono.get('/healthcheck', (context) => { // [!code focus]
 })
 ```
 
-This only scratches the surface of Routing in **Frog**. For more advanced routing, check out the [Routing](#TODO) section.
+This only scratches the surface of Routing in **Frog**. For more advanced routing, check out the [Routing](/concepts/routing) section.
 
 ## Context
 
@@ -210,7 +210,7 @@ app.frame('/', (context) => {
 })
 ```
 
-[Read more on Images & Intents](#TODO).
+[Read more on Images & Intents](/concepts/images-intents).
 
 ## Dev Server & Devtools
 
