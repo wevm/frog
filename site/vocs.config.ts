@@ -210,6 +210,10 @@ export default defineConfig({
           link: '/concepts/frame-verification',
         },
         {
+          text: 'Deployment',
+          link: '/concepts/deployment',
+        },
+        {
           text: 'Devtools 🚧',
         },
       ],

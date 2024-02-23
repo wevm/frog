@@ -1,0 +1,25 @@
+# Deployment
+
+**Frog** is designed so that you can deploy it to any deployment target that supports a JavaScript runtime.
+
+Such targets include:
+
+- [Bun](/platforms/bun)
+- [Cloudflare Workers](/platforms/cloudflare-workers)
+- [Next.js](/platforms/next)
+- [Node.js](/platforms/node)
+- [Vercel](/platforms/vercel)
+
+## Which Deployment Target?
+
+You may be wondering what deployment target is best for you and the application you are building.
+
+If you are building a **standalone frame application**, then maybe using [Cloudflare Workers](/platforms/cloudflare-workers) 
+or [Vercel Serverless Functions](/platforms/vercel) may be the best option for you.
+
+If you are building **frames embedded in a Next.js application**, then maybe using the 
+[Next.js](/platforms/next) deployment target is the best option for you. 
+
+If you are building **frames embedded in another type of web application**, you could create an `/api` folder
+in your repository and use [Cloudflare Workers](/platforms/cloudflare-workers) or [Vercel Serverless Functions](/platforms/vercel) (and deploy them
+in isolation to the app). This is what [we are doing](https://github.com/wevm/frog/tree/main/services/auth) for the Devtools Auth Service.
