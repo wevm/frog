@@ -73,15 +73,21 @@ export function routes<
   async function get(url: string) {
     const timestamp = Date.now()
 
-    const startTime = performance.now()
+    performance.mark('start')
     const response = await fetch(url)
-    const endTime = performance.now()
+    performance.mark('end')
 
     const clonedResponse = response.clone()
     const text = await response.text()
     const imageSize = await getImageSize(text)
     const frame = htmlToFrame(text, imageSize)
     const state = htmlToState(text)
+
+    performance.measure('fetch', 'start', 'end')
+    const measure = performance.getEntriesByName('fetch')[0]
+    const speed = measure.duration
+    performance.clearMarks()
+    performance.clearMeasures()
 
     const htmlSize = await getHtmlSize(clonedResponse)
     const request = {
@@ -90,7 +96,7 @@ export function routes<
       metrics: {
         htmlSize,
         imageSize,
-        speed: endTime - startTime,
+        speed,
       },
       response: {
         success: response.ok,
@@ -163,7 +169,7 @@ export function routes<
         const fid = (json.fid ?? c.var.fid ?? 1) as number
 
         const { buttonIndex, castId, inputText, postUrl } = json
-        const { response, speed } = await fetchFrame({
+        const response = await fetchFrame({
           buttonIndex,
           castId,
           fid,
@@ -172,6 +178,12 @@ export function routes<
           state: json.state,
           privateKey,
         })
+
+        performance.measure('fetch', 'start', 'end')
+        const measure = performance.getEntriesByName('fetch')[0]
+        const speed = measure.duration
+        performance.clearMarks()
+        performance.clearMeasures()
 
         const clonedResponse = response.clone()
         const text = await response.text()
@@ -235,11 +247,9 @@ export function routes<
 
         const { buttonIndex, castId, inputText, postUrl, state } = json
         let response
-        let speed
         let error
-        const t0 = performance.now()
         try {
-          const result = await fetchFrame({
+          response = await fetchFrame({
             buttonIndex,
             castId,
             fid,
@@ -248,19 +258,21 @@ export function routes<
             state,
             privateKey,
           })
-          response = result.response
-          speed = result.speed
-        } catch (error) {
+        } catch (err) {
           response = {
+            ok: false,
             redirected: false,
             status: 500,
             statusText: 'Internal Server Error',
           }
-          const t1 = performance.now()
-          speed = t1 - t0
-          console.log((error as Error).cause)
-          error = (error as Error).cause
+          error = `${(err as Error).cause}`.replace('Error: ', '')
         }
+
+        performance.measure('fetch', 'start', 'end')
+        const measure = performance.getEntriesByName('fetch')[0]
+        const speed = measure.duration
+        performance.clearMarks()
+        performance.clearMeasures()
 
         return c.json({
           type: 'redirect',

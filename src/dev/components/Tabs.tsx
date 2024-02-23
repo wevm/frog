@@ -252,7 +252,7 @@ export function Tabs() {
             </div>
 
             <div class={rowClass} x-show="data.request.response.error">
-              <div class={labelClass}>Error Message</div>
+              <div class={labelClass}>Error</div>
               <div
                 class={valueClass}
                 style={{ fontSize: '0.8125rem' }}

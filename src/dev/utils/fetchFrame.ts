@@ -42,37 +42,40 @@ export async function fetchFrame({
     { fid, network: 1 },
     new NobleEd25519Signer(privateKeyBytes),
   )
-
   const message = frameActionMessage._unsafeUnwrap()
 
-  const t0 = performance.now()
-  const response = await fetch(postUrl, {
-    method: 'POST',
-    body: JSON.stringify({
-      untrustedData: {
-        buttonIndex,
-        castId: {
-          fid: castId.fid,
-          hash: `0x${bytesToHex(castId.hash)}`,
+  try {
+    performance.mark('start')
+    return await fetch(postUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        untrustedData: {
+          buttonIndex,
+          castId: {
+            fid: castId.fid,
+            hash: `0x${bytesToHex(castId.hash)}`,
+          },
+          fid,
+          inputText: inputText
+            ? Buffer.from(inputText).toString('utf-8')
+            : undefined,
+          messageHash: `0x${bytesToHex(message.hash)}`,
+          network: 1,
+          state,
+          timestamp: message.data?.timestamp,
+          url: postUrl,
         },
-        fid,
-        inputText: inputText
-          ? Buffer.from(inputText).toString('utf-8')
-          : undefined,
-        messageHash: `0x${bytesToHex(message.hash)}`,
-        network: 1,
-        state,
-        timestamp: message.data?.timestamp,
-        url: postUrl,
-      },
-      trustedData: {
-        messageBytes: Buffer.from(Message.encode(message).finish()).toString(
-          'hex',
-        ),
-      },
-    }),
-  })
-  const t1 = performance.now()
-  const speed = t1 - t0
-  return { response, speed }
+        trustedData: {
+          messageBytes: Buffer.from(Message.encode(message).finish()).toString(
+            'hex',
+          ),
+        },
+      }),
+    })
+  } catch (error) {
+    throw error
+  } finally {
+    // finally always called even after return or throw so we can mark the end to measure performance
+    performance.mark('end')
+  }
 }

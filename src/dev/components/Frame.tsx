@@ -180,12 +180,12 @@ function Button() {
               }
               postFrameRedirect(body)
                 .then((json) => {
-                  // TODO: show error
-                  if (json.response.status !== 302) return
-                  url = json.response.location
                   data = { ...logs.at(-1), request: json }
-                  inputText = ''
-                  open = true
+                  if (json.response.status === 302) {
+                    url = json.response.location
+                    inputText = ''
+                    open = true
+                  }
                 })
                 .catch(console.error)
           `}

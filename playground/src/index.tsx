@@ -46,7 +46,7 @@ app.frame('/', (context) => {
         >
           {status === 'response'
             ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
-            : 'Welcome!'}
+            : 'Welcome :)'}
         </div>
       </div>
     ),
