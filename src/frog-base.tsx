@@ -87,10 +87,10 @@ export type FrogConstructorParameters<
   /**
    * Options for built-in devtools.
    */
-  devtools?:
+  dev?:
     | {
         /** Custom app fid to auth with. */
-        appFid?: string | undefined
+        appFid?: number | undefined
         /** Custom app mnemonic to auth with. */
         appMnemonic?: string | undefined
         /**
@@ -249,7 +249,7 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
-  devtools: FrogConstructorParameters['devtools'] | undefined
+  dev: FrogConstructorParameters['dev'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
@@ -264,7 +264,7 @@ export class FrogBase<
   constructor({
     basePath,
     browserLocation,
-    devtools,
+    dev,
     honoOptions,
     hubApiUrl,
     imageOptions,
@@ -274,7 +274,7 @@ export class FrogBase<
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
-    if (devtools) this.devtools = devtools
+    if (dev) this.dev = dev
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (imageOptions) this._imageOptions = imageOptions
     if (typeof verify !== 'undefined') this.verify = verify

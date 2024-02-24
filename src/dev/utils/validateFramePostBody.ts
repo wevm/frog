@@ -8,8 +8,8 @@ export function validateFramePostBody(
   if (buttonIndex < 1 || buttonIndex > 4)
     return c.text('Invalid data, missing buttonIndex', 400)
 
-  const postUrl = value.postUrl as string
-  if (!postUrl) return c.text('Invalid data, missing postUrl', 400)
+  const url = value.url as string
+  if (!url) return c.text('Invalid data, missing url', 400)
 
   const inputText = value.inputText as string | undefined
   const state = value.state as string | undefined
@@ -18,10 +18,15 @@ export function validateFramePostBody(
   const fid = value.fid ? parseInt(value.fid as string) : undefined
   const castId = {
     fid: 1,
-    hash: new Uint8Array(
-      Buffer.from('0000000000000000000000000000000000000000', 'hex'),
-    ),
+    hash: '0x0000000000000000000000000000000000000000',
   }
 
-  return { buttonIndex, castId, fid, inputText, postUrl, state }
+  return {
+    buttonIndex,
+    castId,
+    fid,
+    inputText,
+    state,
+    url,
+  } as const
 }

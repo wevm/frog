@@ -4,6 +4,14 @@ import {
   type FrameVersion,
 } from '../types.js'
 
+export type RequestBody = {
+  buttonIndex: number
+  castId: { fid: number; hash: string }
+  fid?: number | undefined
+  inputText?: string | undefined
+  state?: string | undefined
+}
+
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
   debug?: FrameDebug | undefined

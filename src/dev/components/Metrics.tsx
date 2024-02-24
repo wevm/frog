@@ -4,13 +4,13 @@ export function Metrics() {
   return (
     <div
       class="bg-background-100 border rounded-md flex flex-row divide-x"
-      style={{ justifyContent: 'space-around' }}
+      style={{ justifyContent: 'space-around', minHeight: '44.9px' }}
       x-data={`{
         get metrics() {
           return [
-            { icon: '${stopwatchIcon}', name: 'speed', value: formatSpeed(data.request.metrics.speed) },
-            { icon: '${fileTextIcon}', name: 'frame size', value: data.request.metrics.htmlSize ? formatFileSize(data.request.metrics.htmlSize) : '-' },
-            { icon: '${imageIcon}', name: 'image size', value: data.request.metrics.imageSize ? formatFileSize(data.request.metrics.imageSize) : '-' },
+            { icon: '${stopwatchIcon}', name: 'speed', value: formatSpeed(data.metrics.speed) },
+            { icon: '${fileTextIcon}', name: 'frame size', value: data.metrics.htmlSize ? formatFileSize(data.metrics.htmlSize) : '-' },
+            { icon: '${imageIcon}', name: 'image size', value: data.metrics.imageSize ? formatFileSize(data.metrics.imageSize) : '-' },
           ]
         }
       }`}

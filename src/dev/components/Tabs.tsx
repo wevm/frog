@@ -9,8 +9,8 @@ export function Tabs() {
   }
 
   const rowClass = 'flex flex-row py-3 justify-between'
-  const labelClass = 'text-gray-700 font-medium text-sm min-w-36'
-  const valueClass = 'text-gray-1000 font-mono text-sm line-clamp-2 text-right'
+  const labelClass = 'text-gray-700 font-medium min-w-36'
+  const valueClass = 'text-gray-1000 font-mono line-clamp-2 text-right'
   return (
     <div
       x-data="{
@@ -53,6 +53,35 @@ export function Tabs() {
                 style={indicatorStyle}
                 {...{
                   ':style': `tab === 'request' && {
+                    display: 'block',
+                  }`,
+                }}
+              />
+            </button>
+          </li>
+
+          <li role="presentation">
+            <button
+              role="tab"
+              type="button"
+              id="state"
+              class="relative bg-transparent py-3 border-gray-1000 px-3"
+              x-on:click="tab = 'state'"
+              {...{
+                ':aria-selected': 'tab === "state"',
+                ':class': `{
+                  'text-gray-700': tab !== 'state',
+                  'text-gray-1000': tab === 'state',
+                }`,
+              }}
+            >
+              State
+              <div
+                aria-hidden="true"
+                class="bg-gray-1000"
+                style={indicatorStyle}
+                {...{
+                  ':style': `tab === 'state' && {
                     display: 'block',
                   }`,
                 }}
@@ -123,9 +152,13 @@ export function Tabs() {
           id="request-section"
           role="tabpanel"
           aria-labelledby="request"
-          class="text-sm scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
+          class="scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
           x-data="{
-            get frameData() { return data.context.frameData },
+            get body() { return data.body },
+            get url() {
+              if (data.body) return data.body.url
+              return data.url
+            },
           }"
           x-show="tab === 'request'"
           style={{ fontSize: '0.8125rem' }}
@@ -135,7 +168,7 @@ export function Tabs() {
               <div class={labelClass}>Method</div>
               <div
                 class="flex items-center border px-1.5 rounded-sm text-gray-1000 font-mono"
-                x-text="data.request.method"
+                x-text="data.method"
                 style={{ textTransform: 'uppercase' }}
               />
             </div>
@@ -144,36 +177,33 @@ export function Tabs() {
               <div class={labelClass}>Time</div>
               <div
                 class={valueClass}
-                x-text="new Date(data.request.timestamp).toLocaleString()"
+                x-text="new Date(data.timestamp).toLocaleString()"
               />
             </div>
 
             <div class={rowClass}>
               <div class={labelClass}>Host</div>
-              <div class={valueClass} x-text="new URL(data.request.url).host" />
+              <div class={valueClass} x-text="new URL(url).host" />
             </div>
 
             <div class={rowClass}>
               <div class={labelClass}>Request Path</div>
-              <div
-                class={valueClass}
-                x-text="new URL(data.request.url).pathname"
-              />
+              <div class={valueClass} x-text="new URL(url).pathname" />
             </div>
 
-            <div class={rowClass} x-show="frameData?.fid">
+            <div class={rowClass} x-show="body?.fid">
               <div class={labelClass}>FID</div>
-              <div class={valueClass} x-text="`#${frameData?.fid}`" />
+              <div class={valueClass} x-text="`#${body?.fid}`" />
             </div>
 
-            <div class={rowClass} x-show="frameData?.inputText">
+            <div class={rowClass} x-show="body?.inputText">
               <div class={labelClass}>Input Text</div>
-              <div class={valueClass} x-text="frameData?.inputText" />
+              <div class={valueClass} x-text="body?.inputText" />
             </div>
 
-            <div class={rowClass} x-show="frameData?.buttonIndex">
+            <div class={rowClass} x-show="body?.buttonIndex">
               <div class={labelClass}>Button Index</div>
-              <div class={valueClass} x-text="frameData?.buttonIndex" />
+              <div class={valueClass} x-text="body?.buttonIndex" />
             </div>
           </div>
 
@@ -184,60 +214,93 @@ export function Tabs() {
                 class="flex flex-row gap-2 items-center font-mono"
                 {...{
                   ':class': `{
-                    'text-green-900': data.request.response.success,
-                    'text-red-900': !data.request.response.success,
+                    'text-green-900': data.response.success,
+                    'text-red-900': !data.response.success,
                   }`,
                 }}
               >
                 <div
                   class="flex items-center border px-1.5 rounded-sm"
-                  x-text="data.request.response.status"
+                  x-text="data.response.status"
                   style={{ textTransform: 'uppercase' }}
                   {...{
                     ':class': `{
-                      'border-green-100': data.request.response.success,
-                      'border-red-100': !data.request.response.success,
+                      'border-green-100': data.response.success,
+                      'border-red-100': !data.response.success,
                     }`,
                   }}
                 />
-                <div x-text="data.request.response.statusText" />
+                <div x-text="data.response.statusText" />
               </div>
             </div>
 
-            <div class={rowClass} x-show="data.request.metrics.speed">
+            <div class={rowClass} x-show="data.metrics.speed">
               <div class={labelClass}>Response Time</div>
               <div
                 class={valueClass}
-                x-text="formatSpeed(data.request.metrics.speed)"
+                x-text="formatSpeed(data.metrics.speed)"
               />
             </div>
 
-            <div class={rowClass} x-show="data.request.metrics.htmlSize">
+            <div class={rowClass} x-show="data.metrics.htmlSize">
               <div class={labelClass}>Frame Size</div>
               <div
                 class={valueClass}
-                x-text="formatFileSize(data.request.metrics.htmlSize)"
+                x-text="formatFileSize(data.metrics.htmlSize)"
               />
             </div>
 
-            <div class={rowClass} x-show="data.request.metrics.imageSize">
+            <div class={rowClass} x-show="data.metrics.imageSize">
               <div class={labelClass}>Image Size</div>
               <div
                 class={valueClass}
-                x-text="formatFileSize(data.request.metrics.imageSize)"
+                x-text="formatFileSize(data.metrics.imageSize)"
               />
             </div>
 
-            <div class={rowClass} x-show="data.request.response.location">
+            <div class={rowClass} x-show="data.response.location">
               <div class={labelClass}>Location</div>
-              <div class={valueClass} x-text="data.request.response.location" />
+              <div class={valueClass} x-text="data.response.location" />
             </div>
 
-            <div class={rowClass} x-show="data.request.response.error">
+            <div class={rowClass} x-show="data.response.error">
               <div class={labelClass}>Error</div>
-              <div class={valueClass} x-text="data.request.response.error" />
+              <div class={valueClass} x-text="data.response.error" />
             </div>
           </div>
+        </section>
+
+        <section
+          id="state-section"
+          role="tabpanel"
+          aria-labelledby="request"
+          class="p-4"
+          x-show="tab === 'state'"
+          style={{ fontSize: '0.8125rem' }}
+        >
+          State
+        </section>
+
+        <section
+          id="context-section"
+          role="tabpanel"
+          aria-labelledby="request"
+          class="p-4"
+          x-show="tab === 'context'"
+          style={{ fontSize: '0.8125rem' }}
+        >
+          Context
+        </section>
+
+        <section
+          id="meta-tags-section"
+          role="tabpanel"
+          aria-labelledby="request"
+          class="p-4"
+          x-show="tab === 'meta-tags'"
+          style={{ fontSize: '0.8125rem' }}
+        >
+          Meta Tags
         </section>
       </div>
     </div>

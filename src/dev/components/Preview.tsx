@@ -1,5 +1,5 @@
 import { type FrameContext } from '../../types.js'
-import { type Frame as FrameType } from '../types.js'
+import { type Frame as FrameType, type RequestBody } from '../types.js'
 import { Data } from './Data.js'
 import { Frame } from './Frame.js'
 import { Metrics } from './Metrics.js'
@@ -8,55 +8,60 @@ import { Tabs } from './Tabs.js'
 import { Timeline } from './Timeline.js'
 
 export type PreviewProps = {
-  data: {
-    context: FrameContext
-    frame: FrameType
-    request:
-      | {
-          type: 'initial' | 'action'
-          method: 'get' | 'post'
-          metrics: {
-            htmlSize: number
-            imageSize: number
-            speed: number
-          }
-          response: {
-            success: boolean
-            status: number
-            statusText: string
-            error?: string | undefined
-          }
-          timestamp: number
-          url: string
-        }
-      | {
-          type: 'redirect'
-          method: 'post'
-          metrics: {
-            speed: number
-          }
-          response: {
-            success: boolean
-            status: number
-            statusText: string
-            location?: string
-            error?: string | undefined
-          }
-          timestamp: number
-          url: string
-        }
-  }
+  data: Data
   routes: readonly string[]
 }
+
+type Data = {
+  id: string
+  metrics: {
+    speed: number
+  }
+  response: {
+    success: boolean
+    status: number
+    statusText: string
+    error?: string | undefined
+  }
+  timestamp: number
+} & (
+  | {
+      type: 'initial'
+      method: 'get'
+      context: FrameContext
+      frame: FrameType
+      metrics: {
+        htmlSize: number
+        imageSize: number
+      }
+      url: string
+    }
+  | {
+      type: 'action'
+      method: 'post'
+      body: RequestBody
+      context: FrameContext
+      frame: FrameType
+      metrics: {
+        htmlSize: number
+        imageSize: number
+      }
+    }
+  | {
+      type: 'redirect'
+      method: 'post'
+      body: RequestBody
+      response: {
+        location?: string
+      }
+    }
+)
 
 export function Preview(props: PreviewProps) {
   return (
     <div
       x-data={`{
         init() {
-          if (!this.logs || this.logs.length === 0)
-            this.logs = [${JSON.stringify(props.data)}]
-
           try {
             const userCookie = this.getCookie('user')
             const user = userCookie ? JSON.parse(decodeURIComponent(userCookie)) : {}
@@ -72,6 +77,8 @@ export function Preview(props: PreviewProps) {
             console.log({ e })
           }
 
+          $watch('dataKey', (dataKey) => this.saveState({ dataKey }))
+          $watch('dataMap', (dataMap) => this.saveState({ dataMap }))
           $watch('logIndex', (logIndex) => this.saveState({ logIndex }))
           $watch('logs', (logs) => this.saveState({ logs }))
           $watch('stackIndex', (stackIndex) => this.saveState({ stackIndex }))
@@ -79,7 +86,9 @@ export function Preview(props: PreviewProps) {
 
           this.restoreState()
         },
-        data: ${JSON.stringify(props.data)},
+        get data() {
+          return this.dataMap[this.dataKey]
+        },
         routes: ${JSON.stringify(props.routes)},
 
         get frame() {
@@ -92,56 +101,73 @@ export function Preview(props: PreviewProps) {
           }
         },
 
+        dataKey: '${props.data.id}',
+        dataMap: { '${props.data.id}': ${JSON.stringify(props.data)} },
         inputText: '',
         logIndex: -1,
-        logs: [],
-        stackIndex: -1,
-        stack: [],
+        logs: ['${props.data.id}'],
+        stackIndex: 0,
+        stack: ['${props.data.id}'],
         user: $persist(null),
 
-        async getFrame(url = this.data.request.url, replaceLogs = false) {
+        async getFrame(url, replaceLogs = false) {
           const json = await fetch(this.parsePath(url) + '/dev/frame', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
           }).then((response) => response.json())
-          console.log('getFrame', json.data)
 
-          this.logs = replaceLogs ? [json.data] : [...this.logs, json.data]
-          this.routes = json.routes
+          const { data, routes } = json
+          const id = data.id
+          this.dataMap[id] = data
+          this.routes = routes
+
           this.logIndex = -1
+          this.logs = replaceLogs ? [id] : [...this.logs, id]
 
           return json.data
         },
         async postFrameAction(body) {
-          const url = this.parsePath(this.data.request.url)
+          const url = this.parsePath(body.url)
           const json = await fetch(url + '/dev/frame/action', {
             method: 'POST',
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
           }).then((response) => response.json())
-          console.log('postFrameAction', json.data)
 
-          this.logs = [...this.logs, json.data]
-          this.routes = json.routes
+          const { data, routes } = json
+          const id = data.id
+          this.dataMap[id] = data
+          this.routes = routes
+
           this.logIndex = -1
+          this.logs = [...this.logs, id]
 
-          return json.data
+          return data
         },
         async postFrameRedirect(body) {
-          const url = this.parsePath(this.data.request.url)
+          const url = this.parsePath(body.url)
           const json = await fetch(url + '/dev/frame/redirect', {
             method: 'POST',
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
           }).then((response) => response.json())
 
-          this.logs = [...this.logs, { ...this.logs.at(-1), request: json }]
+          const previousData = this.dataMap[this.logs.at(-1)]
+          const data = {
+            context: previousData.context,
+            frame: previousData.frame,
+            ...json,
+          }
+          const id = json.id
+          this.dataMap[id] = data
+         
           this.logIndex = -1
+          this.logs = [...this.logs, id]
 
-          return json
+          return data
         },
         async fetchAuthCode() {
-          const url = this.parsePath(this.data.request.url)
+          const url = this.parsePath(this.data.body ? this.data.body.url : this.data.url)
           const json = await fetch(url + '/dev/frame/auth/code', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -149,7 +175,7 @@ export function Preview(props: PreviewProps) {
           return json
         },
         async fetchAuthStatus(token) {
-          const url = this.parsePath(this.data.request.url)
+          const url = this.parsePath(this.data.body ? this.data.body.url : this.data.url)
           const json = await fetch(url + '/dev/frame/auth/status/' + token, {
             method: 'GET',
             headers: {
@@ -159,7 +185,7 @@ export function Preview(props: PreviewProps) {
           return json
         },
         async logout(body) {
-          const url = this.parsePath(this.data.request.url)
+          const url = this.parsePath(this.data.body ? this.data.body.url : this.data.url)
           const json = await fetch(url + '/dev/frame/auth/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -192,6 +218,8 @@ export function Preview(props: PreviewProps) {
           if (this.logs.length === 1) return
 
           const nextState = {
+            dataKey: this.dataKey,
+            dataMap: this.dataMap,
             logs: this.logs,
             logIndex: this.logIndex,
             stack: this.stack,
@@ -212,14 +240,15 @@ export function Preview(props: PreviewProps) {
             if (!restored) restored = LZString.decompressFromEncodedURIComponent(decodeURIComponent(state))
             restored = JSON.parse(restored)
 
+            this.dataKey = restored.dataKey
+            this.dataMap = restored.dataMap
             this.logs = restored.logs
             this.logIndex = restored.logIndex
             this.stack = restored.stack
             this.stackIndex = restored.stackIndex
-
-            this.data = restored.logIndex > -1 ? restored.logs[restored.logIndex] : restored.logs.at(-1)
           } catch (error) {
-            console.log('Failed to restore state', error.message)
+            console.log('failed to restore state:', error.message)
+            history.replaceState(null, null, location.pathname);
           }
         },
         getCookie(name) {

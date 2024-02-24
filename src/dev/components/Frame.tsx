@@ -43,8 +43,8 @@ export function Frame() {
       <div class="text-xs mt-1 text-right">
         <a
           class="text-gray-700 font-medium"
-          {...{ ':href': 'data.request.url' }}
-          x-text="new URL(data.request.url).host"
+          {...{ ':href': 'data.body ? data.body.url : data.url' }}
+          x-text="new URL(data.body ? data.body.url : data.url).host"
         />
       </div>
     </div>
@@ -175,16 +175,23 @@ function Button() {
               const body = {
                 buttonIndex: index,
                 inputText,
-                postUrl: target ?? frame.postUrl,
                 state: frame.state,
+                url: target ?? frame.postUrl,
               }
               postFrameRedirect(body)
                 .then((json) => {
-                  data = { ...logs.at(-1), request: json }
+                  const id = json.id
+                  dataKey = id
+
+                  const nextStackIndex = stackIndex + 1
+                  if (nextStackIndex < stack.length) stack = [...stack.slice(0, nextStackIndex), id]
+                  else stack = [...stack, id]
+                  stackIndex = nextStackIndex
+
                   if (json.response.status === 302) {
                     url = json.response.location
-                    inputText = ''
                     open = true
+                    inputText = ''
                   }
                 })
                 .catch(console.error)
@@ -218,18 +225,19 @@ function Button() {
             const body = {
               buttonIndex: index,
               inputText,
-              postUrl: target ?? frame.postUrl,
               state: frame.state,
+              url: target ?? frame.postUrl,
             }
             postFrameAction(body)
               .then((json) => {
-                const nextStackIndex = stackIndex + 1
-                const item = { body, url: json.context.url }
-                if (nextStackIndex < stack.length) stack = [...stack.slice(0, nextStackIndex), item]
-                else stack = [...stack, item]
+                const id = json.id
+                dataKey = id
 
-                data = json
+                const nextStackIndex = stackIndex + 1
+                if (nextStackIndex < stack.length) stack = [...stack.slice(0, nextStackIndex), id]
+                else stack = [...stack, id]
                 stackIndex = nextStackIndex
+
                 inputText = ''
               })
               .catch(console.error)

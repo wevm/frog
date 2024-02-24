@@ -7,34 +7,36 @@ import {
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 
-export async function fetchFrame({
-  buttonIndex,
-  castId,
-  fid,
-  inputText,
-  postUrl,
-  state,
-  privateKey,
-}: {
-  buttonIndex: number
-  castId: {
+export type FetchFrameParameters = {
+  body: {
+    buttonIndex: number
+    castId: {
+      fid: number
+      hash: string
+    }
     fid: number
-    hash: Uint8Array
+    inputText: string | undefined
+    state: string | undefined
+    url: string
   }
-  fid: number
-  inputText: string | undefined
-  postUrl: string
-  state: string | undefined
-  privateKey: `0x${string}` | undefined
-}) {
+  privateKey: string | undefined
+}
+
+export async function fetchFrame(parameters: FetchFrameParameters) {
+  const { body, privateKey } = parameters
+  const { buttonIndex, castId, fid, inputText, state, url } = body
+
   const privateKeyBytes = privateKey
     ? hexToBytes(privateKey.slice(2))
     : ed25519.utils.randomPrivateKey()
 
   const frameActionBody = FrameActionBody.create({
-    url: Buffer.from(postUrl),
+    url: Buffer.from(url),
     buttonIndex,
-    castId,
+    castId: {
+      fid: castId.fid,
+      hash: hexToBytes(castId.hash.slice(2)),
+    },
     inputText: inputText ? Buffer.from(inputText) : undefined,
   })
   const frameActionMessage = await makeFrameAction(
@@ -46,15 +48,12 @@ export async function fetchFrame({
 
   try {
     performance.mark('start')
-    return await fetch(postUrl, {
+    return await fetch(url, {
       method: 'POST',
       body: JSON.stringify({
         untrustedData: {
           buttonIndex,
-          castId: {
-            fid: castId.fid,
-            hash: `0x${bytesToHex(castId.hash)}`,
-          },
+          castId,
           fid,
           inputText: inputText
             ? Buffer.from(inputText).toString('utf-8')
@@ -63,7 +62,7 @@ export async function fetchFrame({
           network: 1,
           state,
           timestamp: message.data?.timestamp,
-          url: postUrl,
+          url,
         },
         trustedData: {
           messageBytes: Buffer.from(Message.encode(message).finish()).toString(

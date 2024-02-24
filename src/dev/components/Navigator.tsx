@@ -17,34 +17,36 @@ export function Navigator() {
           class="text-gray-700 bg-background-100 px-2 rounded-l-md"
           type="button"
           x-on:click={`
-            const nextStackIndex = stackIndex - 1
-            console.log(nextStackIndex)
-            if (nextStackIndex < 0) {
-              const initialUrl = logs[0].request.url
-              getFrame(initialUrl)
-                .then((json) => {
-                  data = json
-                  stackIndex = -1
-                  inputText = ''
-                })
-                .catch(console.error)
-              return
+            const previousStackIndex = stackIndex - 1
+            const previousStackId = stack[previousStackIndex]
+            const previousData = dataMap[previousStackId]
+            if (!previousData) return
+
+            let json
+            switch (previousData.type) {
+              case 'initial': {
+                json = await getFrame(previousData.url)
+                break
+              }
+              case 'action': {
+                json = await postFrameAction(previousData.body)
+                break
+              }
+              case 'redirect': {
+                json = await postFrameRedirect(previousData.body)
+                break
+              }
             }
 
-            const body = stack[nextStackIndex].body
-            postFrameAction(body)
-              .then((json) => {
-                data = json
-                stackIndex = nextStackIndex
-                inputText = ''
-              })
-              .catch(console.error)
+            dataKey = json.id
+            stackIndex = previousStackIndex
+            inputText = ''
           `}
           {...{
-            ':disabled': 'stackIndex === -1',
+            ':disabled': 'stackIndex === 0',
           }}
         >
-          <span {...{ ':style': "stackIndex === -1 && { opacity: '0.35' }" }}>
+          <span {...{ ':style': "stackIndex === 0 && { opacity: '0.35' }" }}>
             {chevronLeftIcon}
           </span>
         </button>
@@ -55,17 +57,30 @@ export function Navigator() {
           type="button"
           x-data="{ get disabled() { return !stack[stackIndex + 1] } }"
           x-on:click={`
-            let nextStackIndex = stackIndex + 1
-            if (!stack[nextStackIndex]) return
+            const nextStackIndex = stackIndex + 1
+            const nextStackId = stack[nextStackIndex]
+            const nextData = dataMap[nextStackId]
+            if (!nextData) return
 
-            const body = stack[nextStackIndex].body
-            postFrameAction(body)
-              .then((json) => {
-                data = json
-                stackIndex = nextStackIndex
-                inputText = ''
-              })
-              .catch(console.error)
+            let json
+            switch (nextData.type) {
+              case 'initial': {
+                json = await getFrame(nextData.url)
+                break
+              }
+              case 'action': {
+                json = await postFrameAction(nextData.body)
+                break
+              }
+              case 'redirect': {
+                json = await postFrameRedirect(nextData.body)
+                break
+              }
+            }
+
+            dataKey = json.id
+            stackIndex = nextStackIndex
+            inputText = ''
           `}
           {...{
             ':disabled': 'disabled',
@@ -82,25 +97,28 @@ export function Navigator() {
         class="bg-background-100 border rounded-md text-gray-700 px-2 rounded-r-md h-full"
         type="button"
         x-on:click={`
-          const selectedLog = logs[logIndex]
-          if (selectedLog && selectedLog.request.type === 'initial') {
-            getFrame().then((json) => data = json).catch(console.error)
-            return 
-          }
+          const nextStackId = logs[logIndex] ?? dataKey
+          const nextData = dataMap[dataKey]
+          if (!nextData) return
 
-          let body = stack[stackIndex]?.body
-          if (selectedLog) {
-            const { buttonIndex, fid, inputText, state, url: postUrl } = selectedLog.context.frameData
-            body = {
-              buttonIndex,
-              fid,
-              inputText,
-              postUrl,
-              state,
+          let json
+          switch (nextData?.type) {
+            case 'initial': {
+              json = await getFrame(nextData.url)
+              break
+            }
+            case 'action': {
+              json = await postFrameAction(nextData.body)
+              break
+            }
+            case 'redirect': {
+              json = await postFrameRedirect(nextData.body)
+              break
             }
           }
-          if (body) postFrameAction(body).then((json) => data = json).catch(console.error)
-          else getFrame().then((json) => data = json).catch(console.error)
+
+          dataKey = json.id
+          inputText = ''
         `}
       >
         {refreshIcon}
@@ -130,7 +148,7 @@ export function Navigator() {
             <span
               class="font-sans text-gray-1000"
               style={{ lineHeight: '1.9rem', fontSize: '13px' }}
-              x-text="formatUrl(data.request.url)"
+              x-text="formatUrl(data.body ? data.body.url : data.url)"
             />
           </div>
         </button>
@@ -144,7 +162,7 @@ export function Navigator() {
             top: '100%',
             zIndex: '10',
           }}
-          x-data="{ url: new URL(data.request.url) }"
+          x-data="{ url: new URL(data.body ? data.body.url : data.url) }"
           {...{
             '@click.outside': 'open = false',
             '@keyup.escape': 'open = false',
@@ -163,9 +181,12 @@ export function Navigator() {
                 const nextFrame = window.location.toString().replace('/dev', '')
                 getFrame(nextFrame, true)
                   .then((json) => {
-                    data = json
-                    stack = []
-                    stackIndex = -1
+                    const id = json.id
+                    dataKey = id
+
+                    stack = [id]
+                    stackIndex = 0
+
                     inputText = ''
                     open = false
                   })
@@ -179,13 +200,18 @@ export function Navigator() {
       <template x-if="user">
         <div class="relative grid h-full" x-data="{ open: false }">
           <button
+            aria-label="open user menu"
             type="button"
             class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
             x-on:click="open = true"
           >
+            <div style={{ height: '30px', width: '30px' }} x-show="!user.pfp">
+              {farcasterIcon}
+            </div>
             <img
+              style={{ height: '32px', width: '32px' }}
+              x-show="user.pfp"
               {...{ ':src': 'user.pfp' }}
-              style={{ height: '30px', width: '30px' }}
             />
           </button>
 
@@ -200,7 +226,6 @@ export function Navigator() {
               width: '225px',
               zIndex: '10',
             }}
-            x-data="{ url: new URL(data.request.url) }"
             {...{
               '@click.outside': 'open = false',
               '@keyup.escape': 'open = false',
@@ -208,7 +233,10 @@ export function Navigator() {
             }}
           >
             <div class="text-sm p-4">
-              <div x-text="user.displayName ?? user.username" />
+              <div
+                x-show="user.username"
+                x-text="user.displayName ?? user.username"
+              />
               <div class="text-gray-700" x-text="`FID #${user.userFid}`" />
             </div>
 

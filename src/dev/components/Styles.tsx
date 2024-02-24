@@ -913,7 +913,7 @@ export function Styles() {
         flex-direction: row;
       }
       .lg\\:min-w-frame {
-        min-width: 532.5px;
+        min-width: 533.08px;
       }
       .lg\\:min-w-sidebar {
         min-width: 350px;

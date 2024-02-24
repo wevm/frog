@@ -33,6 +33,7 @@ import { getRoutes } from './utils/getRoutes.js'
 import { htmlToFrame } from './utils/htmlToFrame.js'
 import { htmlToContext } from './utils/htmlToState.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
+import { uid } from './utils/uid.js'
 
 export function routes<
   state,
@@ -102,30 +103,27 @@ export function routes<
       getHtmlSize(clonedResponse),
       getImageSize(text),
     ])
-    const request = {
-      type: 'initial',
-      method: 'get',
-      metrics: {
-        htmlSize,
-        imageSize,
-        speed,
-      },
-      response: {
-        success: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-      },
-      timestamp,
-      url: cleanedUrlString,
-    } as const
-
     const routes = getRoutes(url, inspectRoutes(app.hono))
 
     return {
       data: {
+        id: uid(),
+        type: 'initial',
+        method: 'get',
         context,
         frame,
-        request,
+        metrics: {
+          htmlSize,
+          imageSize,
+          speed,
+        },
+        response: {
+          success: response.ok,
+          status: response.status,
+          statusText: response.statusText,
+        },
+        timestamp,
+        url: cleanedUrlString,
       },
       routes,
     } satisfies PreviewProps
@@ -137,25 +135,17 @@ export function routes<
 
   app
     .use('*', async (c, next) => {
-      {
-        const cookie = app.devtools?.secret
-          ? await getSignedCookie(c, app.devtools.secret, 'session')
-          : getCookie(c, 'session')
-        const keypair = cookie
-          ? (JSON.parse(cookie) as
-              | { privateKey: `0x${string}`; publicKey: `0x${string}` }
-              | undefined)
-          : undefined
-        // @ts-ignore
-        c.set('keypair', keypair)
-      }
+      const user = getCookie(c, 'user')
+      const fid = user ? JSON.parse(user).userFid : undefined
+      // @ts-ignore
+      c.set('fid', fid)
 
-      {
-        const cookie = getCookie(c, 'user')
-        const fid = cookie ? (JSON.parse(cookie).userFid as number) : undefined
-        // @ts-ignore
-        c.set('fid', fid)
-      }
+      const session = app.dev?.secret
+        ? await getSignedCookie(c, app.dev.secret, 'session')
+        : getCookie(c, 'session')
+      const keypair = session ? JSON.parse(session) : undefined
+      // @ts-ignore
+      c.set('keypair', keypair)
 
       await next()
     })
@@ -163,25 +153,17 @@ export function routes<
       `${parsePath(path)}/dev/frame/action`,
       validator('json', validateFramePostBody),
       async (c) => {
-        const timestamp = Date.now()
-        const url = c.req.url.replace('/dev/frame/action', '')
+        // TODO: Hono should be able to infer these types
+        const vars = c.var as unknown as {
+          fid: number
+          keypair: { privateKey: string } | undefined
+        }
+
         const json = c.req.valid('json')
-
-        // @ts-ignore
-        const privateKey = c.var.keypair?.privateKey as `0x${string}`
-        // @ts-ignore
-        const fid = (json.fid ?? c.var.fid ?? 1) as number
-
-        const { buttonIndex, castId, inputText, postUrl } = json
-        const response = await fetchFrame({
-          buttonIndex,
-          castId,
-          fid,
-          inputText,
-          postUrl,
-          state: json.state,
-          privateKey,
-        })
+        const fid = (json.fid ?? vars.fid) as number
+        const body = { ...json, fid }
+        const privateKey = vars.keypair?.privateKey
+        const response = await fetchFrame({ body, privateKey })
 
         performance.measure('fetch', 'start', 'end')
         const measure = performance.getEntriesByName('fetch')[0]
@@ -204,30 +186,29 @@ export function routes<
           getHtmlSize(clonedResponse),
           getImageSize(text),
         ])
-        const request = {
-          type: 'action',
-          method: 'post',
-          metrics: {
-            htmlSize,
-            imageSize,
-            speed,
-          },
-          response: {
-            success: response.ok,
-            status: response.status,
-            statusText: response.statusText,
-          },
-          timestamp,
-          url: postUrl,
-        } as const
 
-        const routes = getRoutes(url, inspectRoutes(app.hono))
+        const baseUrl = c.req.url.replace('/dev/frame/action', '')
+        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
         return c.json({
           data: {
+            id: uid(),
+            type: 'action',
+            method: 'post',
+            body,
             context,
             frame,
-            request,
+            metrics: {
+              htmlSize,
+              imageSize,
+              speed,
+            },
+            response: {
+              success: response.ok,
+              status: response.status,
+              statusText: response.statusText,
+            },
+            timestamp: Date.now(),
           },
           routes,
         } satisfies PreviewProps)
@@ -237,27 +218,21 @@ export function routes<
       `${parsePath(path)}/dev/frame/redirect`,
       validator('json', validateFramePostBody),
       async (c) => {
-        const timestamp = Date.now()
+        // TODO: Hono should be able to infer these types
+        const vars = c.var as unknown as {
+          fid: number
+          keypair: { privateKey: string } | undefined
+        }
+
         const json = c.req.valid('json')
+        const fid = (json.fid ?? vars.fid) as number
+        const body = { ...json, fid }
 
-        // @ts-ignore
-        const privateKey = c.var.keypair?.privateKey as `0x${string}`
-        // @ts-ignore
-        const fid = (json.fid ?? c.var.fid ?? 1) as number
-
-        const { buttonIndex, castId, inputText, postUrl, state } = json
         let response: Response
         let error: string | undefined
         try {
-          response = await fetchFrame({
-            buttonIndex,
-            castId,
-            fid,
-            inputText,
-            postUrl,
-            state,
-            privateKey,
-          })
+          const privateKey = vars.keypair?.privateKey
+          response = await fetchFrame({ body, privateKey })
         } catch (err) {
           response = {
             ok: false,
@@ -275,8 +250,10 @@ export function routes<
         performance.clearMeasures()
 
         return c.json({
+          id: uid(),
           type: 'redirect',
           method: 'post',
+          body,
           metrics: { speed },
           response: {
             success: response.redirected,
@@ -285,9 +262,8 @@ export function routes<
             status: response.ok ? 302 : response.status,
             statusText: response.statusText,
           },
-          timestamp,
-          url: postUrl,
-        } satisfies PreviewProps['data']['request'])
+          timestamp: Date.now(),
+        } satisfies PreviewProps['data'])
       },
     )
 
@@ -311,13 +287,13 @@ export function routes<
 
       // 2. Sign key request. By default, use hosted service.
       let deadline: number
-      let requestFid: string
+      let requestFid: number
       let signature: string
-      if (app.devtools?.appFid && app.devtools?.appMnemonic) {
-        const account = mnemonicToAccount(app.devtools.appMnemonic)
+      if (app.dev?.appFid && app.dev?.appMnemonic) {
+        const account = mnemonicToAccount(app.dev.appMnemonic)
 
         deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
-        requestFid = app.devtools.appFid
+        requestFid = app.dev.appFid
         signature = await account.signTypedData({
           domain: {
             name: 'Farcaster SignedKeyRequestValidator',
@@ -334,7 +310,7 @@ export function routes<
           },
           primaryType: 'SignedKeyRequest',
           message: {
-            requestFid: BigInt(app.devtools.appFid),
+            requestFid: BigInt(app.dev.appFid),
             key: publicKey,
             deadline: BigInt(deadline),
           },
@@ -348,7 +324,7 @@ export function routes<
           },
         ).then((response) => response.json())) as {
           deadline: number
-          requestFid: string
+          requestFid: number
           signature: string
         }
 
@@ -380,12 +356,12 @@ export function routes<
 
       // 5. Save keypair in cookie
       const value = JSON.stringify({ privateKey, publicKey })
-      if (app.devtools?.secret)
+      if (app.dev?.secret)
         await setSignedCookie(
           c,
           'session',
           value,
-          app.devtools?.secret,
+          app.dev?.secret,
           cookieOptions,
         )
       else setCookie(c, 'session', value, { ...cookieOptions, httpOnly: true })
@@ -406,21 +382,23 @@ export function routes<
         response.result?.signedKeyRequest ?? {}
 
       if (state === 'completed') {
-        const response = (await fetch(
-          `${app.hubApiUrl}/v1/userDataByFid?fid=${userFid}`,
-        ).then((response) => response.json())) as UserDataByFidResponse
-
         let pfp = undefined
         let username = undefined
         let displayName = undefined
-        for (const message of response.messages) {
-          if (message.data.type !== 'MESSAGE_TYPE_USER_DATA_ADD') continue
+        if (app.hubApiUrl) {
+          const response = (await fetch(
+            `${app.hubApiUrl}/v1/userDataByFid?fid=${userFid}`,
+          ).then((response) => response.json())) as UserDataByFidResponse
 
-          const type = message.data.userDataBody.type
-          const value = message.data.userDataBody.value
-          if (type === 'USER_DATA_TYPE_PFP') pfp = value
-          if (type === 'USER_DATA_TYPE_USERNAME') username = value
-          if (type === 'USER_DATA_TYPE_DISPLAY') displayName = value
+          for (const message of response.messages) {
+            if (message.data.type !== 'MESSAGE_TYPE_USER_DATA_ADD') continue
+
+            const type = message.data.userDataBody.type
+            const value = message.data.userDataBody.value
+            if (type === 'USER_DATA_TYPE_PFP') pfp = value
+            if (type === 'USER_DATA_TYPE_USERNAME') username = value
+            if (type === 'USER_DATA_TYPE_DISPLAY') displayName = value
+          }
         }
 
         setCookie(c, 'user', JSON.stringify({ token, userFid }), cookieOptions)

@@ -9,7 +9,7 @@ export function Data() {
       style={{ height: 'min-content' }}
       x-data="{
         get validations() {
-          const imageSize = data.request.metrics.imageSize
+          const imageSize = data.metrics.imageSize
           const limits = {
             postUrl: 256,
             inputText: 32,
@@ -51,14 +51,18 @@ export function Data() {
                 frame.postUrl.length
               } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
             },
-            {
-              property: 'fc:frame:state',
-              value: decodeURIComponent(frame.state),
-              status: stateTooLong ? 'invalid' : 'valid',
-              message: `State is ${
-                frame.state.length
-              } bytes and must be ${limits.state.toLocaleString()} bytes or less.`,
-            },
+            ...(frame.state
+              ? [
+                  {
+                    property: 'fc:frame:state',
+                    value: decodeURIComponent(frame.state),
+                    status: stateTooLong ? 'invalid' : 'valid',
+                    message: `State is ${
+                      frame.state.length
+                    } bytes and must be ${limits.state.toLocaleString()} bytes or less.`,
+                  },
+                ]
+              : []),
             {
               property: 'og:image',
               value: frame.image,
@@ -78,7 +82,7 @@ export function Data() {
               : []),
             ...(frame.buttons.map((button) => ({
                 property: `fc:frame:button:${button.index}`,
-                value: `${button.title}${button.type ? `, ${button.type}` : ''}${
+                value: `${button.title}${button.type !== 'post' ? `, ${button.type}` : ''}${
                   button.target ? `, ${button.target}` : ''
                 }`,
                 status: 'valid',
