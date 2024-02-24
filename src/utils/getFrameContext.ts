@@ -7,9 +7,9 @@ import { parsePath } from './parsePath.js'
 type GetFrameContextParameters<state = unknown> = {
   context: Pick<
     FrameContext<string, state>,
-    | 'initialUrl'
+    | 'initialPath'
     | 'previousState'
-    | 'previousIntentData'
+    | 'previousButtonValues'
     | 'frameData'
     | 'status'
     | 'url'
@@ -23,12 +23,13 @@ export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
   const { context, request } = options
-  const { frameData, initialUrl, previousIntentData, verified } = context || {}
+  const { frameData, initialPath, previousButtonValues, verified } =
+    context || {}
 
-  const { buttonValue, inputText, redirect, reset } = getIntentState(
+  const { buttonValue, inputText, redirect, reset } = getIntentState({
+    buttonValues: previousButtonValues || [],
     frameData,
-    previousIntentData || [],
-  )
+  })
 
   const status = (() => {
     if (redirect) return 'redirect'
@@ -38,9 +39,14 @@ export async function getFrameContext<state>(
 
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
-  const url = (reset ? initialUrl : undefined) || parsePath(context.url)
+  const url =
+    (reset ? `${new URL(request.url).origin}${initialPath}` : undefined) ||
+    parsePath(context.url)
 
-  let previousState = context?.previousState || options.initialState
+  let previousState = (() => {
+    if (context.status === 'initial') return options.initialState
+    return context?.previousState || options.initialState
+  })()
   function deriveState(derive?: (state: state) => void): state {
     if (status === 'response' && derive)
       previousState = produce(previousState, derive)
@@ -51,10 +57,10 @@ export async function getFrameContext<state>(
     buttonIndex: frameData?.buttonIndex,
     buttonValue,
     frameData,
-    initialUrl,
+    initialPath,
     inputText,
     deriveState,
-    previousIntentData,
+    previousButtonValues,
     previousState: previousState as any,
     request,
     status,

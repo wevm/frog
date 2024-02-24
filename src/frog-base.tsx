@@ -14,8 +14,8 @@ import {
   type Pretty,
 } from './types.js'
 import { fromQuery } from './utils/fromQuery.js'
+import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
-import { getIntentData } from './utils/getIntentData.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
@@ -326,7 +326,7 @@ export class FrogBase<
         title = 'Frog Frame',
       } = await handler(context)
       const parsedIntents = intents ? parseIntents(intents) : null
-      const intentData = getIntentData(parsedIntents)
+      const buttonValues = getButtonValues(parsedIntents)
 
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
@@ -351,11 +351,25 @@ export class FrogBase<
       const frameImageParams = toSearchParams(baseContext)
 
       // We need to pass some context to the next frame to derive button values, state, etc.
-      const nextFrameState = serializeJson({
-        initialUrl: context.initialUrl,
-        previousIntentData: intentData,
+      // Here, we are deriving two sets of "next frame state".
+      // 1. For the INITIAL FRAME, we need to pass through the state as a search parameter
+      //    due to Farcaster's constraints with the `fc:frame:state` tag. It must be empty
+      //    for the initial frame.
+      // 2. For SUBSEQUENT FRAMES, we can pass through the state as a serialized JSON object
+      //    to the next frame via the `fc:frame:state` tag.
+      const nextFrameStateSearch = toSearchParams({
+        initialPath: context.initialPath,
+        previousButtonValues: buttonValues,
+      })
+      const nextFrameStateSerialized = serializeJson({
+        initialPath: context.initialPath,
+        previousButtonValues: buttonValues,
         previousState: context.deriveState(),
       })
+
+      const postUrl = action
+        ? url.origin + parsePath(this.basePath) + parsePath(action || '')
+        : context.url
 
       return c.render(
         <html lang="en">
@@ -389,14 +403,17 @@ export class FrogBase<
             <meta
               property="fc:frame:post_url"
               content={
-                action
-                  ? url.origin +
-                    parsePath(this.basePath) +
-                    parsePath(action || '')
-                  : context.url
+                context.status === 'initial'
+                  ? `${postUrl}?${nextFrameStateSearch.toString()}`
+                  : postUrl
               }
             />
-            <meta property="fc:frame:state" content={nextFrameState} />
+            {context.status !== 'initial' && (
+              <meta
+                property="fc:frame:state"
+                content={nextFrameStateSerialized}
+              />
+            )}
             {parsedIntents}
 
             <meta

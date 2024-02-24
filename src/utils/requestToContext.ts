@@ -2,7 +2,7 @@ import { type Context } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
 import { type FrameContext } from '../types.js'
 import { deserializeJson } from './deserializeJson.js'
-import { parsePath } from './parsePath.js'
+import { fromQuery } from './fromQuery.js'
 import { verifyFrame } from './verifyFrame.js'
 
 type RequestToContextOptions = {
@@ -12,9 +12,9 @@ type RequestToContextOptions = {
 
 type RequestToContextReturnType<state = unknown> = Pick<
   FrameContext<string, state>,
-  | 'initialUrl'
+  | 'initialPath'
   | 'previousState'
-  | 'previousIntentData'
+  | 'previousButtonValues'
   | 'frameData'
   | 'status'
   | 'url'
@@ -27,9 +27,11 @@ export async function requestToContext<state>(
 ): Promise<RequestToContextReturnType<state>> {
   const { trustedData, untrustedData } =
     (await request.json().catch(() => {})) || {}
-  const { initialUrl, previousState, previousIntentData } = untrustedData?.state
-    ? deserializeJson(untrustedData.state)
-    : ({} as any)
+  const { initialPath, previousState, previousButtonValues } = (() => {
+    if (untrustedData?.state) return deserializeJson(untrustedData.state)
+    if (request.query()) return fromQuery(request.query())
+    return {} as any
+  })()
 
   const verified = await (async () => {
     if (verify === false) return false
@@ -50,9 +52,9 @@ export async function requestToContext<state>(
   })()
 
   return {
-    initialUrl: initialUrl ? initialUrl : parsePath(request.url),
+    initialPath: initialPath ? initialPath : new URL(request.url).pathname,
     previousState,
-    previousIntentData,
+    previousButtonValues,
     frameData: untrustedData,
     status: request.method === 'POST' ? 'response' : 'initial',
     url: request.url,

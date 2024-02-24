@@ -1,4 +1,4 @@
-import { type FrameData, type FrameIntentData } from '../types.js'
+import { type FrameButtonValue, type FrameData } from '../types.js'
 
 type IntentState = {
   buttonValue: string | undefined
@@ -7,10 +7,13 @@ type IntentState = {
   reset: boolean
 }
 
-export function getIntentState(
-  frameData: FrameData | undefined,
-  intentData: readonly FrameIntentData[] | null,
-) {
+export function getIntentState({
+  buttonValues,
+  frameData,
+}: {
+  buttonValues: readonly FrameButtonValue[] | null
+  frameData: FrameData | undefined
+}) {
   const { buttonIndex, inputText } = frameData || {}
   const state: IntentState = {
     buttonValue: undefined,
@@ -18,24 +21,18 @@ export function getIntentState(
     redirect: false,
     reset: false,
   }
-  if (!intentData) return state
+  if (!buttonValues) return state
 
   if (buttonIndex) {
-    const buttonIntents = intentData.filter((intent) => {
-      const [type] = intent?.split(';') || []
-      return type === 'button'
-    })
+    const buttonIntents = buttonValues
     const intent = buttonIntents[buttonIndex - 1]
-    const properties = intent?.split(';') || []
+    if (!intent) return state
 
-    for (const property of properties) {
-      const [key, ...rest] = property.split(':')
-      const value = rest.join(':')
-
-      if (key === 'type' && value === 'redirect') state.redirect = true
-      else if (key === 'type' && value === 'reset') state.reset = true
-      else if (key === 'value') state.buttonValue = value
-    }
+    if (intent.startsWith('_c')) state.reset = true
+    else if (intent.startsWith('_r')) {
+      state.redirect = true
+      state.buttonValue = intent.slice(3)
+    } else state.buttonValue = intent
   }
 
   return state

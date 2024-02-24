@@ -20,17 +20,17 @@ export type FrameContext<path extends string = string, state = unknown> = {
    */
   frameData?: Pretty<FrameData>
   /**
-   * Initial URL of the frame set.
+   * Initial path of the frame set.
    */
-  initialUrl: string
+  initialPath: string
   /**
    * Input text from the previous frame.
    */
   inputText?: string | undefined
   /**
-   * Intent data from the previous frame.
+   * Button values from the previous frame.
    */
-  previousIntentData?: FrameIntentData[] | undefined
+  previousButtonValues?: FrameButtonValue[] | undefined
   /**
    * State from the previous frame.
    */
@@ -72,7 +72,7 @@ export type FrameVersion = 'vNext'
 export type FrameIntent = JSX.Element | false | null | undefined
 export type FrameIntents = FrameIntent | FrameIntent[]
 
-export type FrameIntentData = string
+export type FrameButtonValue = string
 
 export type TrustedData = {
   messageBytes: string

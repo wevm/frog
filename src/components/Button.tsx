@@ -37,7 +37,11 @@ export type ButtonLinkProps = ButtonProps & {
 ButtonLink.__type = 'button'
 export function ButtonLink({ children, index = 1, href }: ButtonLinkProps) {
   return [
-    <meta property={`fc:frame:button:${index}`} content={children} />,
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={children}
+      data-value="_l"
+    />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta property={`fc:frame:button:${index}:target`} content={href} />,
   ] as unknown as HtmlEscapedString
@@ -50,7 +54,11 @@ export type ButtonMintProps = ButtonProps & {
 ButtonMint.__type = 'button'
 export function ButtonMint({ children, index = 1, target }: ButtonMintProps) {
   return [
-    <meta property={`fc:frame:button:${index}`} content={children} />,
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={children}
+      data-value="_m"
+    />,
     <meta property={`fc:frame:button:${index}:action`} content="mint" />,
     <meta property={`fc:frame:button:${index}:target`} content={target} />,
   ] as unknown as HtmlEscapedString
@@ -73,7 +81,7 @@ export function ButtonRedirect({
       property={`fc:frame:button:${index}`}
       content={children}
       data-type="redirect"
-      data-value={location}
+      data-value={`_r:${location}`}
     />,
     <meta
       property={`fc:frame:button:${index}:action`}
@@ -93,6 +101,7 @@ export function ButtonReset({ children, index = 1 }: ButtonResetProps) {
     <meta
       property={`fc:frame:button:${index}`}
       content={children}
+      data-value="_c"
       data-type="reset"
     />
   )

@@ -141,11 +141,11 @@ app.frame('/', (context) => {
 })
 ```
 
-## initialUrl
+## initialPath
 
 - **Type**: `string`
 
-Initial/start URL of the frame set.
+Initial/start path of the frame set.
 
 If the user clicks `<Button.Reset>{:jsx}`, they will be directed to this URL.
 
@@ -158,7 +158,7 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 app.frame('/', (context) => {
-  const { initialUrl } = context // [!code focus]
+  const { initialPath } = context // [!code focus]
   return {/* ... */}
 })
 ```
@@ -194,7 +194,7 @@ app.frame('/', (context) => {
 })
 ```
 
-## previousIntentData
+## previousButtonValues
 
 - **Type**: `string[]`
 
@@ -224,9 +224,9 @@ app.frame('/', (context) => {
 })
 
 app.frame('/result', (context) => { // [!code focus]
-  const { buttonValue, previousIntentData } = context
-  console.log(previousIntentData) // [!code focus]
-// @log:   ['button;value:apple', 'button;value:banana', 'button;value:mango']
+  const { buttonValue, previousButtonValues } = context
+  console.log(previousButtonValues) // [!code focus]
+// @log:   ['apple', 'banana', 'mango']
   return {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>

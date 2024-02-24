@@ -100,7 +100,7 @@ export function Preview(props: PreviewProps) {
         user: $persist(null),
 
         async getFrame(url = this.data.request.url, replaceLogs = false) {
-          const json = await fetch(url + '/dev/frame', {
+          const json = await fetch(this.parsePath(url) + '/dev/frame', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
           }).then((response) => response.json())
@@ -113,7 +113,8 @@ export function Preview(props: PreviewProps) {
           return json.data
         },
         async postFrameAction(body) {
-          const json = await fetch(this.data.request.url + '/dev/frame/action', {
+          const url = this.parsePath(this.data.request.url)
+          const json = await fetch(url + '/dev/frame/action', {
             method: 'POST',
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
@@ -127,7 +128,8 @@ export function Preview(props: PreviewProps) {
           return json.data
         },
         async postFrameRedirect(body) {
-          const json = await fetch(this.data.request.url + '/dev/frame/redirect', {
+          const url = this.parsePath(this.data.request.url)
+          const json = await fetch(url + '/dev/frame/redirect', {
             method: 'POST',
             body: JSON.stringify(body),
             headers: { 'Content-Type': 'application/json' },
@@ -139,14 +141,16 @@ export function Preview(props: PreviewProps) {
           return json
         },
         async fetchAuthCode() {
-          const json = await fetch(this.data.request.url + '/dev/frame/auth/code', {
+          const url = this.parsePath(this.data.request.url)
+          const json = await fetch(url + '/dev/frame/auth/code', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
           }).then((response) => response.json())
           return json
         },
         async fetchAuthStatus(token) {
-          const json = await fetch(this.data.request.url + '/dev/frame/auth/status/' + token, {
+          const url = this.parsePath(this.data.request.url)
+          const json = await fetch(url + '/dev/frame/auth/status/' + token, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -155,7 +159,8 @@ export function Preview(props: PreviewProps) {
           return json
         },
         async logout(body) {
-          const json = await fetch(this.data.request.url + '/dev/frame/auth/logout', {
+          const url = this.parsePath(this.data.request.url)
+          const json = await fetch(url + '/dev/frame/auth/logout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
           }).then((response) => response.json())
@@ -230,6 +235,11 @@ export function Preview(props: PreviewProps) {
               return cookie.substring(name.length + 1, cookie.length)
           }
           return null
+        },
+        parsePath(path_) {
+          let path = path_.split('?')[0]
+          if (path.endsWith('/')) path = path.slice(0, -1)
+          return path
         },
         toSearchParams(object) {
           const params = new URLSearchParams()
