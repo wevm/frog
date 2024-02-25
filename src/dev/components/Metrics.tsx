@@ -20,7 +20,7 @@ export function Metrics() {
           class="items-center flex font-mono gap-1.5 text-sm justify-center"
           style={{ flex: '1', padding: '0.685rem' }}
         >
-          <span class="text-gray-700" x-html="metric.icon" />
+          <span class="text-gray-600" x-html="metric.icon" />
           <div class="text-gray-1000" x-text="metric.value" />
         </div>
       </template>
