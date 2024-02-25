@@ -1,3 +1,5 @@
+import { html } from 'hono/html'
+
 export function Scripts() {
   return (
     <>
@@ -7,6 +9,12 @@ export function Scripts() {
         defer
         src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"
       />
+      <script type="module">{html`
+        import { createCssVariablesTheme, getHighlighter } from 'https://cdn.jsdelivr.net/npm/shiki@1.1.7/+esm'
+        globalThis.createCssVariablesTheme = createCssVariablesTheme
+        globalThis.getHighlighter = getHighlighter
+      `}</script>
+
       {/* Alpine Plugins */}
       <script
         defer

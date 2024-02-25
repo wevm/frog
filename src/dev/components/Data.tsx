@@ -122,7 +122,7 @@ export function Data() {
               <div
                 role="gridcell"
                 aria-colindex="2"
-                class="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap"
+                class="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap font-mono text-xs"
                 x-text="row.value"
               />
               <div
@@ -146,9 +146,12 @@ export function Data() {
             </div>
 
             <template x-if="row.status === 'invalid' && row.message">
-              <div class="p-3" style={{ paddingTop: '0' }}>
-                <div class="border border-red-100 text-red-900 text-xs rounded-lg p-3">
-                  <span x-html="row.message" />
+              <div
+                class="p-3"
+                style={{ paddingTop: '0', paddingLeft: '10.75rem' }}
+              >
+                <div class="text-red-900 text-xs rounded-lg leading-snug font-mono">
+                  <span style={{ textWrap: 'balance' }} x-html="row.message" />
                 </div>
               </div>
             </template>

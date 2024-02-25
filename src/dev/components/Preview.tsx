@@ -4,6 +4,7 @@ import { Data } from './Data.js'
 import { Frame } from './Frame.js'
 import { Metrics } from './Metrics.js'
 import { Navigator } from './Navigator.js'
+import { QuickLinks } from './QuickLinks.js'
 import { Tabs } from './Tabs.js'
 import { Timeline } from './Timeline.js'
 
@@ -108,6 +109,7 @@ export function Preview(props: PreviewProps) {
         logs: ['${props.data.id}'],
         stackIndex: 0,
         stack: ['${props.data.id}'],
+        tab: $persist('request'),
         user: $persist(null),
 
         async getFrame(url, replaceLogs = false) {
@@ -213,6 +215,24 @@ export function Preview(props: PreviewProps) {
           const urlString = urlObj.toString().replace(/https?:\\/\\//, '')
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         },
+        async getCodeHtml(code, lang) {
+          const theme = createCssVariablesTheme({
+            name: 'css-variables',
+            variablePrefix: '--shiki-',
+            variableDefaults: {},
+            fontStyle: true,
+          })
+
+          const highlighter = await getHighlighter({
+            langs: ['html', 'json'],
+            themes: [theme],
+          })
+
+          return highlighter.codeToHtml(code, {
+            lang,
+            theme: 'css-variables',
+          })
+        },
 
         saveState(state) {
           if (this.logs.length === 1) return
@@ -291,37 +311,38 @@ export function Preview(props: PreviewProps) {
           return params
         },
       }`}
-      class="flex flex-col md:flex-row w-full md:h-full pl-6 pr-6 md:pr-0 gap-4 md:gap-6 pb-6 md:pb-0"
+      class="flex flex-col container md:grid md:container gap-4 md:gap-6"
       style={{
         maxWidth: '1512px',
         marginLeft: 'auto',
         marginRight: 'auto',
       }}
     >
-      <div class="bg-background-200 border rounded-md overflow-hidden order-1 md:order-0 md:mt-6 h-sidebar md:h-sidebar md:max-h-sidebar md:min-w-sidebar lg:min-w-sidebar">
-        <div class="bg-background-100 scrollbars h-full">
-          <Timeline />
-        </div>
-      </div>
-
-      <div
-        class="flex flex-col md:scrollbars md:h-full w-full gap-4 pt-6 md:pb-6 pr-0 md:pr-6 order-0 md:order-1"
-        style={{ scrollbarGutter: 'stable' }}
+      <aside
+        class="order-1 space-y-4 scrollbars md:min-w-sidebar lg:min-w-sidebar w-full"
+        style={{
+          position: 'sticky',
+          top: '1.5rem',
+          alignSelf: 'start',
+        }}
       >
+        <Timeline />
+        <QuickLinks />
+      </aside>
+
+      <main class="flex flex-col md:h-full w-full gap-4 order-0 md:order-1 overflow-hidden">
         <Navigator />
 
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex flex-col gap-4">
             <Metrics />
-            <div class="lg:min-w-frame lg:min-h-frame">
-              <Frame />
-            </div>
+            <Frame />
           </div>
           <Data />
         </div>
 
         <Tabs />
-      </div>
+      </main>
     </div>
   )
 }

@@ -155,7 +155,6 @@ export function Navigator() {
 
         <div
           x-show="open"
-          class="border bg-background-100 rounded-lg w-full overflow-hidden py-1"
           style={{
             position: 'absolute',
             marginTop: '4px',
@@ -167,12 +166,14 @@ export function Navigator() {
             '@click.outside': 'open = false',
             '@keyup.escape': 'open = false',
             'x-trap': 'open',
+            ':class':
+              "open ? 'border bg-background-100 rounded-lg w-full overflow-hidden py-1' : ''",
           }}
         >
           <template x-for="(route, index) in routes">
             <button
               type="button"
-              class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left"
+              class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left hover:bg-gray-100"
               x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
               x-on:click="
                 const nextRoute = route === '/' ? '/dev' : route + '/dev'
@@ -189,6 +190,7 @@ export function Navigator() {
 
                     inputText = ''
                     open = false
+                    tab = 'request'
                   })
                   .catch(console.error)
               "
@@ -251,6 +253,7 @@ export function Navigator() {
                 style={{ textDecoration: 'none' }}
                 target="_blank"
                 rel="noopener noreferrer"
+                x-show="user.username"
                 {...{
                   ':href': '`https://warpcast.com/${user.username}`',
                 }}

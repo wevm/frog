@@ -4,7 +4,7 @@ import { externalLinkIcon, warpIcon } from './icons.js'
 export function Frame() {
   return (
     <div
-      class="w-full h-full"
+      class="lg:w-frame lg:min-h-frame w-full h-full"
       x-data="{
         get buttonCount() { return frame.buttons?.length ?? 0 },
         get hasIntents() { return Boolean(frame.input || frame.buttons.length) },
@@ -54,9 +54,8 @@ export function Frame() {
 function Img() {
   return (
     <img
-      class="bg-background-200 border object-cover w-full rounded-t-lg border-gray-200 text-background-200"
+      class="bg-background-200 border object-cover w-full rounded-t-lg border-gray-200 text-background-200 min-h-img"
       style={{
-        minHeight: '269px',
         maxHeight: '532.5px',
       }}
       {...{
