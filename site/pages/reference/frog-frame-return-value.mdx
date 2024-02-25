@@ -85,6 +85,40 @@ app.frame('/frame/foo', (context) => {
 })
 ```
 
+## headers
+
+- **Type:** `Record<string, string>`
+
+HTTP response headers to set for the frame.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/frame/foo', (context) => {
+  const { buttonIndex } = context
+  return {
+    headers: { // [!code focus]
+      'Cache-Control': 'max-age=0', // [!code focus]
+    }, // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select a frog
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>, 
+      <Button value="mango">Mango</Button> 
+    ]
+  }
+})
+```
+
 ## image
 
 - **Type:** `string`
