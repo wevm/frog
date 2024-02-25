@@ -36,7 +36,7 @@
 
 Check out the following places for more Frog-related content:
 
-- Follow [@wevm_dev](https://twitter.com/wevm_dev), [@jakemoxey](https://twitter.com/jakemoxey), and [@awkweb](https://twitter.com/awkweb) on Twitter for project updates
+- Follow [@awkweb](https://twitter.com/awkweb), [@jakemoxey](https://twitter.com/jakemoxey), and [@wevm_dev](https://twitter.com/wevm_dev) on Twitter for project updates
 - Join the [discussions on GitHub](https://github.com/wevm/vocs/discussions)
 
 ## Support
