@@ -105,6 +105,10 @@ export type FrogConstructorParameters<
       }
     | undefined
   /**
+   * HTTP response headers.
+   */
+  headers?: Record<string, string> | undefined
+  /**
    * Options to forward to the `Hono` instance.
    */
   honoOptions?: HonoOptions<env> | undefined
@@ -160,6 +164,10 @@ export type FrameHandlerReturnType = Pick<
    * @example '/submit'
    */
   action?: string | undefined
+  /**
+   * HTTP response headers.
+   */
+  headers?: Record<string, string> | undefined
   /**
    * The OG Image to render for the frame. Can either be a JSX element, or URL.
    *
@@ -250,6 +258,7 @@ export class FrogBase<
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
   dev: FrogConstructorParameters['dev'] | undefined
+  headers: FrogConstructorParameters['headers'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
@@ -265,6 +274,7 @@ export class FrogBase<
     basePath,
     browserLocation,
     dev,
+    headers,
     honoOptions,
     hubApiUrl,
     imageOptions,
@@ -274,6 +284,7 @@ export class FrogBase<
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
+    if (headers) this.headers = headers
     if (dev) this.dev = dev
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (imageOptions) this._imageOptions = imageOptions
@@ -320,6 +331,7 @@ export class FrogBase<
       const {
         action,
         browserLocation = this.browserLocation,
+        headers = this.headers,
         imageAspectRatio,
         image,
         intents,
@@ -370,6 +382,10 @@ export class FrogBase<
       const postUrl = action
         ? url.origin + parsePath(this.basePath) + parsePath(action || '')
         : context.url
+
+      // Set response headers provided by consumer.
+      for (const [key, value] of Object.entries(headers ?? {}))
+        c.header(key, value)
 
       return c.render(
         <html lang="en">

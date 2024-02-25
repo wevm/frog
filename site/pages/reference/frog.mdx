@@ -72,6 +72,23 @@ const app = new Frog({
 })
 ```
 
+### headers
+
+- **Type:** `Record<string, string>`
+
+Default HTTP response headers to set for frames.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+
+const app = new Frog({
+  headers: { // [!code focus]
+    'Cache-Control': 'max-age=0', // [!code focus]
+  } // [!code focus]
+})
+```
+
 ### honoOptions
 
 - **Type:** `HonoOptions`
