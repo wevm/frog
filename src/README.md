@@ -17,7 +17,7 @@
   <a href="https://www.npmjs.com/package/frog">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/frog?colorA=21262d&colorB=21262d&style=flat">
-      <img src="https://img.shields.io/npm/v/vocs?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="Version">
+      <img src="https://img.shields.io/npm/v/frog?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="Version">
     </picture>
   </a>
   <a href="https://github.com/wevm/frog/blob/main/LICENSE">
@@ -37,7 +37,7 @@
 Check out the following places for more Frog-related content:
 
 - Follow [@awkweb](https://twitter.com/awkweb), [@jakemoxey](https://twitter.com/jakemoxey), and [@wevm_dev](https://twitter.com/wevm_dev) on Twitter for project updates
-- Join the [discussions on GitHub](https://github.com/wevm/vocs/discussions)
+- Join the [discussions on GitHub](https://github.com/wevm/frog/discussions)
 
 ## Support
 
