@@ -16,6 +16,7 @@ import { mnemonicToAccount } from 'viem/accounts'
 
 import { type FrogBase } from '../frog-base.js'
 import { parsePath } from '../utils/parsePath.js'
+import { verify } from '../utils/jws.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
 import { Fonts } from './components/Fonts.js'
 import { Preview, type PreviewProps } from './components/Preview.js'
@@ -49,7 +50,7 @@ export function routes<
         return (
           <html lang="en">
             <head>
-              <title>frame: {path || '/'}</title>
+              <title>🐸 frame: {path || '/'}</title>
               <Fonts />
               <Styles />
               <Scripts />
@@ -175,6 +176,17 @@ export function routes<
         const text = await response.text()
         const frame = htmlToFrame(text)
         const context = htmlToContext(text)
+
+        // decode frame state for debugging
+        try {
+          const state = JSON.parse(
+            decodeURIComponent(frame.state),
+          ).previousState
+          if (state)
+            if (app.secret)
+              frame.debug.state = JSON.parse(await verify(state, app.secret))
+            else frame.debug.state = state
+        } catch (error) {}
 
         // remove serialized context from image/imageUrl to save url space
         // tip: search for `_frog_` to see where it's added back

@@ -58,7 +58,7 @@ app.frame('/', ({ buttonValue, deriveState, inputText }) => {
       </div>
     ),
     intents: [
-      <TextInput placeholder="Enter a TODO..." />,
+      <TextInput placeholder="Enter a TODO" />,
       <Button>Add</Button>,
       <Button value="down">⬇️</Button>,
       <Button value="up">⬆️</Button>,

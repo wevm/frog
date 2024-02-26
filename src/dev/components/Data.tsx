@@ -23,6 +23,17 @@ export function Data() {
           const stateTooLong = frame.state.length > limits.state
           const imageTooLarge = imageSize ? imageSize / 1024 > limits.image : false
 
+          let hasState
+          if (!frame.state) hasState = false
+          else
+            try {
+              const decoded = decodeURIComponent(frame.state)
+              const parsed = JSON.parse(decoded)
+              hasState = Boolean(parsed.previousState)
+            } catch {
+              hasState = false
+            }
+
           return [
             {
               property: 'fc:frame',
@@ -51,11 +62,11 @@ export function Data() {
                 frame.postUrl.length
               } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
             },
-            ...(frame.state
+            ...(hasState
               ? [
                   {
                     property: 'fc:frame:state',
-                    value: decodeURIComponent(frame.state),
+                    value: frame.state,
                     status: stateTooLong ? 'invalid' : 'valid',
                     message: `State is ${
                       frame.state.length

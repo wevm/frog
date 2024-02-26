@@ -29,6 +29,7 @@ export type FrameDebug = {
   buttonsAreOutOfOrder: boolean
   htmlTags: readonly string[]
   invalidButtons: readonly FrameButton['index'][]
+  state?: string | undefined
 }
 
 export type FrameButton = {

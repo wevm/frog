@@ -41,6 +41,7 @@ export function htmlToFrame(text: string) {
       buttonsAreOutOfOrder,
       htmlTags,
       invalidButtons,
+      state: undefined,
     },
   } satisfies Frame
 }

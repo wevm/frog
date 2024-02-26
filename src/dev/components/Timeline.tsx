@@ -39,11 +39,11 @@ export function Timeline() {
                     x-text="log.response.status"
                     {...{
                       ':class': `{
-                    'border-green-100': log.response.success,
-                    'text-green-900': log.response.success,
-                    'border-red-100': !log.response.success,
-                    'text-red-900': !log.response.success,
-                  }`,
+                        'border-green-100': log.response.success,
+                        'text-green-900': log.response.success,
+                        'border-red-100': !log.response.success,
+                        'text-red-900': !log.response.success,
+                      }`,
                     }}
                   />
                   <span x-text="formatSpeed(log.metrics.speed)" />
@@ -54,7 +54,7 @@ export function Timeline() {
                 />
               </div>
 
-              <div class="flex gap-1.5 font-mono text-gray-1000 text-xs">
+              <div class="flex gap-1.5 font-mono text-gray-900 text-xs">
                 <span x-text="formatUrl(log.body ? log.body.url : log.url)" />
               </div>
             </button>

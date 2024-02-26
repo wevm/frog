@@ -12,7 +12,16 @@ export function Tabs() {
   const labelClass = 'text-gray-700 font-medium min-w-36'
   const valueClass = 'text-gray-1000 font-mono line-clamp-2 text-right'
   return (
-    <div class="border rounded-md bg-background-100">
+    <div
+      class="border rounded-md bg-background-100"
+      x-data="{
+        get state() {
+          if (data.context.status === 'initial' && data.context.previousState)
+            return data.context.previousState
+          return frame.debug.state
+        },
+      }"
+    >
       <ul
         role="tablist"
         class="bg-background-200 border rounded-t-md flex flex-row text-sm"
@@ -84,7 +93,7 @@ export function Tabs() {
           </button>
         </li>
 
-        <li role="presentation">
+        <li role="presentation" x-show="state">
           <button
             role="tab"
             type="button"
@@ -162,7 +171,7 @@ export function Tabs() {
           <div class={rowClass}>
             <div class={labelClass}>Method</div>
             <div
-              class="flex items-center border px-1.5 rounded-sm text-gray-1000 font-mono uppercase"
+              class="flex items-center border px-1.5 rounded-sm text-gray-900 font-mono uppercase"
               x-text="data.method"
             />
           </div>
@@ -276,26 +285,40 @@ export function Tabs() {
         role="tabpanel"
         aria-labelledby="state"
         x-data="{
-          get state() {
-            const state = decodeURIComponent(frame.state)
-            if (!state) return
+          async init() {
+            const stringifiedState = JSON.stringify(this.state ?? {}, null, 2)
+            const stringifiedPreviousState = JSON.stringify(this.previousState ?? {}, null, 2)
+            const [stateHtml, previousStateHtml] = await Promise.all([
+              getCodeHtml(stringifiedState, 'json'),
+              getCodeHtml(stringifiedPreviousState, 'json')
+            ])
+            this.stateHtml = stateHtml
+            this.previousStateHtml = previousStateHtml
 
-            const json = JSON.parse(state)
-            return json.previousState
+            $watch('state', async (value) => {
+              const stringified = JSON.stringify(value ?? {}, null, 2)
+              const html = await getCodeHtml(stringified, 'json')
+              this.stateHtml = html
+            })
+            $watch('previousState', async (value) => {
+              const stringified = JSON.stringify(value ?? {}, null, 2)
+              const html = await getCodeHtml(stringified, 'json')
+              this.previousStateHtml = html
+            })
           },
           get previousState() {
             const previousKey = stack[stackIndex - 1]
             if (!previousKey) return
 
-            const previousFrame = dataMap[previousKey].frame
-            if (!previousFrame) return
+            const previousData = dataMap[previousKey]
+            const previousContext = previousData.context
+            if (previousContext.status === 'initial' && previousContext.previousState)
+              return previousContext.previousState
 
-            const state = decodeURIComponent(previousFrame.state)
-            if (!state) return
-
-            const json = JSON.parse(state)
-            return json.previousState
-          }
+            return previousData.frame.debug.state
+          },
+          stateHtml: undefined,
+          previousStateHtml: undefined,
         }"
         x-show="tab === 'state'"
       >
@@ -304,36 +327,18 @@ export function Tabs() {
             class="scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
             style={{ fontSize: '0.8125rem' }}
           >
-            <div class="flex flex-col lg:w-1/2 p-4 gap-2">
+            <div class="flex flex-col lg:w-1/2 p-4 gap-2 scrollbars">
               <div class="font-medium text-xs text-gray-700 uppercase">
                 Current
               </div>
-              <div x-html="getCodeHtml(JSON.stringify(state ?? {}, null, 2), 'json')" />
+              <div x-html="stateHtml ?? `<pre class='text-gray-500'>${JSON.stringify(state ?? {}, null, 2)}</pre>`" />
             </div>
 
-            <div class="flex flex-col lg:w-1/2 p-4 gap-2">
+            <div class="flex flex-col lg:w-1/2 p-4 gap-2 scrollbars">
               <div class="font-medium text-xs text-gray-700 uppercase">
                 Previous
               </div>
-              <div x-html="getCodeHtml(JSON.stringify(previousState ?? {}, null, 2), 'json')" />
-            </div>
-          </div>
-        </template>
-
-        <template x-if="!state">
-          <div class="p-8 flex justify-center">
-            <div
-              class="bg-background-200 p-4 flex flex-col gap-1 border rounded-md"
-              style={{ borderStyle: 'dashed', maxWidth: '28rem' }}
-            >
-              <div class="text-gray-1000 text-sm font-medium">
-                Frame State Not Found
-              </div>
-              <div class="text-gray-700 text-sm leading-snug">
-                Since initial frame values are cached, frames do not include
-                state in their initial response. Try interacting with the frame
-                to receive state updates.
-              </div>
+              <div x-html="previousStateHtml ?? `<pre class='text-gray-500'>${JSON.stringify(previousState ?? {}, null, 2)}</pre>`" />
             </div>
           </div>
         </template>

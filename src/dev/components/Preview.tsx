@@ -215,7 +215,12 @@ export function Preview(props: PreviewProps) {
           const urlString = urlObj.toString().replace(/https?:\\/\\//, '')
           return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
         },
+
+        cache: {},
         async getCodeHtml(code, lang) {
+          const key = lang + "_" + code
+          if (this.cache[key]) return this.cache[key]
+
           const theme = createCssVariablesTheme({
             name: 'css-variables',
             variablePrefix: '--shiki-',
@@ -228,10 +233,12 @@ export function Preview(props: PreviewProps) {
             themes: [theme],
           })
 
-          return highlighter.codeToHtml(code, {
+          const html = await highlighter.codeToHtml(code, {
             lang,
             theme: 'css-variables',
           })
+          this.cache[key] = html
+          return html
         },
 
         saveState(state) {
