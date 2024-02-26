@@ -57,7 +57,7 @@ const app = new Frog({
 
 ### devtools
 
-- **Type:** `{ appFid?: string; appMnemonic?: string; secret?: string; }`
+- **Type:** `{ appFid?: string; appMnemonic?: string; }`
 
 Options for built-in devtools.
 
@@ -67,7 +67,8 @@ import { Frog } from 'frog'
 
 const app = new Frog({
   devtools: { // [!code focus]
-    secret: '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz' // [!code focus]
+    appId: 'abc123', // [!code focus]
+    appMnemonic: 'apples bananas carrots ...' // [!code focus]
   } // [!code focus]
 })
 ```
@@ -138,6 +139,37 @@ const app = new Frog<State>({
   } // [!code focus]
 })
 ```
+
+### secret
+
+- **Type:** `string`
+
+Key used to sign secret data.
+
+It is used for:
+  - Signing frame state, and
+  - Signing auth session cookies in the devtools.
+
+:::warning
+It's strongly recommended to add a strong secret key before deploying to production.
+:::
+
+:::code-group
+
+```tsx twoslash [src/index.ts]
+// @noErrors
+import { Frog } from 'frog'
+
+const app = new Frog({
+  secret: process.env.FROG_SECRET // [!code focus]
+})
+```
+
+```txt [.env]
+FROG_SECRET=1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz
+```
+
+:::
 
 ### verify
 

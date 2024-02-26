@@ -16,6 +16,7 @@ import {
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
@@ -93,15 +94,6 @@ export type FrogConstructorParameters<
         appFid?: number | undefined
         /** Custom app mnemonic to auth with. */
         appMnemonic?: string | undefined
-        /**
-         * Key used to sign secret data.
-         *
-         * It's strongly recommended to add a strong secret key before deploying to production.
-         *
-         * @example
-         * '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz'
-         */
-        secret?: string | undefined
       }
     | undefined
   /**
@@ -139,6 +131,19 @@ export type FrogConstructorParameters<
    * ```
    */
   initialState?: state | undefined
+  /**
+   * Key used to sign secret data.
+   *
+   * It is used for:
+   *   - Signing frame state, and
+   *   - Signing auth session cookies in the devtools.
+   *
+   * It's strongly recommended to add a strong secret key before deploying to production.
+   *
+   * @example
+   * '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz'
+   */
+  secret?: string | undefined
   /**
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
@@ -267,6 +272,8 @@ export class FrogBase<
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   use: Hono<env, schema, basePath>['use']
+  /** Key used to sign secret data. */
+  secret: FrogConstructorParameters['secret'] | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
@@ -279,6 +286,7 @@ export class FrogBase<
     hubApiUrl,
     imageOptions,
     initialState,
+    secret,
     verify,
   }: FrogConstructorParameters<state, env, basePath> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
@@ -288,6 +296,7 @@ export class FrogBase<
     if (dev) this.dev = dev
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (imageOptions) this._imageOptions = imageOptions
+    if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
@@ -315,6 +324,7 @@ export class FrogBase<
       const context = await getFrameContext<state>({
         context: await requestToContext(c.req, {
           hubApiUrl: this.hubApiUrl,
+          secret: this.secret,
           verify,
         }),
         initialState: this._initialState,
@@ -362,6 +372,14 @@ export class FrogBase<
       }
       const frameImageParams = toSearchParams(baseContext)
 
+      // Derive the previous state, and sign it if a secret is provided.
+      const previousState = await (async () => {
+        const state = context.deriveState()
+        if (!this.secret) return state
+        if (!state) return state
+        return jws.sign(JSON.stringify(state), this.secret)
+      })()
+
       // We need to pass some context to the next frame to derive button values, state, etc.
       // Here, we are deriving two sets of "next frame state".
       // 1. For the INITIAL FRAME, we need to pass through the state as a search parameter
@@ -373,10 +391,10 @@ export class FrogBase<
         initialPath: context.initialPath,
         previousButtonValues: buttonValues,
       })
-      const nextFrameStateSerialized = serializeJson({
+      const nextFrameStateMeta = serializeJson({
         initialPath: context.initialPath,
         previousButtonValues: buttonValues,
-        previousState: context.deriveState(),
+        previousState,
       })
 
       const postUrl = action
@@ -425,10 +443,7 @@ export class FrogBase<
               }
             />
             {context.status !== 'initial' && (
-              <meta
-                property="fc:frame:state"
-                content={nextFrameStateSerialized}
-              />
+              <meta property="fc:frame:state" content={nextFrameStateMeta} />
             )}
             {parsedIntents}
 

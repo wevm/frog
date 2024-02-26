@@ -52,6 +52,7 @@
     "happy-dom": "^13.3.8",
     "hono-og": "0.0.16",
     "immer": "^10.0.3",
+    "jose": "^5.2.2",
     "path-browserify": "^1.0.1",
     "qrcode": "^1.5.3",
     "shiki": "^1.0.0",

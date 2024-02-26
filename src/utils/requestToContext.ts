@@ -3,10 +3,12 @@ import type { FrogConstructorParameters } from '../frog-base.js'
 import { type FrameContext } from '../types.js'
 import { deserializeJson } from './deserializeJson.js'
 import { fromQuery } from './fromQuery.js'
+import * as jws from './jws.js'
 import { verifyFrame } from './verifyFrame.js'
 
 type RequestToContextOptions = {
   hubApiUrl?: string | undefined
+  secret?: FrogConstructorParameters['secret']
   verify?: FrogConstructorParameters['verify']
 }
 
@@ -23,15 +25,23 @@ type RequestToContextReturnType<state = unknown> = Pick<
 
 export async function requestToContext<state>(
   request: Context['req'],
-  { hubApiUrl, verify = true }: RequestToContextOptions,
+  { hubApiUrl, secret, verify = true }: RequestToContextOptions,
 ): Promise<RequestToContextReturnType<state>> {
   const { trustedData, untrustedData } =
     (await request.json().catch(() => {})) || {}
-  const { initialPath, previousState, previousButtonValues } = (() => {
-    if (untrustedData?.state) return deserializeJson(untrustedData.state)
-    if (request.query()) return fromQuery(request.query())
-    return {} as any
-  })()
+  const { initialPath, previousState, previousButtonValues } =
+    await (async () => {
+      if (untrustedData?.state) {
+        const state = deserializeJson(untrustedData.state) as any
+        if (secret && state.previousState)
+          state.previousState = JSON.parse(
+            await jws.verify(state.previousState, secret),
+          )
+        return state
+      }
+      if (request.query()) return fromQuery(request.query())
+      return {} as any
+    })()
 
   const verified = await (async () => {
     if (verify === false) return false

@@ -228,8 +228,8 @@ export default defineConfig({
           link: '/concepts/state-management',
         },
         {
-          text: 'Frame Verification',
-          link: '/concepts/frame-verification',
+          text: 'Securing Frames',
+          link: '/concepts/securing-frames',
         },
         {
           text: 'Deployment',
