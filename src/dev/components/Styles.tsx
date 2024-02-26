@@ -753,6 +753,7 @@ export function Styles() {
     .gap-1\\.5 { gap: 0.375rem; }
     .gap-2 { gap: 0.5rem; }
     .gap-2\\.5 { gap: 0.625rem; }
+    .gap-3 { gap: 0.75rem; }
     .gap-4 { gap: 1rem; }
     .gap-6 { gap: 1.5rem; }
     .grid { display: grid; }
@@ -776,6 +777,7 @@ export function Styles() {
     .overflow-hidden { overflow: hidden; }
     .order-0 { order: 0; }
     .order-1 { order: 1; }
+    .p-1 { padding: 0.25rem; }
     .p-2 { padding: 0.5rem; }
     .p-3 { padding: 0.75rem; }
     .p-4 { padding: 1rem; }
@@ -796,6 +798,7 @@ export function Styles() {
     .pr-6 { padding-right: 1.5rem; }
     .pl-6 { padding-left: 1.5rem; }
     .pb-6 { padding-bottom: 1.5rem; }
+    .pt-3 { padding-top: 0.75rem; }
     .pt-6 { padding-top: 1.5rem; }
     .p-6 { padding: 1.5rem; }
     .p-8 { padding: 2rem; }
@@ -806,8 +809,11 @@ export function Styles() {
     .rounded-lg { border-radius: 0.5rem; }
     .rounded-xl { border-radius: 0.75rem; }
     .rounded-md { border-radius: 0.375rem; }
+    .rounded-b-md { border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
     .rounded-t-md { border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; } 
     .rounded-sm { border-radius: 0.25rem; }
+    .rounded-r-sm { border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem; }
+    .rounded-l-sm { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem; }
     .rounded-l-md { border-top-left-radius: 0.375rem; border-bottom-left-radius: 0.375rem; }
     .rounded-r-md { border-top-right-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
     .rounded-t-lg { border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
@@ -869,7 +875,7 @@ export function Styles() {
       &:hover { background-color: var(--gray-100) !important; }
     }
 
-    .h-sidebar { height: 316px }
+    .h-timeline { height: 517px }
     .container {
       padding-top: 1rem;
       padding-bottom: 1rem;
@@ -910,7 +916,6 @@ export function Styles() {
         padding-top: 1.5rem;
       }
       .md\\:py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-      .md\\:h-sidebar { min-height: 554px; }
       .md\\:min-w-sidebar { min-width: 300px; }
       .md\\:absolute { position: absolute; }
       .md\\:inset-y-0 { top: 0; bottom: 0; }

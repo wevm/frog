@@ -178,6 +178,7 @@ export function Navigator() {
               x-on:click="
                 const nextRoute = route === '/' ? '/dev' : route + '/dev'
                 history.replaceState({}, '', nextRoute)
+                mounted = false
 
                 const nextFrame = window.location.toString().replace('/dev', '')
                 getFrame(nextFrame, true)
@@ -193,6 +194,9 @@ export function Navigator() {
                     tab = 'request'
                   })
                   .catch(console.error)
+                  .finally(() => {
+                    mounted = true
+                  })
               "
             />
           </template>

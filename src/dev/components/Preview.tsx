@@ -86,6 +86,7 @@ export function Preview(props: PreviewProps) {
           $watch('stack', (stack) => this.saveState({ stack }))
 
           this.restoreState()
+          this.mounted = true
         },
         get data() {
           return this.dataMap[this.dataKey]
@@ -107,6 +108,7 @@ export function Preview(props: PreviewProps) {
         inputText: '',
         logIndex: -1,
         logs: ['${props.data.id}'],
+        mounted: false,
         stackIndex: 0,
         stack: ['${props.data.id}'],
         tab: $persist('request'),
@@ -242,7 +244,7 @@ export function Preview(props: PreviewProps) {
         },
 
         saveState(state) {
-          if (this.logs.length === 1) return
+          if (!this.mounted) return
 
           const nextState = {
             dataKey: this.dataKey,
@@ -280,8 +282,6 @@ export function Preview(props: PreviewProps) {
             const endOfLogs = restored.logIndex === -1 || restored.logIndex === restored.logs.length - 1
             const nextData = restored.dataMap[restored.dataKey]
             if (endOfStack && endOfLogs && nextData) {
-              console.log('update current frame')
-              console.log({ nextData })
               let json
               switch (nextData?.type) {
                 case 'initial': {

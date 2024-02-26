@@ -1,7 +1,17 @@
+import {
+  chevronDownIcon,
+  chevronUpIcon,
+  personIcon,
+  circleBackslashIcon,
+} from './icons.js'
+
 export function Timeline() {
+  const buttonClass =
+    'border rounded-sm bg-background-200 p-1 text-gray-700 hover:bg-gray-100'
+
   return (
-    <div class="border rounded-md overflow-hidden h-sidebar md:h-sidebar">
-      <div class="scrollbars h-full">
+    <div class="border rounded-md overflow-hidden h-timeline flex flex-col justify-between divide-y">
+      <div class="scrollbars">
         <div
           class="bg-background-100 w-full flex"
           style={{
@@ -17,16 +27,16 @@ export function Timeline() {
                 ':class':
                   'index === logIndex ? "bg-gray-100" : "bg-transparent"',
                 ':style':
-                  '(index !== 0 || logs.length < 7) && { borderBottomWidth: `1px` }',
+                  '(index !== 0 || logs.length < 6) && { borderBottomWidth: `1px` }',
                 ':tabIndex': 'logs.length - index',
               }}
               x-data="{
-            get log() { return dataMap[key] },
-          }"
+                get log() { return dataMap[key] },
+              }"
               x-on:click={`
-            dataKey = key
-            logIndex = index
-          `}
+                dataKey = key
+                logIndex = index
+              `}
             >
               <div class="flex flex-row items-center justify-between w-full">
                 <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
@@ -60,6 +70,63 @@ export function Timeline() {
             </button>
           </template>
         </div>
+      </div>
+      <div class="bg-background-100 px-2 py-2 flex justify-between">
+        <div class="flex gap-1">
+          <div
+            class="border rounded-sm bg-background-200 text-gray-700 divide-x"
+            style={{ height: '25px' }}
+          >
+            <button
+              class="bg-transparent p-1 hover:bg-gray-100 rounded-l-sm"
+              type="button"
+              x-on:click="
+                const nextLogIndex = logIndex + 1 > logs.length - 1 ? 0 : logIndex + 1
+                const key = logs[nextLogIndex]
+                dataKey = key
+                logIndex = nextLogIndex
+                // TODO: Scroll page
+              "
+            >
+              {chevronUpIcon}
+            </button>
+            <button
+              class="bg-transparent p-1 hover:bg-gray-100 rounded-r-sm"
+              type="button"
+              x-on:click="
+                const nextLogIndex = logIndex - 1 >= 0 ? logIndex - 1 : logs.length - 1
+                const key = logs[nextLogIndex]
+                dataKey = key
+                logIndex = nextLogIndex
+                // TODO: Scroll page
+              "
+            >
+              {chevronDownIcon}
+            </button>
+          </div>
+          <button
+            class={buttonClass}
+            type="button"
+            x-on:click="
+              const log = logs.at(-1)
+              dataKey = log
+              logs = [log]
+              logIndex = -1
+            "
+          >
+            {circleBackslashIcon}
+          </button>
+        </div>
+
+        <button
+          class={buttonClass}
+          type="button"
+          x-on:click="
+            // TODO: Override/change FID, Cast
+          "
+        >
+          {personIcon}
+        </button>
       </div>
     </div>
   )
