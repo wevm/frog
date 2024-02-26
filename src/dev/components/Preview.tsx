@@ -256,7 +256,7 @@ export function Preview(props: PreviewProps) {
           const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(nextState))
           window.history.replaceState(null, null, '#state/' + compressed);
         },
-        restoreState() {
+        async restoreState() {
           if (!location.hash.startsWith('#state')) return
           const state = location.hash.replace('#state/', '').trim()
 
@@ -273,6 +273,32 @@ export function Preview(props: PreviewProps) {
             this.logIndex = restored.logIndex
             this.stack = restored.stack
             this.stackIndex = restored.stackIndex
+
+            // Refetch current frame if no other frame is selected or back in the stack (e.g. hit back button to previous frame in history)
+            // This allows you to make changes to the frame in code and see updates immediately
+            const endOfStack = restored.stackIndex === restored.stack.length - 1
+            const endOfLogs = restored.logIndex === -1 || restored.logIndex === restored.logs.length - 1
+            const nextData = restored.dataMap[restored.dataKey]
+            if (endOfStack && endOfLogs && nextData) {
+              console.log('update current frame')
+              console.log({ nextData })
+              let json
+              switch (nextData?.type) {
+                case 'initial': {
+                  json = await this.getFrame(nextData.url)
+                  break
+                }
+                case 'action': {
+                  json = await this.postFrameAction(nextData.body)
+                  break
+                }
+                case 'redirect': {
+                  json = await this.postFrameRedirect(nextData.body)
+                  break
+                }
+              }
+              this.dataKey = json.id
+            }
           } catch (error) {
             console.log('failed to restore state:', error.message)
             history.replaceState(null, null, location.pathname);
