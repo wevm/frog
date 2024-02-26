@@ -140,8 +140,8 @@ export function routes<
       // @ts-ignore
       c.set('fid', fid)
 
-      const session = app.dev?.secret
-        ? await getSignedCookie(c, app.dev.secret, 'session')
+      const session = app.secret
+        ? await getSignedCookie(c, app.secret, 'session')
         : getCookie(c, 'session')
       const keypair = session ? JSON.parse(session) : undefined
       // @ts-ignore
@@ -356,14 +356,8 @@ export function routes<
 
       // 5. Save keypair in cookie
       const value = JSON.stringify({ privateKey, publicKey })
-      if (app.dev?.secret)
-        await setSignedCookie(
-          c,
-          'session',
-          value,
-          app.dev?.secret,
-          cookieOptions,
-        )
+      if (app.secret)
+        await setSignedCookie(c, 'session', value, app.secret, cookieOptions)
       else setCookie(c, 'session', value, { ...cookieOptions, httpOnly: true })
 
       return c.json({ code, token, url })
