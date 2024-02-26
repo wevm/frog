@@ -50,10 +50,15 @@ export function routes<
         return (
           <html lang="en">
             <head>
-              <title>🐸 frame: {path || '/'}</title>
+              <title>frame: {path || '/'}</title>
               <Fonts />
               <Styles />
               <Scripts />
+              <link
+                rel="icon"
+                href="https://frog.fm/icon.png"
+                type="image/png"
+              />
             </head>
             <body>{children}</body>
           </html>
