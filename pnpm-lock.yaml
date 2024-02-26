@@ -92,9 +92,6 @@ importers:
       hono:
         specifier: ^4
         version: 4.0.4
-      jose:
-        specifier: ^5.2.2
-        version: 5.2.2
     devDependencies:
       tsx:
         specifier: ^4.7.1
