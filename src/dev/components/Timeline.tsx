@@ -1,8 +1,8 @@
 import {
   chevronDownIcon,
   chevronUpIcon,
-  personIcon,
   circleBackslashIcon,
+  personIcon,
 } from './icons.js'
 
 export function Timeline() {
