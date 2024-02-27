@@ -30,6 +30,12 @@ export type FrogConstructorParameters<
   basePath extends string = '/',
 > = {
   /**
+   * The base path for assets.
+   *
+   * @example '/' (commonly for Vercel Serverless Functions)
+   */
+  assetsPath?: basePath | string | undefined
+  /**
    * The base path for the server instance.
    *
    * @example '/api' (commonly for Vercel Serverless Functions)
@@ -258,6 +264,8 @@ export class FrogBase<
   _imageOptions: ImageResponseOptions | undefined
   _initialState: state = undefined as state
 
+  /** Path for assets. */
+  assetsPath: string
   /** Base path of the server instance. */
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
@@ -278,6 +286,7 @@ export class FrogBase<
   verify: FrogConstructorParameters['verify'] = true
 
   constructor({
+    assetsPath,
     basePath,
     browserLocation,
     dev,
@@ -300,6 +309,7 @@ export class FrogBase<
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
+    this.assetsPath = assetsPath ?? this.basePath
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
@@ -320,6 +330,7 @@ export class FrogBase<
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), async (c) => {
       const url = new URL(c.req.url)
+      const assetsUrl = url.origin + parsePath(this.assetsPath)
       const baseUrl = url.origin + parsePath(this.basePath)
 
       const context = await getFrameContext<state>({
@@ -403,7 +414,7 @@ export class FrogBase<
             context.url,
           )}/image?${frameImageParams.toString()}`
         if (image.startsWith('http')) return image
-        return `${baseUrl + parsePath(image)}`
+        return `${assetsUrl + parsePath(image)}`
       })()
 
       const postUrl = (() => {

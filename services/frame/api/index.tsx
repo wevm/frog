@@ -11,6 +11,8 @@ export const config = {
 }
 
 export const app = new Frog<State>({
+  assetsPath: '/',
+  basePath: '/api',
   browserLocation: 'https://frog.fm',
   initialState: {
     featureIndex: 0,
@@ -24,18 +26,18 @@ app.use(
   }),
 )
 
-app.frame('/api', () => {
+app.frame('/', () => {
   return {
     image: '/og.png',
     intents: [
-      <Button action="/api/features">Features →</Button>,
+      <Button action="/features">Features →</Button>,
       <Button.Link href="https://frog.fm">Docs</Button.Link>,
       <Button.Link href="https://github.com/wevm/frog">GitHub</Button.Link>,
     ],
   }
 })
 
-app.frame('/api/features', ({ buttonValue, deriveState }) => {
+app.frame('/features', ({ buttonValue, deriveState }) => {
   const featureImages = [
     '/write-in-jsx.png',
     '/connect-frames.png',
@@ -67,7 +69,7 @@ app.frame('/api/features', ({ buttonValue, deriveState }) => {
   }
 })
 
-app.frame('/api/end', () => {
+app.frame('/end', () => {
   return {
     image: '/npm.png',
     intents: [
