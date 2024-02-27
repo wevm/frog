@@ -5,7 +5,6 @@ export function Tabs() {
     bottom: '0',
     left: '0.75rem',
     right: '0.75rem',
-    position: 'absolute',
   }
 
   const rowClass = 'flex flex-row py-3 justify-between'
@@ -53,7 +52,7 @@ export function Tabs() {
             Request
             <div
               aria-hidden="true"
-              class="bg-gray-1000"
+              class="absolute bg-gray-1000"
               style={indicatorStyle}
               {...{
                 ':style': `tab === 'request' && {
@@ -82,7 +81,7 @@ export function Tabs() {
             Context
             <div
               aria-hidden="true"
-              class="bg-gray-1000"
+              class="absolute bg-gray-1000"
               style={indicatorStyle}
               {...{
                 ':style': `tab === 'context' && {
@@ -111,7 +110,7 @@ export function Tabs() {
             State
             <div
               aria-hidden="true"
-              class="bg-gray-1000"
+              class="absolute bg-gray-1000"
               style={indicatorStyle}
               {...{
                 ':style': `tab === 'state' && {
@@ -140,7 +139,7 @@ export function Tabs() {
             Meta Tags
             <div
               aria-hidden="true"
-              class="bg-gray-1000"
+              class="absolute bg-gray-1000"
               style={indicatorStyle}
               {...{
                 ':style': `tab === 'meta-tags' && {
@@ -194,19 +193,19 @@ export function Tabs() {
             <div class={valueClass} x-text="new URL(url).pathname" />
           </div>
 
-          <div class={rowClass} x-show="body?.fid">
-            <div class={labelClass}>FID</div>
-            <div class={valueClass} x-text="`#${body?.fid}`" />
-          </div>
-
-          <div class={rowClass} x-show="body?.inputText">
+          <div class={rowClass} x-cloak x-show="body?.inputText">
             <div class={labelClass}>Input Text</div>
             <div class={valueClass} x-text="body?.inputText" />
           </div>
 
-          <div class={rowClass} x-show="body?.buttonIndex">
+          <div class={rowClass} x-cloak x-show="body?.buttonIndex">
             <div class={labelClass}>Button Index</div>
             <div class={valueClass} x-text="body?.buttonIndex" />
+          </div>
+
+          <div class={rowClass} x-cloak x-show="body?.fid">
+            <div class={labelClass}>User FID</div>
+            <div class={valueClass} x-text="`#${body?.fid}`" />
           </div>
         </div>
 
@@ -236,6 +235,15 @@ export function Tabs() {
             </div>
           </div>
 
+          <div
+            class={rowClass}
+            x-cloak
+            x-show="data.context.verified !== undefined"
+          >
+            <div class={labelClass}>Verified</div>
+            <div class={valueClass} x-text="data.context.verified" />
+          </div>
+
           <div class={rowClass} x-show="data.metrics.speed">
             <div class={labelClass}>Response Time</div>
             <div class={valueClass} x-text="formatSpeed(data.metrics.speed)" />
@@ -257,12 +265,12 @@ export function Tabs() {
             />
           </div>
 
-          <div class={rowClass} x-show="data.response.location">
+          <div class={rowClass} x-cloak x-show="data.response.location">
             <div class={labelClass}>Location</div>
             <div class={valueClass} x-text="data.response.location" />
           </div>
 
-          <div class={rowClass} x-show="data.response.error">
+          <div class={rowClass} x-cloak x-show="data.response.error">
             <div class={labelClass}>Error</div>
             <div class={valueClass} x-text="data.response.error" />
           </div>

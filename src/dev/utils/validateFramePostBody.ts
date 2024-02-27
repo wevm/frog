@@ -14,9 +14,8 @@ export function validateFramePostBody(
   const inputText = value.inputText as string | undefined
   const state = value.state as string | undefined
 
-  // TODO: Make dynamic
   const fid = value.fid ? parseInt(value.fid as string) : undefined
-  const castId = {
+  const castId = (value.castId as unknown as { fid: number; hash: string }) ?? {
     fid: 1,
     hash: '0x0000000000000000000000000000000000000000',
   }

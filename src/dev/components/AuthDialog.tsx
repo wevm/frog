@@ -62,9 +62,8 @@ export function AuthDialog() {
         >
           <button
             type="button"
-            class="bg-transparent text-gray-800 hover:bg-gray-100 rounded-full flex items-center justify-center"
+            class="bg-transparent text-gray-800 hover:bg-gray-100 rounded-full flex items-center justify-center absolute"
             style={{
-              position: 'absolute',
               height: '2rem',
               width: '2rem',
               top: '1.25rem',
@@ -95,9 +94,8 @@ export function AuthDialog() {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              class="flex items-center justify-center flex-col gap-4"
+              class="flex items-center justify-center flex-col gap-4 absolute"
               style={{
-                position: 'absolute',
                 inset: '0',
               }}
               x-show="timedOut"

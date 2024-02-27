@@ -103,8 +103,8 @@ export async function QRCode(props: QRCodeProps) {
         }}
       >
         <div
-          class="flex items-center justify-center"
-          style={{ inset: '0', position: 'absolute' }}
+          class="flex items-center justify-center absolute"
+          style={{ inset: '0' }}
         >
           <div
             class="flex items-center justify-center rounded-lg"

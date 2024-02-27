@@ -90,7 +90,7 @@ function Input() {
 
 function Button() {
   const buttonClass =
-    'bg-gray-100 border-gray-200 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
+    'bg-gray-alpha-100 border-gray-200 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
   const innerHtml = (
     <span
       class="whitespace-nowrap overflow-hidden text-ellipsis text-gray-1000 font-medium"
@@ -100,9 +100,8 @@ function Button() {
   const leavingAppPrompt = (
     <div
       x-show="open"
-      class="flex flex-col gap-1.5 border bg-background-100 p-4 rounded-lg text-center"
+      class="flex flex-col gap-1.5 border bg-background-100 p-4 rounded-lg text-center absolute"
       style={{
-        position: 'absolute',
         marginTop: '4px',
         width: '20rem',
         zIndex: '10',
@@ -128,8 +127,7 @@ function Button() {
           Cancel
         </button>
         <button
-          class="bg-red-400 rounded-md w-full text-sm text-bg font-medium py-2"
-          target="_blank"
+          class="bg-red-400 hover:bg-red-300 rounded-md w-full text-sm text-bg font-medium py-2"
           type="button"
           x-on:click={`open = false; window.open(url, '_blank');`}
         >
@@ -173,6 +171,11 @@ function Button() {
               if (open) return
               const body = {
                 buttonIndex: index,
+                castId: {
+                  fid: overrides.castFid,
+                  hash: overrides.castHash,
+                },
+                fid: overrides.userFid !== user.userFid ? overrides.userFid : user.userFid,
                 inputText,
                 state: frame.state,
                 url: target ?? frame.postUrl,
@@ -223,6 +226,11 @@ function Button() {
           x-on:click={`
             const body = {
               buttonIndex: index,
+              castId: {
+                fid: overrides.castFid,
+                hash: overrides.castHash,
+              },
+              fid: overrides.userFid !== user.userFid ? overrides.userFid : user.userFid,
               inputText,
               state: frame.state,
               url: target ?? frame.postUrl,

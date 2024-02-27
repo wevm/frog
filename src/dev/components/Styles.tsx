@@ -698,7 +698,6 @@ export function Styles() {
 
     button[type='submit'] {
       -webkit-appearance: button;
-      background-color: transparent;
       background-image: none;
     }
 
@@ -734,6 +733,7 @@ export function Styles() {
 
     /** Utilities **/
 
+    .absolute { position: absolute; }
     .border { border-width: 1px; }
     .border-t { border-top-width: 1px; }
     .border-t-0 { border-top-width: 0; }
@@ -778,6 +778,7 @@ export function Styles() {
     .order-0 { order: 0; }
     .order-1 { order: 1; }
     .p-1 { padding: 0.25rem; }
+    .p-1\\.5 { padding: 0.375rem; }
     .p-2 { padding: 0.5rem; }
     .p-3 { padding: 0.75rem; }
     .p-4 { padding: 1rem; }
@@ -874,8 +875,11 @@ export function Styles() {
     .hover\\:bg-gray-100 {
       &:hover { background-color: var(--gray-100) !important; }
     }
+    .hover\\:bg-red-300 {
+      &:hover { background-color: var(--red-300) !important; }
+    }
 
-    .h-timeline { height: 517px }
+    .h-timeline { height: 521px }
     .container {
       padding-top: 1rem;
       padding-bottom: 1rem;

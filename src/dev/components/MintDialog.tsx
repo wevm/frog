@@ -23,9 +23,8 @@ export function MintDialog() {
         >
           <button
             type="button"
-            class="text-gray-800 bg-gray-100 rounded-full flex items-center justify-center"
+            class="text-gray-800 bg-gray-100 rounded-full flex items-center justify-center absolute"
             style={{
-              position: 'absolute',
               height: '2rem',
               width: '2rem',
               top: '1.25rem',

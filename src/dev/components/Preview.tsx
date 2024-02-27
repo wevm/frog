@@ -77,16 +77,19 @@ export function Preview(props: PreviewProps) {
           } catch (e) {
             console.log({ e })
           }
-
-          $watch('dataKey', (dataKey) => this.saveState({ dataKey }))
-          $watch('dataMap', (dataMap) => this.saveState({ dataMap }))
-          $watch('logIndex', (logIndex) => this.saveState({ logIndex }))
-          $watch('logs', (logs) => this.saveState({ logs }))
-          $watch('stackIndex', (stackIndex) => this.saveState({ stackIndex }))
-          $watch('stack', (stack) => this.saveState({ stack }))
-
+          
           this.restoreState()
-          this.mounted = true
+            .finally(() => {
+              $watch('dataKey', (dataKey) => this.saveState({ dataKey }))
+              $watch('dataMap', (dataMap) => this.saveState({ dataMap }))
+              $watch('logIndex', (logIndex) => this.saveState({ logIndex }))
+              $watch('logs', (logs) => this.saveState({ logs }))
+              $watch('overrides', (overrides) => this.saveState({ overrides }))
+              $watch('stackIndex', (stackIndex) => this.saveState({ stackIndex }))
+              $watch('stack', (stack) => this.saveState({ stack }))
+
+              this.mounted = true
+            })
         },
         get data() {
           return this.dataMap[this.dataKey]
@@ -114,7 +117,13 @@ export function Preview(props: PreviewProps) {
         tab: $persist('request'),
         user: $persist(null),
 
-        async getFrame(url, replaceLogs = false) {
+        overrides: {
+          userFid: 1,
+          castFid: 1,
+          castHash: '0x0000000000000000000000000000000000000000',
+        },
+
+        async getFrame(url, options = { replaceLogs: false, skipLogs: false }) {
           const json = await fetch(this.parsePath(url) + '/dev/frame', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -126,11 +135,12 @@ export function Preview(props: PreviewProps) {
           this.routes = routes
 
           this.logIndex = -1
-          this.logs = replaceLogs ? [id] : [...this.logs, id]
+          if (!options.skipLogs)
+            this.logs = options.replaceLogs ? [id] : [...this.logs, id]
 
           return json.data
         },
-        async postFrameAction(body) {
+        async postFrameAction(body, options = { skipLogs: false }) {
           const url = this.parsePath(body.url)
           const json = await fetch(url + '/dev/frame/action', {
             method: 'POST',
@@ -144,11 +154,12 @@ export function Preview(props: PreviewProps) {
           this.routes = routes
 
           this.logIndex = -1
-          this.logs = [...this.logs, id]
+          if (!options.skipLogs)
+            this.logs = [...this.logs, id]
 
           return data
         },
-        async postFrameRedirect(body) {
+        async postFrameRedirect(body, options = { skipLogs: false }) {
           const url = this.parsePath(body.url)
           const json = await fetch(url + '/dev/frame/redirect', {
             method: 'POST',
@@ -166,7 +177,8 @@ export function Preview(props: PreviewProps) {
           this.dataMap[id] = data
          
           this.logIndex = -1
-          this.logs = [...this.logs, id]
+          if (!options.skipLogs)
+            this.logs = [...this.logs, id]
 
           return data
         },
@@ -251,6 +263,7 @@ export function Preview(props: PreviewProps) {
             dataMap: this.dataMap,
             logs: this.logs,
             logIndex: this.logIndex,
+            overrides: this.overrides,
             stack: this.stack,
             stackIndex: this.stackIndex,
             ...state,
@@ -259,7 +272,11 @@ export function Preview(props: PreviewProps) {
           window.history.replaceState(null, null, '#state/' + compressed);
         },
         async restoreState() {
-          if (!location.hash.startsWith('#state')) return
+          if (!location.hash.startsWith('#state')) {
+            const userFid = this.user.userFid
+            if (userFid) this.overrides = { ...this.overrides, userFid }
+            return
+          }
           const state = location.hash.replace('#state/', '').trim()
 
           try {
@@ -273,6 +290,7 @@ export function Preview(props: PreviewProps) {
             this.dataMap = restored.dataMap
             this.logs = restored.logs
             this.logIndex = restored.logIndex
+            this.overrides = restored.overrides
             this.stack = restored.stack
             this.stackIndex = restored.stackIndex
 
@@ -285,18 +303,19 @@ export function Preview(props: PreviewProps) {
               let json
               switch (nextData?.type) {
                 case 'initial': {
-                  json = await this.getFrame(nextData.url)
+                  json = await this.getFrame(nextData.url, { skipLogs: true })
                   break
                 }
                 case 'action': {
-                  json = await this.postFrameAction(nextData.body)
+                  json = await this.postFrameAction(nextData.body, { skipLogs: true })
                   break
                 }
                 case 'redirect': {
-                  json = await this.postFrameRedirect(nextData.body)
+                  json = await this.postFrameRedirect(nextData.body, { skipLogs: true })
                   break
                 }
               }
+              this.logs = this.logs.slice(0, this.logs.length - 1).concat(json.id)
               this.dataKey = json.id
             }
           } catch (error) {
@@ -352,7 +371,7 @@ export function Preview(props: PreviewProps) {
       }}
     >
       <aside
-        class="order-1 space-y-4 scrollbars md:min-w-sidebar lg:min-w-sidebar w-full"
+        class="order-1 space-y-4 md:min-w-sidebar lg:min-w-sidebar w-full"
         style={{
           position: 'sticky',
           top: '1.5rem',

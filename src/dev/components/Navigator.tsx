@@ -101,8 +101,35 @@ export function Navigator() {
           const nextData = dataMap[dataKey]
           if (!nextData) return
 
+          // Reset on shift + click
+          if ($event.shiftKey) {
+            const route = window.location.pathname
+            history.replaceState({}, '', route)
+            mounted = false
+
+            const nextFrame = window.location.toString().replace('/dev', '')
+            getFrame(nextFrame, { replaceLogs: true })
+              .then((json) => {
+                const id = json.id
+                dataKey = id
+
+                stack = [id]
+                stackIndex = 0
+
+                inputText = ''
+                open = false
+                tab = 'request'
+              })
+              .catch(console.error)
+              .finally(() => {
+                mounted = true
+              })
+
+            return
+          }
+
           let json
-          switch (nextData?.type) {
+          switch (nextData.type) {
             case 'initial': {
               json = await getFrame(nextData.url)
               break
@@ -139,11 +166,12 @@ export function Navigator() {
           x-on:click="open = true"
         >
           <div
-            class="flex items-center h-full text-gray-700"
-            style={{ left: '0.5rem', position: 'absolute' }}
+            class="flex items-center h-full text-gray-700 absolute"
+            style={{ left: '0.5rem' }}
           >
             {globeIcon}
           </div>
+
           <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
             <span
               class="font-sans text-gray-1000"
@@ -154,9 +182,10 @@ export function Navigator() {
         </button>
 
         <div
+          x-cloak
           x-show="open"
+          class="border bg-background-100 rounded-lg w-full overflow-hidden py-1 absolute"
           style={{
-            position: 'absolute',
             marginTop: '4px',
             top: '100%',
             zIndex: '10',
@@ -166,8 +195,6 @@ export function Navigator() {
             '@click.outside': 'open = false',
             '@keyup.escape': 'open = false',
             'x-trap': 'open',
-            ':class':
-              "open ? 'border bg-background-100 rounded-lg w-full overflow-hidden py-1' : ''",
           }}
         >
           <template x-for="(route, index) in routes">
@@ -181,7 +208,7 @@ export function Navigator() {
                 mounted = false
 
                 const nextFrame = window.location.toString().replace('/dev', '')
-                getFrame(nextFrame, true)
+                getFrame(nextFrame, { replaceLogs: true })
                   .then((json) => {
                     const id = json.id
                     dataKey = id
@@ -223,9 +250,8 @@ export function Navigator() {
 
           <div
             x-show="open"
-            class="border bg-background-100 rounded-xl w-full overflow-hidden"
+            class="border bg-background-100 rounded-xl w-full overflow-hidden absolute"
             style={{
-              position: 'absolute',
               marginTop: '4px',
               top: '100%',
               right: '0',
