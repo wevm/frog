@@ -224,5 +224,234 @@ app.frame('/redirect-buttons', (c) => {
   })
 })
 
+app.frame('/transaction', () => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        Example
+      </div>
+    ),
+    intents: [
+      <Button.experimental_Transaction location="/tx?foo=bar">
+        /tx
+      </Button.experimental_Transaction>,
+      <Button.experimental_Transaction location="/tx-contract?foo=bar">
+        /tx-contract
+      </Button.experimental_Transaction>,
+    ],
+  }
+})
+
+app.experimental_transaction('/tx', (c) => {
+  return c.res({
+    description: 'Rent 1 Farcaster storage unit to FID 3621',
+    to: '0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D',
+    data: '0x783a112b0000000000000000000000000000000000000000000000000000000000000e250000000000000000000000000000000000000000000000000000000000000001',
+    value: '984316556204476',
+    chainId: '10',
+  })
+})
+
+app.experimental_transaction('/tx-contract', (c) => {
+  return c.contract({
+    abi: erc20Abi,
+    functionName: 'transferFrom',
+    args: ['0x', '0x', 1n],
+    description: 'foo',
+    to: '0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D',
+    value: '984316556204476',
+    chainId: '10',
+  })
+})
+
 app.route('/todos', todoApp)
 app.route('/routing', routingApp)
+
+export const erc20Abi = [
+  {
+    type: 'event',
+    name: 'Approval',
+    inputs: [
+      {
+        indexed: true,
+        name: 'owner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        name: 'spender',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        name: 'value',
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'event',
+    name: 'Transfer',
+    inputs: [
+      {
+        indexed: true,
+        name: 'from',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        name: 'to',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        name: 'value',
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'allowance',
+    stateMutability: 'view',
+    inputs: [
+      {
+        name: 'owner',
+        type: 'address',
+      },
+      {
+        name: 'spender',
+        type: 'address',
+      },
+    ],
+    outputs: [
+      {
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'approve',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: 'spender',
+        type: 'address',
+      },
+      {
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        type: 'bool',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'balanceOf',
+    stateMutability: 'view',
+    inputs: [
+      {
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    outputs: [
+      {
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'decimals',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      {
+        type: 'uint8',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'name',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      {
+        type: 'string',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'symbol',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      {
+        type: 'string',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'totalSupply',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      {
+        type: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'transfer',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: 'recipient',
+        type: 'address',
+      },
+      {
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        type: 'bool',
+      },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'transferFrom',
+    stateMutability: 'nonpayable',
+    inputs: [
+      {
+        name: 'sender',
+        type: 'address',
+      },
+      {
+        name: 'recipient',
+        type: 'address',
+      },
+      {
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        type: 'bool',
+      },
+    ],
+  },
+] as const

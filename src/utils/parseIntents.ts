@@ -44,7 +44,8 @@ function parseIntent(
   ) as JSXNode
 
   const props = (() => {
-    if ((node.tag as any).__type === 'button')
+    if ((node.tag as any).__type === 'button') {
+      const search = (node.props.location ?? '').split('?')[1]
       return {
         ...node.props,
         action: node.props.action
@@ -52,8 +53,15 @@ function parseIntent(
             (options.search ? `?${options.search}` : '')
           : undefined,
         children: node.children,
+        location: node.props.location
+          ? node.props.location?.startsWith('http')
+            ? node.props.location
+            : parsePath(options.baseUrl + node.props.location) +
+              (search ? `?${search}` : '')
+          : undefined,
         index: counter.button++,
       }
+    }
     if ((node.tag as any).__type === 'text-input')
       return { ...node.props, children: node.children }
     return {}
