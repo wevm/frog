@@ -12,6 +12,7 @@
     "hono": "^4"
   },
   "devDependencies": {
+    "@hono/node-server": "^1",
     "vercel": "latest"
   }
 }

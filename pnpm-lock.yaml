@@ -114,11 +114,14 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240226T233053(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5)
+        version: 1.0.0-alpha.0-main.20240227T042436(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5)
       hono:
         specifier: ^4
         version: 4.0.7
     devDependencies:
+      '@hono/node-server':
+        specifier: ^1
+        version: 1.8.1
       vercel:
         specifier: latest
         version: 33.5.2
@@ -1706,7 +1709,6 @@ packages:
   /@hono/node-server@1.8.1:
     resolution: {integrity: sha512-9ondWs/5EuyZOd/iyiRp0GQfMEq+IA+IbV8Wy2bgdr5+cC55I3xbQrqtXKprw7jJhfvq3IVw7ALiuvCEmLdCAA==}
     engines: {node: '>=18.14.1'}
-    dev: false
 
   /@hono/vite-dev-server@0.7.0(hono@4.0.4):
     resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
@@ -5625,8 +5627,8 @@ packages:
       - zod
     dev: false
 
-  /frog@1.0.0-alpha.0-main.20240226T233053(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5):
-    resolution: {integrity: sha512-Jv9lK4CBWza6mnq1t2bp/fThAPRF3X1ga29A70Wzqlx96ObYEujboCHX860pLrXfFZEXhO4HTiXDnHStHAE51w==}
+  /frog@1.0.0-alpha.0-main.20240227T042436(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5):
+    resolution: {integrity: sha512-0A7tHWYG63+bW/wr37xNTlsScb1KO5lmzwJYDxt0p4MpEZQ/jER2CoxZl4AlilgYZmxolNJQ+APytNxk8CBosA==}
     hasBin: true
     peerDependencies:
       hono: ^4

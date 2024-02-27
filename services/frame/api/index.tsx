@@ -1,9 +1,9 @@
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog } from 'frog'
 import { handle } from 'frog/vercel'
 
 type State = {
   featureIndex: number
-  stage: 'start' | 'features' | 'end'
 }
 
 export const config = {
@@ -14,11 +14,28 @@ export const app = new Frog<State>({
   browserLocation: 'https://frog.fm',
   initialState: {
     featureIndex: 0,
-    stage: 'start',
   },
 })
 
-app.frame('/api', ({ buttonValue, deriveState }) => {
+app.use(
+  '/*',
+  serveStatic({
+    root: './public',
+  }),
+)
+
+app.frame('/api', () => {
+  return {
+    image: '/og.png',
+    intents: [
+      <Button action="/api/features">Features →</Button>,
+      <Button.Link href="https://frog.fm">Docs</Button.Link>,
+      <Button.Link href="https://github.com/wevm/frog">GitHub</Button.Link>,
+    ],
+  }
+})
+
+app.frame('/api/features', ({ buttonValue, deriveState }) => {
   const featureImages = [
     '/write-in-jsx.png',
     '/connect-frames.png',
@@ -27,42 +44,36 @@ app.frame('/api', ({ buttonValue, deriveState }) => {
     '/deploy-anywhere.png',
   ]
 
-  const { featureIndex, stage } = deriveState((previousState) => {
-    if (buttonValue === 'features') previousState.stage = 'features'
-    if (buttonValue === 'back') {
-      if (previousState.featureIndex === 0) previousState.stage = 'start'
-      else previousState.featureIndex--
-    }
-    if (buttonValue === 'next') {
-      if (previousState.featureIndex === featureImages.length - 1)
-        previousState.stage = 'end'
-      else previousState.featureIndex++
-    }
+  const { featureIndex } = deriveState((previousState) => {
+    if (buttonValue === 'back') previousState.featureIndex--
+    if (buttonValue === 'next') previousState.featureIndex++
   })
 
-  if (stage === 'features')
-    return {
-      image: featureImages[featureIndex],
-      intents: [
-        <Button value="back">← Back</Button>,
-        <Button value="next">Next →</Button>,
-      ],
-    }
-  if (stage === 'end')
-    return {
-      image: '/npm.png',
-      intents: [
-        <Button.Link href="https://frog.fm/getting-started">
-          Get Started
-        </Button.Link>,
-        <Button.Link href="https://github.com/wevm/frog">GitHub</Button.Link>,
-      ],
-    }
   return {
-    image: '/og.png',
+    image: featureImages[featureIndex],
     intents: [
-      <Button value="features">Features →</Button>,
-      <Button.Link href="https://frog.fm">Docs</Button.Link>,
+      <Button action={featureIndex === 0 ? '/api' : undefined} value="back">
+        ← Back
+      </Button>,
+      <Button
+        action={
+          featureIndex === featureImages.length - 1 ? '/api/end' : undefined
+        }
+        value="next"
+      >
+        Next →
+      </Button>,
+    ],
+  }
+})
+
+app.frame('/api/end', () => {
+  return {
+    image: '/npm.png',
+    intents: [
+      <Button.Link href="https://frog.fm/getting-started">
+        Get Started
+      </Button.Link>,
       <Button.Link href="https://github.com/wevm/frog">GitHub</Button.Link>,
     ],
   }
