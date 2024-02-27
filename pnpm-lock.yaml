@@ -113,8 +113,8 @@ importers:
   services/frame:
     dependencies:
       frog:
-        specifier: main
-        version: 1.0.0-alpha.0-main.20240227T044302(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5)
+        specifier: 1.0.0-alpha.0-main.20240227T050345
+        version: 1.0.0-alpha.0-main.20240227T050345(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5)
       hono:
         specifier: ^4
         version: 4.0.7
@@ -5627,8 +5627,8 @@ packages:
       - zod
     dev: false
 
-  /frog@1.0.0-alpha.0-main.20240227T044302(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5):
-    resolution: {integrity: sha512-YJaqR0r4MNKEJw/SA6+l0glBUIFjamnUVMIs5QUuVR5Rm3B0BbZJ9AO8aLIFqZxMqcQznsU8bWpejg2oDBedZQ==}
+  /frog@1.0.0-alpha.0-main.20240227T050345(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5):
+    resolution: {integrity: sha512-5pxuTpO0nQnCModYwlNtALI9OpE3zQhTE6FIYqGFWfaG90M9oVoQ35b1U6lSWjd0sBheQ0Xwdx0bBLdaOHGsEg==}
     hasBin: true
     peerDependencies:
       hono: ^4

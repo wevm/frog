@@ -1,4 +1,4 @@
-import { serveStatic } from '@hono/node-server/serve-static'
+// import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog } from 'frog'
 import { handle } from 'frog/vercel'
 
@@ -19,12 +19,12 @@ export const app = new Frog<State>({
   },
 })
 
-app.use(
-  '/*',
-  serveStatic({
-    root: './public',
-  }),
-)
+// app.use(
+//   '/*',
+//   serveStatic({
+//     root: './public',
+//   }),
+// )
 
 app.frame('/', () => {
   return {
