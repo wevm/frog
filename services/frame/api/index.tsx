@@ -54,13 +54,11 @@ app.frame('/features', ({ buttonValue, deriveState }) => {
   return {
     image: featureImages[featureIndex],
     intents: [
-      <Button action={featureIndex === 0 ? '/api' : undefined} value="back">
+      <Button action={featureIndex === 0 ? '/' : undefined} value="back">
         ← Back
       </Button>,
       <Button
-        action={
-          featureIndex === featureImages.length - 1 ? '/api/end' : undefined
-        }
+        action={featureIndex === featureImages.length - 1 ? '/end' : undefined}
         value="next"
       >
         Next →
