@@ -289,7 +289,8 @@ export function Preview(props: PreviewProps) {
             this.dataKey = restored.dataKey
             this.dataMap = restored.dataMap
             this.logs = restored.logs
-            this.logIndex = restored.logIndex
+            this.logIndex =
+              restored.logIndex === restored.logs.length - 1 ? -1 : restored.logIndex
             this.overrides = restored.overrides
             this.stack = restored.stack
             this.stackIndex = restored.stackIndex
