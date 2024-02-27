@@ -28,7 +28,7 @@ export const app = new Frog({
   browserLocation: '/' // [!code hl]
 })
  
-app.frame('/frame', (context) => {
+app.frame('/frame', (c) => {
   return {/* ... */}
 })
 ```
@@ -46,7 +46,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/frame', (context) => {
+app.frame('/frame', (c) => {
   return {
     browserLocation: '/' // [!code hl]
     /* ... */
@@ -71,7 +71,7 @@ export const app = new Frog({
   browserLocation: '/:foo/:bar' // [!code hl]
 })
  
-app.frame('/frame/:foo/:bar', (context) => { // [!code hl]
+app.frame('/frame/:foo/:bar', (c) => { // [!code hl]
   return {/* ... */}
 })
 ```
@@ -94,11 +94,11 @@ export const app = new Frog({
   browserLocation: '/:path', // [!code hl]
 })
  
-app.frame('/foo', (context) => { // [!code hl]
+app.frame('/foo', (c) => { // [!code hl]
   return {/* ... */}
 })
 
-app.frame('/bar', (context) => { // [!code hl]
+app.frame('/bar', (c) => { // [!code hl]
   return {/* ... */}
 })
 ```

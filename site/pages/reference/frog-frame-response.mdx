@@ -1,6 +1,6 @@
-# Frog.frame Return Value
+# Frog.frame Response
 
-The return value of a frame is an object returned from the `.frame` handler.
+The response returned from the `.frame` handler.
 
 ```tsx twoslash
 // @noErrors
@@ -8,10 +8,10 @@ import { Frog } from 'frog'
  
 export const app = new Frog()
 
-app.frame('/', (context) => {
-  return { // [!code focus]
+app.frame('/', (c) => {
+  return c.res({ // [!code focus]
     // ... // [!code focus]
-  } // [!code focus]
+  }) // [!code focus]
 })
 ```
 
@@ -28,9 +28,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     action: '/submit', // [!code focus]
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
@@ -42,7 +42,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -67,9 +67,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/frame/foo', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/frame/foo', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     browserLocation: '/foo', // [!code focus]
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
@@ -81,7 +81,7 @@ app.frame('/frame/foo', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -99,9 +99,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/frame/foo', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/frame/foo', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     headers: { // [!code focus]
       'Cache-Control': 'max-age=0', // [!code focus]
     }, // [!code focus]
@@ -115,7 +115,7 @@ app.frame('/frame/foo', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -132,9 +132,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     action: '/submit',
     image: ( // [!code focus]
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
@@ -146,7 +146,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -158,9 +158,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     action: '/submit',
     image: 'https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg', // [!code focus]
     intents: [
@@ -168,7 +168,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -185,9 +185,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     image: ( 
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
         Select a frog 
@@ -199,7 +199,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -216,9 +216,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     image: ( 
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
         Select a frog 
@@ -233,7 +233,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, 
       <Button value="mango">Mango</Button> 
     ]
-  }
+  })
 })
 ```
 
@@ -249,9 +249,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     image: ( 
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
         Select a frog 
@@ -262,7 +262,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, // [!code focus]
       <Button value="mango">Mango</Button> // [!code focus]
     ] // [!code focus]
-  }
+  })
 })
 ```
 
@@ -277,9 +277,9 @@ Title of the frame (added as `og:title`).
 // ---cut---
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonIndex } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonIndex } = c
+  return c.res({
     image: ( 
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
         Select a frog 
@@ -291,7 +291,7 @@ app.frame('/', (context) => {
       <Button value="mango">Mango</Button> 
     ],
     title: 'Hello Frog', // [!code focus]
-  }
+  })
 })
 ```
 

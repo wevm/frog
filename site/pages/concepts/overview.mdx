@@ -15,9 +15,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -32,7 +32,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 ```
 
@@ -68,8 +68,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog() // [!code focus]
 
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
   // ...
 ```
 
@@ -102,7 +102,7 @@ import { Button, Frog } from 'frog'
 // ---cut---
 export const app = new Frog()
 
-app.frame('/', (context) => { // [!code focus]
+app.frame('/', (c) => { // [!code focus]
   return {/* ... */}
 })
 ```
@@ -116,15 +116,15 @@ import { Button, Frog } from 'frog'
 // ---cut---
 export const app = new Frog()
 
-app.frame('/', (context) => { // [!code focus]
+app.frame('/', (c) => { // [!code focus]
   return {/* ... */}
 })
 
-app.frame('/foo', (context) => { // [!code focus]
+app.frame('/foo', (c) => { // [!code focus]
   return {/* ... */}
 })
 
-app.frame('/bar', (context) => { // [!code focus]
+app.frame('/bar', (c) => { // [!code focus]
   return {/* ... */}
 })
 ```
@@ -138,12 +138,12 @@ import { Button, Frog } from 'frog'
 // ---cut---
 export const app = new Frog()
 
-app.frame('/', (context) => {
+app.frame('/', (c) => {
   return {/* ... */}
 })
 
-app.hono.get('/healthcheck', (context) => { // [!code focus]
-  return context.text('ribbit')
+app.hono.get('/healthcheck', (c) => { // [!code focus]
+  return c.text('ribbit')
 })
 ```
 
@@ -151,7 +151,7 @@ This only scratches the surface of Routing in **Frog**. For more advanced routin
 
 ## Context
 
-The `context` parameter in the frame route contains properties about the frame, such as: 
+The `c` parameter in the frame route contains properties about the frame, such as: 
 
 - The [frame data](/reference/frog-frame-context#framedata) (ie. `trustedData`/`untrustedData`),
 - The [button index/value](/reference/frog-frame-context#buttonvalue) or [input value](/reference/frog-frame-context#inputvalue) that was interacted with,
@@ -167,8 +167,8 @@ import { Button, Frog } from 'frog'
 // ---cut---
 export const app = new Frog()
 
-app.frame('/', (context) => { // [!code focus]
-  const { buttonValue, inputText, status, verified } = context // [!code focus]
+app.frame('/', (c) => { // [!code focus]
+  const { buttonValue, inputText, status, verified } = c // [!code focus]
   return {/* ... */}
 })
 ```
@@ -189,9 +189,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
 // ---cut---
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: ( // [!code focus]
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
         {status === 'initial' ? ( // [!code focus]
@@ -206,7 +206,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>, // [!code focus]
       <Button value="mango">Mango</Button> // [!code focus]
     ] // [!code focus]
-  } // [!code focus]
+  }) // [!code focus]
 })
 ```
 

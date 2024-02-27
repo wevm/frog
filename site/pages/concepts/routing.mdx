@@ -2,7 +2,7 @@
 
 Similar to `.post`, `.get`, `.put`, etc in other Web Frameworks, **Frog** uses `.frame` to define a new frame route.
 
-Internally, the frame route automatically handles `GET` and `POST` requests sent by Farcaster clients such as Warpcast to
+Internally, the frame route automatically handles `GET` and `POST` reqs sent by Farcaster clients such as Warpcast to
 get frame metadata.
 
 ## Basic
@@ -13,15 +13,15 @@ import { Frog } from 'frog'
  
 export const app = new Frog()
 
-app.frame('/', (context) => { // [!code focus]
+app.frame('/', (c) => { // [!code focus]
   return {/* ... */}
 })
 
-app.frame('/foo', (context) => { // [!code focus]
+app.frame('/foo', (c) => { // [!code focus]
   return {/* ... */}
 })
 
-app.frame('/bar', (context) => { // [!code focus]
+app.frame('/bar', (c) => { // [!code focus]
   return {/* ... */}
 })
 ```
@@ -39,8 +39,8 @@ import { app as exampleApp } from './example' // [!code focus]
  
 export const app = new Frog()
 
-app.frame('/', (context) => {
-  return {/* ... */}
+app.frame('/', (c) => {
+  return c.res({/* ... */})
 })
 
 app.route('/example', exampleApp) // [!code focus]
@@ -52,8 +52,8 @@ import { Frog } from 'frog'
  
 export const app = new Frog()
 
-app.frame('/', (context) => {
-  return {/* ... */}
+app.frame('/', (c) => {
+  return c.res({/* ... */})
 })
 ```
 
@@ -72,22 +72,22 @@ export const app = new Frog({ basePath: '/api' }) // [!code focus]
 
 ## Path Parameters
 
-You can extract path parameters using `context.request.param(){:js}`
+You can extract path parameters using `context.req.param(){:js}`
 
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
 export const app = new Frog()
 // ---cut---
-app.frame('/user/:name', (context) => { // [!code focus]
-  const name = context.request.param('name') // [!code focus]
-  return {
+app.frame('/user/:name', (c) => { // [!code focus]
+  const name = c.req.param('name') // [!code focus]
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         gm, {name} // [!code focus]
       </div>
     ),
-  }
+  })
 })
 ```
 
@@ -98,8 +98,8 @@ You can extract all parameters at once:
 import { Frog } from 'frog'
 export const app = new Frog()
 // ---cut---
-app.frame('/posts/:id/comment/:commentId', (context) => { // [!code focus]
-  const { id, commentId } = context.request.param() // [!code focus]
+app.frame('/posts/:id/comment/:commentId', (c) => { // [!code focus]
+  const { id, commentId } = c.req.param() // [!code focus]
   // ...
 })
 ```
@@ -112,8 +112,8 @@ import { Frog } from 'frog'
 export const app = new Frog()
 // ---cut---
 // @log: Matches `/api/animal` and `/api/animal/:type`
-app.frame('/api/animal/:type?', (context) => { // [!code focus]
-  const { id, commentId } = context.request.param() // [!code focus]
+app.frame('/api/animal/:type?', (c) => { // [!code focus]
+  const { id, commentId } = c.req.param() // [!code focus]
   // ...
 })
 ```
@@ -125,8 +125,8 @@ app.frame('/api/animal/:type?', (context) => { // [!code focus]
 import { Frog } from 'frog'
 export const app = new Frog()
 // ---cut---
-app.frame('/post/:date{[0-9]+}/:title{[a-z]+}', (context) => { // [!code focus]
-  const { date, title } = context.request.param() // [!code focus]
+app.frame('/post/:date{[0-9]+}/:title{[a-z]+}', (c) => { // [!code focus]
+  const { date, title } = c.req.param() // [!code focus]
   // ...
 })
 ```
@@ -142,11 +142,11 @@ import { Button, Frog } from 'frog'
 // ---cut---
 export const app = new Frog()
 
-app.frame('/', (context) => {
-  return {/* ... */}
+app.frame('/', (c) => {
+  return c.res({/* ... */})
 })
 
-app.hono.get('/healthcheck', (context) => { // [!code focus]
-  return context.text('ribbit')
+app.hono.get('/healthcheck', (c) => { // [!code focus]
+  return c.text('ribbit')
 })
 ```

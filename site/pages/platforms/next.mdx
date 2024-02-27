@@ -51,9 +51,9 @@ const app = new Frog({
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -68,7 +68,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 ```
 
@@ -98,9 +98,9 @@ const app = new Frog({
 // Uncomment to use Edge Runtime // [!code focus]
 // export const runtime = 'edge' // [!code focus]
 
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -115,7 +115,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 export const GET = handle(app) // [!code focus]
@@ -192,9 +192,9 @@ const app = new Frog({
 // Uncomment to use Edge Runtime
 // export const runtime = 'edge'
 
-app.frame('/foo', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/foo', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -209,7 +209,7 @@ app.frame('/foo', (context) => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 export const GET = handle(app) 

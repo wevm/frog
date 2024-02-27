@@ -15,8 +15,8 @@ import { Button, Frog } from 'frog'
 
 const app = new Frog()
 
-app.frame('/', (context) => { // [!code focus]
-  return { // [!code focus]
+app.frame('/', (c) => { // [!code focus]
+  return c.res({ // [!code focus]
     image: ( // [!code focus]
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
         Select your fruit! // [!code focus]
@@ -27,7 +27,7 @@ app.frame('/', (context) => { // [!code focus]
       <Button value="banana">Banana</Button>, // [!code focus]
       <Button value="mango">Mango</Button> // [!code focus]
     ] // [!code focus]
-  } // [!code focus]
+  }) // [!code focus]
 }) // [!code focus]
 ```
 
@@ -50,8 +50,8 @@ const app = new Frog()
 
 app.frame(
   '/foo/bar', // [!code focus]
-  (context) => {
-    return { 
+  (c) => {
+    return c.res({ 
       image: ( 
         <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
           Select your fruit! 
@@ -62,14 +62,14 @@ app.frame(
         <Button value="banana">Banana</Button>, 
         <Button value="mango">Mango</Button> 
       ] 
-    } 
+    })
   }
 ) 
 ```
 
 ### handler
 
-- **Type:** `(context: Context) => FrameHandlerReturnType`
+- **Type:** `(c: Context) => FrameResponse`
 
 Handler function for the route.
 
@@ -82,8 +82,8 @@ const app = new Frog()
 
 app.frame(
   '/foo/bar',
-  (context) => { // [!code focus]
-    return { // [!code focus]
+  (c) => { // [!code focus]
+    return c.res({ // [!code focus]
       image: ( // [!code focus]
         <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
           Select your fruit! // [!code focus]
@@ -94,7 +94,7 @@ app.frame(
         <Button value="banana">Banana</Button>, // [!code focus]
         <Button value="mango">Mango</Button> // [!code focus]
       ] // [!code focus]
-    } // [!code focus]
+    }) // [!code focus]
   } // [!code focus]
 ) 
 ```
@@ -103,6 +103,6 @@ app.frame(
 
 [See the Context API.](/reference/frog-frame-context)
 
-#### Return Type
+#### Frame Response
 
-[See the Return Type API.](/reference/frog-frame-return-value)
+[See the Frame Response API.](/reference/frog-frame-response)

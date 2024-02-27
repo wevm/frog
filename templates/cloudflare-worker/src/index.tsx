@@ -5,10 +5,10 @@ export const app = new Frog({
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
-app.frame('/', (context) => {
-  const { buttonValue, inputText, status } = context
+app.frame('/', (c) => {
+  const { buttonValue, inputText, status } = c
   const fruit = inputText || buttonValue
-  return {
+  return c.res({
     image: (
       <div
         style={{
@@ -52,7 +52,7 @@ app.frame('/', (context) => {
       <Button value="bananas">Bananas</Button>,
       status === 'response' && <Button.Reset>Reset</Button.Reset>,
     ],
-  }
+  })
 })
 
 export default app

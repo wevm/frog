@@ -25,13 +25,13 @@ export const app = new Frog<State>({ // [!code focus]
   } // [!code focus]
 }) // [!code focus]
  
-app.frame('/', (context) => {
-  const { buttonValue, deriveState } = context  // [!code focus]
+app.frame('/', (c) => {
+  const { buttonValue, deriveState } = c  // [!code focus]
   const state = deriveState(previousState => { // [!code focus]
     if (buttonValue === 'inc') previousState.count++ // [!code focus]
     if (buttonValue === 'dec') previousState.count-- // [!code focus]
   }) // [!code focus]
-  return {
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         Count: {state.count} // [!code focus]
@@ -41,7 +41,7 @@ app.frame('/', (context) => {
       <Button value="inc">Increment</Button>, // [!code focus]
       <Button value="dec">Decrement</Button>, // [!code focus]
     ]
-  }
+  })
 })
 ```
 

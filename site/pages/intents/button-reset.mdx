@@ -18,9 +18,9 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog()
 
-app.frame('/', (context) => {
-  const { buttonValue } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue } = c
+  return c.res({
     image: /* ... */,
     intents: [
       <Button value="apple">Apple</Button>,
@@ -28,6 +28,6 @@ app.frame('/', (context) => {
       <Button value="mango">Mango</Button>,
       <Button.Reset>Reset</Button.Reset>, // [!code focus]
     ]
-  }
+  })
 })
 ```

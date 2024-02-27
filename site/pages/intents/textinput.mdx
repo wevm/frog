@@ -16,14 +16,14 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog()
 
-app.frame('/', (context) => {
-  const { inputText } = context
-  return {
+app.frame('/', (c) => {
+  const { inputText } = c
+  return c.res({
     image: /* ... */,
     intents: [
       <TextInput placeholder="Enter your fruit..." />, // [!code focus]
     ]
-  }
+  })
 })
 ```
 

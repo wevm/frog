@@ -9,10 +9,10 @@ export const app = new Frog({
   verify: 'silent',
 })
 
-app.frame('/', (context) => {
-  const { buttonValue, inputText, status } = context
+app.frame('/', (c) => {
+  const { buttonValue, inputText, status } = c
   const fruit = inputText || buttonValue
-  return {
+  return c.res({
     action: '/action',
     image: (
       <div
@@ -57,12 +57,13 @@ app.frame('/', (context) => {
       <Button value="bananas">Bananas</Button>,
       status === 'response' && <Button.Reset>Reset</Button.Reset>,
     ],
-  }
+  })
 })
 
-app.frame('/action', ({ buttonValue, inputText }) => {
+app.frame('/action', (c) => {
+  const { buttonValue, inputText } = c
   const fruit = inputText || buttonValue || ''
-  return {
+  return c.res({
     action: '/',
     image: (
       <div
@@ -86,11 +87,12 @@ app.frame('/action', ({ buttonValue, inputText }) => {
       <Button value="pear">Pear</Button>,
       <Button.Reset>Reset</Button.Reset>,
     ],
-  }
+  })
 })
 
-app.frame('/buttons', ({ buttonValue }) => {
-  return {
+app.frame('/buttons', (c) => {
+  const { buttonValue } = c
+  return c.res({
     image: (
       <div
         style={{
@@ -114,22 +116,22 @@ app.frame('/buttons', ({ buttonValue }) => {
       </Button.Mint>,
       <Button.Reset>Reset</Button.Reset>,
     ],
-  }
+  })
 })
 
-app.frame('/no-intents', () => {
-  return {
+app.frame('/no-intents', (c) => {
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'green', width: '100%', height: '100%' }}>
         foo
       </div>
     ),
     imageAspectRatio: '1:1',
-  }
+  })
 })
 
-app.frame('/falsy-intents', () => {
-  return {
+app.frame('/falsy-intents', (c) => {
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
         foo
@@ -142,11 +144,11 @@ app.frame('/falsy-intents', () => {
       <Button>Apples</Button>,
       false && <Button>Oranges</Button>,
     ],
-  }
+  })
 })
 
-app.frame('/mint', () => {
-  return {
+app.frame('/mint', (c) => {
+  return c.res({
     image: 'https://basepaint.xyz/api/art/image?day=191',
     imageAspectRatio: '1:1',
     intents: [
@@ -154,11 +156,12 @@ app.frame('/mint', () => {
         Mint
       </Button.Mint>,
     ],
-  }
+  })
 })
 
-app.frame('/button-action', ({ buttonValue }) => {
-  return {
+app.frame('/button-action', (c) => {
+  const { buttonValue } = c
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
         {buttonValue ?? 'foo'}
@@ -175,11 +178,12 @@ app.frame('/button-action', ({ buttonValue }) => {
         Image only
       </Button>,
     ],
-  }
+  })
 })
 
-app.frame('/button-action-2', ({ buttonValue }) => {
-  return {
+app.frame('/button-action-2', (c) => {
+  const { buttonValue } = c
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
         {buttonValue ?? 'foo'}
@@ -190,17 +194,17 @@ app.frame('/button-action-2', ({ buttonValue }) => {
         Back
       </Button>,
     ],
-  }
+  })
 })
 
-app.frame('/image-only', () => {
-  return {
+app.frame('/image-only', (c) => {
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
         foo
       </div>
     ),
-  }
+  })
 })
 
 app.route('/todos', todoApp)

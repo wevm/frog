@@ -26,18 +26,20 @@ export const app = new Frog<State>({
 //   }),
 // )
 
-app.frame('/', () => {
-  return {
+app.frame('/', (c) => {
+  return c.res({
     image: '/og.png',
     intents: [
       <Button action="/features">Features →</Button>,
       <Button.Link href="https://frog.fm">Docs</Button.Link>,
       <Button.Link href="https://github.com/wevm/frog">GitHub</Button.Link>,
     ],
-  }
+  })
 })
 
-app.frame('/features', ({ buttonValue, deriveState }) => {
+app.frame('/features', (c) => {
+  const { buttonValue, deriveState } = c
+
   const featureImages = [
     '/write-in-jsx.png',
     '/connect-frames.png',
@@ -51,7 +53,7 @@ app.frame('/features', ({ buttonValue, deriveState }) => {
     if (buttonValue === 'next') previousState.featureIndex++
   })
 
-  return {
+  return c.res({
     image: featureImages[featureIndex],
     intents: [
       <Button action={featureIndex === 0 ? '/' : undefined} value="back">
@@ -64,11 +66,11 @@ app.frame('/features', ({ buttonValue, deriveState }) => {
         Next →
       </Button>,
     ],
-  }
+  })
 })
 
-app.frame('/end', () => {
-  return {
+app.frame('/end', (c) => {
+  return c.res({
     image: '/npm.png',
     intents: [
       <Button.Link href="https://frog.fm/getting-started">
@@ -76,7 +78,7 @@ app.frame('/end', () => {
       </Button.Link>,
       <Button.Link href="https://github.com/wevm/frog">GitHub</Button.Link>,
     ],
-  }
+  })
 })
 
 export const GET = handle(app)

@@ -16,13 +16,13 @@ type GetFrameContextParameters<state = unknown> = {
     | 'verified'
   >
   initialState?: state
-  request: Context['req']
+  req: Context['req']
 }
 
 export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
-  const { context, request } = options
+  const { context, req } = options
   const { frameData, initialPath, previousButtonValues, verified } =
     context || {}
 
@@ -40,7 +40,7 @@ export async function getFrameContext<state>(
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
   const url =
-    (reset ? `${new URL(request.url).origin}${initialPath}` : undefined) ||
+    (reset ? `${new URL(req.url).origin}${initialPath}` : undefined) ||
     parsePath(context.url)
 
   let previousState = (() => {
@@ -62,7 +62,8 @@ export async function getFrameContext<state>(
     deriveState,
     previousButtonValues,
     previousState: previousState as any,
-    request,
+    req,
+    res: (data) => data,
     status,
     url,
     verified,

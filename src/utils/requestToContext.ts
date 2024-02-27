@@ -24,11 +24,11 @@ type RequestToContextReturnType<state = unknown> = Pick<
 >
 
 export async function requestToContext<state>(
-  request: Context['req'],
+  req: Context['req'],
   { hubApiUrl, secret, verify = true }: RequestToContextOptions,
 ): Promise<RequestToContextReturnType<state>> {
   const { trustedData, untrustedData } =
-    (await request.json().catch(() => {})) || {}
+    (await req.json().catch(() => {})) || {}
   const { initialPath, previousState, previousButtonValues } =
     await (async () => {
       if (untrustedData?.state) {
@@ -39,7 +39,7 @@ export async function requestToContext<state>(
           )
         return state
       }
-      if (request.query()) return fromQuery(request.query())
+      if (req.query()) return fromQuery(req.query())
       return {} as any
     })()
 
@@ -52,7 +52,7 @@ export async function requestToContext<state>(
         hubApiUrl,
         frameUrl: untrustedData.url,
         trustedData,
-        url: request.url,
+        url: req.url,
       })
       return true
     } catch (err) {
@@ -62,12 +62,12 @@ export async function requestToContext<state>(
   })()
 
   return {
-    initialPath: initialPath ? initialPath : new URL(request.url).pathname,
+    initialPath: initialPath ? initialPath : new URL(req.url).pathname,
     previousState,
     previousButtonValues,
     frameData: untrustedData,
-    status: request.method === 'POST' ? 'response' : 'initial',
-    url: request.url,
+    status: req.method === 'POST' ? 'response' : 'initial',
+    url: req.url,
     verified,
   }
 }

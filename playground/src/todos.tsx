@@ -14,7 +14,9 @@ export const app = new Frog<State>({
   verify: 'silent',
 })
 
-app.frame('/', ({ buttonValue, deriveState, inputText }) => {
+app.frame('/', (c) => {
+  const { buttonValue, deriveState, inputText } = c
+
   const { index, todos } = deriveState((state) => {
     if (inputText) {
       state.todos.push({ completed: false, name: inputText })
@@ -29,7 +31,7 @@ app.frame('/', ({ buttonValue, deriveState, inputText }) => {
       state.todos[state.index].completed = !state.todos[state.index].completed
   })
 
-  return {
+  return c.res({
     image: (
       <div
         style={{
@@ -64,16 +66,16 @@ app.frame('/', ({ buttonValue, deriveState, inputText }) => {
       <Button value="up">⬆️</Button>,
       <Button value="completed">{todos[index]?.completed ? '◻️' : '✅'}</Button>,
     ],
-  }
+  })
 })
 
-app.frame('/foo', () => {
-  return {
+app.frame('/foo', (c) => {
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
         hello world
       </div>
     ),
     intents: [<Button>foo</Button>, <Button>bar</Button>, <Button>baz</Button>],
-  }
+  })
 })

@@ -315,8 +315,8 @@ export default defineConfig({
         { text: 'Frog.frame', link: '/reference/frog-frame' },
         { text: 'Frog.frame Context', link: '/reference/frog-frame-context' },
         {
-          text: 'Frog.frame Return Value',
-          link: '/reference/frog-frame-return-value',
+          text: 'Frog.frame Response',
+          link: '/reference/frog-frame-response',
         },
         { text: 'Frog.hono', link: '/reference/frog-hono' },
       ],

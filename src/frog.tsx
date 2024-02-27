@@ -1,12 +1,8 @@
 import { type Env, type Schema } from 'hono'
 
 import { routes as devRoutes } from './dev/routes.js'
-import {
-  type FrameHandlerReturnType,
-  type FrameOptions,
-  FrogBase,
-} from './frog-base.js'
-import { type FrameContext, type Pretty } from './types.js'
+import { type FrameOptions, FrogBase } from './frog-base.js'
+import { type FrameContext, type FrameResponse, type Pretty } from './types.js'
 
 /**
  * A Frog instance.
@@ -20,10 +16,10 @@ import { type FrameContext, type Pretty } from './types.js'
  *
  * const app = new Frog()
  *
- * app.frame('/', (context) => {
- *   const { buttonValue, inputText, status } = context
+ * app.frame('/', (c) => {
+ *   const { buttonValue, inputText, status } = c
  *   const fruit = inputText || buttonValue
- *   return {
+ *   return c.res({
  *     image: (
  *       <div style={{ fontSize: 60 }}>
  *         {fruit ? `You selected: ${fruit}` : 'Welcome!'}
@@ -34,7 +30,7 @@ import { type FrameContext, type Pretty } from './types.js'
  *       <Button value="oranges">Oranges</Button>,
  *       <Button value="bananas">Bananas</Button>,
  *     ]
- *   }
+ *   })
  * })
  * ```
  */
@@ -48,7 +44,7 @@ export class Frog<
     path: path,
     handler: (
       context: Pretty<FrameContext<path, state>>,
-    ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
+    ) => FrameResponse | Promise<FrameResponse>,
     options: FrameOptions = {},
   ) {
     super.frame(path, handler, options)

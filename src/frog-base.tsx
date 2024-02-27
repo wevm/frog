@@ -7,12 +7,7 @@ import { type Env, type Schema } from 'hono/types'
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import {
-  type FrameContext,
-  type FrameImageAspectRatio,
-  type FrameIntents,
-  type Pretty,
-} from './types.js'
+import { type FrameContext, type FrameResponse, type Pretty } from './types.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
@@ -28,7 +23,7 @@ export type FrogConstructorParameters<
   state = undefined,
   env extends Env = Env,
   basePath extends string = '/',
-> = {
+> = Pick<FrameResponse, 'browserLocation'> & {
   /**
    * The base path for assets.
    *
@@ -41,56 +36,6 @@ export type FrogConstructorParameters<
    * @example '/api' (commonly for Vercel Serverless Functions)
    */
   basePath?: basePath | string | undefined
-  /**
-   * Location (URL or path relative to `basePath`) to redirect to when the user
-   * is coming to the page via a browser.
-   *
-   * For instance, a user may reach the frame page in their
-   * browser by clicking on the link beneath the frame on Warpcast.
-   * We may want to redirect them to a different page (ie. a mint page, etc)
-   * when they arrive via their browser.
-   *
-   * @example (Absolute Path)
-   * Parameters:
-   *   basePath: '/api'
-   *   browserLocation: '/'
-   *
-   * https://example.com/api -> https://example.com/
-   * https://example.com/api/foo -> https://example.com/
-   *
-   * @example (Absolute Path)
-   * Parameters:
-   *   basePath: '/api'
-   *   browserLocation: '/mint'
-   *
-   * https://example.com/api -> https://example.com/mint
-   * https://example.com/api/foo -> https://example.com/mint
-   *
-   * @example (Absolute Path with `:path` template)
-   * Parameters
-   *   basePath: '/api'
-   *   browserLocation: '/:path'
-   *
-   * https://example.com/api -> https://example.com/
-   * https://example.com/api/foo -> https://example.com/foo
-   * https://example.com/api/foo/bar -> https://example.com/foo/bar
-   *
-   * @example (Relative Path)
-   * Parameters:
-   *   basePath: '/api'
-   *   browserLocation: './dev'
-   *
-   * https://example.com/api -> https://example.com/api/dev
-   * https://example.com/api/foo -> https://example.com/api/foo/dev
-   *
-   * @example (URL)
-   * Parameters:
-   *   browserLocation: 'https://google.com/:path'
-   *
-   * https://example.com/api -> https://google.com/api
-   * https://example.com/api/foo -> https://google.com/api/foo
-   */
-  browserLocation?: string | undefined
   /**
    * Options for built-in devtools.
    */
@@ -171,64 +116,6 @@ export type FrogConstructorParameters<
 
 export type FrameOptions = Pick<FrogConstructorParameters, 'verify'>
 
-export type FrameHandlerReturnType = Pick<
-  FrogConstructorParameters,
-  'browserLocation'
-> & {
-  /**
-   * Path of the next frame.
-   *
-   * @example '/submit'
-   */
-  action?: string | undefined
-  /**
-   * HTTP response headers.
-   */
-  headers?: Record<string, string> | undefined
-  /**
-   * The OG Image to render for the frame. Can either be a JSX element, or URL.
-   *
-   * @example
-   * <div style={{ fontSize: 60 }}>Hello Frog</div>
-   *
-   * @example
-   * "https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg"
-   */
-  image: string | JSX.Element
-  /**
-   * The aspect ratio of the OG Image.
-   *
-   * @example '1:1'
-   */
-  imageAspectRatio?: FrameImageAspectRatio | undefined
-  /**
-   * Image options.
-   *
-   * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
-   *
-   * @example
-   * { width: 1200, height: 630 }
-   */
-  imageOptions?: ImageResponseOptions | undefined
-  /**
-   * A set of intents (ie. buttons, text inputs, etc) to render for the frame
-   * (beneath the OG image).
-   *
-   * @example
-   * intents: [
-   *   <TextInput placeholder="Enter your favourite food..." />,
-   *   <Button>Submit</Button>,
-   * ]
-   */
-  intents?: FrameIntents | undefined
-  /**
-   * Title of the frame (added as `og:title`).
-   *
-   * @example 'Hello Frog'
-   */
-  title?: string | undefined
-}
-
 /**
  * A Frog instance.
  *
@@ -241,10 +128,10 @@ export type FrameHandlerReturnType = Pick<
  *
  * const app = new Frog()
  *
- * app.frame('/', (context) => {
- *   const { buttonValue, inputText, status } = context
+ * app.frame('/', (c) => {
+ *   const { buttonValue, inputText, status } = c
  *   const fruit = inputText || buttonValue
- *   return {
+ *   return c.res({
  *     image: (
  *       <div style={{ fontSize: 60 }}>
  *         {fruit ? `You selected: ${fruit}` : 'Welcome!'}
@@ -255,7 +142,7 @@ export type FrameHandlerReturnType = Pick<
  *       <Button value="oranges">Oranges</Button>,
  *       <Button value="bananas">Bananas</Button>,
  *     ]
- *   }
+ *   })
  * })
  * ```
  */
@@ -328,7 +215,7 @@ export class FrogBase<
     path: path,
     handler: (
       context: Pretty<FrameContext<path, state>>,
-    ) => FrameHandlerReturnType | Promise<FrameHandlerReturnType>,
+    ) => FrameResponse | Promise<FrameResponse>,
     options: FrameOptions = {},
   ) {
     const { verify = this.verify } = options
@@ -346,7 +233,7 @@ export class FrogBase<
           verify,
         }),
         initialState: this._initialState,
-        request: c.req,
+        req: c.req,
       })
 
       if (context.status === 'redirect') {
@@ -498,7 +385,7 @@ export class FrogBase<
       const context = await getFrameContext({
         context: fromQuery<FrameContext<path, state>>(query),
         initialState: this._initialState,
-        request: c.req,
+        req: c.req,
       })
       const { image, imageOptions = this._imageOptions } =
         await handler(context)

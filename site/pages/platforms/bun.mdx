@@ -52,9 +52,9 @@ export const app = new Frog({
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -69,7 +69,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 ```
 
@@ -95,9 +95,9 @@ export const app = new Frog({
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
-app.frame('/', (context) => {
-  const { buttonValue, status } = context
-  return {
+app.frame('/', (c) => {
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -112,7 +112,7 @@ app.frame('/', (context) => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 Bun.serve({ // [!code focus]
@@ -179,9 +179,9 @@ export const app = new Frog({
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
-app.frame('/frame/:path', (context) => { // [!code focus]
-  const { buttonValue, status } = context
-  return {
+app.frame('/frame/:path', (c) => { // [!code focus]
+  const { buttonValue, status } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
@@ -196,7 +196,7 @@ app.frame('/frame/:path', (context) => { // [!code focus]
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 Bun.serve({ // [!code focus]

@@ -16,8 +16,8 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 // Frame to capture user's favorite fruit.
-app.frame('/', () => {
-  return {
+app.frame('/', (c) => {
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         Select your favorite fruit:
@@ -28,19 +28,19 @@ app.frame('/', () => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 // Frame to display user's response.
-app.frame('/submit', (context) => {
-  const { buttonValue } = context
-  return {
+app.frame('/submit', (c) => {
+  const { buttonValue } = c
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         Selected: {buttonValue}
       </div>
     )
-  }
+  })
 })
 ```
 
@@ -62,8 +62,8 @@ export const app = new Frog()
  
 // ---cut---
 // Frame to capture user's favorite fruit.
-app.frame('/', () => {
-  return {
+app.frame('/', (c) => {
+  return c.res({
     action: '/submit', // [!code focus]
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
@@ -75,12 +75,12 @@ app.frame('/', () => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 // Frame to display user's response.
-app.frame('/submit', (context) => { // [!code focus]
-  const { buttonValue } = context
+app.frame('/submit', (c) => { // [!code focus]
+  const { buttonValue } = c
 // ...
 ```
 
@@ -93,8 +93,8 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
 // ---cut---
 // Frame to capture user's favorite fruit.
-app.frame('/', () => {
-  return {
+app.frame('/', (c) => {
+  return c.res({
     action: '/submit',
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
@@ -107,20 +107,20 @@ app.frame('/', () => {
       <Button value="banana">Banana</Button>,
       <Button value="mango">Mango</Button>
     ]
-  }
+  })
 })
 
 // Frame to display user's response.
-app.frame('/submit', (context) => { 
-  const { buttonValue } = context
+app.frame('/submit', (c) => { 
+  const { buttonValue } = c
 // @log:           ^ 2. "Apple"
-  return {
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         Selected: {buttonValue}
       </div>
     )
-  }
+  })
 })
 ```
 
@@ -139,8 +139,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', () => {
-  return {
+app.frame('/', (c) => {
+  return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         Select your favorite fruit:
@@ -166,18 +166,18 @@ app.frame('/', () => {
         Mango
       </Button>
     ]
-  }
+  })
 })
 
-app.frame('/apples', () => { // [!code focus]
+app.frame('/apples', (c) => { // [!code focus]
   // ...
 })
 
-app.frame('/banana', () => { // [!code focus]
+app.frame('/banana', (c) => { // [!code focus]
   // ...
 })
 
-app.frame('/mango', () => { // [!code focus]
+app.frame('/mango', (c) => { // [!code focus]
   // ...
 })
 ```
