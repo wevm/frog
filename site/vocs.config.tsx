@@ -29,6 +29,12 @@ export default defineConfig({
         property="fc:frame:button:3:target"
         content="https://github.com/wevm/frog"
       />
+
+      <script
+        src="https://cdn.usefathom.com/script.js"
+        data-site="MYUAWCWK"
+        defer
+      />
     </>
   ),
   logoUrl: {
