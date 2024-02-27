@@ -1,6 +1,6 @@
 import { extname, normalize, resolve } from 'node:path'
 import glob from 'fast-glob'
-import { ensureDirSync, writeJsonSync } from 'fs-extra/esm'
+import { copySync, ensureDirSync, writeJsonSync } from 'fs-extra/esm'
 
 export async function build() {
   const files = await glob('./api/**/*.{js,jsx,ts,tsx}')
@@ -16,6 +16,7 @@ export async function build() {
 
   ensureDirSync('./.vercel/output')
   ensureDirSync('./.vercel/output/static')
+  copySync('./public', './.vercel/output/static')
   writeJsonSync('./.vercel/output/config.json', {
     version: 3,
     routes: [
