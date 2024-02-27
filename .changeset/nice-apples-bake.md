@@ -1,5 +1,0 @@
----
-"frog": patch
----
-
-Initial release.
