@@ -8,7 +8,7 @@
     "deploy": "vercel"
   },
   "dependencies": {
-    "frog": "1.0.0-alpha.0-main.20240227T050345",
+    "frog": "main",
     "hono": "^4"
   },
   "devDependencies": {
