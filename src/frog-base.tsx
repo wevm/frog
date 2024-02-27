@@ -30,6 +30,12 @@ export type FrogConstructorParameters<
   basePath extends string = '/',
 > = {
   /**
+   * The base path for assets.
+   *
+   * @example '/' (commonly for Vercel Serverless Functions)
+   */
+  assetsPath?: basePath | string | undefined
+  /**
    * The base path for the server instance.
    *
    * @example '/api' (commonly for Vercel Serverless Functions)
@@ -258,6 +264,8 @@ export class FrogBase<
   _imageOptions: ImageResponseOptions | undefined
   _initialState: state = undefined as state
 
+  /** Path for assets. */
+  assetsPath: string
   /** Base path of the server instance. */
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
@@ -278,6 +286,7 @@ export class FrogBase<
   verify: FrogConstructorParameters['verify'] = true
 
   constructor({
+    assetsPath,
     basePath,
     browserLocation,
     dev,
@@ -300,6 +309,7 @@ export class FrogBase<
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
+    this.assetsPath = assetsPath ?? this.basePath
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
@@ -320,6 +330,8 @@ export class FrogBase<
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), async (c) => {
       const url = new URL(c.req.url)
+      const assetsUrl = url.origin + parsePath(this.assetsPath)
+      const baseUrl = url.origin + parsePath(this.basePath)
 
       const context = await getFrameContext<state>({
         context: await requestToContext(c.req, {
@@ -347,8 +359,7 @@ export class FrogBase<
         intents,
         title = 'Frog Frame',
       } = await handler(context)
-      const parsedIntents = intents ? parseIntents(intents) : null
-      const buttonValues = getButtonValues(parsedIntents)
+      const buttonValues = getButtonValues(parseIntents(intents))
 
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
@@ -397,9 +408,28 @@ export class FrogBase<
         previousState,
       })
 
-      const postUrl = action
-        ? url.origin + parsePath(this.basePath) + parsePath(action || '')
-        : context.url
+      const imageUrl = (() => {
+        if (typeof image !== 'string')
+          return `${parsePath(
+            context.url,
+          )}/image?${frameImageParams.toString()}`
+        if (image.startsWith('http')) return image
+        return `${assetsUrl + parsePath(image)}`
+      })()
+
+      const postUrl = (() => {
+        if (!action) return context.url
+        if (action.startsWith('http')) return action
+        return baseUrl + parsePath(action)
+      })()
+
+      const parsedIntents = parseIntents(intents, {
+        baseUrl,
+        search:
+          context.status === 'initial'
+            ? nextFrameStateSearch.toString()
+            : undefined,
+      })
 
       // Set response headers provided by consumer.
       for (const [key, value] of Object.entries(headers ?? {}))
@@ -413,26 +443,8 @@ export class FrogBase<
               property="fc:frame:image:aspect_ratio"
               content={imageAspectRatio ?? '1.91:1'}
             />
-            <meta
-              property="fc:frame:image"
-              content={
-                typeof image === 'string'
-                  ? image
-                  : `${parsePath(
-                      context.url,
-                    )}/image?${frameImageParams.toString()}`
-              }
-            />
-            <meta
-              property="og:image"
-              content={
-                typeof image === 'string'
-                  ? image
-                  : `${parsePath(
-                      context.url,
-                    )}/image?${frameImageParams.toString()}`
-              }
-            />
+            <meta property="fc:frame:image" content={imageUrl} />
+            <meta property="og:image" content={imageUrl} />
             <meta property="og:title" content={title} />
             <meta
               property="fc:frame:post_url"

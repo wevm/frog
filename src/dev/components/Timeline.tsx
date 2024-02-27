@@ -1,8 +1,8 @@
 import {
   chevronDownIcon,
   chevronUpIcon,
-  idCardIcon,
   circleBackslashIcon,
+  idCardIcon,
   pencil2Icon,
   resetIcon,
 } from './icons.js'

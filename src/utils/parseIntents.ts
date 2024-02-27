@@ -1,29 +1,43 @@
 import { type JSXNode } from 'hono/jsx'
 
 import { type FrameIntents } from '../types.js'
+import { parsePath } from './parsePath.js'
 
 type Counter = { button: number }
 
+type ParseIntentsOptions = {
+  baseUrl?: string
+  search?: string
+}
+
 export function parseIntents(
-  intents_: FrameIntents,
+  intents_: FrameIntents | undefined,
+  options: ParseIntentsOptions = {},
   counter: Counter = { button: 1 },
 ): JSXNode[] {
+  if (!intents_) return []
   const nodes = intents_ as unknown as JSXNode | JSXNode[]
 
   const intents = (() => {
     if (Array.isArray(nodes))
-      return nodes.map((e) => parseIntent(e as JSXNode, counter))
+      return nodes.map((e) => parseIntent(e as JSXNode, options, counter))
     if (typeof nodes.children[0] === 'object')
       return Object.assign(nodes, {
-        children: nodes.children.map((e) => parseIntent(e as JSXNode, counter)),
+        children: nodes.children.map((e) =>
+          parseIntent(e as JSXNode, options, counter),
+        ),
       })
-    return parseIntent(nodes, counter)
+    return parseIntent(nodes, options, counter)
   })()
 
   return (Array.isArray(intents) ? intents : [intents]).flat()
 }
 
-function parseIntent(node_: JSXNode, counter: Counter): JSXNode | JSXNode[] {
+function parseIntent(
+  node_: JSXNode,
+  options: ParseIntentsOptions,
+  counter: Counter,
+): JSXNode | JSXNode[] {
   // Check if the node is a "falsy" node (ie. `null`, `undefined`, `false`, etc).
   const node = (
     !node_ ? { children: [], props: {}, tag() {} } : node_
@@ -31,7 +45,15 @@ function parseIntent(node_: JSXNode, counter: Counter): JSXNode | JSXNode[] {
 
   const props = (() => {
     if ((node.tag as any).__type === 'button')
-      return { ...node.props, children: node.children, index: counter.button++ }
+      return {
+        ...node.props,
+        action: node.props.action
+          ? parsePath(options.baseUrl + node.props.action) +
+            (options.search ? `?${options.search}` : '')
+          : undefined,
+        children: node.children,
+        index: counter.button++,
+      }
     if ((node.tag as any).__type === 'text-input')
       return { ...node.props, children: node.children }
     return {}
@@ -46,7 +68,7 @@ function parseIntent(node_: JSXNode, counter: Counter): JSXNode | JSXNode[] {
 
   if (typeof intent?.tag === 'function' && typeof node.tag === 'function') {
     if (intent.children.length > 1) throw new InvalidIntentComponentError()
-    return parseIntent(node.tag(node.props), counter)
+    return parseIntent(node.tag(node.props), options, counter)
   }
   return intent
 }

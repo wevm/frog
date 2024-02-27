@@ -4,6 +4,8 @@ When building Frames, it is likely that you may want to connect them together (v
 
 **Frog** makes it intuitive to connect Frames together with a concept called **Actions**.
 
+## Preface
+
 Let's start by building a couple of frames below: one that asks the user for their favorite fruit, and another that displays the user's response.
 
 ```tsx twoslash
@@ -46,6 +48,8 @@ Right now, these frames are not linked to each other. This means, that if a user
 navigates to `/` and interacts with the buttons, the frame will just `POST` to itself
 instead of `POST`ing to `/submit`.
 
+## Frame-level Actions
+
 To connect these frames together, we can utilize the [`action` property](/concepts/actions) on the handler return type. 
 You can think of the `action` property as an alias for [`post_url` in the Frame Specification](https://docs.farcaster.xyz/reference/frames/spec#optional-properties).
 
@@ -75,7 +79,7 @@ app.frame('/', () => {
 })
 
 // Frame to display user's response.
-app.frame('/submit', (context) => {
+app.frame('/submit', (context) => { // [!code focus]
   const { buttonValue } = context
 // ...
 ```
@@ -107,7 +111,7 @@ app.frame('/', () => {
 })
 
 // Frame to display user's response.
-app.frame('/submit', (context) => {
+app.frame('/submit', (context) => { 
   const { buttonValue } = context
 // @log:           ^ 2. "Apple"
   return {
@@ -122,3 +126,58 @@ app.frame('/submit', (context) => {
 
 As you can see, the example above is another variant of the "Select Fruit" example shown on the [Getting Started](/getting-started) page, 
 except that these frames hold "less" state, yet yield the same behavior.
+
+## Button-level Actions
+
+We can also set actions on individual buttons via the `action` prop on `<Button>{:jsx}`. This is useful when you want to link to different frames based on the button clicked.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', () => {
+  return {
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select your favorite fruit:
+      </div>
+    ),
+    intents: [
+      <Button 
+        action="/apples" // [!code focus]
+        value="red lady"
+      >
+        Apple
+      </Button>,
+      <Button 
+        action="/banana" // [!code focus]
+        value="goldfinger"
+      >
+        Banana
+      </Button>,
+      <Button 
+        action="/mango" // [!code focus]
+        value="honey gold"
+      >
+        Mango
+      </Button>
+    ]
+  }
+})
+
+app.frame('/apples', () => { // [!code focus]
+  // ...
+})
+
+app.frame('/banana', () => { // [!code focus]
+  // ...
+})
+
+app.frame('/mango', () => { // [!code focus]
+  // ...
+})
+```

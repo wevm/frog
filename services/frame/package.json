@@ -1,5 +1,6 @@
 {
-  "name": "example-vercel-edge",
+  "name": "frames",
+  "private": true,
   "type": "module",
   "scripts": {
     "build": "frog vercel-build",
@@ -7,12 +8,11 @@
     "deploy": "vercel"
   },
   "dependencies": {
-    "frog": "main",
+    "frog": "1.0.0-alpha.0-main.20240227T050345",
     "hono": "^4"
   },
   "devDependencies": {
-    "tsx": "^4.7.1",
-    "typescript": "^5.3.3",
-    "vercel": "^32.4.1"
+    "@hono/node-server": "^1",
+    "vercel": "latest"
   }
 }
