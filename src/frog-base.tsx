@@ -320,6 +320,7 @@ export class FrogBase<
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), async (c) => {
       const url = new URL(c.req.url)
+      const baseUrl = url.origin + parsePath(this.basePath)
 
       const context = await getFrameContext<state>({
         context: await requestToContext(c.req, {
@@ -347,8 +348,7 @@ export class FrogBase<
         intents,
         title = 'Frog Frame',
       } = await handler(context)
-      const parsedIntents = intents ? parseIntents(intents) : null
-      const buttonValues = getButtonValues(parsedIntents)
+      const buttonValues = getButtonValues(parseIntents(intents))
 
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
@@ -403,14 +403,22 @@ export class FrogBase<
             context.url,
           )}/image?${frameImageParams.toString()}`
         if (image.startsWith('http')) return image
-        return `${url.origin + parsePath(this.basePath) + parsePath(image)}`
+        return `${baseUrl + parsePath(image)}`
       })()
 
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
-        return url.origin + parsePath(this.basePath) + parsePath(action)
+        return baseUrl + parsePath(action)
       })()
+
+      const parsedIntents = parseIntents(intents, {
+        baseUrl,
+        search:
+          context.status === 'initial'
+            ? nextFrameStateSearch.toString()
+            : undefined,
+      })
 
       // Set response headers provided by consumer.
       for (const [key, value] of Object.entries(headers ?? {}))

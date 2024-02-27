@@ -2,19 +2,19 @@ import type { HtmlEscapedString } from 'hono/utils/html'
 
 export type ButtonProps = {
   children: string
-  index?: number | undefined
 }
 
 export type ButtonRootProps = ButtonProps & {
-  target?: string | undefined
+  action?: string | undefined
   value?: string | undefined
 }
 
 ButtonRoot.__type = 'button'
 export function ButtonRoot({
+  action,
   children,
+  // @ts-ignore - private
   index = 1,
-  target,
   value,
 }: ButtonRootProps) {
   return [
@@ -24,8 +24,8 @@ export function ButtonRoot({
       {...(value ? { 'data-value': value } : {})}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="post" />,
-    target && (
-      <meta property={`fc:frame:button:${index}:target`} content={target} />
+    action && (
+      <meta property={`fc:frame:button:${index}:target`} content={action} />
     ),
   ] as unknown as HtmlEscapedString
 }
@@ -35,7 +35,12 @@ export type ButtonLinkProps = ButtonProps & {
 }
 
 ButtonLink.__type = 'button'
-export function ButtonLink({ children, index = 1, href }: ButtonLinkProps) {
+export function ButtonLink({
+  children,
+  // @ts-ignore - private
+  index = 1,
+  href,
+}: ButtonLinkProps) {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -52,7 +57,12 @@ export type ButtonMintProps = ButtonProps & {
 }
 
 ButtonMint.__type = 'button'
-export function ButtonMint({ children, index = 1, target }: ButtonMintProps) {
+export function ButtonMint({
+  children,
+  // @ts-ignore - private
+  index = 1,
+  target,
+}: ButtonMintProps) {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -66,15 +76,14 @@ export function ButtonMint({ children, index = 1, target }: ButtonMintProps) {
 
 export type ButtonRedirectProps = ButtonProps & {
   location: string
-  target?: string | undefined
 }
 
 ButtonRedirect.__type = 'button'
 export function ButtonRedirect({
   children,
+  // @ts-ignore - private
   index = 1,
   location,
-  target,
 }: ButtonRedirectProps) {
   return [
     <meta
@@ -87,8 +96,8 @@ export function ButtonRedirect({
       property={`fc:frame:button:${index}:action`}
       content="post_redirect"
     />,
-    target && (
-      <meta property={`fc:frame:button:${index}:target`} content={target} />
+    location && (
+      <meta property={`fc:frame:button:${index}:target`} content={location} />
     ),
   ] as unknown as HtmlEscapedString
 }
@@ -96,7 +105,11 @@ export function ButtonRedirect({
 export type ButtonResetProps = ButtonProps
 
 ButtonReset.__type = 'button'
-export function ButtonReset({ children, index = 1 }: ButtonResetProps) {
+export function ButtonReset({
+  children,
+  // @ts-ignore - private
+  index = 1,
+}: ButtonResetProps) {
   return (
     <meta
       property={`fc:frame:button:${index}`}

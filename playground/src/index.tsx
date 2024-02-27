@@ -157,5 +157,51 @@ app.frame('/mint', () => {
   }
 })
 
+app.frame('/button-action', ({ buttonValue }) => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        {buttonValue ?? 'foo'}
+      </div>
+    ),
+    intents: [
+      <Button action="/" value="hello again">
+        Fruits
+      </Button>,
+      <Button action="/button-action-2" value="next">
+        Next
+      </Button>,
+      <Button action="/image-only" value="cheese">
+        Image only
+      </Button>,
+    ],
+  }
+})
+
+app.frame('/button-action-2', ({ buttonValue }) => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        {buttonValue ?? 'foo'}
+      </div>
+    ),
+    intents: [
+      <Button action="/button-action" value="back">
+        Back
+      </Button>,
+    ],
+  }
+})
+
+app.frame('/image-only', () => {
+  return {
+    image: (
+      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        foo
+      </div>
+    ),
+  }
+})
+
 app.route('/todos', todoApp)
 app.route('/routing', routingApp)
