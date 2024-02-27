@@ -4,6 +4,33 @@ import { version } from '../src/package.json'
 export default defineConfig({
   description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
+  head: (
+    <>
+      <meta property="fc:frame" content="vNext" />
+      <meta property="fc:frame:image:aspect_ratio" content="1.91:1" />
+      <meta property="fc:frame:image" content="https://frame.frog.fm/og.png" />
+      <meta property="fc:frame:post_url" content="https://frame.frog.fm/api" />
+      <meta
+        property="fc:frame:state"
+        content="%7B%22initialPath%22%3A%22%2Fapi%22%2C%22previousButtonValues%22%3A%5Bnull%2C%22_l%22%2C%22_l%22%5D%2C%22previousState%22%3A%7B%22featureIndex%22%3A0%7D%7D"
+      />
+      <meta property="fc:frame:button:1" content="Features →" />
+      <meta property="fc:frame:button:1:action" content="post" />
+      <meta
+        property="fc:frame:button:1:target"
+        content="https://frame.frog.fm/api/features"
+      />
+      <meta property="fc:frame:button:2" content="Docs" />
+      <meta property="fc:frame:button:2:action" content="link" />
+      <meta property="fc:frame:button:2:target" content="https://frog.fm" />
+      <meta property="fc:frame:button:3" content="GitHub" />
+      <meta property="fc:frame:button:3:action" content="link" />
+      <meta
+        property="fc:frame:button:3:target"
+        content="https://github.com/wevm/frog"
+      />
+    </>
+  ),
   logoUrl: {
     light: '/logo-light.svg',
     dark: '/logo-dark.svg',
@@ -15,6 +42,11 @@ export default defineConfig({
         dark: 'poimandres',
       },
     },
+  },
+  ogImageUrl: {
+    '/': '/og.png',
+    '/docs':
+      'https://vocs.dev/api/og?logo=%logo&title=%title&description=%description',
   },
   rootDir: '.',
   socials: [
