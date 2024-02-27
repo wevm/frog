@@ -328,11 +328,30 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      const isDevEnabled = this.dev?.enabled ?? true
-      const content = isDevEnabled && (
-        <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
-          open 𝒇𝒓𝒂𝒎𝒆 devtools
-        </a>
+      const isDevEnabled =
+        // check if devtools are enabled on constructor.
+        (this.dev?.enabled ?? true) &&
+        // check if route has `/dev` path.
+        this.hono.routes.some((r) => {
+          if (!r.path.startsWith(this.basePath + parsePath(path))) return false
+          if (!r.path.includes('/dev')) return false
+          return true
+        })
+
+      const body = isDevEnabled && (
+        <body
+          style={{
+            alignItems: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            overflow: 'hidden',
+          }}
+        >
+          <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
+            open 𝒇𝒓𝒂𝒎𝒆 devtools
+          </a>
+        </body>
       )
 
       return c.render(
@@ -364,17 +383,7 @@ export class FrogBase<
               content={serializeJson(baseContext)}
             />
           </head>
-          <body
-            style={{
-              alignItems: 'center',
-              display: 'flex',
-              justifyContent: 'center',
-              minHeight: '100vh',
-              overflow: 'hidden',
-            }}
-          >
-            {content}
-          </body>
+          {body}
         </html>,
       )
     })
