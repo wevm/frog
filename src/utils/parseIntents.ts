@@ -1,6 +1,7 @@
 import { type JSXNode } from 'hono/jsx'
 
 import { type FrameIntents } from '../types.js'
+import { parsePath } from './parsePath.js'
 
 type Counter = { button: number }
 
@@ -47,8 +48,7 @@ function parseIntent(
       return {
         ...node.props,
         action: node.props.action
-          ? options.baseUrl +
-            node.props.action +
+          ? parsePath(options.baseUrl + node.props.action) +
             (options.search ? `?${options.search}` : '')
           : undefined,
         children: node.children,
