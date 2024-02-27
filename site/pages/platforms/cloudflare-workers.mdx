@@ -41,6 +41,7 @@ npm install wrangler --save-dev
 Next, scaffold your frame:
 
 ```tsx twoslash [src/index.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
@@ -83,6 +84,7 @@ It is recommended to use your own Hub API URL in production.
 After that, we export our app via the `default` export.
 
 ```tsx twoslash  [src/index.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
@@ -166,6 +168,7 @@ they will be redirected to the `/foo` path.
 [Read more on Browser Redirects](/concepts/browser-redirects)
 
 ```tsx twoslash  [src/index.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'

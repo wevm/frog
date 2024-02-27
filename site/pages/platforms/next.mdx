@@ -41,6 +41,7 @@ npm install next@latest react@latest react-dom@latest vercel@latest
 Next, scaffold your frame:
 
 ```tsx twoslash [app/api/[[...routes]]/route.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog, TextInput } from 'frog'
@@ -84,6 +85,7 @@ It is recommended to use your own Hub API URL in production.
 After that, we will add handlers to handle requests in the `api/` route:
 
 ```tsx twoslash [app/api/[[...routes]]/route.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog, TextInput } from 'frog'
@@ -177,6 +179,7 @@ they will be redirected to the `/foo` path (ie. `/app/foo/page.tsx` in your Next
 [Read more on Browser Redirects](/concepts/browser-redirects)
 
 ```tsx twoslash [app/api/[[...routes]]/route.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog, TextInput } from 'frog'

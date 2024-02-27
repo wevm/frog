@@ -9,6 +9,7 @@ then the **Frog** (and Hono) API should seem familiar to you.
 At a high-level, the most basic **Frog** application looks like this:
 
 ```tsx twoslash [src/index.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
@@ -184,6 +185,7 @@ Farcaster Frames have two main UI components: an **Image**, and a set of **Inten
 We can represent this in the **Frog** API via the `image` and `intents` properties of the frame route:
 
 ```tsx twoslash [src/index.tsx]
+// @noErrors
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
  
