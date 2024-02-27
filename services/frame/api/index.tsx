@@ -11,7 +11,6 @@ export const config = {
 }
 
 export const app = new Frog<State>({
-  basePath: '/api',
   browserLocation: 'https://frog.fm',
   initialState: {
     featureIndex: 0,
@@ -19,7 +18,7 @@ export const app = new Frog<State>({
   },
 })
 
-app.frame('/', ({ buttonValue, deriveState }) => {
+app.frame('/api', ({ buttonValue, deriveState }) => {
   const featureImages = [
     '/write-in-jsx.png',
     '/connect-frames.png',
