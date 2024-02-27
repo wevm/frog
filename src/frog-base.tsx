@@ -397,9 +397,20 @@ export class FrogBase<
         previousState,
       })
 
-      const postUrl = action
-        ? url.origin + parsePath(this.basePath) + parsePath(action || '')
-        : context.url
+      const imageUrl = (() => {
+        if (typeof image !== 'string')
+          return `${parsePath(
+            context.url,
+          )}/image?${frameImageParams.toString()}`
+        if (image.startsWith('http')) return image
+        return `${url.origin + parsePath(this.basePath) + parsePath(image)}`
+      })()
+
+      const postUrl = (() => {
+        if (!action) return context.url
+        if (action.startsWith('http')) return action
+        return url.origin + parsePath(this.basePath) + parsePath(action)
+      })()
 
       // Set response headers provided by consumer.
       for (const [key, value] of Object.entries(headers ?? {}))
@@ -413,26 +424,8 @@ export class FrogBase<
               property="fc:frame:image:aspect_ratio"
               content={imageAspectRatio ?? '1.91:1'}
             />
-            <meta
-              property="fc:frame:image"
-              content={
-                typeof image === 'string'
-                  ? image
-                  : `${parsePath(
-                      context.url,
-                    )}/image?${frameImageParams.toString()}`
-              }
-            />
-            <meta
-              property="og:image"
-              content={
-                typeof image === 'string'
-                  ? image
-                  : `${parsePath(
-                      context.url,
-                    )}/image?${frameImageParams.toString()}`
-              }
-            />
+            <meta property="fc:frame:image" content={imageUrl} />
+            <meta property="og:image" content={imageUrl} />
             <meta property="og:title" content={title} />
             <meta
               property="fc:frame:post_url"
