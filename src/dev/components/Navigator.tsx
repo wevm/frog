@@ -5,6 +5,7 @@ import {
   externalLinkIcon,
   farcasterIcon,
   globeIcon,
+  personIcon,
   refreshIcon,
 } from './icons.js'
 
@@ -94,7 +95,7 @@ export function Navigator() {
 
       <button
         aria-label="refresh"
-        class="bg-background-100 border rounded-md text-gray-700 px-2 rounded-r-md h-full"
+        class="bg-background-100 border rounded-md text-gray-700 px-2 h-full"
         type="button"
         x-on:click={`
           const nextStackId = logs[logIndex] ?? dataKey
@@ -238,8 +239,8 @@ export function Navigator() {
             class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
             x-on:click="open = true"
           >
-            <div style={{ height: '30px', width: '30px' }} x-show="!user.pfp">
-              {farcasterIcon}
+            <div class="px-2" x-show="!user.pfp">
+              {personIcon}
             </div>
             <img
               style={{ height: '32px', width: '32px' }}

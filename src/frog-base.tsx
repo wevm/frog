@@ -96,6 +96,12 @@ export type FrogConstructorParameters<
    */
   dev?:
     | {
+        /**
+         * Enables built-in devtools
+         *
+         * @default true
+         */
+        enabled?: boolean | undefined
         /** Custom app fid to auth with. */
         appFid?: number | undefined
         /** Custom app mnemonic to auth with. */
@@ -302,7 +308,7 @@ export class FrogBase<
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
     if (headers) this.headers = headers
-    if (dev) this.dev = dev
+    if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (imageOptions) this._imageOptions = imageOptions
     if (secret) this.secret = secret
@@ -435,6 +441,13 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
+      const isDevEnabled = this.dev?.enabled ?? true
+      const content = isDevEnabled && (
+        <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
+          open 𝒇𝒓𝒂𝒎𝒆 devtools
+        </a>
+      )
+
       return c.render(
         <html lang="en">
           <head>
@@ -473,9 +486,7 @@ export class FrogBase<
               overflow: 'hidden',
             }}
           >
-            <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
-              view 𝒇𝒓𝒂𝒎𝒆
-            </a>
+            {content}
           </body>
         </html>,
       )

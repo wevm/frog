@@ -53,6 +53,6 @@ export class Frog<
   ) {
     super.frame(path, handler, options)
 
-    devRoutes(this, path)
+    if (this.dev?.enabled ?? true) devRoutes(this, path)
   }
 }
