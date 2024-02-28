@@ -273,7 +273,7 @@ export function Preview(props: PreviewProps) {
         },
         async restoreState() {
           if (!location.hash.startsWith('#state')) {
-            const userFid = this.user.userFid
+            const userFid = this.user?.userFid
             if (userFid) this.overrides = { ...this.overrides, userFid }
             return
           }

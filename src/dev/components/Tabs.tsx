@@ -195,6 +195,11 @@ export function Tabs() {
             <div class={valueClass} x-text="new URL(url).pathname" />
           </div>
 
+          <div class={rowClass} x-cloak x-show="body?.fid">
+            <div class={labelClass}>User FID</div>
+            <div class={valueClass} x-text="`#${body?.fid}`" />
+          </div>
+
           <div class={rowClass} x-cloak x-show="body?.inputText">
             <div class={labelClass}>Input Text</div>
             <div class={valueClass} x-text="body?.inputText" />
@@ -203,11 +208,6 @@ export function Tabs() {
           <div class={rowClass} x-cloak x-show="body?.buttonIndex">
             <div class={labelClass}>Button Index</div>
             <div class={valueClass} x-text="body?.buttonIndex" />
-          </div>
-
-          <div class={rowClass} x-cloak x-show="body?.fid">
-            <div class={labelClass}>User FID</div>
-            <div class={valueClass} x-text="`#${body?.fid}`" />
           </div>
         </div>
 

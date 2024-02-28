@@ -199,7 +199,7 @@ export function Timeline() {
                     fid: overrides.castFid,
                     hash: overrides.castHash,
                   },
-                  fid: overrides.userFid !== user.userFid ? overrides.userFid : user.userFid,
+                  fid: overrides.userFid !== user?.userFid ? overrides.userFid : user.userFid,
                 }
 
                 let json
@@ -249,7 +249,7 @@ export function Timeline() {
 
                 <button
                   aria-label="Edit User FID"
-                  x-show="!overrideUserFid && user.userFid === parseInt(userFid, 10)"
+                  x-show="!overrideUserFid && user?.userFid === parseInt(userFid, 10)"
                   class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
                   type="button"
                   style={{ right: '0.25rem' }}
