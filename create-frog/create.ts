@@ -1,9 +1,12 @@
-import { relative, resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { intro, log, outro, select, text } from '@clack/prompts'
 import { default as fs } from 'fs-extra'
 import { default as ignore } from 'ignore'
 import { default as pc } from 'picocolors'
 import { getTemplates } from './utils/getTemplates.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export type CreateParameters = { name: string; template: string }
 
@@ -37,10 +40,7 @@ export async function create(params: CreateParameters) {
       initialValue: 'default',
     })) as string)
 
-  const templateDir = resolve(
-    import.meta.dirname,
-    `../templates/${templateName}`,
-  )
+  const templateDir = resolve(__dirname, `../templates/${templateName}`)
 
   const gitignore = fs
     .readFileSync(resolve(templateDir, '_gitignore'))
