@@ -1,6 +1,6 @@
 import { type Context } from 'hono'
 import { produce } from 'immer'
-import { type FrameContext } from '../types.js'
+import type { FrameContext } from '../types/frame.js'
 import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
 

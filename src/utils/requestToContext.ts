@@ -1,6 +1,6 @@
 import { type Context } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
-import { type FrameContext } from '../types.js'
+import { type FrameContext } from '../types/frame.js'
 import { deserializeJson } from './deserializeJson.js'
 import { fromQuery } from './fromQuery.js'
 import * as jws from './jws.js'

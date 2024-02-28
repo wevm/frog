@@ -1,6 +1,6 @@
 import { bytesToHex, bytesToString, hexToBytes } from 'viem'
 import { FrameActionBody, Message } from '../protobufs/generated/message_pb.js'
-import { type FrameData, type TrustedData } from '../types.js'
+import { type FrameData, type TrustedData } from '../types/frame.js'
 import { parsePath } from './parsePath.js'
 
 export type VerifyFrameParameters = {
