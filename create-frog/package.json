@@ -1,6 +1,6 @@
 {
   "name": "create-frog",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "bin": {
     "create-frog": "./_lib/bin.js"
