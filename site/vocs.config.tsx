@@ -54,6 +54,24 @@ export default defineConfig({
     '/docs':
       'https://vocs.dev/api/og?logo=%logo&title=%title&description=%description',
   },
+  outlineFooter: (
+    <div style={{ marginLeft: 16, marginTop: 16 }}>
+      <a href="https://paradigm.xyz" target="_blank" rel="noreferrer noopener">
+        <img
+          alt="Paradigm x Wevm"
+          className="vocs_Logo_logoLight"
+          src="https://raw.githubusercontent.com/wevm/.github/main/content/paradigm-collab-light.svg"
+          style={{ width: 200 }}
+        />
+        <img
+          alt="Paradigm x Wevm"
+          className="vocs_Logo_logoDark"
+          src="https://raw.githubusercontent.com/wevm/.github/main/content/paradigm-collab-dark.svg"
+          style={{ width: 200 }}
+        />
+      </a>
+    </div>
+  ),
   rootDir: '.',
   socials: [
     {

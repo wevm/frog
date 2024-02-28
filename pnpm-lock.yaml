@@ -114,7 +114,7 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T215133(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.7
@@ -133,7 +133,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.7)(typescript@5.3.3)
+        version: link:../src
       react:
         specifier: latest
         version: 18.2.0
@@ -144,8 +144,8 @@ importers:
         specifier: latest
         version: 5.3.3
       vocs:
-        specifier: 1.0.0-alpha.40
-        version: 1.0.0-alpha.40(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(rollup@4.12.0)(typescript@5.3.3)
+        specifier: 1.0.0-alpha.41
+        version: 1.0.0-alpha.41(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(rollup@4.12.0)(typescript@5.3.3)
 
   src:
     dependencies:
@@ -202,7 +202,7 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.5
@@ -218,7 +218,7 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.5
@@ -231,7 +231,7 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.5
@@ -244,7 +244,7 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.7)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.7
@@ -278,7 +278,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.5
@@ -294,7 +294,7 @@ importers:
     dependencies:
       frog:
         specifier: main
-        version: 1.0.0-alpha.0-main.20240227T214128(@types/node@14.18.33)(hono@4.0.7)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: ^4
         version: 4.0.7
@@ -885,6 +885,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@cloudflare/workerd-darwin-arm64@1.20240129.0:
@@ -902,6 +903,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@cloudflare/workerd-linux-64@1.20240129.0:
@@ -919,6 +921,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@cloudflare/workerd-linux-arm64@1.20240129.0:
@@ -936,6 +939,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@cloudflare/workerd-windows-64@1.20240129.0:
@@ -953,6 +957,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@cspotcode/source-map-support@0.8.1:
@@ -1624,23 +1629,6 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@farcaster/core@0.13.8(typescript@4.9.5):
-    resolution: {integrity: sha512-h1WU5IinBwy8f5mGqyAQGxBGuCFPj+kYt/OQquE+898bdlU7LibwsAi2P2qD6Fkb+0GmqloF4m7DIg68wfpfWw==}
-    dependencies:
-      '@noble/curves': 1.3.0
-      '@noble/hashes': 1.3.3
-      ffi-napi: 4.0.3
-      neverthrow: 6.1.0
-      ref-napi: 3.0.3
-      viem: 1.21.4(typescript@4.9.5)
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
   /@farcaster/core@0.13.8(typescript@5.3.3):
     resolution: {integrity: sha512-h1WU5IinBwy8f5mGqyAQGxBGuCFPj+kYt/OQquE+898bdlU7LibwsAi2P2qD6Fkb+0GmqloF4m7DIg68wfpfWw==}
     dependencies:
@@ -1716,38 +1704,6 @@ packages:
       '@hono/node-server': 1.8.1
       hono: 4.0.4
       miniflare: 3.20240129.3
-      minimatch: 9.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-    dev: false
-
-  /@hono/vite-dev-server@0.7.0(hono@4.0.5):
-    resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
-    engines: {node: '>=18.14.1'}
-    peerDependencies:
-      hono: '*'
-    dependencies:
-      '@hono/node-server': 1.8.1
-      hono: 4.0.5
-      miniflare: 3.20240208.0
-      minimatch: 9.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - supports-color
-      - utf-8-validate
-    dev: false
-
-  /@hono/vite-dev-server@0.7.0(hono@4.0.7):
-    resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
-    engines: {node: '>=18.14.1'}
-    peerDependencies:
-      hono: '*'
-    dependencies:
-      '@hono/node-server': 1.8.1
-      hono: 4.0.7
-      miniflare: 3.20240208.0
       minimatch: 9.0.3
     transitivePeerDependencies:
       - bufferutil
@@ -2780,11 +2736,6 @@ packages:
     engines: {node: '>= 10'}
     dev: false
 
-  /@resvg/resvg-wasm@2.6.0:
-    resolution: {integrity: sha512-iDkBM6Ivex8nULtBu8cX670/lfsGxq8U1cuqE+qS9xFpPQP1enPdVm/33Kq3+B+bAldA+AHNZnCgpmlHo/fZrQ==}
-    engines: {node: '>= 10'}
-    dev: false
-
   /@rollup/pluginutils@4.2.1:
     resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
     engines: {node: '>= 8.0.0'}
@@ -3115,6 +3066,7 @@ packages:
 
   /@types/node@14.18.33:
     resolution: {integrity: sha512-qelS/Ra6sacc4loe/3MSjXNL1dNQ/GjxNHVzuChwMfmk7HuycRLVQN2qNY3XahK+fZc5E2szqQSKUyAF0E+2bg==}
+    dev: true
 
   /@types/node@20.11.19:
     resolution: {integrity: sha512-7xMnVEcZFu0DikYjWOlRq7NTPETrm7teqUT2WkQjrTIkEgUyyGdWsj/Zg8bEJt5TNklzbPD1X3fqfsHw3SpapQ==}
@@ -3671,20 +3623,6 @@ packages:
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
-
-  /abitype@0.9.8(typescript@4.9.5):
-    resolution: {integrity: sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-      zod: ^3 >=3.19.1
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      zod:
-        optional: true
-    dependencies:
-      typescript: 4.9.5
-    dev: false
 
   /abitype@0.9.8(typescript@5.3.3):
     resolution: {integrity: sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==}
@@ -4747,7 +4685,7 @@ packages:
     dev: true
 
   /ee-first@1.1.1:
-    resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
+    resolution: {integrity: sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=}
     dev: false
 
   /electron-to-chromium@1.4.677:
@@ -5464,160 +5402,8 @@ packages:
     dev: false
 
   /fresh@0.5.2:
-    resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
+    resolution: {integrity: sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=}
     engines: {node: '>= 0.6'}
-    dev: false
-
-  /frog@1.0.0-alpha.0-main.20240227T214128(@types/node@14.18.33)(hono@4.0.7)(typescript@5.3.3):
-    resolution: {integrity: sha512-WepdLRwzlAESQWuzQem8o/yeg2a8M+WnsbzrSx/kvB6fHlu6y6qPom8hhzPEij42L/n3VFqnjrHrWk8+UBqqUQ==}
-    hasBin: true
-    peerDependencies:
-      hono: ^4
-    dependencies:
-      '@farcaster/core': 0.13.8(typescript@5.3.3)
-      '@hono/vite-dev-server': 0.7.0(hono@4.0.7)
-      '@noble/curves': 1.3.0
-      cac: 6.7.14
-      detect-browser: 5.3.0
-      fast-glob: 3.3.2
-      fs-extra: 11.2.0
-      happy-dom: 13.3.8
-      hono: 4.0.7
-      hono-og: 0.0.16(hono@4.0.7)
-      immer: 10.0.3
-      jose: 5.2.2
-      path-browserify: 1.0.1
-      qrcode: 1.5.3
-      shiki: 1.1.6
-      viem: 2.7.11(typescript@5.3.3)
-      vite: 5.1.3(@types/node@14.18.33)
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
-  /frog@1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.5)(typescript@5.3.3):
-    resolution: {integrity: sha512-WepdLRwzlAESQWuzQem8o/yeg2a8M+WnsbzrSx/kvB6fHlu6y6qPom8hhzPEij42L/n3VFqnjrHrWk8+UBqqUQ==}
-    hasBin: true
-    peerDependencies:
-      hono: ^4
-    dependencies:
-      '@farcaster/core': 0.13.8(typescript@5.3.3)
-      '@hono/vite-dev-server': 0.7.0(hono@4.0.5)
-      '@noble/curves': 1.3.0
-      cac: 6.7.14
-      detect-browser: 5.3.0
-      fast-glob: 3.3.2
-      fs-extra: 11.2.0
-      happy-dom: 13.3.8
-      hono: 4.0.5
-      hono-og: 0.0.16(hono@4.0.5)
-      immer: 10.0.3
-      jose: 5.2.2
-      path-browserify: 1.0.1
-      qrcode: 1.5.3
-      shiki: 1.1.6
-      viem: 2.7.11(typescript@5.3.3)
-      vite: 5.1.3(@types/node@20.11.19)
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
-  /frog@1.0.0-alpha.0-main.20240227T214128(@types/node@20.11.19)(hono@4.0.7)(typescript@5.3.3):
-    resolution: {integrity: sha512-WepdLRwzlAESQWuzQem8o/yeg2a8M+WnsbzrSx/kvB6fHlu6y6qPom8hhzPEij42L/n3VFqnjrHrWk8+UBqqUQ==}
-    hasBin: true
-    peerDependencies:
-      hono: ^4
-    dependencies:
-      '@farcaster/core': 0.13.8(typescript@5.3.3)
-      '@hono/vite-dev-server': 0.7.0(hono@4.0.7)
-      '@noble/curves': 1.3.0
-      cac: 6.7.14
-      detect-browser: 5.3.0
-      fast-glob: 3.3.2
-      fs-extra: 11.2.0
-      happy-dom: 13.3.8
-      hono: 4.0.7
-      hono-og: 0.0.16(hono@4.0.7)
-      immer: 10.0.3
-      jose: 5.2.2
-      path-browserify: 1.0.1
-      qrcode: 1.5.3
-      shiki: 1.1.6
-      viem: 2.7.11(typescript@5.3.3)
-      vite: 5.1.3(@types/node@20.11.19)
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
-  /frog@1.0.0-alpha.0-main.20240227T215133(@types/node@14.18.33)(hono@4.0.7)(typescript@4.9.5):
-    resolution: {integrity: sha512-Xt153gPbSvg7A/lYsU18SuPqcY5GrEFe4yykjmqbv3T20XmWN9IZvwT+QR2c9AvKAM0Nuz9xstHo92GVYOcqNQ==}
-    hasBin: true
-    peerDependencies:
-      hono: ^4
-    dependencies:
-      '@farcaster/core': 0.13.8(typescript@4.9.5)
-      '@hono/vite-dev-server': 0.7.0(hono@4.0.7)
-      '@noble/curves': 1.3.0
-      cac: 6.7.14
-      detect-browser: 5.3.0
-      fast-glob: 3.3.2
-      fs-extra: 11.2.0
-      happy-dom: 13.3.8
-      hono: 4.0.7
-      hono-og: 0.0.16(hono@4.0.7)
-      immer: 10.0.3
-      jose: 5.2.2
-      path-browserify: 1.0.1
-      qrcode: 1.5.3
-      shiki: 1.1.6
-      viem: 2.7.11(typescript@4.9.5)
-      vite: 5.1.3(@types/node@14.18.33)
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - supports-color
-      - terser
-      - typescript
-      - utf-8-validate
-      - zod
     dev: false
 
   /fs-extra@11.1.0:
@@ -6083,26 +5869,6 @@ packages:
       '@wevm/vercel-og': 0.6.11
       hono: 4.0.4
       workers-og: 0.0.20
-    dev: false
-
-  /hono-og@0.0.16(hono@4.0.5):
-    resolution: {integrity: sha512-3BMsFG+CdYCOo458NJSfJ6L11hYIufydHFd9u+mJUGh1+xXcA73URPZahT+h3MsVOY/4XTRelebNrDuI0Asqog==}
-    peerDependencies:
-      hono: '>=3'
-    dependencies:
-      '@wevm/vercel-og': 0.6.11
-      hono: 4.0.5
-      workers-og: 0.0.23
-    dev: false
-
-  /hono-og@0.0.16(hono@4.0.7):
-    resolution: {integrity: sha512-3BMsFG+CdYCOo458NJSfJ6L11hYIufydHFd9u+mJUGh1+xXcA73URPZahT+h3MsVOY/4XTRelebNrDuI0Asqog==}
-    peerDependencies:
-      hono: '>=3'
-    dependencies:
-      '@wevm/vercel-og': 0.6.11
-      hono: 4.0.7
-      workers-og: 0.0.23
     dev: false
 
   /hono@3.12.12:
@@ -7470,6 +7236,7 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: true
 
   /minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
@@ -9901,29 +9668,6 @@ packages:
       vfile-message: 4.0.2
     dev: false
 
-  /viem@1.21.4(typescript@4.9.5):
-    resolution: {integrity: sha512-BNVYdSaUjeS2zKQgPs+49e5JKocfo60Ib2yiXOWBT6LuVxY1I/6fFX3waEtpXvL1Xn4qu+BVitVtMh9lyThyhQ==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@adraffy/ens-normalize': 1.10.0
-      '@noble/curves': 1.2.0
-      '@noble/hashes': 1.3.2
-      '@scure/bip32': 1.3.2
-      '@scure/bip39': 1.2.1
-      abitype: 0.9.8(typescript@4.9.5)
-      isows: 1.0.3(ws@8.13.0)
-      typescript: 4.9.5
-      ws: 8.13.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
-    dev: false
-
   /viem@1.21.4(typescript@5.3.3):
     resolution: {integrity: sha512-BNVYdSaUjeS2zKQgPs+49e5JKocfo60Ib2yiXOWBT6LuVxY1I/6fFX3waEtpXvL1Xn4qu+BVitVtMh9lyThyhQ==}
     peerDependencies:
@@ -10012,42 +9756,6 @@ packages:
       - sugarss
       - supports-color
       - terser
-
-  /vite@5.1.3(@types/node@14.18.33):
-    resolution: {integrity: sha512-UfmUD36DKkqhi/F75RrxvPpry+9+tTkrXfMNZD+SboZqBCMsxKtO52XeGzzuh7ioz+Eo/SYDBbdb0Z7vgcDJew==}
-    engines: {node: ^18.0.0 || >=20.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': ^18.0.0 || >=20.0.0
-      less: '*'
-      lightningcss: ^1.21.0
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      lightningcss:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      '@types/node': 14.18.33
-      esbuild: 0.19.12
-      postcss: 8.4.35
-      rollup: 4.12.0
-    optionalDependencies:
-      fsevents: 2.3.3
-    dev: false
 
   /vite@5.1.3(@types/node@20.11.19):
     resolution: {integrity: sha512-UfmUD36DKkqhi/F75RrxvPpry+9+tTkrXfMNZD+SboZqBCMsxKtO52XeGzzuh7ioz+Eo/SYDBbdb0Z7vgcDJew==}
@@ -10140,8 +9848,8 @@ packages:
       - terser
     dev: true
 
-  /vocs@1.0.0-alpha.40(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(rollup@4.12.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-kF+xClbpL3ZLnFSvnVoHPMTxDaTkaC6oASxS3/xgH6jBHAUWJ8T7zIrZk4I0D0h1RziDmBd+2kffbbLL/n1jkQ==}
+  /vocs@1.0.0-alpha.41(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(rollup@4.12.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-TxmyJlKNcC6OuhrPC2IDVk08sn5b7ZYbmHd7jHYHd+ygKKTtSq7rcyPbmazYc07jUIS4F7nWsV8JiGlIyKi82g==}
     hasBin: true
     peerDependencies:
       react: ^18.2.0
@@ -10341,20 +10049,12 @@ packages:
       '@cloudflare/workerd-linux-64': 1.20240208.0
       '@cloudflare/workerd-linux-arm64': 1.20240208.0
       '@cloudflare/workerd-windows-64': 1.20240208.0
+    dev: true
 
   /workers-og@0.0.20:
     resolution: {integrity: sha512-GgWLpfpGxzgqYnT2HdBybXdAePn7+W5zQUl+NUbnggp2zeCaliZdQh5su7XXM5TSAlveSAiwRrG/kOFSIXiOKQ==}
     dependencies:
       '@resvg/resvg-wasm': 2.4.0
-      just-camel-case: 6.2.0
-      satori: 0.10.13
-      yoga-wasm-web: 0.3.3
-    dev: false
-
-  /workers-og@0.0.23:
-    resolution: {integrity: sha512-caVuk/muVgLwc0frelrrIxvSUhkRRrPNeHCh4psy6l6MPTngCkDXxqIHOTG/b54NvCCC57T+uobohDO0Se54xw==}
-    dependencies:
-      '@resvg/resvg-wasm': 2.6.0
       just-camel-case: 6.2.0
       satori: 0.10.13
       yoga-wasm-web: 0.3.3
