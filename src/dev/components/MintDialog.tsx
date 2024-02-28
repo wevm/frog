@@ -55,7 +55,11 @@ export function MintDialog() {
               }}
             />
 
-            <div class="flex flex-row justify-between text-sm text-gray-1000 px-1 font-medium">
+            {/* TODO: Make dynamic */}
+            <div
+              class="flex flex-row justify-between text-sm text-gray-1000 px-1 font-medium"
+              style={{ display: 'none' }}
+            >
               <div>BasePaint Day #191</div>
               <div class="flex flex-row gap-1 items-center">
                 <div

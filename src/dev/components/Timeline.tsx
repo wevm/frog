@@ -69,11 +69,11 @@ export function Timeline() {
                 <div class="flex flex-row items-center justify-between w-full">
                   <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
                     <div
-                      class="flex items-center border px-1.5 rounded-sm text-gray-900 uppercase"
+                      class="flex items-center border px-1 py-0.5 leading-4 rounded-sm text-gray-900 uppercase"
                       x-text="log.method"
                     />
                     <div
-                      class="flex items-center border px-1.5 rounded-sm uppercase"
+                      class="flex items-center border px-1 py-0.5 leading-4 rounded-sm uppercase"
                       x-text="log.response.status"
                       {...{
                         ':class': `{

@@ -1,3 +1,5 @@
+import { checkIcon, copyIcon } from './icons.js'
+
 export function Tabs() {
   const indicatorStyle = {
     display: 'none',
@@ -170,7 +172,7 @@ export function Tabs() {
           <div class={rowClass}>
             <div class={labelClass}>Method</div>
             <div
-              class="flex items-center border px-1.5 rounded-sm text-gray-900 font-mono uppercase"
+              class="flex items-center border px-1 py-0.5 leading-4 rounded-sm text-gray-900 font-mono uppercase"
               x-text="data.method"
             />
           </div>
@@ -222,7 +224,7 @@ export function Tabs() {
               }}
             >
               <div
-                class="flex items-center border px-1.5 rounded-sm uppercase"
+                class="flex items-center border px-1 py-0.5 leading-4 rounded-sm uppercase"
                 x-text="data.response.status"
                 {...{
                   ':class': `{
@@ -356,10 +358,11 @@ export function Tabs() {
         id="meta-tags-section"
         role="tabpanel"
         aria-labelledby="meta-tags"
-        class="p-4 scrollbars relative"
+        class="relative"
         x-show="tab === 'meta-tags'"
         style={{ fontSize: '0.8125rem' }}
         x-data="{
+          copied: false,
           get metaTags() {
             let html = ''
             for (const tag of frame.debug.htmlTags) {
@@ -373,7 +376,35 @@ export function Tabs() {
           }
         }"
       >
-        <div x-html="getCodeHtml(metaTags, 'html')" />
+        <div
+          class="items-center absolute"
+          style={{ right: '0.5rem', top: '0.5rem' }}
+        >
+          <button
+            aria-label="copy"
+            type="button"
+            class="text-gray-600 bg-transparent p-1.5 rounded-sm hover:bg-gray-100"
+            x-show="!copied"
+            x-on:click="
+              if (copied) return
+              navigator.clipboard.writeText(metaTags)
+              copied = true
+              setTimeout(() => copied = false, 1_000)
+            "
+          >
+            {copyIcon}
+          </button>
+          <div
+            class="text-green-900 bg-green-100 p-1.5 rounded-sm"
+            x-show="copied"
+          >
+            {checkIcon}
+          </div>
+        </div>
+
+        <div class="p-4 scrollbars">
+          <div x-html="getCodeHtml(metaTags, 'html')" />
+        </div>
       </section>
     </div>
   )

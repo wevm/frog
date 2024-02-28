@@ -598,6 +598,7 @@ export function Styles() {
       color: var(--gray-1000);
       font-synthesis: none;
       font-weight: 400;
+      font-size: 16px;
       line-height: 1.5;
       scrollbar-color: var(--gray-alpha-500) transparent;
       scrollbar-width: thin;
@@ -766,6 +767,7 @@ export function Styles() {
     .items-center { align-items: center; }
     .justify-center { justify-content: center; }
     .justify-between { justify-content: space-between; }
+    .leading-4 { line-height: 1rem; }
     .leading-snug { line-height: 1.375; }
     .max-w-full { max-width: 100%; }
     .min-w-36 { min-width: 9rem; }
@@ -791,6 +793,7 @@ export function Styles() {
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
     .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .py-0\\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
     .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
     .py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
@@ -879,7 +882,7 @@ export function Styles() {
       &:hover { background-color: var(--red-300) !important; }
     }
 
-    .h-timeline { height: 521px }
+    .h-timeline { height: 533px }
     .container {
       padding-top: 1rem;
       padding-bottom: 1rem;

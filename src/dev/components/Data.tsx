@@ -136,10 +136,11 @@ export function Data() {
                 class="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap font-mono text-xs"
                 x-text="row.value"
               />
+
               <div
                 role="gridcell"
                 aria-colindex="3"
-                class="flex p-3"
+                class="flex p-3 gap-3"
                 style={{
                   justifyContent: 'flex-end',
                   flex: '1',
