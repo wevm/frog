@@ -29,7 +29,7 @@ export const app = new Frog({
 })
  
 app.frame('/frame', (c) => {
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```
 
@@ -47,10 +47,10 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 app.frame('/frame', (c) => {
-  return {
+  return c.res({
     browserLocation: '/' // [!code hl]
     /* ... */
-  }
+  })
 })
 ```
 
@@ -72,7 +72,7 @@ export const app = new Frog({
 })
  
 app.frame('/frame/:foo/:bar', (c) => { // [!code hl]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```
 
@@ -95,10 +95,10 @@ export const app = new Frog({
 })
  
 app.frame('/foo', (c) => { // [!code hl]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 
 app.frame('/bar', (c) => { // [!code hl]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```

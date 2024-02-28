@@ -104,7 +104,7 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
 
 app.frame('/', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```
 
@@ -118,15 +118,15 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
 
 app.frame('/', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 
 app.frame('/foo', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 
 app.frame('/bar', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```
 
@@ -140,7 +140,7 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
 
 app.frame('/', (c) => {
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 
 app.hono.get('/healthcheck', (c) => { // [!code focus]
@@ -170,7 +170,7 @@ export const app = new Frog()
 
 app.frame('/', (c) => { // [!code focus]
   const { buttonValue, inputText, status, verified } = c // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```
 

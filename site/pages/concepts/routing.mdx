@@ -14,15 +14,15 @@ import { Frog } from 'frog'
 export const app = new Frog()
 
 app.frame('/', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 
 app.frame('/foo', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 
 app.frame('/bar', (c) => { // [!code focus]
-  return {/* ... */}
+  return c.res({/* ... */})
 })
 ```
 
