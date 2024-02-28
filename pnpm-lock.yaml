@@ -113,7 +113,7 @@ importers:
   services/frame:
     dependencies:
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
@@ -132,7 +132,7 @@ importers:
         specifier: latest
         version: 18.2.57
       frog:
-        specifier: main
+        specifier: latest
         version: link:../src
       react:
         specifier: latest
@@ -204,7 +204,7 @@ importers:
   templates/bun:
     dependencies:
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
@@ -220,7 +220,7 @@ importers:
   templates/cloudflare-worker:
     dependencies:
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
@@ -233,7 +233,7 @@ importers:
   templates/default:
     dependencies:
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
@@ -246,7 +246,7 @@ importers:
   templates/next:
     dependencies:
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
@@ -280,7 +280,7 @@ importers:
         specifier: ^1
         version: 1.8.1
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
@@ -296,7 +296,7 @@ importers:
   templates/vercel:
     dependencies:
       frog:
-        specifier: main
+        specifier: latest
         version: link:../../src
       hono:
         specifier: ^4
