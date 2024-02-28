@@ -8,7 +8,7 @@
     "wrangler:deploy": "wrangler deploy --minify src/index.tsx"
   },
   "dependencies": {
-    "frog": "main",
+    "frog": "latest",
     "hono": "^4"
   },
   "devDependencies": {

@@ -9,7 +9,7 @@
   "dependencies": {
     "@hono/node-server": "^1",
     "hono": "^4",
-    "frog": "main"
+    "frog": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
