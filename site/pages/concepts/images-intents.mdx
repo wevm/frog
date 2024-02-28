@@ -30,9 +30,9 @@ app.frame('/', (c) => {
     image: ( // [!code focus]
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
         {status === 'initial' ? ( // [!code focus]
-          <div>Select your fruit!</div> // [!code focus]
+          'Select your fruit!' // [!code focus]
         ) : ( // [!code focus]
-          <div>Selected: {buttonValue}</div> // [!code focus]
+          `Selected: ${buttonValue}` // [!code focus]
         )} // [!code focus]
       </div> // [!code focus]
     ), // [!code focus]
@@ -89,9 +89,9 @@ app.frame('/', (c) => {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
-          <div>Select your fruit!</div>
+          'Select your fruit!'
         ) : (
-          <div>Selected: {buttonValue}</div>
+          `Selected: ${buttonValue}`
         )}
       </div>
     ),
@@ -158,9 +158,9 @@ app.frame('/', (c) => {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
-          <div>Select your fruit!</div>
+          'Select your fruit!'
         ) : (
-          <div>Selected: {fruit}</div>
+          `Selected: ${buttonValue}`
         )}
       </div>
     ),

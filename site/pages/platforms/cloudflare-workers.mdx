@@ -57,9 +57,9 @@ app.frame('/', (c) => {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
-          <div>Select your fruit!</div>
+          'Select your fruit!'
         ) : (
-          <div>Selected: {buttonValue}</div>
+          `Selected: ${buttonValue}`
         )}
       </div>
     ),
@@ -100,9 +100,9 @@ app.frame('/', (c) => {
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
-          <div>Select your fruit!</div>
+          'Select your fruit!'
         ) : (
-          <div>Selected: {buttonValue}</div>
+          `Selected: ${buttonValue}`
         )}
       </div>
     ),
@@ -185,9 +185,9 @@ app.frame('/frame/:path', (c) => { // [!code focus]
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         {status === 'initial' ? (
-          <div>Select your fruit!</div>
+          'Select your fruit!'
         ) : (
-          <div>Selected: {buttonValue}</div>
+          `Selected: ${buttonValue}`
         )}
       </div>
     ),
