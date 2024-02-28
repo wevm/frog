@@ -1,5 +1,5 @@
 {
-  "name": "example",
+  "name": "template-default",
   "private": true,
   "type": "module",
   "scripts": {

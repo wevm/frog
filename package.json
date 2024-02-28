@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "pnpm --filter playground dev",
+    "dev:create-frog": "bun create-frog/bin.ts",
     "build": "pnpm clean && pnpm build:frog && pnpm build:create-frog && bun .scripts/postbuild.ts",
     "build:frog": "tsc --project ./tsconfig.build.json",
     "build:create-frog": "rimraf create-frog/_lib && tsc -p create-frog/tsconfig.build.json",

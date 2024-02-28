@@ -1,5 +1,5 @@
 {
-  "name": "node",
+  "name": "template-node",
   "private": true,
   "type": "module",
   "scripts": {

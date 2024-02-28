@@ -1,5 +1,5 @@
 {
-  "name": "bun",
+  "name": "template-bun",
   "private": true,
   "type": "module",
   "scripts": {

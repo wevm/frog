@@ -1,5 +1,5 @@
 {
-  "name": "example-vercel-edge",
+  "name": "template-vercel",
   "private": true,
   "type": "module",
   "scripts": {
