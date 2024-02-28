@@ -1,11 +1,11 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
-  "changelog": "@changesets/cli/changelog",
+  "access": "public",
+  "baseBranch": "main",
+  "changelog": ["@changesets/changelog-github", { "repo": "wevm/frog" }],
   "commit": false,
   "fixed": [],
+  "ignore": ["playground", "site", "template-*"],
   "linked": [],
-  "access": "restricted",
-  "baseBranch": "main",
-  "updateInternalDependencies": "patch",
-  "ignore": ["playground", "site", "template-*"]
+  "updateInternalDependencies": "patch"
 }

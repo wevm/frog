@@ -11,6 +11,5 @@
   },
   "devDependencies": {
     "tsx": "^4.7.1"
-  },
-  "version": null
+  }
 }
