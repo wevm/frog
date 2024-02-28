@@ -42,8 +42,8 @@ Next, scaffold your frame:
 
 ```tsx twoslash [app/api/[[...routes]]/route.tsx]
 // @noErrors
-/** @jsxImportSource frog/jsx */
 // ---cut---
+/** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
 
 const app = new Frog({ 
@@ -86,8 +86,8 @@ After that, we will add handlers to handle requests in the `api/` route:
 
 ```tsx twoslash [app/api/[[...routes]]/route.tsx]
 // @noErrors
-/** @jsxImportSource frog/jsx */
 // ---cut---
+/** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
 import { handle } from 'frog/vercel' // [!code focus]
 
@@ -180,8 +180,8 @@ they will be redirected to the `/foo` path (ie. `/app/foo/page.tsx` in your Next
 
 ```tsx twoslash [app/api/[[...routes]]/route.tsx]
 // @noErrors
-/** @jsxImportSource frog/jsx */
 // ---cut---
+/** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
 import { handle } from 'frog/vercel'
 
