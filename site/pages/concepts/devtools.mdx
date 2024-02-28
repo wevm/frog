@@ -1,0 +1,70 @@
+# Devtools [Supercharge frame development with Frog's built-in devtools]
+
+When developing Frames, it's useful to get feedback in real-time. Shortening the dev loop helps you iterate on your Frames and launch them faster.
+
+Every Frame built with Frog includes built-in devtools that include a live preview of your frame, time-travel debugging, request information, validation, and more to help with development.
+
+<video controls style={{ borderRadius: '0.25rem'}}>
+  <source src="/devtools.mp4" type="video/mp4" />
+Your browser does not support the video tag.
+</video>
+
+## Getting Started
+
+Once you've [set up your Frog project](/getting-started), you can start the devtools by running:
+
+```bash
+frog dev
+```
+
+Every Frame you create with Frog will automatically attach the devtools at the `/:frame/dev` path. No need to install anything else or clone a separate repo!
+
+For example, if you have a Frame location at `/ribbit` (e.g. `app.frame('/ribbit', ...){:ts}`), then you can access the devtools at `/ribbit/dev`. Don't worry if you forget this, the Frame itself has a link to the devtools in the middle of tha page.
+
+## Features
+
+The best way to learn about what features are included in the Frog Devtools is to try them out yourself! For those that haven't tried out Frog yet, here's a brief overview of what's included.
+
+### Live Reload
+
+When you make changes to and save your Frame, the devtools will automatically reload your Frame, while maintaining the current state. This makes it easy to see how your changes affect the Frame and allow you to iterate quickly on nitpicky details, like getting your Frame image just right.
+
+### Browser URL State
+
+The Frog Devtools keep track of all its state in the URL via a query hash. This means that you can share a link to the devtools with someone else and they'll see the same state as you. This is useful for sharing bugs, or for getting feedback from others.
+
+### Frame Preview
+
+The Frame Preview allows you to interact with your Frame, just like you would in production. Click buttons, add text, and see how your Frame responds to user input.
+
+### Sign In With Farcaster
+
+You can connect your Farcaster account to the devtools to test [verification](/concepts/securing-frames#frame-data-verification) with your Frame. Simply, scan the QR code or copy-paste the login code in your mobile browser to sign in. You can also impersonate other users by entering a custom FID.
+
+### Request Timeline
+
+See all the requests made by your Frame and switch between them to see differences in the Frame, validation, state, metrics, and more. This is useful for restoring previous states, debugging errors, and profiling performance between different Frames.
+
+### Navigator
+
+Every Frame is an app. The navigator allows you to switch between different Frames that exist in your Frog app. It also allows you to navigator forward and backward (like you can do in your browser for web apps), as well as refresh the current Frame.
+
+:::tip
+`shift + click` on a the refresh button will "hard refresh" your Frame back to it's initial state.
+:::
+
+### Validation
+
+Getting your Frame right is important. Frog manages most of the internals for you, but there are still some areas where you can make mistakes. The devtools will show you any validation errors for your Frame as well as some info on how to fix them.
+
+### Dev Panel
+
+Lastly, the dev panel is where you can see information for the current Frame, like specifics about the Frame's request, [context value](/reference/frog-frame-context), current and previous [state](/concepts/state-management), and underlying meta tags powering your Frame.
+
+### Metrics
+
+For each Frame request, Frog breaks down metrics related to your Frame, including request speed, Frame document size, and Frame image size. These are important metrics to pay attention to when developing Frames as they affect how users experience your Frames.
+
+## Feedback
+
+Your experience using Frog's Devtools is important! Please let us know if you have any feedback or issues when using the devtools by creating a [new discussion thread](https://github.com/wevm/frog/discussions) on Frog's GitHub repository.

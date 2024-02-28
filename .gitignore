@@ -9,3 +9,4 @@ tsconfig.tsbuildinfo
 .vercel
 .wrangler
 .env
+.DS_Store

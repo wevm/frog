@@ -296,7 +296,8 @@ export default defineConfig({
           link: '/concepts/deployment',
         },
         {
-          text: 'Devtools 🚧',
+          text: 'Devtools',
+          link: '/concepts/devtools',
         },
       ],
     },
