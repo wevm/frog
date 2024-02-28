@@ -1,6 +1,15 @@
 <br/>
 
 <p align="center">
+  <a href="https://paradigm.xyz">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/wevm/.github/main/content/paradigm-collab-dark.svg">
+      <img alt="frog logo" src="https://raw.githubusercontent.com/wevm/.github/main/content/paradigm-collab-light.svg" width="auto" height="50">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
   <a href="https://frog.fm">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/wevm/frog/blob/main/.github/logo-dark.png">
