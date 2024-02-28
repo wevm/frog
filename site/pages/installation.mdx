@@ -1,0 +1,72 @@
+# Installation
+
+Install Frog via your package manager or build from source.
+
+## Package Manager
+
+Install the required packages.
+
+:::code-group
+```bash [pnpm]
+pnpm add frog hono
+```
+
+```bash [npm]
+npm install frog hono
+```
+
+```bash [yarn]
+yarn add frog hono
+```
+
+```bash [bun]
+bun add frog hono
+```
+:::
+
+- [Hono](https://github.com/honojs/hono) is a small, simple, and ultrafast web framework for the Edges.
+- [TypeScript](https://github.com/microsoft/TypeScript) is optional, but highly recommended.
+
+## Using Unreleased Commits
+
+If you can't wait for a new release to test the latest features, you can either install from the `canary` tag (tracks the [`main`](https://github.com/wevm/frog/tree/main) branch).
+
+:::code-group
+```bash [pnpm]
+pnpm add frog@canary
+```
+
+```bash [npm]
+npm install frog@canary
+```
+
+```bash [yarn]
+yarn add frog@canary
+```
+
+```bash [bun]
+bun add frog@canary
+```
+:::
+
+Or clone the [Frog repo](https://github.com/wevm/frog) to your local machine, build, and link it yourself.
+
+```bash
+gh repo clone wevm/frog
+cd frog
+pnpm install
+pnpm build
+cd src
+pnpm link --global
+```
+
+Then go to the project where you are using Frog and run `pnpm link --global frog` (or the package manager that you used to link Frog globally). Make sure you installed the [required peer dependencies](/installation#package-manager) and their versions are correct.
+
+## Security
+
+Ethereum-related projects are often targeted in attacks to steal users' assets. Make sure you follow security best-practices for your project. Some quick things to get started.
+
+- Pin package versions, upgrade mindfully, and inspect lockfile changes to minimize the risk of [supply-chain attacks](https://nodejs.org/en/guides/security/#supply-chain-attacks).
+- Install the [Socket Security](https://socket.dev) [GitHub App](https://github.com/apps/socket-security) to help detect and block supply-chain attacks.
+- Add a [Content Security Policy](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html) to defend against external scripts running in your app.
+

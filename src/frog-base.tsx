@@ -338,7 +338,7 @@ export class FrogBase<
           return true
         })
 
-      const body = isDevEnabled && (
+      const body = isDevEnabled ? (
         <body
           style={{
             alignItems: 'center',
@@ -352,6 +352,8 @@ export class FrogBase<
             open 𝒇𝒓𝒂𝒎𝒆 devtools
           </a>
         </body>
+      ) : (
+        <body />
       )
 
       return c.render(
@@ -378,10 +380,12 @@ export class FrogBase<
             )}
             {parsedIntents}
 
-            <meta
-              property="frog:context"
-              content={serializeJson(baseContext)}
-            />
+            {isDevEnabled && (
+              <meta
+                property="frog:context"
+                content={serializeJson(baseContext)}
+              />
+            )}
           </head>
           {body}
         </html>,

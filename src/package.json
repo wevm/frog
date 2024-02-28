@@ -39,7 +39,13 @@
     }
   },
   "peerDependencies": {
-    "hono": "^4"
+    "hono": "^4",
+    "typescript": ">=5.0.4"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@farcaster/core": "^0.13.7",

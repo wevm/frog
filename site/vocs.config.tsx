@@ -253,6 +253,10 @@ export default defineConfig({
   ],
   sidebar: [
     {
+      text: 'Installation',
+      link: '/installation',
+    },
+    {
       text: 'Getting Started',
       link: '/getting-started',
     },

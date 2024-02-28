@@ -66,27 +66,30 @@ You can install Frog in an existing project, or start from scratch, by installin
 
 ### Install
 
-First, we will install `frog` as a dependency in our project.
+First, we will install `frog` as a dependency in our project along with its [`hono`](https://hono.dev) peer dependency.
 
 :::code-group
 
 ```bash [npm]
-npm i frog
+npm i frog hono
 ```
 
 ```bash [pnpm]
-pnpm i frog
+pnpm i frog hono
 ```
 
 ```bash [yarn]
-yarn add frog
+yarn add frog hono
 ```
 
 ```bash [bun]
-bun i frog
+bun i frog hono
 ```
 
 :::
+
+- [Hono](https://github.com/honojs/hono) is a small, simple, and ultrafast web framework for the Edges.
+- [TypeScript](https://github.com/microsoft/TypeScript) is optional, but highly recommended.
 
 ### Build your First Frame
 
@@ -141,8 +144,12 @@ After that, let's add a script to our `package.json` to serve our frame.
   "scripts": { 
     "dev": "frog dev", // [!code focus]
   },
+  "dependencies": {
+    "frog": "latest",
+    "hono": "latest"
+  },
   "devDependencies": {
-    "frog": "latest"
+    "typescript": "latest"
   }
 }
 ```

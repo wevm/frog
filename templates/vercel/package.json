@@ -1,5 +1,6 @@
 {
   "name": "example-vercel-edge",
+  "private": true,
   "type": "module",
   "scripts": {
     "build": "frog vercel-build",
