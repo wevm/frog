@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.2
+
+### Patch Changes
+
+- [#31](https://github.com/wevm/frog/pull/31) [`76d69ca`](https://github.com/wevm/frog/commit/76d69ca4c0b7c46cb7da65f46521ec4b75abac03) Thanks [@jxom](https://github.com/jxom)! - Added a `getFrameMetadata` to `frog/next` entrypoint. [See more](https://frog.fm/platforms/next#bonus-page--frame-co-location)
+
 ## 0.2.1
 
 ### Patch Changes
