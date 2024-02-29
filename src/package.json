@@ -37,6 +37,10 @@
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
+    },
+    "./metadata": {
+      "types": "./_lib/metadata/index.d.ts",
+      "default": "./_lib/metadata/index.js"
     }
   },
   "peerDependencies": {
@@ -68,10 +72,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

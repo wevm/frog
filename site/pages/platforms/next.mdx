@@ -219,4 +219,27 @@ export const GET = handle(app)
 export const POST = handle(app) 
 ```
 
+### Bonus: Page co-location
+
+If a user shares a link to your website, we may want to render the frame in the page route
+itself, instead of forcing him to share a link to the frog api route.
+
+In the example below, when a user shares the `/` (= `/page.tsx` in your Next.js App)
+path of the website on Warpcast, they will be able to see the frame.
+
+```tsx twoslash [app/page.tsx]
+// @noErrors
+import { extractFrameMetaTags } from 'frog/metadata'
+import { type Metadata } from 'next'
+// The base URL of your app
+import { APP_URL } from './app-url'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const frameTags = await extractFrameMetaTags(`${APP_URL}/api`)
+  return {
+    other: frameTags,
+  }
+}
+```
+
 ::::
