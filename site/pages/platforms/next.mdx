@@ -89,7 +89,7 @@ After that, we will add handlers to handle requests in the `api/` route:
 // ---cut---
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/vercel' // [!code focus]
+import { handle } from 'frog/next' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',
@@ -183,7 +183,7 @@ they will be redirected to the `/foo` path (ie. `/app/foo/page.tsx` in your Next
 // ---cut---
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/vercel'
+import { handle } from 'frog/next'
 
 const app = new Frog({ 
   basePath: '/api',
