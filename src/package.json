@@ -1,7 +1,7 @@
 {
   "name": "frog",
   "description": "Framework for Farcaster Frames",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
@@ -33,6 +33,10 @@
     "./jsx/jsx-dev-runtime": {
       "types": "./_lib/jsx/jsx-dev-runtime/index.d.ts",
       "default": "./_lib/jsx/jsx-dev-runtime/index.js"
+    },
+    "./next": {
+      "types": "./_lib/next/index.d.ts",
+      "default": "./_lib/next/index.js"
     },
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
