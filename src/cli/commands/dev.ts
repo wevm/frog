@@ -3,8 +3,8 @@ import { join, resolve } from 'node:path'
 import devServer from '@hono/vite-dev-server'
 import pc from 'picocolors'
 import { createLogger, createServer } from 'vite'
+import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
-import { version } from '../version.js'
 
 type DevOptions = { host?: boolean; port?: number }
 

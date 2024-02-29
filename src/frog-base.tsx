@@ -18,6 +18,7 @@ import { parsePath } from './utils/parsePath.js'
 import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
+import { version } from './version.js'
 
 export type FrogConstructorParameters<
   state = undefined,
@@ -386,6 +387,7 @@ export class FrogBase<
                 content={serializeJson(baseContext)}
               />
             )}
+            <meta property="frog:version" content={version} />
           </head>
           {body}
         </html>,
