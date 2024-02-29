@@ -1,0 +1,44 @@
+# dev
+
+Start a development server at an optional entrypoint.
+
+## Usage
+
+Defaults to `(src|api)/index.{tsx,jsx,ts,js}`.
+
+```bash
+frog dev [entrypoint]
+```
+
+## Options
+
+### -h, --host
+
+`boolean`
+
+Expose host URL
+
+```bash
+frog dev --host
+```
+
+### -p, --port
+
+`number`
+
+Port used by the server. Defaults to `5173`.
+
+```bash
+frog dev --port 3001
+```
+
+### -P, --proxy
+
+`'cloudflared' | 'ngrok'`
+
+Start proxy for dev server via [Cloudflared](https://github.com/cloudflare/cloudflared) or [ngrok](https://github.com/inconshreveable/ngrok).
+
+```bash
+frog dev --proxy cloudflared
+```
+

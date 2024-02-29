@@ -1,19 +1,24 @@
+import { spawn, execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import devServer from '@hono/vite-dev-server'
-import { forward } from '@ngrok/ngrok'
 import pc from 'picocolors'
 import { createLogger, createServer, loadEnv } from 'vite'
 
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
 
-type DevOptions = { host?: boolean; port?: number; proxy?: boolean }
+type DevOptions = {
+  host?: boolean
+  port?: number
+  proxy?: 'cloudflared' | 'ngrok'
+}
 
 export async function dev(
   entry_: string | undefined,
-  { host, port, proxy }: DevOptions = {},
+  options: DevOptions = {},
 ) {
+  const { host, port, proxy } = options
   const entry = entry_ || (await findEntrypoint())
 
   const entry_resolved = resolve(join(process.cwd(), entry))
@@ -55,15 +60,56 @@ export async function dev(
   )
 
   if (proxy) {
-    const env = loadEnv('development', process.cwd(), '')
-    const listener = await forward({
-      authtoken: env.NGROK_AUTHTOKEN,
-      port: server.config.server.port,
-    })
-    logger.info(
-      `  ${pc.green('➜')}  ${pc.bold('Proxy')}:   ${pc.cyan(
-        `${listener.url()}${basePath}`,
-      )}`,
-    )
+    const proxyLogPrefix = `  ${pc.green('➜')}  ${pc.bold('Proxy')}:   `
+    switch (proxy) {
+      case 'cloudflared': {
+        try {
+          const cloudflaredBin = execSync('which cloudflared', {
+            encoding: 'utf8',
+          }).trim()
+
+          const child = spawn(cloudflaredBin, [
+            'tunnel',
+            '--url',
+            `http://localhost:${server.config.server.port}`,
+          ])
+
+          // proxy url regex
+          // https://regexr.com/7spe1
+          const proxyUrlRegex = /https:\/\/.*.trycloudflare.com/
+
+          // cloudflare diagnostic info logged to stderr
+          child.stderr.on('data', (data) => {
+            if (proxyUrlRegex.test(data)) {
+              const match = data.toString().match(proxyUrlRegex)
+              const proxyUrl = match?.[0]
+              if (proxyUrl)
+                logger.info(`${proxyLogPrefix}${pc.cyan(proxyUrl + basePath)}`)
+            }
+          })
+        } catch (error) {
+          // TODO: Error message
+        }
+        break
+      }
+
+      case 'ngrok': {
+        try {
+          const { forward } = await import('@ngrok/ngrok')
+          const env = loadEnv('development', process.cwd(), '')
+          const listener = await forward({
+            // ngrok cli reads from this .env var by default so we should use it too
+            // to keep things simple for now
+            authtoken: env.NGROK_AUTHTOKEN,
+            port: server.config.server.port,
+          })
+          const proxyUrl = listener.url()
+          if (proxyUrl)
+            logger.info(`${proxyLogPrefix}${pc.cyan(proxyUrl + basePath)}`)
+        } catch (error) {
+          // TODO: Error message
+        }
+      }
+    }
   }
 }
