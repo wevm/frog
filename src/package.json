@@ -34,6 +34,10 @@
       "types": "./_lib/jsx/jsx-dev-runtime/index.d.ts",
       "default": "./_lib/jsx/jsx-dev-runtime/index.js"
     },
+    "./next": {
+      "types": "./_lib/next/index.d.ts",
+      "default": "./_lib/next/index.js"
+    },
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
@@ -68,10 +72,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

@@ -89,7 +89,7 @@ After that, we will add handlers to handle requests in the `api/` route:
 // ---cut---
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/vercel' // [!code focus]
+import { handle } from 'frog/next' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',
@@ -183,7 +183,7 @@ they will be redirected to the `/foo` path (ie. `/app/foo/page.tsx` in your Next
 // ---cut---
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/vercel'
+import { handle } from 'frog/next'
 
 const app = new Frog({ 
   basePath: '/api',
@@ -217,6 +217,29 @@ app.frame('/foo', (c) => {
 
 export const GET = handle(app) 
 export const POST = handle(app) 
+```
+
+### Bonus: Page & Frame Co-location
+
+If a user shares a link to your website, we may want to render the frame in the page route
+itself, instead of forcing them to share a link to the Frog API route.
+
+In the example below, when a user shares the `/` (= `/page.tsx` in your Next.js App) 
+path of the website on Warpcast, they will be able to see the frame. 
+This leverages the [`generateMetadata`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata#generatemetadata-function) function built-in to Next.js
+
+```tsx twoslash [app/page.tsx]
+// @noErrors
+import { getFrameMetadata } from 'frog/next'
+import type { Metadata } from 'next'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const url = process.env.VERCEL_URL || 'http://localhost:3000'
+  const frameMetadata = await getFrameMetadata(`${url}/api`)
+  return {
+    other: frameMetadata,
+  }
+}
 ```
 
 ::::
