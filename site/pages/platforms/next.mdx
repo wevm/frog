@@ -235,9 +235,9 @@ import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
   const url = process.env.VERCEL_URL || 'http://localhost:3000'
-  const frameTags = await getFrameMetadata(`${url}/api`)
+  const frameMetadata = await getFrameMetadata(`${url}/api`)
   return {
-    other: frameTags,
+    other: frameMetadata,
   }
 }
 ```
