@@ -400,10 +400,16 @@ export class FrogBase<
         initialState: this._initialState,
         req: c.req,
       })
-      const { image, imageOptions = this._imageOptions } =
-        await handler(context)
+      const {
+        image,
+        headers = this.headers,
+        imageOptions = this._imageOptions,
+      } = await handler(context)
       if (typeof image === 'string') return c.redirect(image, 302)
-      return new ImageResponse(image, imageOptions)
+      return new ImageResponse(image, {
+        ...imageOptions,
+        headers: imageOptions?.headers ?? headers,
+      })
     })
   }
 
