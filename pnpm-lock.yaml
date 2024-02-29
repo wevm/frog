@@ -151,10 +151,13 @@ importers:
     dependencies:
       '@farcaster/core':
         specifier: ^0.13.7
-        version: 0.13.8(typescript@5.3.3)
+        version: 0.13.8
       '@hono/vite-dev-server':
         specifier: 0.7.0
         version: 0.7.0(hono@4.0.4)
+      '@ngrok/ngrok':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@noble/curves':
         specifier: ^1.3.0
         version: 1.3.0
@@ -196,10 +199,10 @@ importers:
         version: 5.3.3
       viem:
         specifier: ^2.7.10
-        version: 2.7.11(typescript@5.3.3)
+        version: 2.7.11
       vite:
         specifier: ^5.1.3
-        version: 5.1.3(@types/node@20.11.19)
+        version: 5.1.3
 
   templates/bun:
     dependencies:
@@ -1632,7 +1635,7 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@farcaster/core@0.13.8(typescript@5.3.3):
+  /@farcaster/core@0.13.8:
     resolution: {integrity: sha512-h1WU5IinBwy8f5mGqyAQGxBGuCFPj+kYt/OQquE+898bdlU7LibwsAi2P2qD6Fkb+0GmqloF4m7DIg68wfpfWw==}
     dependencies:
       '@noble/curves': 1.3.0
@@ -1640,7 +1643,7 @@ packages:
       ffi-napi: 4.0.3
       neverthrow: 6.1.0
       ref-napi: 3.0.3
-      viem: 1.21.4(typescript@5.3.3)
+      viem: 1.21.4
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -1945,6 +1948,141 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
+
+  /@ngrok/ngrok-android-arm-eabi@1.1.0:
+    resolution: {integrity: sha512-sMhL+c6d9hof3+oDyGY8IQDJc9jKwTkWA/g6n9Et7B5tNDSpjVekmJKZ+SsghfBr0zYSEixT4ksSqoaMXVQ3lQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [android]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-android-arm64@1.1.0:
+    resolution: {integrity: sha512-Tt14OpVmixN/81hdPPYQfcENPob87P6h3PITg5yBR5HnHutymKx2hIiGTF5EnvZbC3pOq/KMQmy7WfzXRZxo3g==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [android]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-darwin-arm64@1.1.0:
+    resolution: {integrity: sha512-RcPNzL3hxFcw2+RY09l7M3AnZUCLaXL4s9wgMUQiIcKYSDK74QhQk1Nk0FBbcZ0o70ddK4nCQDs1j5qRP26vTg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-darwin-universal@1.1.0:
+    resolution: {integrity: sha512-AWvUph1VuwI9WakIULRQFsghVl28qeIstjdNy00PXwbkNygqeZsVwgFdvtpA6BJGxTHh5vkrwtQu3ceP0CsWWw==}
+    engines: {node: '>= 10'}
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-darwin-x64@1.1.0:
+    resolution: {integrity: sha512-A88TxNqKxfynF0NV5oYxAMNReIRqFw6Vcl5kyeYLaWpnL1F/9krt59fHOoL4AZ4tyhcoV2LzHSCFMNNxgnjVIA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-freebsd-x64@1.1.0:
+    resolution: {integrity: sha512-UXuwtIv+lx3+P77uqLHziOep1QD0CQsBbWEoBbkd+pRLKCDC+Q9ep4wuiW5MMv9SuK6Zn26OkZ6tE1H+jmjcKA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [freebsd]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-linux-arm-gnueabihf@1.1.0:
+    resolution: {integrity: sha512-qMyzF35Sm08Tq3JWaZv326iuH7VOB8cWwxNCvmlY/LKY22OUTEPSr48TeQhXrlm0AV3byqj76HMKRhGedaiCRg==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-linux-arm64-gnu@1.1.0:
+    resolution: {integrity: sha512-ENCCf3+kkdsMmGKRmWkd3+yi4w7Q5N8BsnbCxFxBNb8VSPAb1XcgJLJOpJBu+QDAs8DyljU85Q2U5sKmzhEC7A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-linux-arm64-musl@1.1.0:
+    resolution: {integrity: sha512-y+/KZ4EM3jHMG53JhEJrI2DQA2ApFIfpe1W31PJybpRWry6DWaCzFw/G+4/sZ6/4P4ffRSMVmrSoqi0Jw9AdQQ==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-linux-x64-gnu@1.1.0:
+    resolution: {integrity: sha512-9HN2Nx8b3VlLbQirU7tljJv1CgG2xSCtNQjUfNYHVe85uS4a+pKGhNMHDbZEkI4RV4qcyFuHZK58Sz27aze4Lg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-linux-x64-musl@1.1.0:
+    resolution: {integrity: sha512-D7gFVEHwaQKBy8CO5p7+U9irh8/CbdpcKzg9eU88qCnPKb2CxAwAtAsGQuZgvHNC8bYIpBwzCUmp6073Nt3d0g==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-win32-ia32-msvc@1.1.0:
+    resolution: {integrity: sha512-OEQYyDaeoAcog4BWv7fpnMrzzsJGXrpqUT6FM0Xu96nbWdItNSySmEqbwrjagJJCpGWgvzwXptDtTdEM8a8IJQ==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok-win32-x64-msvc@1.1.0:
+    resolution: {integrity: sha512-lbz3bdPOJ3+UqMFDWTjnickur8iDbAdBVMazZ3I98oQYJAwmbRGOKtq1XxjuuYxDZ1Wi1iUtUnRsSBIqAlByRA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ngrok/ngrok@1.1.0:
+    resolution: {integrity: sha512-kro7WkAtDeadnUb+IBZY3lQbiMKPD3mcGsGu0pLlqdGSs8G9li3q2XXbBv2L+g+oUsJdzqmE2eIQP5GmEBRYFg==}
+    engines: {node: '>= 10'}
+    optionalDependencies:
+      '@ngrok/ngrok-android-arm-eabi': 1.1.0
+      '@ngrok/ngrok-android-arm64': 1.1.0
+      '@ngrok/ngrok-darwin-arm64': 1.1.0
+      '@ngrok/ngrok-darwin-universal': 1.1.0
+      '@ngrok/ngrok-darwin-x64': 1.1.0
+      '@ngrok/ngrok-freebsd-x64': 1.1.0
+      '@ngrok/ngrok-linux-arm-gnueabihf': 1.1.0
+      '@ngrok/ngrok-linux-arm64-gnu': 1.1.0
+      '@ngrok/ngrok-linux-arm64-musl': 1.1.0
+      '@ngrok/ngrok-linux-x64-gnu': 1.1.0
+      '@ngrok/ngrok-linux-x64-musl': 1.1.0
+      '@ngrok/ngrok-win32-ia32-msvc': 1.1.0
+      '@ngrok/ngrok-win32-x64-msvc': 1.1.0
+    dev: false
 
   /@noble/curves@1.2.0:
     resolution: {integrity: sha512-oYclrNgRaM9SsBUBVbb8M6DTV7ZHRTKugureoYEncY5c65HOmRzvSiTE3y5CYaPYJA/GVkrhXEoF0M3Ya9PMnw==}
@@ -3627,7 +3765,7 @@ packages:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
 
-  /abitype@0.9.8(typescript@5.3.3):
+  /abitype@0.9.8:
     resolution: {integrity: sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==}
     peerDependencies:
       typescript: '>=5.0.4'
@@ -3637,8 +3775,18 @@ packages:
         optional: true
       zod:
         optional: true
-    dependencies:
-      typescript: 5.3.3
+    dev: false
+
+  /abitype@1.0.0:
+    resolution: {integrity: sha512-NMeMah//6bJ56H5XRj8QCV4AwuW6hB6zqz2LnhhLdcWVQOsXki6/Pn3APeqxCma62nXIcmZWdu1DlHWS74umVQ==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3 >=3.22.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      zod:
+        optional: true
     dev: false
 
   /abitype@1.0.0(typescript@4.9.5):
@@ -3653,20 +3801,6 @@ packages:
         optional: true
     dependencies:
       typescript: 4.9.5
-    dev: false
-
-  /abitype@1.0.0(typescript@5.3.3):
-    resolution: {integrity: sha512-NMeMah//6bJ56H5XRj8QCV4AwuW6hB6zqz2LnhhLdcWVQOsXki6/Pn3APeqxCma62nXIcmZWdu1DlHWS74umVQ==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-      zod: ^3 >=3.22.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      zod:
-        optional: true
-    dependencies:
-      typescript: 5.3.3
     dev: false
 
   /accepts@1.3.8:
@@ -9671,7 +9805,7 @@ packages:
       vfile-message: 4.0.2
     dev: false
 
-  /viem@1.21.4(typescript@5.3.3):
+  /viem@1.21.4:
     resolution: {integrity: sha512-BNVYdSaUjeS2zKQgPs+49e5JKocfo60Ib2yiXOWBT6LuVxY1I/6fFX3waEtpXvL1Xn4qu+BVitVtMh9lyThyhQ==}
     peerDependencies:
       typescript: '>=5.0.4'
@@ -9684,9 +9818,30 @@ packages:
       '@noble/hashes': 1.3.2
       '@scure/bip32': 1.3.2
       '@scure/bip39': 1.2.1
-      abitype: 0.9.8(typescript@5.3.3)
+      abitype: 0.9.8
       isows: 1.0.3(ws@8.13.0)
-      typescript: 5.3.3
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /viem@2.7.11:
+    resolution: {integrity: sha512-qlEPF9YOgPVqjTyom73TVAekAYrIe68megO07u55p7pKWgLt0i9KD6Mrmiw7pd7oHh86vIppcygwQMDNGX1YAw==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@adraffy/ens-normalize': 1.10.0
+      '@noble/curves': 1.2.0
+      '@noble/hashes': 1.3.2
+      '@scure/bip32': 1.3.2
+      '@scure/bip39': 1.2.1
+      abitype: 1.0.0
+      isows: 1.0.3(ws@8.13.0)
       ws: 8.13.0
     transitivePeerDependencies:
       - bufferutil
@@ -9717,29 +9872,6 @@ packages:
       - zod
     dev: false
 
-  /viem@2.7.11(typescript@5.3.3):
-    resolution: {integrity: sha512-qlEPF9YOgPVqjTyom73TVAekAYrIe68megO07u55p7pKWgLt0i9KD6Mrmiw7pd7oHh86vIppcygwQMDNGX1YAw==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@adraffy/ens-normalize': 1.10.0
-      '@noble/curves': 1.2.0
-      '@noble/hashes': 1.3.2
-      '@scure/bip32': 1.3.2
-      '@scure/bip39': 1.2.1
-      abitype: 1.0.0(typescript@5.3.3)
-      isows: 1.0.3(ws@8.13.0)
-      typescript: 5.3.3
-      ws: 8.13.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
-    dev: false
-
   /vite-node@1.3.0(@types/node@20.11.19):
     resolution: {integrity: sha512-D/oiDVBw75XMnjAXne/4feCkCEwcbr2SU1bjAhCcfI5Bq3VoOHji8/wCPAfUkDIeohJ5nSZ39fNxM3dNZ6OBOA==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -9759,6 +9891,41 @@ packages:
       - sugarss
       - supports-color
       - terser
+
+  /vite@5.1.3:
+    resolution: {integrity: sha512-UfmUD36DKkqhi/F75RrxvPpry+9+tTkrXfMNZD+SboZqBCMsxKtO52XeGzzuh7ioz+Eo/SYDBbdb0Z7vgcDJew==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      esbuild: 0.19.12
+      postcss: 8.4.35
+      rollup: 4.12.0
+    optionalDependencies:
+      fsevents: 2.3.3
+    dev: false
 
   /vite@5.1.3(@types/node@20.11.19):
     resolution: {integrity: sha512-UfmUD36DKkqhi/F75RrxvPpry+9+tTkrXfMNZD+SboZqBCMsxKtO52XeGzzuh7ioz+Eo/SYDBbdb0Z7vgcDJew==}

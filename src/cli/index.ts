@@ -15,6 +15,7 @@ cli
   .alias('dev')
   .option('-h, --host', 'Expose host URL')
   .option('-p, --port [number]', 'Port used by the server (default: 5173)')
+  .option('-P, --proxy', 'Start ngrok proxy for dev server')
   .action(dev)
 cli
   .command(

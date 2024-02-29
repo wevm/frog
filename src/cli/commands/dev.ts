@@ -1,16 +1,18 @@
-import { existsSync } from 'node:fs'
-import { join, resolve } from 'node:path'
 import devServer from '@hono/vite-dev-server'
 import pc from 'picocolors'
-import { createLogger, createServer } from 'vite'
+import { createLogger, createServer, loadEnv } from 'vite'
+import { existsSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { forward } from '@ngrok/ngrok'
+
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
 
-type DevOptions = { host?: boolean; port?: number }
+type DevOptions = { host?: boolean; port?: number; proxy?: boolean }
 
 export async function dev(
   entry_: string | undefined,
-  { host, port }: DevOptions = {},
+  { host, port, proxy }: DevOptions = {},
 ) {
   const entry = entry_ || (await findEntrypoint())
 
@@ -51,4 +53,17 @@ export async function dev(
       `http://localhost:${server.config.server.port}${basePath}`,
     )}`,
   )
+
+  if (proxy) {
+    const env = loadEnv('development', process.cwd(), '')
+    const listener = await forward({
+      authtoken: env.NGROK_AUTHTOKEN,
+      port: server.config.server.port,
+    })
+    logger.info(
+      `  ${pc.green('➜')}  ${pc.bold('Proxy')}:   ${pc.cyan(
+        `${listener.url()}${basePath}`,
+      )}`,
+    )
+  }
 }
