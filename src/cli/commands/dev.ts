@@ -1,9 +1,9 @@
-import devServer from '@hono/vite-dev-server'
-import pc from 'picocolors'
-import { createLogger, createServer, loadEnv } from 'vite'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import devServer from '@hono/vite-dev-server'
 import { forward } from '@ngrok/ngrok'
+import pc from 'picocolors'
+import { createLogger, createServer, loadEnv } from 'vite'
 
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
