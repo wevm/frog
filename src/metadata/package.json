@@ -1,5 +1,0 @@
-{
-  "type": "module",
-  "types": "../_lib/metadata/index.d.ts",
-  "module": "../_lib/metadata/index.js"
-}

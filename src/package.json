@@ -37,10 +37,6 @@
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
-    },
-    "./metadata": {
-      "types": "./_lib/metadata/index.d.ts",
-      "default": "./_lib/metadata/index.js"
     }
   },
   "peerDependencies": {
