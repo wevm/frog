@@ -299,6 +299,10 @@ export default defineConfig({
           text: 'Devtools',
           link: '/concepts/devtools',
         },
+        {
+          text: 'Middleware',
+          link: '/concepts/middleware',
+        },
       ],
     },
     {

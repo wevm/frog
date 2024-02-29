@@ -1,0 +1,60 @@
+# Middleware
+
+Since Frog is built on top of [Hono](https://hono.dev), Frog supports Hono's middleware pattern.
+
+Middleware works before and after the `.frame` [handler](/reference/frog-frame#handler) by allowing you to manipulate the request and response before and after dispatching respectively. We recommend checking out the Hono [documentation on Middleware](https://hono.dev/guides/middleware) for a more in-depth understanding.
+
+## Custom Middleware
+
+You can write your own Frog middleware. This is great if you want to share common logic across or frames or if you are developing a SDK for Frog users to hook into their frames.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+// Custom logger // [!code focus]
+app.use(async (c, next) => { // [!code focus]
+  console.log(`[${c.req.method}] ${c.req.url}`) // [!code focus]
+  await next() // [!code focus]
+}) // [!code focus]
+
+// Add a custom header // [!code focus]
+app.use('/foo/*', async (c, next) => { // [!code focus]
+  await next() // [!code focus]
+  c.header('x-message', 'Only called for `/foo` and `/foo/bar` frames.') // [!code focus]
+}) // [!code focus]
+
+app.frame('/', (c) => {/* ... */})
+
+app.frame('/foo', (c) => {/* ... */})
+
+app.frame('/foo/bar', (c) => {/* ... */})
+```
+
+## Community Middleware
+
+Middleware is one of the most powerful pieces of Frog. This section showcases community-built middleware that you can use in your Frog apps.
+
+If you've built a middleware for Frog, feel free to [submit a PR](https://github.com/wevm/frog) to add it to this list.
+
+### Pinata FDK Analytics Middleware
+
+The [Frog Analytics Plugin](https://docs.pinata.cloud/farcaster/fdk#frog-analytics-plug-in) allows you to hook into Pinata Frame analytics.
+
+```ts
+import { PinataFDK } from "pinata-fdk"
+
+const app = new Frog()
+
+const fdk = new PinataFDK({
+  pinata_jwt: '<YOUR_PINATA_JWT>',
+  pinata_gateway: '<YOUR_PINATA_GATEWAY>'
+})
+
+app.use("/", async (context, next) => {
+  await fdk.analyticsMiddleware(context, 'frame_id', next, 'custom_id')
+})
+```
+

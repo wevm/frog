@@ -1,11 +1,9 @@
 import { Button, Frog, TextInput } from 'Frog'
 
-type State = {
+export const app = new Frog<{
   index: number
   todos: { completed: boolean; name: string }[]
-}
-
-export const app = new Frog<State>({
+}>({
   hubApiUrl: 'https://api.hub.wevm.dev',
   initialState: {
     index: -1,
@@ -33,27 +31,10 @@ app.frame('/', (c) => {
 
   return c.res({
     image: (
-      <div
-        style={{
-          backgroundColor: 'black',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 40,
-          width: '100%',
-          height: '100%',
-        }}
-      >
-        <div style={{ color: 'white', fontSize: 60 }}>TODO List</div>
+      <div tw="flex flex-col w-full h-full p-10 bg-black">
+        <div tw="text-white text-6xl">TODO List</div>
         {todos.map((todo, i) => (
-          <div
-            style={{
-              color: 'white',
-              display: 'flex',
-              fontSize: 40,
-              marginTop: 20,
-              textDecoration: 'none',
-            }}
-          >
+          <div tw="text-white flex text-4xl mt-5">
             {todo.completed ? '✅' : '◻️'} {todo.name} {i === index ? '👈' : ''}
           </div>
         ))}
