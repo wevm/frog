@@ -5,14 +5,16 @@ export async function extractFrameMetaTags(
     const res = await fetch(url)
     const text = await res.text()
 
-    const match = text.matchAll(/<meta property="fc:(\S+)" content="(\S+)"/gm)
+    const match = text.matchAll(
+      /<meta property="(fc|frog):(\S+)" content="(\S+)"/gm,
+    )
     if (!match) return {}
 
     const metaTags: Record<string, string> = {}
     for (const matchGroup of match) {
-      const key = matchGroup[1]
-      const value = matchGroup[2]
-      metaTags[`fc:${key}`] = value
+      const key = `${matchGroup[1]}:${matchGroup[2]}`
+      const value = matchGroup[3]
+      metaTags[key] = value
     }
 
     return metaTags
