@@ -10,6 +10,7 @@ import { default as p } from 'path-browserify'
 import { html } from 'hono/html'
 import {
   type FrameContext,
+  type FrameImageAspectRatio,
   type FrameResponse,
   type MaybeGenerator,
   type Pretty,
@@ -96,6 +97,12 @@ export type FrogConstructorParameters<
    */
   imageOptions?: MaybeGenerator<ImageResponseOptions> | undefined
   /**
+   * Default image aspect ratio.
+   *
+   * @default '1.91:1'
+   */
+  imageAspectRatio?: FrameImageAspectRatio | undefined
+  /**
    * Initial state for the frames.
    *
    * @example
@@ -175,6 +182,7 @@ export class FrogBase<
   // into bundled code.
   _imageOptions: MaybeGenerator<ImageResponseOptions> | undefined
   _initialState: state = undefined as state
+  _imageAspectRatio: FrameImageAspectRatio | undefined
 
   /** Path for assets. */
   assetsPath: string
@@ -207,6 +215,7 @@ export class FrogBase<
     hubApiUrl,
     imageOptions,
     initialState,
+    imageAspectRatio,
     secret,
     verify,
   }: FrogConstructorParameters<state, env, basePath> = {}) {
@@ -217,6 +226,7 @@ export class FrogBase<
     if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (imageOptions) this._imageOptions = imageOptions
+    if (imageAspectRatio) this._imageAspectRatio = imageAspectRatio
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -266,7 +276,7 @@ export class FrogBase<
         action,
         browserLocation = this.browserLocation,
         headers = this.headers,
-        imageAspectRatio,
+        imageAspectRatio = this._imageAspectRatio,
         image,
         intents,
         title = 'Frog Frame',
