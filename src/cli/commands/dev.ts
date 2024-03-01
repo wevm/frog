@@ -98,10 +98,10 @@ export async function dev(
           const { forward } = await import('@ngrok/ngrok')
           const env = loadEnv('development', process.cwd(), '')
           const listener = await forward({
+            addr: `http://localhost:${server.config.server.port}`,
             // ngrok cli reads from this .env var by default so we should use it too
             // to keep things simple for now
             authtoken: env.NGROK_AUTHTOKEN,
-            port: server.config.server.port,
           })
           const proxyUrl = listener.url()
           if (proxyUrl)

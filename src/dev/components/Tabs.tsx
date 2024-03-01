@@ -188,7 +188,11 @@ export function Tabs() {
 
           <div class={rowClass}>
             <div class={labelClass}>Host</div>
-            <div class={valueClass} x-text="new URL(url).host" />
+            <div
+              class={valueClass}
+              x-text="new URL(url).host"
+              {...{ ':title': 'new URL(url).host' }}
+            />
           </div>
 
           <div class={rowClass}>
@@ -372,6 +376,7 @@ export function Tabs() {
             for (const tag of frame.debug.htmlTags) {
               let text = tag
               if (text.includes('_frog_fc:frame:image')) text = text.replace('_frog_fc:frame:image', frame.imageUrl)
+              else if (text.includes('_frog_fc:frame:post_url')) text = text.replace('_frog_fc:frame:post_url', frame.postUrl)
               else if (text.includes('_frog_fc:frame:state')) text = text.replace('_frog_fc:frame:state', frame.state)
               else if (text.includes('_frog_og:image')) text = text.replace('_frog_og:image', frame.image)
               html += text + '\n'

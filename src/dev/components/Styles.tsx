@@ -764,6 +764,7 @@ export function Styles() {
     .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .h-full { height: 100%; }
     .h-10 { height: 2.5rem; }
+    .inline-block { display: inline-block; }
     .items-center { align-items: center; }
     .justify-center { justify-content: center; }
     .justify-between { justify-content: space-between; }
@@ -887,7 +888,7 @@ export function Styles() {
       padding-top: 1rem;
       padding-bottom: 1rem;
       padding-left: 1rem;
-      padding-right: 0.3rem;
+      padding-right: 1rem; /* 0.3rem when scrollbar sits in page */
     }
 
     .min-h-img { min-height: 269px; }
@@ -923,6 +924,7 @@ export function Styles() {
         padding-top: 1.5rem;
       }
       .md\\:py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+      .md\\:max-w-sidebar { max-width: 300px; }
       .md\\:min-w-sidebar { min-width: 300px; }
       .md\\:absolute { position: absolute; }
       .md\\:inset-y-0 { top: 0; bottom: 0; }
@@ -933,9 +935,11 @@ export function Styles() {
         grid-template-columns: auto 1fr;
         padding-top: 1.5rem;
         padding-bottom: 1.5rem;
-        padding-right: 0.8rem;
+        padding-right: 1.5rem; /* 0.8rem when scrollbar sits in page */
         padding-left: 1.5rem;
       }
+      .md\\:max-w-1\\/2 { max-width: 57%; }
+      .md\\:max-w-\\[57\\%\\] { max-width: 57%; }
     }
     @media screen and (min-width: 1024px) {
       .lg\\:flex-row {

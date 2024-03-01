@@ -19,7 +19,12 @@ export function htmlToFrame(text: string) {
     const property = metaTag.getAttribute('property')
     // filter these properties out and add back on the client to save url space
     // tip: search for `_frog_${property}` to see where it's added back
-    const excludeProperties = ['fc:frame:image', 'fc:frame:state', 'og:image']
+    const excludeProperties = [
+      'fc:frame:image',
+      'fc:frame:post_url',
+      'fc:frame:state',
+      'og:image',
+    ]
     if (excludeProperties.includes(property ?? '')) {
       metaTag.setAttribute('content', `_frog_${property}`)
     }
