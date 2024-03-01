@@ -11,35 +11,33 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export type CreateParameters = { name: string; template: string }
 
 function templateNameToDefaultPort(name: string): number {
-  if (name === 'next')
-    // `pnpm dev` runs `next dev`
-    return 3000
-  if (
-    name === 'bun' ||
-    name === 'node' ||
-    name === 'cloudflare-worker' ||
-    name === 'default' ||
-    name === 'vercel'
-  )
-    // `pnpm dev` runs `frog dev`
-    return 5173
-  throw new Error('Unknown template name')
+  switch (name) {
+    case 'next':
+      return 3000
+    case 'bun':
+    case 'node':
+    case 'cloudflare-worker':
+    case 'default':
+    case 'vercel':
+      return 5173
+    default:
+      throw new Error('Unknown template name')
+  }
 }
 
 function templateNameToDefaultFrogPath(name: string): string {
-  if (name === 'next')
-    // frog is served in `/api` route in NextJS instance
-    return '/api'
-  if (
-    name === 'bun' ||
-    name === 'node' ||
-    name === 'cloudflare-worker' ||
-    name === 'default' ||
-    name === 'vercel'
-  )
-    // frog instance is run via `frog dev`
-    return '/dev'
-  throw new Error('Unknown template name')
+  switch (name) {
+    case 'next':
+      return '/api'
+    case 'bun':
+    case 'node':
+    case 'cloudflare-worker':
+    case 'default':
+    case 'vercel':
+      return '/dev'
+    default:
+      throw new Error('Unknown template name')
+  }
 }
 
 export async function create(params: CreateParameters) {
