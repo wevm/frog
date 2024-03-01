@@ -128,7 +128,7 @@ importers:
   services/frame:
     dependencies:
       frog:
-        specifier: latest
+        specifier: workspace:*
         version: link:../../src
       hono:
         specifier: ^4

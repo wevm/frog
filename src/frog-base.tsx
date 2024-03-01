@@ -19,6 +19,7 @@ import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import { html } from 'hono/html'
 
 export type FrogConstructorParameters<
   state = undefined,
@@ -358,39 +359,42 @@ export class FrogBase<
       )
 
       return c.render(
-        <html lang="en">
-          <head>
-            <meta property="fc:frame" content="vNext" />
-            <meta
-              property="fc:frame:image:aspect_ratio"
-              content={imageAspectRatio ?? '1.91:1'}
-            />
-            <meta property="fc:frame:image" content={imageUrl} />
-            <meta property="og:image" content={imageUrl} />
-            <meta property="og:title" content={title} />
-            <meta
-              property="fc:frame:post_url"
-              content={
-                context.status === 'initial'
-                  ? `${postUrl}?${nextFrameStateSearch.toString()}`
-                  : postUrl
-              }
-            />
-            {context.status !== 'initial' && (
-              <meta property="fc:frame:state" content={nextFrameStateMeta} />
-            )}
-            {parsedIntents}
-
-            {isDevEnabled && (
+        <>
+          {html`<!DOCTYPE html>`}
+          <html lang="en">
+            <head>
+              <meta property="fc:frame" content="vNext" />
               <meta
-                property="frog:context"
-                content={serializeJson(baseContext)}
+                property="fc:frame:image:aspect_ratio"
+                content={imageAspectRatio ?? '1.91:1'}
               />
-            )}
-            <meta property="frog:version" content={version} />
-          </head>
-          {body}
-        </html>,
+              <meta property="fc:frame:image" content={imageUrl} />
+              <meta property="og:image" content={imageUrl} />
+              <meta property="og:title" content={title} />
+              <meta
+                property="fc:frame:post_url"
+                content={
+                  context.status === 'initial'
+                    ? `${postUrl}?${nextFrameStateSearch.toString()}`
+                    : postUrl
+                }
+              />
+              {context.status !== 'initial' && (
+                <meta property="fc:frame:state" content={nextFrameStateMeta} />
+              )}
+              {parsedIntents}
+
+              {isDevEnabled && (
+                <meta
+                  property="frog:context"
+                  content={serializeJson(baseContext)}
+                />
+              )}
+              <meta property="frog:version" content={version} />
+            </head>
+            {body}
+          </html>
+        </>,
       )
     })
 

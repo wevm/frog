@@ -73,10 +73,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
