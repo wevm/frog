@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.3
+
+### Patch Changes
+
+- [`5bc1c56`](https://github.com/wevm/frog/commit/5bc1c5626aa044857b959c42a9067280f1863a89) Thanks [@jxom](https://github.com/jxom)! - Fixed commas rendering in `Button` children.
+
 ## 0.2.2
 
 ### Patch Changes
