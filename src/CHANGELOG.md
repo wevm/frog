@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.4
+
+### Patch Changes
+
+- [`4887cb2`](https://github.com/wevm/frog/commit/4887cb2075398d1166311dbd0cebd1d54cb66696) Thanks [@jxom](https://github.com/jxom)! - Tightened frame verification by utilizing protobuf modules to decode trusted data.
+
 ## 0.2.3
 
 ### Patch Changes
