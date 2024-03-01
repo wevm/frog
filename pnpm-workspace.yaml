@@ -1,6 +1,7 @@
 packages:
   - 'create-frog'
   - 'playground'
+  - 'protobufs'
   - 'services/*'
   - 'site'
   - 'src'
