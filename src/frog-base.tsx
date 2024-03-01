@@ -8,7 +8,12 @@ import { type Env, type Schema } from 'hono/types'
 import { default as p } from 'path-browserify'
 
 import { html } from 'hono/html'
-import { type FrameContext, type FrameResponse, type Pretty } from './types.js'
+import {
+  type FrameContext,
+  type FrameResponse,
+  type MaybeGenerator,
+  type Pretty,
+} from './types.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
@@ -71,13 +76,25 @@ export type FrogConstructorParameters<
   hubApiUrl?: string | undefined
   /**
    * Default image options.
+   * Can be an asyncronous function that returns an options Promise.
    *
    * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
+   * @see https://vercel.com/docs/functions/og-image-generation/og-image-examples#using-a-custom-font
    *
    * @example
    * { width: 1200, height: 630 }
+   *
+   * @example
+   * async () => {
+   *   const fontData = await fetch(
+   *     new URL('./assets/inter.ttf', import.meta.url),
+   *   ).then((res) => res.arrayBuffer());
+   *
+   *   return { fonts: [{ name: 'Inter', data: fontData, style: 'normal'}] }
+   * }
+   * @returns {Promise<ImageResponseOptions>} Promise with image response options.
    */
-  imageOptions?: ImageResponseOptions | undefined
+  imageOptions?: MaybeGenerator<ImageResponseOptions> | undefined
   /**
    * Initial state for the frames.
    *
@@ -170,7 +187,7 @@ export class FrogBase<
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
   hubApiUrl: string | undefined
-  imageOptions: ImageResponseOptions | undefined
+  imageOptions: MaybeGenerator<ImageResponseOptions> | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
@@ -418,7 +435,9 @@ export class FrogBase<
       const {
         image,
         headers = this.headers,
-        imageOptions = this.imageOptions,
+        imageOptions = typeof this.imageOptions === 'function'
+          ? await this.imageOptions()
+          : this.imageOptions,
       } = await handler(context)
       if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image, {

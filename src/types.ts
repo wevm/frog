@@ -199,3 +199,5 @@ export type TrustedData = {
 export type UntrustedData = FrameData
 
 export type Pretty<type> = { [key in keyof type]: type[key] } & unknown
+
+export type MaybeGenerator<type> = type | (() => Promise<type>)
