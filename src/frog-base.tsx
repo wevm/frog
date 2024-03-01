@@ -7,6 +7,7 @@ import { type Env, type Schema } from 'hono/types'
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
+import { html } from 'hono/html'
 import { type FrameContext, type FrameResponse, type Pretty } from './types.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
@@ -19,7 +20,6 @@ import { requestToContext } from './utils/requestToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
-import { html } from 'hono/html'
 
 export type FrogConstructorParameters<
   state = undefined,

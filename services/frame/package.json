@@ -8,7 +8,7 @@
     "deploy": "vercel"
   },
   "dependencies": {
-    "frog": "workspace:*",
+    "frog": "latest",
     "hono": "^4"
   },
   "devDependencies": {
