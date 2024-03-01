@@ -43,20 +43,20 @@ export async function requestToContext<state>(
       return {} as any
     })()
 
-  const verified = await (async () => {
-    if (verify === false) return false
-    if (!trustedData) return false
-    if (!hubApiUrl) return false
+  const trustedFrameData = await (async () => {
+    if (verify === false) return null
+    if (!trustedData) return null
+    if (!hubApiUrl) return null
     try {
-      await verifyFrame({
+      const { frameData } = await verifyFrame({
         hubApiUrl,
         frameUrl: untrustedData.url,
         trustedData,
         url: req.url,
       })
-      return true
+      return { ...frameData, state: frameData.state || untrustedData.state }
     } catch (err) {
-      if (verify === 'silent') return false
+      if (verify === 'silent') return null
       throw err
     }
   })()
@@ -65,9 +65,9 @@ export async function requestToContext<state>(
     initialPath: initialPath ? initialPath : new URL(req.url).pathname,
     previousState,
     previousButtonValues,
-    frameData: untrustedData,
+    frameData: trustedFrameData || untrustedData,
     status: req.method === 'POST' ? 'response' : 'initial',
     url: req.url,
-    verified,
+    verified: Boolean(trustedFrameData),
   }
 }
