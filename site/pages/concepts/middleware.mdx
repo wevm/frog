@@ -53,6 +53,9 @@ const fdk = new PinataFDK({
   pinata_gateway: '<YOUR_PINATA_GATEWAY>'
 })
 
-app.use("/", fdk.analyticsMiddleware({ frameId: "my-frame-id", customId: "my-custom-id"}));
+app.use('/', fdk.analyticsMiddleware({
+  frameId: 'my-frame-id',
+  customId: 'my-custom-id',
+}))
 ```
 

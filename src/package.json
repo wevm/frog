@@ -1,7 +1,7 @@
 {
   "name": "frog",
   "description": "Framework for Farcaster Frames",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
@@ -53,6 +53,7 @@
     }
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^1.7.2",
     "@farcaster/core": "^0.13.7",
     "@hono/vite-dev-server": "0.7.0",
     "@ngrok/ngrok": "^1.1.0",
@@ -73,10 +74,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

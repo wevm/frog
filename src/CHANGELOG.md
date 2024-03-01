@@ -1,5 +1,17 @@
 # frog
 
+## 0.2.4
+
+### Patch Changes
+
+- [`4887cb2`](https://github.com/wevm/frog/commit/4887cb2075398d1166311dbd0cebd1d54cb66696) Thanks [@jxom](https://github.com/jxom)! - Tightened frame verification by utilizing protobuf modules to decode trusted data.
+
+## 0.2.3
+
+### Patch Changes
+
+- [`5bc1c56`](https://github.com/wevm/frog/commit/5bc1c5626aa044857b959c42a9067280f1863a89) Thanks [@jxom](https://github.com/jxom)! - Fixed commas rendering in `Button` children.
+
 ## 0.2.2
 
 ### Patch Changes

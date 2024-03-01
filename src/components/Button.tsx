@@ -1,7 +1,7 @@
 import type { HtmlEscapedString } from 'hono/utils/html'
 
 export type ButtonProps = {
-  children: string
+  children: string | string[]
 }
 
 export type ButtonRootProps = ButtonProps & {
@@ -20,7 +20,7 @@ export function ButtonRoot({
   return [
     <meta
       property={`fc:frame:button:${index}`}
-      content={children}
+      content={normalizeChildren(children)}
       {...(value ? { 'data-value': value } : {})}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="post" />,
@@ -44,7 +44,7 @@ export function ButtonLink({
   return [
     <meta
       property={`fc:frame:button:${index}`}
-      content={children}
+      content={normalizeChildren(children)}
       data-value="_l"
     />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
@@ -66,7 +66,7 @@ export function ButtonMint({
   return [
     <meta
       property={`fc:frame:button:${index}`}
-      content={children}
+      content={normalizeChildren(children)}
       data-value="_m"
     />,
     <meta property={`fc:frame:button:${index}:action`} content="mint" />,
@@ -88,7 +88,7 @@ export function ButtonRedirect({
   return [
     <meta
       property={`fc:frame:button:${index}`}
-      content={children}
+      content={normalizeChildren(children)}
       data-type="redirect"
       data-value={`_r:${location}`}
     />,
@@ -113,7 +113,7 @@ export function ButtonReset({
   return (
     <meta
       property={`fc:frame:button:${index}`}
-      content={children}
+      content={normalizeChildren(children)}
       data-value="_c"
       data-type="reset"
     />
@@ -126,3 +126,7 @@ export const Button = Object.assign(ButtonRoot, {
   Redirect: ButtonRedirect,
   Reset: ButtonReset,
 })
+
+function normalizeChildren(children: string | string[]) {
+  return Array.isArray(children) ? children.join('') : children
+}
