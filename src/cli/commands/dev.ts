@@ -1,4 +1,4 @@
-import { spawn, execSync } from 'node:child_process'
+import { execSync, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import devServer from '@hono/vite-dev-server'
