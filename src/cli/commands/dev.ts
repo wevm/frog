@@ -1,17 +1,24 @@
+import { execSync, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import devServer from '@hono/vite-dev-server'
 import pc from 'picocolors'
-import { createLogger, createServer } from 'vite'
+import { createLogger, createServer, loadEnv } from 'vite'
+
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
 
-type DevOptions = { host?: boolean; port?: number }
+type DevOptions = {
+  host?: boolean
+  port?: number
+  proxy?: 'cloudflared' | 'ngrok'
+}
 
 export async function dev(
   entry_: string | undefined,
-  { host, port }: DevOptions = {},
+  options: DevOptions = {},
 ) {
+  const { host, port, proxy } = options
   const entry = entry_ || (await findEntrypoint())
 
   const entry_resolved = resolve(join(process.cwd(), entry))
@@ -51,4 +58,62 @@ export async function dev(
       `http://localhost:${server.config.server.port}${basePath}`,
     )}`,
   )
+
+  if (proxy) {
+    const proxyLogPrefix = `  ${pc.green('➜')}  ${pc.bold('Proxy')}:   `
+    switch (proxy) {
+      case 'cloudflared': {
+        try {
+          const cloudflaredBin = execSync('which cloudflared', {
+            encoding: 'utf8',
+          }).trim()
+
+          const child = spawn(cloudflaredBin, [
+            'tunnel',
+            '--url',
+            `http://localhost:${server.config.server.port}`,
+          ])
+
+          // proxy url regex
+          // https://regexr.com/7spe1
+          const proxyUrlRegex = /https:\/\/.*.trycloudflare.com/
+
+          // cloudflare diagnostic info logged to stderr
+          child.stderr.on('data', (data) => {
+            if (proxyUrlRegex.test(data)) {
+              const match = data.toString().match(proxyUrlRegex)
+              const proxyUrl = match?.[0]
+              if (proxyUrl)
+                logger.info(`${proxyLogPrefix}${pc.cyan(proxyUrl + basePath)}`)
+            }
+          })
+        } catch (error) {
+          throw new Error(`Cloudflared Error: ${error}`)
+        }
+        break
+      }
+
+      case 'ngrok': {
+        try {
+          const { forward } = await import('@ngrok/ngrok')
+          const env = loadEnv('development', process.cwd(), '')
+          const listener = await forward({
+            addr: `http://localhost:${server.config.server.port}`,
+            // ngrok cli reads from this .env var by default so we should use it too
+            // to keep things simple for now
+            authtoken: env.NGROK_AUTHTOKEN,
+          })
+          const proxyUrl = listener.url()
+          if (proxyUrl)
+            logger.info(`${proxyLogPrefix}${pc.cyan(proxyUrl + basePath)}`)
+        } catch (error) {
+          throw new Error(`Ngrok Error: ${error}`)
+        }
+        break
+      }
+
+      default:
+        throw new Error(`Unknown proxy: ${proxy}`)
+    }
+  }
 }

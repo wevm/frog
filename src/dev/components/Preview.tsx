@@ -372,7 +372,7 @@ export function Preview(props: PreviewProps) {
       }}
     >
       <aside
-        class="order-1 space-y-4 md:min-w-sidebar lg:min-w-sidebar w-full"
+        class="order-1 space-y-4 md:min-w-sidebar md:max-w-sidebar lg:min-w-sidebar lg:max-w-sidebar w-full"
         style={{
           position: 'sticky',
           top: '1.5rem',

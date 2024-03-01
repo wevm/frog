@@ -11,7 +11,8 @@ export function Tabs() {
 
   const rowClass = 'flex flex-row py-3 justify-between'
   const labelClass = 'text-gray-700 font-medium min-w-36'
-  const valueClass = 'text-gray-1000 font-mono line-clamp-2 text-right'
+  const valueClass =
+    'text-gray-1000 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis'
   return (
     <div
       class="border rounded-md bg-background-100"
@@ -187,7 +188,11 @@ export function Tabs() {
 
           <div class={rowClass}>
             <div class={labelClass}>Host</div>
-            <div class={valueClass} x-text="new URL(url).host" />
+            <div
+              class={valueClass}
+              x-text="new URL(url).host"
+              {...{ ':title': 'new URL(url).host' }}
+            />
           </div>
 
           <div class={rowClass}>
@@ -285,6 +290,7 @@ export function Tabs() {
         aria-labelledby="context"
         class="p-4 scrollbars"
         x-show="tab === 'context'"
+        x-cloak
         style={{ fontSize: '0.8125rem' }}
       >
         <div x-html="getCodeHtml(JSON.stringify(data.context ?? {}, null, 2), 'json')" />
@@ -293,6 +299,7 @@ export function Tabs() {
       <section
         id="state-section"
         role="tabpanel"
+        x-cloak
         aria-labelledby="state"
         x-data="{
           async init() {
@@ -359,6 +366,7 @@ export function Tabs() {
         role="tabpanel"
         aria-labelledby="meta-tags"
         class="relative"
+        x-cloak
         x-show="tab === 'meta-tags'"
         style={{ fontSize: '0.8125rem' }}
         x-data="{
@@ -368,6 +376,7 @@ export function Tabs() {
             for (const tag of frame.debug.htmlTags) {
               let text = tag
               if (text.includes('_frog_fc:frame:image')) text = text.replace('_frog_fc:frame:image', frame.imageUrl)
+              else if (text.includes('_frog_fc:frame:post_url')) text = text.replace('_frog_fc:frame:post_url', frame.postUrl)
               else if (text.includes('_frog_fc:frame:state')) text = text.replace('_frog_fc:frame:state', frame.state)
               else if (text.includes('_frog_og:image')) text = text.replace('_frog_og:image', frame.image)
               html += text + '\n'

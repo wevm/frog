@@ -135,6 +135,7 @@ export function Data() {
                 aria-colindex="2"
                 class="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap font-mono text-xs"
                 x-text="row.value"
+                {...{ ':title': 'row.value' }}
               />
 
               <div

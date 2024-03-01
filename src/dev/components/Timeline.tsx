@@ -92,8 +92,26 @@ export function Timeline() {
                   />
                 </div>
 
-                <div class="flex gap-1.5 font-mono text-gray-900 text-xs">
-                  <span x-text="formatUrl(log.body ? log.body.url : log.url)" />
+                <div
+                  class="font-mono text-gray-900 text-xs text-left whitespace-nowrap"
+                  x-data="{
+                    get url() {
+                      const urlString = log.body ? log.body.url : log.url
+                      return new URL(urlString)
+                    },
+                    get hostname() {
+                      const { protocol, hostname, port } = this.url
+                      return `${protocol}//${hostname}${port ? `:${port}` : ''}`
+                    },
+                  }"
+                  {...{ ':title': 'url' }}
+                >
+                  <div
+                    class="text-ellipsis inline-block md:max-w-[57%]"
+                    style={{ overflow: 'clip' }}
+                    x-text="hostname"
+                  />
+                  <div class="inline-block" x-text="url.pathname" />
                 </div>
               </button>
             </template>

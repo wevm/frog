@@ -362,7 +362,9 @@ export class FrogBase<
         (this.dev?.enabled ?? true) &&
         // check if route has `/dev` path.
         this.hono.routes.some((r) => {
-          if (!r.path.startsWith(this.basePath + parsePath(path))) return false
+          const currentFullPath =
+            (this.basePath === '/' ? '' : this.basePath) + parsePath(path)
+          if (!r.path.startsWith(currentFullPath)) return false
           if (!r.path.includes('/dev')) return false
           return true
         })
