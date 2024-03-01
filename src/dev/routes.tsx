@@ -77,6 +77,13 @@ export function routes<
     return c.json(props)
   })
 
+  // ngrok free redirects to `https` in the browser, but does not set
+  // protocol to `https` on requests so need to correct
+  const ngrokHostname = 'ngrok-free.app'
+  // https://regexr.com/7sr6u
+  const ngrokHttpRegex =
+    /(http)((?:(?::\/\/)|(?:%253A%252F%252F)|(?:%3A%2F%2F))[a-z0-9\-]*\.ngrok-free\.app)/g
+
   async function get(url: string) {
     const timestamp = Date.now()
 
@@ -85,14 +92,17 @@ export function routes<
     performance.mark('end')
 
     const clonedResponse = response.clone()
-    const text = await response.text()
+    let text = await response.text()
+    if (text.includes(ngrokHostname))
+      text = text.replace(ngrokHttpRegex, 'https$2')
+
     const frame = htmlToFrame(text)
     const context = htmlToContext(text)
 
     // remove serialized context from image/imageUrl to save url space
     // tip: search for `_frog_` to see where it's added back
     const contextString = toSearchParams(context).toString()
-    frame.image = frame.imageUrl.replace(contextString, '_frog_image')
+    frame.image = frame.image.replace(contextString, '_frog_image')
     frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
 
     performance.measure('fetch', 'start', 'end')
@@ -103,7 +113,9 @@ export function routes<
 
     const cleanedUrl = new URL(url)
     cleanedUrl.search = ''
-    const cleanedUrlString = cleanedUrl.toString().replace(/\/$/, '')
+    let cleanedUrlString = cleanedUrl.toString().replace(/\/$/, '')
+    if (cleanedUrlString.includes(ngrokHostname))
+      cleanedUrlString = cleanedUrlString.replace(ngrokHttpRegex, 'https$2')
 
     const [htmlSize, imageSize] = await Promise.all([
       getHtmlSize(clonedResponse),
@@ -178,7 +190,10 @@ export function routes<
         performance.clearMeasures()
 
         const clonedResponse = response.clone()
-        const text = await response.text()
+        let text = await response.text()
+        if (text.includes(ngrokHostname))
+          text = text.replace(ngrokHttpRegex, 'https$2')
+
         const frame = htmlToFrame(text)
         const context = htmlToContext(text)
 
@@ -196,7 +211,7 @@ export function routes<
         // remove serialized context from image/imageUrl to save url space
         // tip: search for `_frog_` to see where it's added back
         const contextString = toSearchParams(context).toString()
-        frame.image = frame.imageUrl.replace(contextString, '_frog_image')
+        frame.image = frame.image.replace(contextString, '_frog_image')
         frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
 
         const [htmlSize, imageSize] = await Promise.all([
@@ -272,13 +287,19 @@ export function routes<
           method: 'post',
           body,
           metrics: { speed },
-          response: {
-            success: response.redirected,
-            error,
-            location: response.url,
-            status: response.ok ? 302 : response.status,
-            statusText: response.statusText,
-          },
+          response: response.redirected
+            ? {
+                success: true,
+                location: response.url,
+                status: 302,
+                statusText: 'Found',
+              }
+            : {
+                success: false,
+                error,
+                status: response.status,
+                statusText: response.statusText,
+              },
           timestamp: Date.now(),
         } satisfies PreviewProps['data'])
       },

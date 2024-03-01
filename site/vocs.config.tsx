@@ -354,6 +354,19 @@ export default defineConfig({
         { text: 'Frog.hono', link: '/reference/frog-hono' },
       ],
     },
+    {
+      text: 'CLI Reference',
+      items: [
+        {
+          text: 'dev',
+          link: '/commands/dev',
+        },
+        {
+          text: 'vercel-build',
+          link: '/commands/vercel-build',
+        },
+      ],
+    },
   ],
   title: 'Frog',
   topNav: [
