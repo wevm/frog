@@ -10,6 +10,7 @@ import { default as p } from 'path-browserify'
 import { html } from 'hono/html'
 import {
   type FrameContext,
+  type FrameImageAspectRatio,
   type FrameResponse,
   type MaybeGenerator,
   type Pretty,
@@ -95,6 +96,12 @@ export type FrogConstructorParameters<
    * @returns {Promise<ImageResponseOptions>} Promise with image response options.
    */
   imageOptions?: MaybeGenerator<ImageResponseOptions> | undefined
+  /**
+   * Default image aspect ratio.
+   *
+   * @default '1.91:1'
+   */
+  imageAspectRatio?: FrameImageAspectRatio | undefined
   /**
    * Initial state for the frames.
    *
@@ -187,6 +194,7 @@ export class FrogBase<
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
   hubApiUrl: string | undefined
+  imageAspectRatio: FrameImageAspectRatio | undefined
   imageOptions: MaybeGenerator<ImageResponseOptions> | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
@@ -207,6 +215,7 @@ export class FrogBase<
     hubApiUrl,
     imageOptions,
     initialState,
+    imageAspectRatio,
     secret,
     verify,
   }: FrogConstructorParameters<state, env, basePath> = {}) {
@@ -216,6 +225,7 @@ export class FrogBase<
     if (headers) this.headers = headers
     if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
+    if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
     if (imageOptions) this.imageOptions = imageOptions
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
@@ -262,7 +272,7 @@ export class FrogBase<
         action,
         browserLocation = this.browserLocation,
         headers = this.headers,
-        imageAspectRatio,
+        imageAspectRatio = this.imageAspectRatio,
         image,
         intents,
         title = 'Frog Frame',
