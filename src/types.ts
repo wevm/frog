@@ -162,7 +162,9 @@ export type FrameResponse = {
   title?: string | undefined
 }
 
-export type FrameResponseFn = (response: FrameResponse) => FrameResponse
+export type FrameResponseFn = (
+  response: FrameResponse,
+) => TypedResponse<FrameResponse>
 
 export type FrameData = {
   buttonIndex?: 1 | 2 | 3 | 4 | undefined
@@ -188,6 +190,17 @@ export type FrameButtonValue = string
 export type TrustedData = {
   messageBytes: string
 }
+
+export type TypedResponse<data> = {
+  data: data
+  format: 'frame'
+}
+
+export type HandlerResponse<typedResponse> =
+  | Response
+  | TypedResponse<typedResponse>
+  | Promise<Response>
+  | Promise<TypedResponse<typedResponse>>
 
 export type UntrustedData = FrameData
 
