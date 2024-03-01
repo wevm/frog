@@ -92,9 +92,18 @@ export function Timeline() {
                   />
                 </div>
 
-                <div class="flex gap-1.5 font-mono text-gray-900 text-xs">
-                  <span x-text="formatUrl(log.body ? log.body.url : log.url)" />
-                </div>
+                <div
+                  class="font-mono text-gray-900 text-xs overflow-hidden whitespace-nowrap text-ellipsis text-left"
+                  x-data="{
+                    get url() {
+                      const urlString = log.body ? log.body.url : log.url
+                      const url = new URL(urlString)
+                      if (urlString.length > 45) return url.pathname
+                      return formatUrl(urlString)
+                    }
+                  }"
+                  x-text="url"
+                />
               </button>
             </template>
           </div>

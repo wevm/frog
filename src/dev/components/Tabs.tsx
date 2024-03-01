@@ -11,7 +11,8 @@ export function Tabs() {
 
   const rowClass = 'flex flex-row py-3 justify-between'
   const labelClass = 'text-gray-700 font-medium min-w-36'
-  const valueClass = 'text-gray-1000 font-mono line-clamp-2 text-right'
+  const valueClass =
+    'text-gray-1000 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis'
   return (
     <div
       class="border rounded-md bg-background-100"
@@ -285,6 +286,7 @@ export function Tabs() {
         aria-labelledby="context"
         class="p-4 scrollbars"
         x-show="tab === 'context'"
+        x-cloak
         style={{ fontSize: '0.8125rem' }}
       >
         <div x-html="getCodeHtml(JSON.stringify(data.context ?? {}, null, 2), 'json')" />
@@ -293,6 +295,7 @@ export function Tabs() {
       <section
         id="state-section"
         role="tabpanel"
+        x-cloak
         aria-labelledby="state"
         x-data="{
           async init() {
@@ -359,6 +362,7 @@ export function Tabs() {
         role="tabpanel"
         aria-labelledby="meta-tags"
         class="relative"
+        x-cloak
         x-show="tab === 'meta-tags'"
         style={{ fontSize: '0.8125rem' }}
         x-data="{

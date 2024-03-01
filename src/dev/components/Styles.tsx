@@ -944,6 +944,9 @@ export function Styles() {
       .lg\\:w-frame {
         width: 533.08px;
       }
+      .lg\\:max-w-sidebar {
+        max-width: 350px;
+      }
       .lg\\:min-w-sidebar {
         min-width: 350px;
       }
