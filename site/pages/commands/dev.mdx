@@ -32,13 +32,26 @@ Port used by the server. Defaults to `5173`.
 frog dev --port 3001
 ```
 
-### -P, --proxy
+### -P, --proxy (experimental)
 
 `'cloudflared' | 'ngrok'`
 
 Start proxy for dev server via [Cloudflared](https://github.com/cloudflare/cloudflared) or [ngrok](https://github.com/inconshreveable/ngrok).
 
 ```bash
-frog dev --proxy cloudflared
+frog dev --proxy ngrok
 ```
 
+Both options require basic setup (no longer than two minutes) and come with generious free tiers.
+
+- `'cloudflared'` - [Download the Cloudflared CLI](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/#use-trycloudflare). Cloudflared is free to use via the TryCloudflare program and does not require a Cloudflare account.
+- `'ngrok'` - Sign up for a ngrok account and add your authtoken to your environment. More info on that on the [ngrok README](https://github.com/ngrok/ngrok-javascript?tab=readme-ov-file#quickstart).
+
+Once set up correctly, the proxy URL will be logged below the local server URL. For example:
+
+```bash
+[running] frog@v0.2.2
+
+➜  Local:   http://localhost:5173/
+➜  Proxy:   https://a01a-67-245-44-210.ngrok-free.app/  // [!code focus]
+```

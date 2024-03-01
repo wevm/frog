@@ -88,7 +88,7 @@ export async function dev(
             }
           })
         } catch (error) {
-          // TODO: Error message
+          throw new Error(`Cloudflared Error: ${error}`)
         }
         break
       }
@@ -107,9 +107,13 @@ export async function dev(
           if (proxyUrl)
             logger.info(`${proxyLogPrefix}${pc.cyan(proxyUrl + basePath)}`)
         } catch (error) {
-          // TODO: Error message
+          throw new Error(`Ngrok Error: ${error}`)
         }
+        break
       }
+
+      default:
+        throw new Error(`Unknown proxy: ${proxy}`)
     }
   }
 }
