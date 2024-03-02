@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.5
+
+### Patch Changes
+
+- [`0a85bfc`](https://github.com/wevm/frog/commit/0a85bfcc0ac7528eadbc5a3dc1c6eddd1269f50a) Thanks [@tmm](https://github.com/tmm)! - Added proxy support to `frog dev` command
+
 ## 0.2.4
 
 ### Patch Changes
