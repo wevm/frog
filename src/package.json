@@ -13,6 +13,7 @@
   "exports": {
     ".": {
       "types": "./_lib/index.d.ts",
+      "bun": "./_lib/index.js",
       "edge": "./_lib/edge/index.js",
       "edge-light": "./_lib/edge/index.js",
       "worker": "./_lib/edge/index.js",
@@ -63,7 +64,7 @@
     "fast-glob": "3.3.2",
     "fs-extra": "^11.2.0",
     "happy-dom": "^13.3.8",
-    "hono-og": "0.0.16",
+    "hono-og": "0.0.17",
     "immer": "^10.0.3",
     "jose": "^5.2.2",
     "path-browserify": "^1.0.1",
@@ -74,10 +75,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
