@@ -76,7 +76,6 @@ export function ButtonMint({
 
 export type ButtonRedirectProps = ButtonProps & {
   location: string
-  target?: string | undefined
 }
 
 ButtonRedirect.__type = 'button'
@@ -85,7 +84,6 @@ export function ButtonRedirect({
   // @ts-ignore - private
   index = 1,
   location,
-  target,
 }: ButtonRedirectProps) {
   return [
     <meta
@@ -98,9 +96,8 @@ export function ButtonRedirect({
       property={`fc:frame:button:${index}:action`}
       content="post_redirect"
     />,
-    target && (
-      <meta property={`fc:frame:button:${index}:target`} content={target} />
-    ),
+    // TODO: Add `target` prop so folks can `'post_redirect'` to a different frame
+    // <meta property={`fc:frame:button:${index}:target`} content={target} />,
   ] as unknown as HtmlEscapedString
 }
 
