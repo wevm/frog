@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.6
+
+### Patch Changes
+
+- [`0f742eb`](https://github.com/wevm/frog/commit/0f742eb6e85d30dc0e5b6d3848aeac941737adac) Thanks [@tmm](https://github.com/tmm)! - Fixed Button.Link rendering in devtools
+
 ## 0.2.5
 
 ### Patch Changes
