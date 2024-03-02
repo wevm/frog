@@ -140,18 +140,25 @@ function Button() {
   return (
     <div
       class="relative"
-      x-data={`{
+      x-data="{
         open: false,
         get index() { return button.index },
         get target() { return button.target },
         get title() { return button.title },
         get type() { return button.type },
-        url: button.type === 'link' && button.target ? button.target : undefined,
-      }`}
+        url: undefined,
+      }"
     >
       <template x-if="type === 'link'">
         <div>
-          <button class={buttonClass} type="button" x-on:click="open = true">
+          <button
+            class={buttonClass}
+            type="button"
+            x-on:click="
+              url = button.target
+              open = true
+            "
+          >
             {innerHtml}
             <div class="text-gray-900" style={{ marginTop: '2px' }}>
               {externalLinkIcon}
