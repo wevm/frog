@@ -24,13 +24,13 @@ export type TransactionContext<path extends string = string> = {
    * Raw transaction request.
    * @see https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869
    */
-  res: TransactionResponseFn
+  res: TransactionResponseFn<TransactionParameters>
   /**
    * Send transaction request.
    *
    * This is a convenience method for "send transaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869).
    */
-  send: SendTransactionResponseFn
+  send: TransactionResponseFn<SendTransactionParameters>
 }
 
 //////////////////////////////////////////////////////
@@ -58,8 +58,8 @@ export type EthSendTransactionParameters<quantity = string> = {
   value?: quantity
 }
 
-export type TransactionResponseFn = (
-  parameters: TransactionParameters,
+export type TransactionResponseFn<parameters> = (
+  parameters: parameters,
 ) => TransactionResponse
 
 //////////////////////////////////////////////////////
@@ -68,10 +68,6 @@ export type TransactionResponseFn = (
 type SendTransactionParameters = {
   chainId: `eip155:${number}`
 } & EthSendTransactionParameters<bigint>
-
-export type SendTransactionResponseFn = (
-  parameters: SendTransactionParameters,
-) => TransactionResponse
 
 //////////////////////////////////////////////////////
 // Contract Transaction
