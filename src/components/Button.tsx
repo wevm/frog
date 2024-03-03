@@ -133,7 +133,7 @@ export function experimental_ButtonTransaction({
   return [
     <meta
       property={`fc:frame:button:${index}`}
-      content={children}
+      content={normalizeChildren(children)}
       data-value="_t"
     />,
     <meta property={`fc:frame:button:${index}:action`} content="tx" />,
