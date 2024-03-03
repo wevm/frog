@@ -207,5 +207,22 @@ app.frame('/image-only', (c) => {
   })
 })
 
+app.frame('/redirect-buttons', (c) => {
+  return c.res({
+    image: <div tw="flex">foo</div>,
+    intents: [
+      <Button.Redirect location={`https://example.com/${c.frameData?.fid}`}>
+        FID
+      </Button.Redirect>,
+      <Button.Redirect
+        location={`https://example.com/${c.frameData?.castId?.fid}`}
+      >
+        Cast ID
+      </Button.Redirect>,
+      <Button.Reset>Reset</Button.Reset>,
+    ],
+  })
+})
+
 app.route('/todos', todoApp)
 app.route('/routing', routingApp)

@@ -274,7 +274,11 @@ export function Tabs() {
 
           <div class={rowClass} x-cloak x-show="data.response.location">
             <div class={labelClass}>Location</div>
-            <div class={valueClass} x-text="data.response.location" />
+            <div
+              class={valueClass}
+              x-text="data.response.location"
+              {...{ ':title': 'data.response.location' }}
+            />
           </div>
 
           <div class={rowClass} x-cloak x-show="data.response.error">

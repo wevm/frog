@@ -238,11 +238,6 @@ export class FrogBase<
         req: c.req,
       })
 
-      if (context.status === 'redirect') {
-        const location = context.buttonValue
-        if (!location) throw new Error('location required to redirect')
-        return c.redirect(location, 302)
-      }
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
 
       const {
@@ -255,6 +250,13 @@ export class FrogBase<
         title = 'Frog Frame',
       } = await handler(context)
       const buttonValues = getButtonValues(parseIntents(intents))
+
+      if (context.status === 'redirect' && context.buttonIndex) {
+        const buttonValue = buttonValues[context.buttonIndex - 1]
+        const location = buttonValue?.replace(/^_r:/, '')
+        if (!location) throw new Error('location required to redirect')
+        return c.redirect(location, 302)
+      }
 
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.

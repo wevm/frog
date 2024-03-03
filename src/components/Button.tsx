@@ -96,9 +96,8 @@ export function ButtonRedirect({
       property={`fc:frame:button:${index}:action`}
       content="post_redirect"
     />,
-    location && (
-      <meta property={`fc:frame:button:${index}:target`} content={location} />
-    ),
+    // TODO: Add `target` prop so folks can `'post_redirect'` to a different frame
+    // <meta property={`fc:frame:button:${index}:target`} content={target} />,
   ] as unknown as HtmlEscapedString
 }
 
