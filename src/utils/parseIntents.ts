@@ -57,7 +57,7 @@ function parseIntent(
       }
 
       const value = (node.tag as any)({})?.[0]?.props?.['data-value']
-      if (value.startsWith(buttonPrefix.transaction) && node.props.target) {
+      if (value?.startsWith(buttonPrefix.transaction) && node.props.target) {
         const search = (node.props.target ?? '').split('?')[1]
         buttonProps.target = node.props.target?.startsWith('http')
           ? node.props.target
