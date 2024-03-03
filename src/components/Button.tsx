@@ -119,17 +119,17 @@ export function ButtonReset({
   )
 }
 
-export type experimental_ButtonTransactionProps = ButtonProps & {
+export type ButtonTransactionProps = ButtonProps & {
   location: string
 }
 
-experimental_ButtonTransaction.__type = 'button'
-export function experimental_ButtonTransaction({
+ButtonTransaction.__type = 'button'
+export function ButtonTransaction({
   children,
   // @ts-ignore - private
   index = 1,
   location,
-}: experimental_ButtonTransactionProps) {
+}: ButtonTransactionProps) {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -146,7 +146,7 @@ export const Button = Object.assign(ButtonRoot, {
   Mint: ButtonMint,
   Redirect: ButtonRedirect,
   Reset: ButtonReset,
-  experimental_Transaction: experimental_ButtonTransaction,
+  Transaction: ButtonTransaction,
 })
 
 function normalizeChildren(children: string | string[]) {

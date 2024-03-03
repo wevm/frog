@@ -1,5 +1,11 @@
 import type { Env } from 'hono'
-import { type EncodeFunctionDataParameters, encodeFunctionData } from 'viem'
+import {
+  type Abi,
+  type EncodeFunctionDataParameters,
+  type GetAbiItemParameters,
+  encodeFunctionData,
+  getAbiItem,
+} from 'viem'
 
 import type { FrogBase } from '../frog-base.js'
 import type {
@@ -15,27 +21,60 @@ export function transaction<state, env extends Env>(
     context: TransactionContext,
   ) => TransactionResponse | Promise<TransactionResponse>,
 ) {
-  this.hono.get(parsePath(path), async (c) => {
+  this.hono.post(parsePath(path), async (c) => {
     const transaction = await handler({
       contract(parameters) {
-        const { abi, chainId, description, functionName, to, value, args } =
-          parameters
-        const response: TransactionResponse = {
-          chainId,
-          description,
-          to,
-          value,
-        }
-        response.data = encodeFunctionData({
-          abi,
+        const { abi, chainId, functionName, to, args, value } = parameters
+
+        const abiItem = getAbiItem({
+          abi: abi,
+          name: functionName,
           args,
-          functionName,
-        } as EncodeFunctionDataParameters)
-        return response
+        } as GetAbiItemParameters)
+        // TODO: custom error
+        if (!abiItem) throw new Error('could not find abi item')
+
+        const abiErrorItems = (abi as Abi).filter(
+          (item) => item.type === 'error',
+        )
+
+        return this.res({
+          chainId,
+          method: 'eth_sendTransaction',
+          params: {
+            abi: [abiItem, ...abiErrorItems],
+            data: encodeFunctionData({
+              abi,
+              args,
+              functionName,
+            } as EncodeFunctionDataParameters),
+            to,
+            value,
+          },
+        })
       },
       req: c.req,
-      res(response) {
+      res(parameters) {
+        const { chainId, method, params } = parameters
+        const { abi, data, to, value } = params
+        const response: TransactionResponse = {
+          chainId,
+          method,
+          params: {
+            abi,
+            data,
+            to,
+          },
+        }
+        if (value) response.params.value = value.toString()
         return response
+      },
+      send(parameters) {
+        return this.res({
+          chainId: parameters.chainId,
+          method: 'eth_sendTransaction',
+          params: parameters,
+        })
       },
     })
     return c.json(transaction)

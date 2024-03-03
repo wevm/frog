@@ -1,5 +1,6 @@
 import { Button, Frog, TextInput } from 'frog'
 
+import { wagmiExampleAbi } from '../constants/abi.js'
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
 
@@ -232,226 +233,44 @@ app.frame('/transaction', () => {
       </div>
     ),
     intents: [
-      <Button.experimental_Transaction location="/tx?foo=bar">
-        /tx
-      </Button.experimental_Transaction>,
-      <Button.experimental_Transaction location="/tx-contract?foo=bar">
+      <Button.Transaction location="/tx">/tx</Button.Transaction>,
+      <Button.Transaction location="/tx-contract">
         /tx-contract
-      </Button.experimental_Transaction>,
+      </Button.Transaction>,
     ],
   }
 })
 
-app.experimental_transaction('/tx', (c) => {
+// Raw transaction
+app.transaction('/tx', (c) => {
   return c.res({
-    description: 'Rent 1 Farcaster storage unit to FID 3621',
-    to: '0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D',
-    data: '0x783a112b0000000000000000000000000000000000000000000000000000000000000e250000000000000000000000000000000000000000000000000000000000000001',
-    value: '984316556204476',
-    chainId: '10',
+    chainId: 'eip155:1',
+    method: 'eth_sendTransaction',
+    params: {
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+      value: 1n,
+    },
   })
 })
 
-app.experimental_transaction('/tx-contract', (c) => {
+// Send transaction
+app.transaction('/tx-send', (c) => {
+  return c.send({
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: 1n,
+  })
+})
+
+// Contract transaction
+app.transaction('/tx-contract', (c) => {
   return c.contract({
-    abi: erc20Abi,
-    functionName: 'transferFrom',
-    args: ['0x', '0x', 1n],
-    description: 'foo',
+    chainId: 'eip155:1',
+    abi: wagmiExampleAbi,
+    functionName: 'mint',
     to: '0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D',
-    value: '984316556204476',
-    chainId: '10',
   })
 })
 
 app.route('/todos', todoApp)
 app.route('/routing', routingApp)
-
-export const erc20Abi = [
-  {
-    type: 'event',
-    name: 'Approval',
-    inputs: [
-      {
-        indexed: true,
-        name: 'owner',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        name: 'spender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'event',
-    name: 'Transfer',
-    inputs: [
-      {
-        indexed: true,
-        name: 'from',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        name: 'to',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'allowance',
-    stateMutability: 'view',
-    inputs: [
-      {
-        name: 'owner',
-        type: 'address',
-      },
-      {
-        name: 'spender',
-        type: 'address',
-      },
-    ],
-    outputs: [
-      {
-        type: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'approve',
-    stateMutability: 'nonpayable',
-    inputs: [
-      {
-        name: 'spender',
-        type: 'address',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        type: 'bool',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'balanceOf',
-    stateMutability: 'view',
-    inputs: [
-      {
-        name: 'account',
-        type: 'address',
-      },
-    ],
-    outputs: [
-      {
-        type: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'decimals',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [
-      {
-        type: 'uint8',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'name',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [
-      {
-        type: 'string',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'symbol',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [
-      {
-        type: 'string',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'totalSupply',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [
-      {
-        type: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'transfer',
-    stateMutability: 'nonpayable',
-    inputs: [
-      {
-        name: 'recipient',
-        type: 'address',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        type: 'bool',
-      },
-    ],
-  },
-  {
-    type: 'function',
-    name: 'transferFrom',
-    stateMutability: 'nonpayable',
-    inputs: [
-      {
-        name: 'sender',
-        type: 'address',
-      },
-      {
-        name: 'recipient',
-        type: 'address',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        type: 'bool',
-      },
-    ],
-  },
-] as const

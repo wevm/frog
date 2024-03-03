@@ -182,7 +182,7 @@ export class FrogBase<
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
-  experimental_transaction = transaction.bind(this as any)
+  transaction = transaction
 
   constructor({
     assetsPath,
