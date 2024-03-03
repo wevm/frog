@@ -1,9 +1,6 @@
 import { Button, Frog } from 'frog'
 
-export const app = new Frog({
-  hubApiUrl: 'https://api.hub.wevm.dev',
-  verify: 'silent',
-})
+export const app = new Frog()
 
 app.frame('/', () => {
   return {
