@@ -1,9 +1,9 @@
 import { Button, Frog, TextInput } from 'frog'
 import * as hubs from 'frog/hubs'
 
-import { wagmiExampleAbi } from '../constants/abi.js'
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
+import { app as transactionApp } from './transaction.js'
 
 export const app = new Frog({
   browserLocation: '/:path/dev',
@@ -226,52 +226,6 @@ app.frame('/redirect-buttons', (c) => {
   })
 })
 
-app.frame('/transaction', () => {
-  return {
-    image: (
-      <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
-        Example
-      </div>
-    ),
-    intents: [
-      <Button.Transaction location="/tx">/tx</Button.Transaction>,
-      <Button.Transaction location="/tx-contract">
-        /tx-contract
-      </Button.Transaction>,
-    ],
-  }
-})
-
-// Raw transaction
-app.transaction('/tx', (c) => {
-  return c.res({
-    chainId: 'eip155:1',
-    method: 'eth_sendTransaction',
-    params: {
-      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
-      value: 1n,
-    },
-  })
-})
-
-// Send transaction
-app.transaction('/tx-send', (c) => {
-  return c.send({
-    chainId: 'eip155:1',
-    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
-    value: 1n,
-  })
-})
-
-// Contract transaction
-app.transaction('/tx-contract', (c) => {
-  return c.contract({
-    abi: wagmiExampleAbi,
-    chainId: 'eip155:1',
-    functionName: 'mint',
-    to: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
-  })
-})
-
-app.route('/todos', todoApp)
 app.route('/routing', routingApp)
+app.route('/transaction', transactionApp)
+app.route('/todos', todoApp)
