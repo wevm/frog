@@ -1,5 +1,15 @@
 # frog
 
+## 0.2.7
+
+### Patch Changes
+
+- [`bf6140d`](https://github.com/wevm/frog/commit/bf6140d971f9cfae9d09f86e6aec7c5044377e2e) Thanks [@jxom](https://github.com/jxom)! - Added `--staticDir` parameter to `frog dev` CLI command.
+
+- [#49](https://github.com/wevm/frog/pull/49) [`79bb79d`](https://github.com/wevm/frog/commit/79bb79d9644851009c2c9700f7c42b26649f5fbd) Thanks [@tmm](https://github.com/tmm)! - Fixed Button.Redirect behavior
+
+- [`15de099`](https://github.com/wevm/frog/commit/15de099ad936f3e1a336696a8ae084690aab7150) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og` & added `bun` export property.
+
 ## 0.2.6
 
 ### Patch Changes
