@@ -1,5 +1,6 @@
 import { type JSXNode } from 'hono/jsx'
 
+import { buttonPrefix } from '../components/Button.js'
 import { type FrameIntents } from '../types/frame.js'
 import { parsePath } from './parsePath.js'
 
@@ -45,22 +46,26 @@ function parseIntent(
 
   const props = (() => {
     if ((node.tag as any).__type === 'button') {
-      const search = (node.props.location ?? '').split('?')[1]
-      return {
+      const buttonProps: Record<string, unknown> = {
         ...node.props,
         action: node.props.action
           ? parsePath(options.baseUrl + node.props.action) +
             (options.search ? `?${options.search}` : '')
           : undefined,
         children: node.children,
-        location: node.props.location
-          ? node.props.location?.startsWith('http')
-            ? node.props.location
-            : parsePath(options.baseUrl + node.props.location) +
-              (search ? `?${search}` : '')
-          : undefined,
         index: counter.button++,
       }
+
+      const value = (node.tag as any)({})?.[0]?.props?.['data-value']
+      if (value.startsWith(buttonPrefix.transaction) && node.props.target) {
+        const search = (node.props.target ?? '').split('?')[1]
+        buttonProps.target = node.props.target?.startsWith('http')
+          ? node.props.target
+          : parsePath(options.baseUrl + node.props.target) +
+            (search ? `?${search}` : '')
+      }
+
+      return buttonProps
     }
     if ((node.tag as any).__type === 'text-input')
       return { ...node.props, children: node.children }

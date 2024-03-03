@@ -10,11 +10,9 @@ app.frame('/', () => {
       </div>
     ),
     intents: [
-      <Button.Transaction location="/raw-send">Raw</Button.Transaction>,
-      <Button.Transaction location="/send">
-        Send Transaction
-      </Button.Transaction>,
-      <Button.Transaction location="/mint">Mint</Button.Transaction>,
+      <Button.Transaction target="/raw-send">Raw</Button.Transaction>,
+      <Button.Transaction target="/send">Send Transaction</Button.Transaction>,
+      <Button.Transaction target="/mint">Mint</Button.Transaction>,
     ],
   }
 })
