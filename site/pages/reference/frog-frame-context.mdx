@@ -77,6 +77,44 @@ app.frame('/', (c) => {
 })
 ```
 
+## cycle
+
+- **Type**: `"main" | "image"`
+
+Current render cycle of the frame.
+
+- `main` - Render cycle for the main frame route.
+- `image` - Render cycle for the OG image route.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { db } from './db'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  const { buttonValue, cycle } = c // [!code focus]
+
+  if (cycle === 'main') db.save(buttonValue) // [!code focus]
+
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Selected: {buttonValue}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>,
+      <Button value="banana">Banana</Button>,
+      <Button value="mango">Mango</Button>
+    ]
+  })
+})
+```
+
 ## deriveState
 
 - **Type**: `(state: State) => void`

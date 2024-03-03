@@ -15,6 +15,7 @@ type GetFrameContextParameters<state = unknown> = {
     | 'url'
     | 'verified'
   >
+  cycle: FrameContext['cycle']
   initialState?: state
   req: Context['req']
 }
@@ -22,7 +23,7 @@ type GetFrameContextParameters<state = unknown> = {
 export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
-  const { context, req } = options
+  const { context, cycle, req } = options
   const { frameData, initialPath, previousButtonValues, verified } =
     context || {}
 
@@ -56,6 +57,7 @@ export async function getFrameContext<state>(
   return {
     buttonIndex: frameData?.buttonIndex,
     buttonValue,
+    cycle,
     frameData,
     initialPath,
     inputText,

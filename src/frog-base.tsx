@@ -234,6 +234,7 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
+        cycle: 'main',
         initialState: this._initialState,
         req: c.req,
       })
@@ -410,6 +411,7 @@ export class FrogBase<
       const query = c.req.query()
       const context = await getFrameContext({
         context: fromQuery<FrameContext<path, state>>(query),
+        cycle: 'image',
         initialState: this._initialState,
         req: c.req,
       })

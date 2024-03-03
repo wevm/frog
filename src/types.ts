@@ -11,6 +11,13 @@ export type FrameContext<path extends string = string, state = unknown> = {
    */
   buttonValue?: string | undefined
   /**
+   * Current render cycle of the frame.
+   *
+   * - `main` - Render cycle for the main frame route.
+   * - `image` - Render cycle for the OG image route.
+   */
+  cycle: 'main' | 'image'
+  /**
    * Function to derive the frame's state based off the state from the
    * previous frame.
    */
