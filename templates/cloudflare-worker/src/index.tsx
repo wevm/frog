@@ -1,9 +1,17 @@
 import { Button, Frog, TextInput } from 'frog'
+import { serveStatic } from 'frog/serve-static'
 
 export const app = new Frog({
   // Supply a Hub API URL to enable frame verification.
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
+
+app.use(
+  '/*',
+  serveStatic({
+    root: './',
+  }),
+)
 
 app.frame('/', (c) => {
   const { buttonValue, inputText, status } = c

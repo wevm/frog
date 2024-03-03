@@ -4,6 +4,7 @@ import { Button, Frog, TextInput } from 'frog'
 import { handle } from 'frog/next'
 
 const app = new Frog({
+  assetsPath: '/',
   basePath: '/api',
   // Supply a Hub API URL to enable frame verification.
   // hubApiUrl: 'https://api.hub.wevm.dev',

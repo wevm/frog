@@ -170,6 +170,9 @@ importers:
       '@farcaster/core':
         specifier: ^0.13.7
         version: 0.13.8(typescript@5.3.3)
+      '@hono/node-server':
+        specifier: ^1.8.2
+        version: 1.8.2
       '@hono/vite-dev-server':
         specifier: 0.7.0
         version: 0.7.0(hono@4.0.4)
@@ -1817,13 +1820,18 @@ packages:
     resolution: {integrity: sha512-9ondWs/5EuyZOd/iyiRp0GQfMEq+IA+IbV8Wy2bgdr5+cC55I3xbQrqtXKprw7jJhfvq3IVw7ALiuvCEmLdCAA==}
     engines: {node: '>=18.14.1'}
 
+  /@hono/node-server@1.8.2:
+    resolution: {integrity: sha512-h8l2TBLCPHZBUrrkosZ6L5CpBLj6zdESyF4B+zngiCDF7aZFQJ0alVbLx7jn8PCVi9EyoFf8a4hOZFi1tD95EA==}
+    engines: {node: '>=18.14.1'}
+    dev: false
+
   /@hono/vite-dev-server@0.7.0(hono@4.0.4):
     resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '*'
     dependencies:
-      '@hono/node-server': 1.8.1
+      '@hono/node-server': 1.8.2
       hono: 4.0.4
       miniflare: 3.20240129.3
       minimatch: 9.0.3
