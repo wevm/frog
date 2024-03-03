@@ -12,7 +12,6 @@ import {
   type FrameContext,
   type FrameImageAspectRatio,
   type FrameResponse,
-  type MaybeGenerator,
   type Pretty,
 } from './types.js'
 import { fromQuery } from './utils/fromQuery.js'
@@ -77,7 +76,6 @@ export type FrogConstructorParameters<
   hubApiUrl?: string | undefined
   /**
    * Default image options.
-   * Can be an asyncronous function that returns an options Promise.
    *
    * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
    * @see https://vercel.com/docs/functions/og-image-generation/og-image-examples#using-a-custom-font
@@ -93,9 +91,11 @@ export type FrogConstructorParameters<
    *
    *   return { fonts: [{ name: 'Inter', data: fontData, style: 'normal'}] }
    * }
-   * @returns {Promise<ImageResponseOptions>} Promise with image response options.
    */
-  imageOptions?: MaybeGenerator<ImageResponseOptions> | undefined
+  imageOptions?:
+    | ImageResponseOptions
+    | (() => Promise<ImageResponseOptions>)
+    | undefined
   /**
    * Default image aspect ratio.
    *
@@ -194,8 +194,13 @@ export class FrogBase<
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
   hubApiUrl: string | undefined
-  imageAspectRatio: FrameImageAspectRatio | undefined
-  imageOptions: MaybeGenerator<ImageResponseOptions> | undefined
+  /** Image aspect ratio. */
+  imageAspectRatio: FrameImageAspectRatio = '1.91:1'
+  /** Image options. */
+  imageOptions:
+    | ImageResponseOptions
+    | (() => Promise<ImageResponseOptions>)
+    | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
@@ -213,9 +218,9 @@ export class FrogBase<
     headers,
     honoOptions,
     hubApiUrl,
+    imageAspectRatio,
     imageOptions,
     initialState,
-    imageAspectRatio,
     secret,
     verify,
   }: FrogConstructorParameters<state, env, basePath> = {}) {
@@ -401,7 +406,7 @@ export class FrogBase<
               <meta property="fc:frame" content="vNext" />
               <meta
                 property="fc:frame:image:aspect_ratio"
-                content={imageAspectRatio ?? '1.91:1'}
+                content={imageAspectRatio}
               />
               <meta property="fc:frame:image" content={imageUrl} />
               <meta property="og:image" content={imageUrl} />
@@ -442,12 +447,16 @@ export class FrogBase<
         initialState: this._initialState,
         req: c.req,
       })
+
+      const defaultImageOptions =
+        typeof this.imageOptions === 'function'
+          ? await this.imageOptions()
+          : this.imageOptions
+
       const {
         image,
         headers = this.headers,
-        imageOptions = typeof this.imageOptions === 'function'
-          ? await this.imageOptions()
-          : this.imageOptions,
+        imageOptions = defaultImageOptions,
       } = await handler(context)
       if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image, {
