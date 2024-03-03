@@ -6,6 +6,7 @@ test('default', async () => {
   expect(metadata).toMatchInlineSnapshot(`
     {
       "fc:frame": "vNext",
+      "fc:frame:button:1": "Features →",
       "fc:frame:button:1:action": "post",
       "fc:frame:button:1:target": "https://frame.frog.fm/api/features?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
       "fc:frame:button:2": "Docs",
@@ -18,6 +19,7 @@ test('default', async () => {
       "fc:frame:image:aspect_ratio": "1.91:1",
       "fc:frame:post_url": "https://frame.frog.fm/api?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
       "frog:version": "0.2.10",
+      "og:image": "https://frame.frog.fm/og.png",
     }
   `)
 })

@@ -1,3 +1,4 @@
+import { parseFromString } from 'dom-parser'
 import type { FrameMetaTagPropertyName } from '../dev/types.js'
 
 export type FrameMetadata = {
@@ -16,17 +17,17 @@ export async function getFrameMetadata(url: string): Promise<FrameMetadata> {
   try {
     const text = await fetch(url).then((r) => r.text())
 
-    const match = text.matchAll(
-      /<meta property="(fc|frog):(\S+)" content="(\S+)"/gm,
-    )
-    if (!match) return []
+    const dom = parseFromString(text.replace('<!DOCTYPE html>', ''))
+    const nodes = dom.getElementsByTagName('meta')
 
     const metaTags: FrameMetadata = []
-    for (const [_, prefix, key, value] of match)
-      metaTags.push({
-        property: `${prefix}:${key}` as FrameMetaTagPropertyName,
-        content: value,
-      })
+    for (const node of nodes) {
+      const property = node.getAttribute('property')
+      const content = node.getAttribute('content')
+
+      if (!property.match(/^(fc|frog|og:image)/)) continue
+      metaTags.push({ property: property as FrameMetaTagPropertyName, content })
+    }
 
     return metaTags
   } catch (error) {

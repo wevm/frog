@@ -18,8 +18,16 @@ test('default', async () => {
         "property": "fc:frame:image",
       },
       {
+        "content": "https://frame.frog.fm/og.png",
+        "property": "og:image",
+      },
+      {
         "content": "https://frame.frog.fm/api?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
         "property": "fc:frame:post_url",
+      },
+      {
+        "content": "Features →",
+        "property": "fc:frame:button:1",
       },
       {
         "content": "post",
