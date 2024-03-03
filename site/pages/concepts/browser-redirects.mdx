@@ -102,3 +102,28 @@ app.frame('/bar', (c) => { // [!code hl]
   return c.res({/* ... */})
 })
 ```
+
+To include the `basePath` in the `browserLocation` path, you can use the `:basePath` template variable.
+
+In the example below, when a user navigates to the `/api/foo` path of the website via their web browser, 
+they will be redirected to the `/api/foo/dev` path.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({
+  basePath: '/api', // [!code hl]
+  browserLocation: '/:basePath/:path/dev', // [!code hl]
+})
+ 
+app.frame('/foo', (c) => { // [!code hl]
+  return c.res({/* ... */})
+})
+
+app.frame('/bar', (c) => { // [!code hl]
+  return c.res({/* ... */})
+})
+```

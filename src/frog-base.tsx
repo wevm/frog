@@ -156,7 +156,6 @@ export class FrogBase<
 > {
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
-  _imageOptions: ImageResponseOptions | undefined
   _initialState: state = undefined as state
 
   /** Path for assets. */
@@ -171,6 +170,7 @@ export class FrogBase<
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
   hubApiUrl: string | undefined
+  imageOptions: ImageResponseOptions | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
@@ -199,7 +199,7 @@ export class FrogBase<
     if (headers) this.headers = headers
     if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
-    if (imageOptions) this._imageOptions = imageOptions
+    if (imageOptions) this.imageOptions = imageOptions
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -262,7 +262,10 @@ export class FrogBase<
       // then we will redirect the user to that location.
       const browser = detect(c.req.header('user-agent'))
 
-      const browserLocation_ = parseBrowserLocation(c, browserLocation, path)
+      const browserLocation_ = parseBrowserLocation(c, browserLocation, {
+        basePath: this.basePath,
+        path,
+      })
       if (browser?.name && browserLocation_)
         return c.redirect(
           browserLocation_.startsWith('http')
@@ -413,7 +416,7 @@ export class FrogBase<
       const {
         image,
         headers = this.headers,
-        imageOptions = this._imageOptions,
+        imageOptions = this.imageOptions,
       } = await handler(context)
       if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image, {
@@ -429,6 +432,17 @@ export class FrogBase<
     subSchema extends Schema,
     subBasePath extends string,
   >(path: subPath, frog: FrogBase<any, subEnv, subSchema, subBasePath>) {
+    if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
+    if (frog.basePath === '/')
+      frog.basePath = parsePath(this.basePath) + parsePath(path)
+    if (!frog.browserLocation) frog.browserLocation = this.browserLocation
+    if (!frog.dev) frog.dev = this.dev
+    if (!frog.headers) frog.headers = this.headers
+    if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
+    if (!frog.imageOptions) frog.imageOptions = this.imageOptions
+    if (!frog.secret) frog.secret = this.secret
+    if (!frog.verify) frog.verify = this.verify
+
     return this.hono.route(path, frog.hono)
   }
 }

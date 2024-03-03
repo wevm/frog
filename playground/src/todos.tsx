@@ -1,15 +1,13 @@
-import { Button, Frog, TextInput } from 'Frog'
+import { Button, Frog, TextInput } from 'frog'
 
 export const app = new Frog<{
   index: number
   todos: { completed: boolean; name: string }[]
 }>({
-  hubApiUrl: 'https://api.hub.wevm.dev',
   initialState: {
     index: -1,
     todos: [],
   },
-  verify: 'silent',
 })
 
 app.frame('/', (c) => {
