@@ -1,5 +1,13 @@
 # frog
 
+## 0.2.10
+
+### Patch Changes
+
+- [#61](https://github.com/wevm/frog/pull/61) [`cee4729`](https://github.com/wevm/frog/commit/cee47297b619a0be3f1fe1c4962a92d0387950e5) Thanks [@jxom](https://github.com/jxom)! - Added ability for `imageOptions` to return an asynchronous function in the `Frog` constructor.
+
+- [#61](https://github.com/wevm/frog/pull/61) [`cee4729`](https://github.com/wevm/frog/commit/cee47297b619a0be3f1fe1c4962a92d0387950e5) Thanks [@jxom](https://github.com/jxom)! - Added `imageAspectRatio` parameter to `Frog` constructor.
+
 ## 0.2.9
 
 ### Patch Changes
