@@ -1,5 +1,13 @@
 # frog
 
+## 0.2.11
+
+### Patch Changes
+
+- [`573ed8a`](https://github.com/wevm/frog/commit/573ed8a9c15308ad31fb40cd0386031a252f3b1e) Thanks [@jxom](https://github.com/jxom)! - Fixed issue where `getFrameMetadata` wouldn't pick up whitespace in meta content.
+
+- [`f126947`](https://github.com/wevm/frog/commit/f12694769273a652aebc71eb72dc198831b54d49) Thanks [@jxom](https://github.com/jxom)! - Exported `getFrameMetadata` utility.
+
 ## 0.2.10
 
 ### Patch Changes
