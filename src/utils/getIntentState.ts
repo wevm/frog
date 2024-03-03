@@ -1,3 +1,4 @@
+import { buttonPrefix } from '../components/Button.js'
 import { type FrameButtonValue, type FrameData } from '../types/frame.js'
 
 type IntentState = {
@@ -28,8 +29,8 @@ export function getIntentState({
     const intent = buttonIntents[buttonIndex - 1]
     if (!intent) return state
 
-    if (intent.startsWith('_c')) state.reset = true
-    else if (intent.startsWith('_r')) {
+    if (intent.startsWith(buttonPrefix.reset)) state.reset = true
+    else if (intent.startsWith(buttonPrefix.redirect)) {
       state.redirect = true
       state.buttonValue = intent.slice(3)
     } else state.buttonValue = intent
