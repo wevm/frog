@@ -1,4 +1,5 @@
 import { Button, Frog, TextInput } from 'frog'
+import { serveStatic } from 'hono/cloudflare-workers'
 
 export const app = new Frog({
   // Supply a Hub API URL to enable frame verification.
@@ -54,5 +55,14 @@ app.frame('/', (c) => {
     ],
   })
 })
+
+if (import.meta.env?.MODE !== 'development')
+  app.use(
+    '/*',
+    serveStatic({
+      root: './',
+      manifest: await import('__STATIC_CONTENT_MANIFEST'),
+    }),
+  )
 
 export default app

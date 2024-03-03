@@ -12,13 +12,14 @@ type DevOptions = {
   host?: boolean
   port?: number
   proxy?: 'cloudflared' | 'ngrok'
+  staticPath?: string
 }
 
 export async function dev(
   entry_: string | undefined,
   options: DevOptions = {},
 ) {
-  const { host, port, proxy } = options
+  const { host, port, proxy, staticPath } = options
   const entry = entry_ || (await findEntrypoint())
 
   const entry_resolved = resolve(join(process.cwd(), entry))
@@ -31,8 +32,12 @@ export async function dev(
       host,
       port,
     },
+    publicDir: staticPath ?? 'public',
     plugins: [
       devServer({
+        exclude: [
+          /.+\.(gif|jpe?g|tiff?|png|webp|bmp|woff|eot|woff2|ttf|otf|ico|txt)$/,
+        ],
         entry: entry_resolved,
         // Note: we are not relying on the default export so we can be compatible with
         // runtimes that rely on it (ie. Vercel Serverless Functions).
