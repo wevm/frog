@@ -19,7 +19,7 @@ cli
     '-P, --proxy [string]',
     'Start proxy for dev server (experimental). Valid options are `cloudflared` and `ngrok`.',
   )
-  .option('-s, --staticPath [string]', 'Path to static files (default: public)')
+  .option('-s, --staticDir [string]', 'Path to static files (default: public)')
   .example((name) => `${name} dev --host`)
   .example((name) => `${name} dev --port 6969`)
   .example((name) => `${name} dev --proxy ngrok`)

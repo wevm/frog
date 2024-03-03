@@ -12,14 +12,14 @@ type DevOptions = {
   host?: boolean
   port?: number
   proxy?: 'cloudflared' | 'ngrok'
-  staticPath?: string
+  staticDir?: string
 }
 
 export async function dev(
   entry_: string | undefined,
   options: DevOptions = {},
 ) {
-  const { host, port, proxy, staticPath } = options
+  const { host, port, proxy, staticDir } = options
   const entry = entry_ || (await findEntrypoint())
 
   const entry_resolved = resolve(join(process.cwd(), entry))
@@ -32,7 +32,7 @@ export async function dev(
       host,
       port,
     },
-    publicDir: staticPath ?? 'public',
+    publicDir: staticDir ?? 'public',
     plugins: [
       devServer({
         exclude: [
