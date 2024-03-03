@@ -12,7 +12,7 @@ export type TransactionContext<path extends string = string> = {
   /**
    * Contract transaction request.
    *
-   * This is a convenience method for "contract transaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869),
+   * This is a convenience method for "eth_sendTransaction" requests for contracts as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869),
    * with a type-safe interface to infer types based on a provided `abi`.
    */
   contract: ContractTransactionResponseFn
@@ -22,13 +22,14 @@ export type TransactionContext<path extends string = string> = {
   req: Context<Env, path>['req']
   /**
    * Raw transaction request.
+   *
    * @see https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869
    */
   res: TransactionResponseFn<TransactionParameters>
   /**
    * Send transaction request.
    *
-   * This is a convenience method for "send transaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869).
+   * This is a convenience method for "eth_sendTransaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869).
    */
   send: TransactionResponseFn<SendTransactionParameters>
 }
@@ -52,9 +53,13 @@ export type EthSendTransactionSchema<quantity = string> = {
 }
 
 export type EthSendTransactionParameters<quantity = string> = {
+  /** Contract ABI. */
   abi?: Abi | undefined
+  /** Transaction calldata. */
   data?: Hex | undefined
+  /** Transaction target address. */
   to: Hex
+  /** Value to send with transaction (in wei). */
   value?: quantity
 }
 
@@ -65,9 +70,8 @@ export type TransactionResponseFn<parameters> = (
 //////////////////////////////////////////////////////
 // Send Transaction
 
-type SendTransactionParameters = {
-  chainId: `eip155:${number}`
-} & EthSendTransactionParameters<bigint>
+type SendTransactionParameters = Pick<TransactionParameters, 'chainId'> &
+  EthSendTransactionParameters<bigint>
 
 //////////////////////////////////////////////////////
 // Contract Transaction
@@ -86,7 +90,7 @@ export type ContractTransactionParameters<
   ///
   allFunctionNames = ContractFunctionName<abi, 'nonpayable' | 'payable'>,
   allArgs = ContractFunctionArgs<abi, 'nonpayable' | 'payable', functionName>,
-> = Pick<TransactionParameters, 'chainId'> & {
+> = Pick<SendTransactionParameters, 'chainId' | 'to'> & {
   /** Contract ABI. */
   abi: abi
   /** Contract function arguments. */
@@ -95,8 +99,6 @@ export type ContractTransactionParameters<
   functionName:
     | allFunctionNames // show all options
     | (functionName extends allFunctionNames ? functionName : never) // infer value
-  /** Destination address of the transaction. */
-  to: Hex
 } & (readonly [] extends allArgs ? {} : { args: Widen<args> }) &
   GetValue<abi, functionName>
 

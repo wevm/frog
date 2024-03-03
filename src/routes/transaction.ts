@@ -38,19 +38,16 @@ export function transaction<state, env extends Env>(
           (item) => item.type === 'error',
         )
 
-        return this.res({
+        return this.send({
+          abi: [abiItem, ...abiErrorItems],
           chainId,
-          method: 'eth_sendTransaction',
-          params: {
-            abi: [abiItem, ...abiErrorItems],
-            data: encodeFunctionData({
-              abi,
-              args,
-              functionName,
-            } as EncodeFunctionDataParameters),
-            to,
-            value,
-          },
+          data: encodeFunctionData({
+            abi,
+            args,
+            functionName,
+          } as EncodeFunctionDataParameters),
+          to,
+          value,
         })
       },
       req: c.req,
