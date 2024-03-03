@@ -1,5 +1,11 @@
 # create-frog
 
+## 0.1.3
+
+### Patch Changes
+
+- [`bf6140d`](https://github.com/wevm/frog/commit/bf6140d971f9cfae9d09f86e6aec7c5044377e2e) Thanks [@jxom](https://github.com/jxom)! - Added static file serving to templates.
+
 ## 0.1.2
 
 ### Patch Changes
