@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.8
+
+### Patch Changes
+
+- [`26f4ba8`](https://github.com/wevm/frog/commit/26f4ba88b562696abe49182ee9d67c5527420043) Thanks [@jxom](https://github.com/jxom)! - Implemented functionality for sub-apps to inherit properties from the root Frog app when using `.route`.
+
 ## 0.2.7
 
 ### Patch Changes
