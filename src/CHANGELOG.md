@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.9
+
+### Patch Changes
+
+- [`143fa03`](https://github.com/wevm/frog/commit/143fa03678bad645d92124ec47367bfba71bc01d) Thanks [@jxom](https://github.com/jxom)! - Added `cycle` property to context.
+
 ## 0.2.8
 
 ### Patch Changes
