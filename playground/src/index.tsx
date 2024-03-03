@@ -266,10 +266,10 @@ app.transaction('/tx-send', (c) => {
 // Contract transaction
 app.transaction('/tx-contract', (c) => {
   return c.contract({
-    chainId: 'eip155:1',
     abi: wagmiExampleAbi,
+    chainId: 'eip155:1',
     functionName: 'mint',
-    to: '0x00000000fcCe7f938e7aE6D3c335bD6a1a7c593D',
+    to: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
   })
 })
 
