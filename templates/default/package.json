@@ -6,6 +6,7 @@
     "dev": "frog dev"
   },
   "dependencies": {
+    "@hono/node-server": "latest",
     "frog": "latest",
     "hono": "^4"
   },

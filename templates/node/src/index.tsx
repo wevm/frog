@@ -1,10 +1,13 @@
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 
 export const app = new Frog({
   // Supply a Hub API URL to enable frame verification.
   // hubApiUrl: 'https://api.hub.wevm.dev',
 })
+
+app.use('/*', serveStatic({ root: './public' }))
 
 app.frame('/', (c) => {
   const { buttonValue, inputText, status } = c

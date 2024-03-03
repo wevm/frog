@@ -1,4 +1,3 @@
-import { serve } from 'bun'
 import { Button, Frog, TextInput } from 'frog'
 
 export const app = new Frog({
@@ -56,8 +55,11 @@ app.frame('/', (c) => {
   })
 })
 
-serve({
-  fetch: app.fetch,
-  port: 3000,
-})
-console.log('Server is running on port 3000')
+if (typeof Bun !== 'undefined') {
+  app.use('/*', (await import('hono/bun')).serveStatic({ root: './public' }))
+  Bun.serve({
+    fetch: app.fetch,
+    port: 3000,
+  })
+  console.log('Server is running on port 3000')
+}
