@@ -1,4 +1,5 @@
 import { Button, Frog, TextInput } from 'frog'
+// import { neynar } from 'frog/hubs'
 import { handle } from 'frog/vercel'
 
 // Uncomment to use Edge Runtime.
@@ -10,7 +11,7 @@ export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
   // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
+  // hub: neynar()
 })
 
 app.frame('/', (c) => {
