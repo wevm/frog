@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.14
+
+### Patch Changes
+
+- [`885347e`](https://github.com/wevm/frog/commit/885347e6f88c20238c58ac69591be54eec15a1f8) Thanks [@jxom](https://github.com/jxom)! - Fixed Next.js circular dependency on `getFrameMetadata`.
+
 ## 0.2.13
 
 ### Patch Changes
