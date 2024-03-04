@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { glob } from 'glob'
+import { glob } from 'fast-glob'
 
 // Symlinks package sources to dist for local development
 

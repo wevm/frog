@@ -17,6 +17,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.27.1
         version: 2.27.1
+      '@types/bun':
+        specifier: ^1.0.8
+        version: 1.0.8
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
@@ -53,9 +56,6 @@ importers:
       tsx:
         specifier: ^4.7.1
         version: 4.7.1
-      typed-htmx:
-        specifier: ^0.2.1
-        version: 0.2.1
       typescript:
         specifier: ^5.3.3
         version: 5.3.3
@@ -3262,6 +3262,12 @@ packages:
       bun-types: 1.0.28
     dev: true
 
+  /@types/bun@1.0.8:
+    resolution: {integrity: sha512-E6UWZuN4ymAxzUBWVIGDHJ3Zey7I8cMzDZ+cB1BqhZsmd1uPb9iAQzpWMruY1mKzsuD3R+dZPoBkZz8QL1KhSA==}
+    dependencies:
+      bun-types: 1.0.29
+    dev: true
+
   /@types/debug@4.1.12:
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
     dependencies:
@@ -4283,6 +4289,13 @@ packages:
 
   /bun-types@1.0.28:
     resolution: {integrity: sha512-wQqbLYRM0YnsXZMFujbCr/9YxlEl51jshMXcJ2Y9wEuU7k6TKcX2KDh032k9oHfB1wH8/SleXboIsULMtFaAaA==}
+    dependencies:
+      '@types/node': 20.11.19
+      '@types/ws': 8.5.10
+    dev: true
+
+  /bun-types@1.0.29:
+    resolution: {integrity: sha512-Z+U1ORr/2UCwxelIZxE83pyPLclviYL9UewQCNEUmGeLObY8ao+3WF3D8N1+NMv2+S+hUWsdBJam+4GoPEz35g==}
     dependencies:
       '@types/node': 20.11.19
       '@types/ws': 8.5.10
@@ -9626,18 +9639,6 @@ packages:
       call-bind: 1.0.7
       for-each: 0.3.3
       is-typed-array: 1.1.13
-    dev: true
-
-  /typed-html@3.0.1:
-    resolution: {integrity: sha512-JKCM9zTfPDuPqQqdGZBWSEiItShliKkBFg5c6yOR8zth43v763XkAzTWaOlVqc0Y6p9ee8AaAbipGfUnCsYZUA==}
-    engines: {node: '>=12'}
-    dev: true
-
-  /typed-htmx@0.2.1:
-    resolution: {integrity: sha512-n6d1W8raMJ0aS1e7NSmFPXu3PCPJM7/mnG71mK6t01ZKftxBkA8LuIfZ1qN3hBLphj7cxQsoCKdJhgw0LsZB1Q==}
-    engines: {node: '>=12'}
-    dependencies:
-      typed-html: 3.0.1
     dev: true
 
   /typescript@4.5.2:
