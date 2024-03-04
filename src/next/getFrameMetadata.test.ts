@@ -3,7 +3,8 @@ import { getFrameMetadata } from './getFrameMetadata.js'
 
 test('default', async () => {
   const metadata = await getFrameMetadata('https://frame.frog.fm/api')
-  metadata['frog:version'] = undefined
+  // biome-ignore lint/performance/noDelete: <explanation>
+  delete metadata['frog:version']
   expect(metadata).toMatchInlineSnapshot(`
     {
       "fc:frame": "vNext",
