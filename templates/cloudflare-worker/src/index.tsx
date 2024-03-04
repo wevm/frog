@@ -4,7 +4,7 @@ import { serveStatic } from 'hono/cloudflare-workers'
 
 export const app = new Frog({
   // Supply a Hub to enable frame verification.
-  // hub: neynar()
+  // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
 })
 
 app.frame('/', (c) => {

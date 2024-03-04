@@ -1,12 +1,12 @@
 import { Button, Frog, TextInput } from 'frog'
-import { frog } from 'frog/hubs'
+import * as hubs from 'frog/hubs'
 
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
 
 export const app = new Frog({
   browserLocation: '/:path/dev',
-  hub: frog(),
+  hub: hubs.frog(),
   verify: 'silent',
 })
 

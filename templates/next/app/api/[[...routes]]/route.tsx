@@ -8,7 +8,7 @@ const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
   // Supply a Hub to enable frame verification.
-  // hub: neynar()
+  // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
 })
 
 // Uncomment to use Edge Runtime

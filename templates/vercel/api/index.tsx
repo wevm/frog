@@ -10,8 +10,8 @@ import { handle } from 'frog/vercel'
 export const app = new Frog({
   assetsPath: '/',
   basePath: '/api',
-  // Supply a Hub API URL to enable frame verification.
-  // hub: neynar()
+  // Supply a Hub to enable frame verification.
+  // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
 })
 
 app.frame('/', (c) => {
