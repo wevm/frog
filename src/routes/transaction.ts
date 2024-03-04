@@ -1,6 +1,7 @@
 import type { Env } from 'hono'
 import {
   type Abi,
+  AbiFunctionNotFoundError,
   type EncodeFunctionDataParameters,
   type GetAbiItemParameters,
   encodeFunctionData,
@@ -31,8 +32,7 @@ export function transaction<state, env extends Env>(
           name: functionName,
           args,
         } as GetAbiItemParameters)
-        // TODO: custom error
-        if (!abiItem) throw new Error('could not find abi item')
+        if (!abiItem) throw new AbiFunctionNotFoundError(functionName)
 
         const abiErrorItems = (abi as Abi).filter(
           (item) => item.type === 'error',
