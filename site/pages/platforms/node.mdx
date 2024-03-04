@@ -38,10 +38,7 @@ Next, scaffold your frame:
 // ---cut---
 import { Button, Frog } from 'frog'
 
-export const app = new Frog({
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
-})
+export const app = new Frog()
 
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -82,10 +79,7 @@ After that, we will append a Node server to the file.
 import { serve } from '@hono/node-server' // [!code focus]
 import { Button, Frog } from 'frog'
 
-export const app = new Frog({
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
-})
+export const app = new Frog()
 
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -162,8 +156,6 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog({
   browserLocation: '/:path', // [!code focus]
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
 app.frame('/frame/:path', (c) => { // [!code focus]

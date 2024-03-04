@@ -107,19 +107,39 @@ const app = new Frog({
 })
 ```
 
-### hubApiUrl
+### hub
 
-- **Type:** `string`
+- **Type:** `{ apiUrl: string, fetchOptions?: RequestInit }`
 
-Farcaster Hub API URL.
+Farcaster Hub configuration.
 
 ```tsx twoslash
 import { Frog } from 'frog'
 
 const app = new Frog({
-  hubApiUrl: 'https://api.hub.wevm.dev' // [!code focus]
+  hub: { // [!code focus]
+    apiUrl: 'https://api.hub.wevm.dev' // [!code focus]
+  } // [!code focus]
 })
 ```
+
+Can also supply a built-in Hub configuration such as [`neynar`](/hubs/neynar).
+
+```tsx twoslash
+import { Frog } from 'frog'
+import { neynar } from 'frog/hubs' // [!code focus]
+
+const app = new Frog({
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+})
+```
+
+:::warning
+Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
 
 ### initialState 
 
@@ -225,11 +245,11 @@ Options for built-in devtools.
 
 The `Hono` instance.
 
-### hubApiUrl
+### hub
 
-- **Type:** `string`
+- **Type:** `Hub`
 
-Farcaster Hub API URL.
+Farcaster Hub configuration.
 
 ### fetch
 

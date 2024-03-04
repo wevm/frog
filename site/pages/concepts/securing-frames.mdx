@@ -8,7 +8,7 @@ There are a couple of things you can do to secure frames:
 ## Frame Data Verification
 
 :::info
-By default, frame verification is **turned on** provided you have supplied a [Hub to the `Frog` instance](/concepts/securing-frames#supplying-a-hub-api-url).
+By default, frame verification is **turned on** provided you have supplied a [Hub to the `Frog` instance](/concepts/securing-frames#supplying-hub-configuration).
 :::
 
 When a frame responds to a `POST` request from a Farcaster Client, we may want to verify the body of the
@@ -43,10 +43,7 @@ To verify frames with **Frog**, we can utilize the `verify` flag on either the `
 
 We can set Hub configuration to use for verification by providing it to the `Frog` instance.
 
-Frog currently supports the following built-in hubs:
-
-- `neynar`: [Neynar](https://neynar.com) Hub.
-- `frog`: Frog Hub **(unreliable)**. 
+Frog currently supports [`neynar`](/hubs/neynar) as a built-in Hub.
 
 ```tsx twoslash
 // @noErrors

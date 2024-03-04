@@ -417,9 +417,11 @@ export function routes<
         let pfp = undefined
         let username = undefined
         let displayName = undefined
-        if (app.hubApiUrl) {
+        if (app.hub || app.hubApiUrl) {
           const response = (await fetch(
-            `${app.hubApiUrl}/v1/userDataByFid?fid=${userFid}`,
+            `${
+              app.hub?.apiUrl || app.hubApiUrl
+            }/v1/userDataByFid?fid=${userFid}`,
           ).then((response) => response.json())) as UserDataByFidResponse
 
           for (const message of response.messages) {

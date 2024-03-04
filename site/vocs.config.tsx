@@ -346,6 +346,15 @@ export default defineConfig({
       ],
     },
     {
+      text: 'Hubs',
+      items: [
+        {
+          text: 'Neynar',
+          link: '/hubs/neynar',
+        },
+      ],
+    },
+    {
       text: 'CLI Reference',
       items: [
         {

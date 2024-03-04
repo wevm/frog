@@ -47,10 +47,11 @@ Next, scaffold your frame:
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
+// import { neynar } from 'frog/hubs'
 
 export const app = new Frog({
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
+  // Supply a Hub to enable frame verification.
+  // hub: neynar({ apiKey: '' }),
 })
 
 app.frame('/', (c) => {
@@ -91,10 +92,7 @@ After that, we will append a Bun server to the file.
 // ---cut---
 import { Button, Frog } from 'frog'
 
-export const app = new Frog({
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
-})
+export const app = new Frog()
 
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -176,8 +174,6 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog({
   browserLocation: '/:path', // [!code focus]
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
 app.frame('/frame/:path', (c) => { // [!code focus]

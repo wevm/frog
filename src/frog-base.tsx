@@ -490,6 +490,7 @@ export class FrogBase<
     if (!frog.dev) frog.dev = this.dev
     if (!frog.headers) frog.headers = this.headers
     if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
+    if (!frog.hub) frog.hub = this.hub
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
     if (!frog.secret) frog.secret = this.secret
     if (!frog.verify) frog.verify = this.verify
