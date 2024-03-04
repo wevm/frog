@@ -1,5 +1,8 @@
 import { parseFromString } from 'dom-parser'
-import type { FrameMetaTagPropertyName, FrogMetaTagPropertyName } from '../dev/types.js'
+import type {
+  FrameMetaTagPropertyName,
+  FrogMetaTagPropertyName,
+} from '../dev/types.js'
 
 export type FrameMetadata = {
   property: FrameMetaTagPropertyName | FrogMetaTagPropertyName

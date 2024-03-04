@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../_lib/hubs/index.d.ts",
+  "module": "../_lib/hubs/index.js"
+}

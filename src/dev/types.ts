@@ -64,7 +64,10 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
 
-export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context' | 'frog:version'
+export type FrogMetaTagPropertyName =
+  | 'frog:context'
+  | 'frog:prev_context'
+  | 'frog:version'
 
 export type State = {
   context: FrameContext

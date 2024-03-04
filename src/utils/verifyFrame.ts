@@ -1,12 +1,12 @@
 import { bytesToHex, bytesToString, hexToBytes } from 'viem'
 import { FrameActionBody, Message } from '../protobufs/generated/message_pb.js'
 import { type FrameData, type TrustedData } from '../types/frame.js'
+import type { Hub } from '../types/hub.js'
 import { parsePath } from './parsePath.js'
 
 export type VerifyFrameParameters = {
-  fetchOptions?: RequestInit
   frameUrl: string
-  hubApiUrl: string
+  hub: Hub
   trustedData: TrustedData
   url: string
 }
@@ -16,19 +16,18 @@ export type VerifyFrameReturnType = {
 }
 
 export async function verifyFrame({
-  fetchOptions,
   frameUrl,
-  hubApiUrl,
+  hub,
   trustedData,
   url,
 }: VerifyFrameParameters): Promise<VerifyFrameReturnType> {
   const body = hexToBytes(`0x${trustedData.messageBytes}`)
-  const response = await fetch(`${hubApiUrl}/v1/validateMessage`, {
-    ...fetchOptions,
+  const response = await fetch(`${hub.apiUrl}/v1/validateMessage`, {
+    ...hub.fetchOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/octet-stream',
-      ...fetchOptions?.headers,
+      ...hub.fetchOptions?.headers,
     },
     body,
   }).then((res) => res.json())

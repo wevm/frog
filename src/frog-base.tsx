@@ -13,6 +13,7 @@ import {
   type FrameImageAspectRatio,
   type FrameResponse,
 } from './types/frame.js'
+import type { Hub } from './types/hub.js'
 import { type Pretty } from './types/utils.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
@@ -69,11 +70,15 @@ export type FrogConstructorParameters<
    */
   honoOptions?: HonoOptions<env> | undefined
   /**
-   * Farcaster Hub API URL.
+   * @deprecated Use `hub` instead.
    *
-   * @default 'https://api.hub.wevm.dev'
+   * Farcaster Hub API URL.
    */
   hubApiUrl?: string | undefined
+  /**
+   * Farcaster Hub API configuration.
+   */
+  hub?: Hub | undefined
   /**
    * Default image options.
    *
@@ -194,6 +199,8 @@ export class FrogBase<
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
   hubApiUrl: string | undefined
+  /** Farcaster Hub API config. */
+  hub: Hub | undefined
   /** Image aspect ratio. */
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
@@ -218,6 +225,7 @@ export class FrogBase<
     headers,
     honoOptions,
     hubApiUrl,
+    hub,
     imageAspectRatio,
     imageOptions,
     initialState,
@@ -230,6 +238,7 @@ export class FrogBase<
     if (headers) this.headers = headers
     if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
+    if (hub) this.hub = hub
     if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
     if (imageOptions) this.imageOptions = imageOptions
     if (secret) this.secret = secret
@@ -262,7 +271,9 @@ export class FrogBase<
 
       const context = await getFrameContext<state>({
         context: await requestToContext(c.req, {
-          hubApiUrl: this.hubApiUrl,
+          hub:
+            this.hub ||
+            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
         }),

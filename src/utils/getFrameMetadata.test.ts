@@ -2,7 +2,9 @@ import { expect, test } from 'vitest'
 import { getFrameMetadata } from './getFrameMetadata.js'
 
 test('default', async () => {
-  const metadata = await getFrameMetadata('https://frame.frog.fm/api').then(m => m.filter(m => m.property !== 'frog:version'))
+  const metadata = await getFrameMetadata('https://frame.frog.fm/api').then(
+    (m) => m.filter((m) => m.property !== 'frog:version'),
+  )
   expect(metadata).toMatchInlineSnapshot(`
     [
       {
