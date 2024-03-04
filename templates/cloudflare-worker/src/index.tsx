@@ -1,9 +1,10 @@
 import { Button, Frog, TextInput } from 'frog'
+// import { neynar } from 'frog/hubs'
 import { serveStatic } from 'hono/cloudflare-workers'
 
 export const app = new Frog({
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
+  // Supply a Hub to enable frame verification.
+  // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
 })
 
 app.frame('/', (c) => {

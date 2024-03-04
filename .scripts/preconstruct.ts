@@ -73,10 +73,7 @@ for (const packagePath of packagePaths) {
         dir,
         path.dirname(value).replace(distDirName, ''),
       )
-      let srcFileName: string
-      if (key === '.') srcFileName = 'index.ts'
-      else srcFileName = path.basename(`${key}.ts`)
-      const srcFilePath = path.resolve(srcDir, srcFileName)
+      const srcFilePath = path.resolve(srcDir, 'index.ts')
 
       const distDir = path.resolve(dir, path.dirname(value))
       const distFileName = path.basename(value)

@@ -1,0 +1,51 @@
+# Neynar
+
+[Neynar](https://neynar.com/) is a Farcaster development platform that provides intuitive APIs to build on Farcaster.
+
+## Import
+
+```ts twoslash
+import { neynar } from 'frog/hubs'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { neynar } from 'frog/hubs' // [!code focus]
+ 
+export const app = new Frog({
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+})
+```
+
+:::warning
+Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
+
+## Parameters
+
+### apiKey
+
+- **Type**: `string`
+
+Neynar API key.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { Frog } from 'frog'
+import { neynar } from 'frog/hubs'
+// ---cut---
+export const app = new Frog({
+  hub: neynar({ 
+    apiKey: 'MY_API_KEY' // [!code focus]
+  })
+})
+```

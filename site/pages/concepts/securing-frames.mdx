@@ -8,7 +8,7 @@ There are a couple of things you can do to secure frames:
 ## Frame Data Verification
 
 :::info
-By default, frame verification is **turned on** provided you have supplied a [Hub API URL to the `Frog` instance](/concepts/securing-frames#supplying-a-hub-api-url).
+By default, frame verification is **turned on** provided you have supplied a [Hub to the `Frog` instance](/concepts/securing-frames#supplying-hub-configuration).
 :::
 
 When a frame responds to a `POST` request from a Farcaster Client, we may want to verify the body of the
@@ -39,9 +39,32 @@ which is eventually converted to the `frameData` object in context. This may con
 
 To verify frames with **Frog**, we can utilize the `verify` flag on either the `Frog` instance, or the frame return object. 
 
-### Supplying a Hub API URL
+### Supplying Hub Configuration
 
-We can set a custom Hub API URL to use for verification by providing it to the `Frog` instance.
+We can set Hub configuration to use for verification by providing it to the `Frog` instance.
+
+Frog currently supports [`neynar`](/hubs/neynar) as a built-in Hub.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { neynar } from 'frog/hubs' // [!code focus]
+ 
+export const app = new Frog({
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+})
+```
+
+:::warning
+Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
+
+You can also supply your own Hub API URL:
 
 ```tsx twoslash
 // @noErrors
@@ -50,23 +73,9 @@ We can set a custom Hub API URL to use for verification by providing it to the `
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  hubApiUrl: 'https://api.hub.wevm.dev' // [!code focus]
-})
-
-app.frame('/', (c) => {
-  const { frameData, verified } = c 
-  const { buttonIndex, fid, castId } = frameData
-  if (!verified) console.log('Frame verification failed') 
-  return c.res({/* .... */})
+  hub: { apiUrl: 'https://myhub.com' } // [!code focus]
 })
 ```
-
-:::warning
-Feel free to use our public Hub API URL: `https://api.hub.wevm.dev`.
-
-However, please note that this URL is not guaranteed to be stable. 
-It is recommended to use your own Hub API URL in production.
-:::
 
 ### Silent Verification
 

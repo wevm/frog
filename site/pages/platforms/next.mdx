@@ -48,8 +48,6 @@ import { Button, Frog, TextInput } from 'frog'
 
 const app = new Frog({ 
   basePath: '/api',
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
 app.frame('/', (c) => {
@@ -93,8 +91,6 @@ import { handle } from 'frog/next' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
 // Uncomment to use Edge Runtime // [!code focus]
@@ -188,8 +184,6 @@ import { handle } from 'frog/next'
 const app = new Frog({ 
   basePath: '/api',
   browserLocation: '/:path', // [!code focus]
-  // Supply a Hub API URL to enable frame verification.
-  // hubApiUrl: 'https://api.hub.wevm.dev',
 })
 
 // Uncomment to use Edge Runtime

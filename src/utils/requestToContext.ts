@@ -1,13 +1,14 @@
 import { type Context } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
 import { type FrameContext } from '../types/frame.js'
+import type { Hub } from '../types/hub.js'
 import { deserializeJson } from './deserializeJson.js'
 import { fromQuery } from './fromQuery.js'
 import * as jws from './jws.js'
 import { verifyFrame } from './verifyFrame.js'
 
 type RequestToContextOptions = {
-  hubApiUrl?: string | undefined
+  hub?: Hub | undefined
   secret?: FrogConstructorParameters['secret']
   verify?: FrogConstructorParameters['verify']
 }
@@ -25,7 +26,7 @@ type RequestToContextReturnType<state = unknown> = Pick<
 
 export async function requestToContext<state>(
   req: Context['req'],
-  { hubApiUrl, secret, verify = true }: RequestToContextOptions,
+  { hub, secret, verify = true }: RequestToContextOptions,
 ): Promise<RequestToContextReturnType<state>> {
   const { trustedData, untrustedData } =
     (await req.json().catch(() => {})) || {}
@@ -46,10 +47,10 @@ export async function requestToContext<state>(
   const trustedFrameData = await (async () => {
     if (verify === false) return null
     if (!trustedData) return null
-    if (!hubApiUrl) return null
+    if (!hub) return null
     try {
       const { frameData } = await verifyFrame({
-        hubApiUrl,
+        hub,
         frameUrl: untrustedData.url,
         trustedData,
         url: req.url,
