@@ -51,6 +51,7 @@ export function Timeline(props: TimelineProps) {
         <div class="flex gap-1.5">
           <div class="flex border rounded-sm bg-background-200 text-gray-700 divide-x">
             <button
+              aria-label="previous log"
               class="bg-transparent p-1.5 hover:bg-gray-100 rounded-l-sm"
               type="button"
               onClick={() => {
@@ -67,11 +68,12 @@ export function Timeline(props: TimelineProps) {
                 const element = document.querySelector(`#log-${nextLogIndex}`)
                 element?.scrollIntoView({ block: 'nearest' })
               }}
-            >
-              {chevronUpIcon}
-            </button>
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: chevronUpIcon.toString() }}
+            />
 
             <button
+              aria-label="next log"
               class="bg-transparent p-1.5 hover:bg-gray-100 rounded-r-sm"
               type="button"
               onClick={() => {
@@ -90,12 +92,13 @@ export function Timeline(props: TimelineProps) {
                 const element = document.querySelector(`#log-${nextLogIndex}`)
                 element?.scrollIntoView({ block: 'nearest' })
               }}
-            >
-              {chevronDownIcon}
-            </button>
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: chevronDownIcon.toString() }}
+            />
           </div>
 
           <button
+            aria-label="clear logs"
             class={buttonClass}
             type="button"
             onClick={() => {
@@ -108,15 +111,19 @@ export function Timeline(props: TimelineProps) {
                 logIndex: -1,
               }))
             }}
-          >
-            {circleBackslashIcon}
-          </button>
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: circleBackslashIcon.toString() }}
+          />
         </div>
 
         <div class="relative">
-          <button class={buttonClass} type="button">
-            {idCardIcon}
-          </button>
+          <button
+            aria-label="change settings"
+            class={buttonClass}
+            type="button"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: idCardIcon.toString() }}
+          />
         </div>
       </div>
     </div>

@@ -38,7 +38,11 @@ export function Metrics() {
           class="items-center flex font-mono gap-1.5 text-sm justify-center"
           style={{ flex: '1', padding: '0.685rem' }}
         >
-          <span class="text-gray-600">{metric.icon}</span>
+          <span
+            class="text-gray-600"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: metric.icon.toString() }}
+          />
           <div class="text-gray-1000">{metric.value}</div>
         </div>
       ))}

@@ -4,6 +4,7 @@ import { Metrics } from './Metrics.js'
 import { Navigator } from './Navigator.js'
 import { Preview } from './Preview.js'
 import { QuickLinks } from './QuickLinks.js'
+import { Tabs } from './Tabs.js'
 import { Timeline } from './Timeline.js'
 
 export function App() {
@@ -46,6 +47,8 @@ export function App() {
 
           <Data data={state.data} frame={state.frame} />
         </div>
+
+        <Tabs data={state.data} frame={state.frame} url={url} />
       </main>
     </div>
   )

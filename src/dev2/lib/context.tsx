@@ -55,10 +55,19 @@ export type StateValue = State & {
 export const StateContext = createContext<StateValue>({} as StateValue)
 
 export type DispatchValue = {
+  getFrame(
+    url: string,
+    options?: { replaceLogs?: boolean; skipLogs?: boolean },
+  ): Promise<Data>
   postFrameAction(
     body: RequestBody,
-    options?: { skipLogs: boolean },
+    options?: { skipLogs?: boolean },
   ): Promise<Data>
+  postFrameRedirect(
+    body: RequestBody,
+    options?: { skipLogs?: boolean },
+  ): Promise<Data>
+
   setState: ReturnType<typeof useState<State>>[1]
 }
 
@@ -94,10 +103,36 @@ export function Provider(props: Props) {
     ...state,
     data,
     frame,
-  }
+  } satisfies StateValue
 
   const dispatchValue = {
-    async postFrameAction(body: RequestBody, options = { skipLogs: false }) {
+    async getFrame(
+      url: string,
+      options = { replaceLogs: false, skipLogs: false },
+    ) {
+      const json = await fetch(`${parsePath(url)}/dev2/frame`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }).then((response) => response.json())
+
+      const { data, routes } = json
+      const id = data.id
+
+      setState((x) => ({
+        ...x,
+        dataMap: { ...x.dataMap, [id]: data },
+        logIndex: -1,
+        logs: options.skipLogs
+          ? x.logs
+          : options.replaceLogs
+            ? [id]
+            : [...x.logs, id],
+        routes,
+      }))
+
+      return data
+    },
+    async postFrameAction(body, options = { skipLogs: false }) {
       const url = parsePath(body.url)
       const json = await fetch(`${url}/dev2/frame/action`, {
         method: 'POST',
@@ -116,10 +151,39 @@ export function Provider(props: Props) {
         routes,
       }))
 
-      return data as Data
+      return data
     },
+    async postFrameRedirect(body, options = { skipLogs: false }) {
+      const url = parsePath(body.url)
+      const json = await fetch(`${url}/dev2/frame/redirect`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+      }).then((response) => response.json())
+
+      setState((x) => {
+        const previousData = x.dataMap[x.logs.at(-1) ?? x.dataKey]
+        const data = {
+          context: previousData.context,
+          frame: previousData.frame,
+          ...json,
+        }
+        const id = json.id
+
+        return {
+          ...x,
+          dataMap: { ...x.dataMap, [id]: data },
+          logIndex: -1,
+          logs: options.skipLogs ? x.logs : [...x.logs, id],
+          routes,
+        }
+      })
+
+      return data
+    },
+
     setState,
-  }
+  } satisfies DispatchValue
 
   return (
     <StateContext.Provider value={stateValue}>

@@ -18,7 +18,11 @@ export function QuickLinks(props: QuickLinksProps) {
         class="p-3 flex items-center gap-2.5 hover:bg-gray-100"
         style={{ textDecoration: 'none' }}
       >
-        <span class="text-gray-600">{readerIcon}</span>
+        <span
+          class="text-gray-600"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{ __html: readerIcon.toString() }}
+        />
         Frog Documentation
       </a>
 
@@ -29,7 +33,11 @@ export function QuickLinks(props: QuickLinksProps) {
         target="_blank"
         href={`https://warpcast.com/~/developers/frames?url=${url}`}
       >
-        <span class="text-gray-600">{warpIcon}</span>
+        <span
+          class="text-gray-600"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{ __html: warpIcon.toString() }}
+        />
         Warpcast Frame Validator
       </a>
 
@@ -40,7 +48,11 @@ export function QuickLinks(props: QuickLinksProps) {
         class="p-3 flex items-center gap-2.5 hover:bg-gray-100"
         style={{ textDecoration: 'none' }}
       >
-        <span class="text-gray-600">{githubIcon}</span>
+        <span
+          class="text-gray-600"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{ __html: githubIcon.toString() }}
+        />
         GitHub Repo
       </a>
     </div>

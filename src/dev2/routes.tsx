@@ -85,6 +85,12 @@ export function routes<
     },
   )
 
+  app.get(`${parsePath(path)}/dev2/frame`, async (c) => {
+    const url = c.req.url.replace('/dev2/frame', '')
+    const props = await get(url)
+    return c.json(props)
+  })
+
   // ngrok free redirects to `https` in the browser, but does not set
   // protocol to `https` on requests so need to correct
   const ngrokHostname = 'ngrok-free.app'

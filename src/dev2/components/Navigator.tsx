@@ -1,4 +1,7 @@
 // import { AuthDialog } from './AuthDialog.js'
+import { useDispatch } from '../hooks/useDispatch.js'
+import { useState } from '../hooks/useState.js'
+import type { Data } from '../types.js'
 import { formatUrl } from '../utils/format.js'
 import {
   chevronLeftIcon,
@@ -14,6 +17,11 @@ type NavigatorProps = { url: string }
 
 export function Navigator(props: NavigatorProps) {
   const { url } = props
+
+  const { dataKey, dataMap, stackIndex, stack, user } = useState()
+  const { getFrame, postFrameAction, postFrameRedirect, setState } =
+    useDispatch()
+
   return (
     <div class="items-center flex gap-2 w-full" style={{ height: '2rem' }}>
       <div class="flex border rounded-md h-full">
@@ -21,13 +29,13 @@ export function Navigator(props: NavigatorProps) {
           aria-label="back"
           class="text-gray-700 bg-background-100 px-2 rounded-l-md"
           type="button"
-          x-on:click={`
+          onClick={async () => {
             const previousStackIndex = stackIndex - 1
             const previousStackId = stack[previousStackIndex]
             const previousData = dataMap[previousStackId]
             if (!previousData) return
 
-            let json
+            let json: Data
             switch (previousData.type) {
               case 'initial': {
                 json = await getFrame(previousData.url)
@@ -43,17 +51,20 @@ export function Navigator(props: NavigatorProps) {
               }
             }
 
-            dataKey = json.id
-            stackIndex = previousStackIndex
-            inputText = ''
-          `}
-          {...{
-            ':disabled': 'stackIndex === 0',
+            setState((x) => ({
+              ...x,
+              dataKey: json.id,
+              stackIndex: previousStackIndex,
+              inputText: '',
+            }))
           }}
+          disabled={stackIndex === 0}
         >
-          <span {...{ ':style': "stackIndex === 0 && { opacity: '0.35' }" }}>
-            {chevronLeftIcon}
-          </span>
+          <span
+            style={stackIndex === 0 && { opacity: '0.35' }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: chevronLeftIcon.toString() }}
+          />
         </button>
 
         <div class="bg-gray-alpha-300 h-full" style={{ width: '1px' }} />
@@ -62,14 +73,13 @@ export function Navigator(props: NavigatorProps) {
           aria-label="forward"
           class="text-gray-700 bg-background-100 px-2 rounded-r-md"
           type="button"
-          x-data="{ get disabled() { return !stack[stackIndex + 1] } }"
-          x-on:click={`
+          onClick={async () => {
             const nextStackIndex = stackIndex + 1
             const nextStackId = stack[nextStackIndex]
             const nextData = dataMap[nextStackId]
             if (!nextData) return
 
-            let json
+            let json: Data
             switch (nextData.type) {
               case 'initial': {
                 json = await getFrame(nextData.url)
@@ -85,17 +95,19 @@ export function Navigator(props: NavigatorProps) {
               }
             }
 
-            dataKey = json.id
-            stackIndex = nextStackIndex
-            inputText = ''
-          `}
-          {...{
-            ':disabled': 'disabled',
+            setState((x) => ({
+              ...x,
+              dataKey: json.id,
+              stackIndex: nextStackIndex,
+              inputText: '',
+            }))
           }}
         >
-          <span {...{ ':style': "disabled && { opacity: '0.35' }" }}>
-            {chevronRightIcon}
-          </span>
+          <span
+            style={!stack[stackIndex + 1] && { opacity: '0.35' }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: chevronRightIcon.toString() }}
+          />
         </button>
       </div>
 
@@ -103,39 +115,34 @@ export function Navigator(props: NavigatorProps) {
         aria-label="refresh"
         class="bg-background-100 border rounded-md text-gray-700 px-2 h-full"
         type="button"
-        x-on:click={`
-          const nextStackId = logs[logIndex] ?? dataKey
-          const nextData = dataMap[dataKey]
-          if (!nextData) return
-
+        onClick={async (event) => {
           // Reset on shift + click
-          if ($event.shiftKey) {
+          if (event.shiftKey) {
             const route = window.location.pathname
             history.replaceState({}, '', route)
-            mounted = false
+            setState((x) => ({ ...x, mounted: false }))
 
-            const nextFrame = window.location.toString().replace('/dev', '')
-            getFrame(nextFrame, { replaceLogs: true })
-              .then((json) => {
-                const id = json.id
-                dataKey = id
+            const nextFrame = window.location.toString().replace('/dev2', '')
+            const json = await getFrame(nextFrame, { replaceLogs: true })
+            const id = json.id
 
-                stack = [id]
-                stackIndex = 0
-
-                inputText = ''
-                open = false
-                tab = 'request'
-              })
-              .catch(console.error)
-              .finally(() => {
-                mounted = true
-              })
+            setState((x) => ({
+              ...x,
+              dataKey: id,
+              stack: [id],
+              stackIndex: 0,
+              inputText: '',
+              tab: 'request',
+              mounted: true,
+            }))
 
             return
           }
 
-          let json
+          const nextData = dataMap[dataKey]
+          if (!nextData) return
+
+          let json: Data
           switch (nextData.type) {
             case 'initial': {
               json = await getFrame(nextData.url)
@@ -151,12 +158,11 @@ export function Navigator(props: NavigatorProps) {
             }
           }
 
-          dataKey = json.id
-          inputText = ''
-        `}
-      >
-        {refreshIcon}
-      </button>
+          setState((x) => ({ ...x, dataKey: json.id, inputText: '' }))
+        }}
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+        dangerouslySetInnerHTML={{ __html: refreshIcon.toString() }}
+      />
 
       <div
         class="relative grid h-full"
@@ -175,9 +181,9 @@ export function Navigator(props: NavigatorProps) {
           <div
             class="flex items-center h-full text-gray-700 absolute"
             style={{ left: '0.5rem' }}
-          >
-            {globeIcon}
-          </div>
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: globeIcon.toString() }}
+          />
 
           <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
             <span
@@ -200,8 +206,8 @@ export function Navigator(props: NavigatorProps) {
           }}
           x-data="{ url: new URL(data.body ? data.body.url : data.url) }"
           {...{
-            '@click.outside': 'open = false',
-            '@keyup.escape': 'open = false',
+            'x-on:click.outside': 'open = false',
+            'x-on:keyup.escape': 'open = false',
             'x-trap': 'open',
           }}
         >
@@ -267,8 +273,8 @@ export function Navigator(props: NavigatorProps) {
               zIndex: '10',
             }}
             {...{
-              '@click.outside': 'open = false',
-              '@keyup.escape': 'open = false',
+              'x-on:click.outside': 'open = false',
+              'x-on:keyup.escape': 'open = false',
               'x-trap': 'open',
             }}
           >
@@ -312,18 +318,22 @@ export function Navigator(props: NavigatorProps) {
         </div>
       </template>
 
-      <template x-if="!user">
+      {!user && (
         <div style={{ display: 'contents' }} x-data="{ open: false }">
           <button
             type="button"
             class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
             x-on:click="open = true"
           >
-            <div style={{ height: '30px', width: '30px' }}>{farcasterIcon}</div>
+            <div
+              style={{ height: '30px', width: '30px' }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: farcasterIcon.toString() }}
+            />
           </button>
           {/* <AuthDialog /> */}
         </div>
-      </template>
+      )}
     </div>
   )
 }

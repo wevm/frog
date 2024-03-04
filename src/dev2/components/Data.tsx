@@ -159,10 +159,22 @@ export function Data(props: DataProps) {
               >
                 <span class="sr-only">{row.status}</span>
                 {row.status === 'valid' && (
-                  <span class="text-green-900">{checkCircledIcon}</span>
+                  <span
+                    class="text-green-900"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                    dangerouslySetInnerHTML={{
+                      __html: checkCircledIcon.toString(),
+                    }}
+                  />
                 )}
                 {row.status === 'invalid' && (
-                  <span class="text-red-900">{crossCircledIcon}</span>
+                  <span
+                    class="text-red-900"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                    dangerouslySetInnerHTML={{
+                      __html: crossCircledIcon.toString(),
+                    }}
+                  />
                 )}
               </div>
             </div>
