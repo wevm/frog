@@ -326,6 +326,15 @@ export default defineConfig({
       ],
     },
     {
+      text: 'Hubs',
+      items: [
+        {
+          text: 'Neynar',
+          link: '/hubs/neynar',
+        },
+      ],
+    },
+    {
       text: 'Intent Reference',
       items: [
         { text: 'Button', link: '/intents/button' },
@@ -347,15 +356,6 @@ export default defineConfig({
           link: '/reference/frog-frame-response',
         },
         { text: 'Frog.hono', link: '/reference/frog-hono' },
-      ],
-    },
-    {
-      text: 'Hubs',
-      items: [
-        {
-          text: 'Neynar',
-          link: '/hubs/neynar',
-        },
       ],
     },
     {
