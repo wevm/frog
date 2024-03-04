@@ -38,3 +38,32 @@ app.frame('/', (c) => {
   })
 })
 ```
+
+It is worth noting that the `deriveState` function is idempotent by default, and it is only invoked once.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { db } from './db'
+ 
+export const app = new Frog({
+  initialState: {
+    count: 0,
+    number: 0
+  }
+})
+ 
+app.frame('/', (c) => {
+  const { buttonValue, cycle, deriveState } = c // [!code focus]
+
+  const state = deriveState((previousState) => { // [!code focus]
+    previousState.number = Math.random() // [!code focus]
+    previousState.count++ // [!code focus]
+  }) // [!code focus]
+// @log:   `state.number` will be equal between render cycles:
+// @log:   (cycle = "main")  `state.number`: 0.270822354849678, `state.count`: 1
+// @log:   (cycle = "image") `state.number`: 0.270822354849678, `state.count`: 1
+})
+```
