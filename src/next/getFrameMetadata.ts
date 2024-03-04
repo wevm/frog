@@ -18,7 +18,9 @@ import { getFrameMetadata as getFrameMetadata_ } from '../utils/getFrameMetadata
 export async function getFrameMetadata(
   url: string,
 ): Promise<Record<string, string>> {
-  const metadata = await getFrameMetadata_(url)
+  const metadata = await getFrameMetadata_(url).catch(() => {})
+  if (!metadata) return {}
+
   const result: Record<string, string> = {}
   for (const { property, content } of metadata) result[property] = content
   return result
