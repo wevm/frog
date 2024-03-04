@@ -252,6 +252,10 @@ export default defineConfig({
       link: '/getting-started',
     },
     {
+      text: 'FAQ',
+      link: '/faq',
+    },
+    {
       text: 'Concepts',
       items: [
         {
