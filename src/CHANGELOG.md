@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.12
+
+### Patch Changes
+
+- [#65](https://github.com/wevm/frog/pull/65) [`02fb038`](https://github.com/wevm/frog/commit/02fb0387431c83b7d9333ee8f9ec1541f0570b87) Thanks [@jxom](https://github.com/jxom)! - Deprecated `frogApiUrl` in favor of a more flexible `hub` constructor parameter.
+
 ## 0.2.11
 
 ### Patch Changes
