@@ -65,6 +65,15 @@ export type RequestBody = {
   url: string
 }
 
+export type User = {
+  displayName?: string | undefined
+  pfp?: string | undefined
+  state: 'completed'
+  token: string
+  userFid: number
+  username?: string | undefined
+}
+
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
   debug?: FrameDebug | undefined

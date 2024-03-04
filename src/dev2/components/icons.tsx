@@ -324,6 +324,7 @@ export const copyIcon = (
 
 export const idCardIcon = (
   <svg
+    style={{ height: '15px', width: '15px' }}
     aria-hidden="true"
     width="15"
     height="15"

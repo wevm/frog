@@ -1,6 +1,8 @@
 import { type Frame } from '../types.js'
 import { clsx } from '../lib/clsx.js'
 import { externalLinkIcon, warpIcon } from './icons.js'
+import { useState } from '../hooks/useState.js'
+import { useDispatch } from '../hooks/useDispatch.js'
 
 type PreviewProps = {
   frame: Frame
@@ -93,6 +95,8 @@ type InputProps = {
 
 function Input(props: InputProps) {
   const { placeholder } = props
+  const { inputText } = useState()
+  const { setState } = useDispatch()
 
   return (
     <input
@@ -102,6 +106,13 @@ function Input(props: InputProps) {
       name="inputText"
       placeholder={placeholder}
       type="text"
+      value={inputText}
+      onChange={(e) =>
+        setState((x) => ({
+          ...x,
+          inputText: (e.target as HTMLInputElement).value,
+        }))
+      }
     />
   )
 }
@@ -115,6 +126,8 @@ type ButtonProps = {
 
 function Button(props: ButtonProps) {
   const { index, target, title, type } = props
+  const { frame, inputText, overrides, user } = useState()
+  const { postFrameAction, setState } = useDispatch()
 
   const buttonClass =
     'bg-gray-alpha-100 border-gray-200 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
@@ -248,32 +261,38 @@ function Button(props: ButtonProps) {
     <button
       class={buttonClass}
       type="button"
-      x-on:click={`
+      onClick={async () => {
         const body = {
           buttonIndex: index,
           castId: {
             fid: overrides.castFid,
             hash: overrides.castHash,
           },
-          fid: overrides.userFid !== user?.userFid ? overrides.userFid : user.userFid,
+          fid:
+            overrides.userFid !== user?.userFid
+              ? overrides.userFid
+              : user.userFid,
           inputText,
           state: frame.state,
           url: target ?? frame.postUrl,
         }
-        postFrameAction(body)
-          .then((json) => {
-            const id = json.id
-            dataKey = id
+        const json = await postFrameAction(body)
+        const id = json.id
 
-            const nextStackIndex = stackIndex + 1
-            if (nextStackIndex < stack.length) stack = [...stack.slice(0, nextStackIndex), id]
-            else stack = [...stack, id]
-            stackIndex = nextStackIndex
-
-            inputText = ''
-          })
-          .catch(console.error)
-      `}
+        setState((x) => {
+          const nextStackIndex = x.stackIndex + 1
+          return {
+            ...x,
+            dataKey: id,
+            inputText: '',
+            stack:
+              nextStackIndex < x.stack.length
+                ? [...x.stack.slice(0, nextStackIndex), id]
+                : [...x.stack, id],
+            stackIndex: nextStackIndex,
+          }
+        })
+      }}
     >
       {innerHtml}
     </button>

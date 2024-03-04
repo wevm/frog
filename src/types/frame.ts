@@ -1,6 +1,6 @@
 import { type Context, type Env } from 'hono'
 import { type ImageResponseOptions } from 'hono-og'
-import type { Pretty } from './utils.js'
+import { type Pretty } from './utils.js'
 
 // TODO: Refactor to discriminated union based on `status`
 export type FrameContext<path extends string = string, state = unknown> = {

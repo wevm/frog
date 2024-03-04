@@ -1,14 +1,13 @@
 import { render } from 'hono/jsx/dom'
 
+import { Provider, dataId } from '../lib/context.js'
 import { App } from '../components/App.js'
-import { Context, valueKey } from '../lib/context.js'
 
-const value = JSON.parse(document.getElementById(valueKey)?.textContent ?? '{}')
-const root = document.getElementById('root')!
+const value = JSON.parse(document.getElementById(dataId)!.textContent!)
 
 render(
-  <Context.Provider value={value}>
+  <Provider {...value}>
     <App />
-  </Context.Provider>,
-  root,
+  </Provider>,
+  document.getElementById('root')!,
 )

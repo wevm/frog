@@ -1,3 +1,4 @@
+import { useDispatch } from '../hooks/useDispatch.js'
 import { clsx } from '../lib/clsx.js'
 import { type Data } from '../types.js'
 import { formatSpeed, formatTime } from '../utils/format.js'
@@ -6,8 +7,6 @@ import {
   chevronUpIcon,
   circleBackslashIcon,
   idCardIcon,
-  pencil2Icon,
-  resetIcon,
 } from './icons.js'
 
 type TimelineProps = {
@@ -18,36 +17,16 @@ type TimelineProps = {
 
 export function Timeline(props: TimelineProps) {
   const { dataMap, logs, logIndex } = props
+  const { setState } = useDispatch()
   const logsCount = logs.length
 
+  const buttonClass =
+    'border rounded-sm bg-background-200 p-1.5 text-gray-700 hover:bg-gray-100'
+
   return (
-    <div
-      class="h-timeline flex flex-col justify-between"
-      x-data="{
-        previousLog() {
-          const nextLogIndex = logIndex + 1 > logs.length - 1 ? 0 : logIndex + 1
-          const key = logs[nextLogIndex]
-          dataKey = key
-          logIndex = nextLogIndex
-
-          const element = document.querySelector(`#log-${nextLogIndex}`)
-          element.scrollIntoView({ block: 'nearest' })
-        },
-        nextLog() {
-          let nextLogIndex = logIndex - 1 >= 0 ? logIndex - 1 : logs.length - 1
-          if (logIndex === -1 && logs.length > 1) nextLogIndex = logs.length - 2
-
-          const key = logs[nextLogIndex]
-          dataKey = key
-          logIndex = nextLogIndex
-
-          const element = document.querySelector(`#log-${nextLogIndex}`)
-          element.scrollIntoView({ block: 'nearest' })
-        },
-      }"
-    >
+    <div class="h-timeline flex flex-col justify-between">
       <div class="border rounded-t-md overflow-hidden flex flex-col h-full">
-        <div x-ref="container" class="scrollbars">
+        <div class="scrollbars">
           <div
             class="bg-background-100 w-full flex"
             style={{
@@ -68,7 +47,78 @@ export function Timeline(props: TimelineProps) {
         </div>
       </div>
 
-      <Options />
+      <div class="bg-background-100 px-2 py-2 flex justify-between border rounded-b-md border-t-0">
+        <div class="flex gap-1.5">
+          <div class="flex border rounded-sm bg-background-200 text-gray-700 divide-x">
+            <button
+              class="bg-transparent p-1.5 hover:bg-gray-100 rounded-l-sm"
+              type="button"
+              onClick={() => {
+                const nextLogIndex =
+                  logIndex + 1 > logs.length - 1 ? 0 : logIndex + 1
+                const key = logs[nextLogIndex]
+
+                setState((x) => ({
+                  ...x,
+                  dataKey: key,
+                  logIndex: nextLogIndex,
+                }))
+
+                const element = document.querySelector(`#log-${nextLogIndex}`)
+                element?.scrollIntoView({ block: 'nearest' })
+              }}
+            >
+              {chevronUpIcon}
+            </button>
+
+            <button
+              class="bg-transparent p-1.5 hover:bg-gray-100 rounded-r-sm"
+              type="button"
+              onClick={() => {
+                let nextLogIndex =
+                  logIndex - 1 >= 0 ? logIndex - 1 : logs.length - 1
+                if (logIndex === -1 && logs.length > 1)
+                  nextLogIndex = logs.length - 2
+
+                const key = logs[nextLogIndex]
+                setState((x) => ({
+                  ...x,
+                  dataKey: key,
+                  logIndex: nextLogIndex,
+                }))
+
+                const element = document.querySelector(`#log-${nextLogIndex}`)
+                element?.scrollIntoView({ block: 'nearest' })
+              }}
+            >
+              {chevronDownIcon}
+            </button>
+          </div>
+
+          <button
+            class={buttonClass}
+            type="button"
+            onClick={() => {
+              const log = logs.at(-1)
+              if (!log) return
+              setState((x) => ({
+                ...x,
+                dataKey: log,
+                logs: [log],
+                logIndex: -1,
+              }))
+            }}
+          >
+            {circleBackslashIcon}
+          </button>
+        </div>
+
+        <div class="relative">
+          <button class={buttonClass} type="button">
+            {idCardIcon}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -83,6 +133,7 @@ type RowProps = {
 
 function Row(props: RowProps) {
   const { current, dataKey, index, log, logsCount } = props
+  const { setState } = useDispatch()
 
   const url = new URL('body' in log ? log.body.url : log.url)
   const hostname = `${url.protocol}//${url.hostname}${
@@ -105,10 +156,9 @@ function Row(props: RowProps) {
       id={`log-${index}`}
       tabIndex={logsCount - index}
       style={index !== 0 || logsCount < 6 ? { borderBottomWidth: '1px' } : {}}
-      x-on:click={`
-        dataKey = key
-        logIndex = index
-      `}
+      onClick={() => {
+        setState((x) => ({ ...x, dataKey, logIndex: index }))
+      }}
     >
       <div class="flex flex-row items-center justify-between w-full">
         <div class="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
@@ -158,243 +208,122 @@ function Row(props: RowProps) {
   )
 }
 
-type OptionsProps = {}
-
-function Options(props: OptionsProps) {
-  const {} = props
-
-  const buttonClass =
-    'border rounded-sm bg-background-200 p-1.5 text-gray-700 hover:bg-gray-100'
-
-  return (
-    <div class="bg-background-100 px-2 py-2 flex justify-between border rounded-b-md border-t-0">
-      <div class="flex gap-1.5">
-        <div class="flex border rounded-sm bg-background-200 text-gray-700 divide-x">
-          <button
-            class="bg-transparent p-1.5 hover:bg-gray-100 rounded-l-sm"
-            type="button"
-            x-on:click="previousLog"
-          >
-            {chevronUpIcon}
-          </button>
-
-          <button
-            class="bg-transparent p-1.5 hover:bg-gray-100 rounded-r-sm"
-            type="button"
-            x-on:click="nextLog"
-          >
-            {chevronDownIcon}
-          </button>
-        </div>
-
-        <button
-          class={buttonClass}
-          type="button"
-          x-on:click="
-              const log = logs.at(-1)
-              dataKey = log
-              logs = [log]
-              logIndex = -1
-            "
-        >
-          {circleBackslashIcon}
-        </button>
-      </div>
-
-      <div x-data="{ open: false }" class="relative">
-        <button
-          class={buttonClass}
-          type="button"
-          x-on:click="open = !open"
-          x-ref="button"
-        >
-          {idCardIcon}
-        </button>
-
-        <form
-          x-cloak
-          x-show="open"
-          class="border bg-background-100 rounded-lg w-full overflow-hidden px-4 pb-4 pt-3 flex flex-col gap-3 absolute"
-          style={{
-            marginBottom: '4px',
-            bottom: '100%',
-            right: '0',
-            width: '230px',
-            zIndex: '10',
-          }}
-          {...{
-            '@click.outside': 'close',
-            '@keyup.escape': 'close',
-            '@submit.prevent': 'submit',
-            'x-trap': 'open',
-          }}
-          x-effect="
-              if (open) {
-                userFid = overrides.userFid
-                castFid = overrides.castFid
-                castHash = overrides.castHash
-              }
-            "
-          x-data="{
-              userFid: overrides.userFid,
-              castFid: overrides.castFid,
-              castHash: overrides.castHash,
-              overrideUserFid: Boolean(user) && overrides.userFid !== user.userFid,
-
-              close() {
-                this.overrideUserFid = Boolean(user) && overrides.userFid !== user.userFid
-                open = false
-              },
-              async submit() {
-                overrides = {
-                  userFid: parseInt(this.userFid, 10),
-                  castFid: parseInt(this.castFid, 10),
-                  castHash: this.castHash,
-                }
-
-                const nextStackId = logs[logIndex] ?? dataKey
-                const nextData = dataMap[dataKey]
-                if (!nextData || nextData?.type === 'initial') {
-                  open = false
-                  return
-                }
-
-                const body = {
-                  ...nextData.body,
-                  castId: {
-                    fid: overrides.castFid,
-                    hash: overrides.castHash,
-                  },
-                  fid: overrides.userFid !== user?.userFid ? overrides.userFid : user.userFid,
-                }
-
-                let json
-                switch (nextData.type) {
-                  case 'action': {
-                    json = await postFrameAction(body)
-                    break
-                  }
-                  case 'redirect': {
-                    json = await postFrameRedirect(body)
-                    break
-                  }
-                }
-
-                dataKey = json.id
-                inputText = ''
-
-                open = false
-              },
-            }"
-        >
-          <div class="flex flex-col gap-0.5">
-            <div
-              class="text-xs text-gray-700 font-medium"
-              style={{ paddingLeft: '0.25rem' }}
-            >
-              User
-            </div>
-
-            <div class="relative flex items-center">
-              <input
-                aria-label="User FID"
-                autocomplete="off"
-                class="bg-background-200 rounded-md border px-3 py-2 text-sm leading-snug w-full text-xs"
-                name="userFid"
-                type="text"
-                required
-                pattern="^[0-9]*$"
-                placeholder="FID"
-                x-model="userFid"
-                x-ref="userFid"
-                data-1p-ignore
-                {...{
-                  ':disabled': 'Boolean(user) && overrideUserFid === false',
-                }}
-              />
-
-              <button
-                aria-label="Edit User FID"
-                x-show="!overrideUserFid && user?.userFid === parseInt(userFid, 10)"
-                class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
-                type="button"
-                style={{ right: '0.25rem' }}
-                x-on:click="
-                    overrideUserFid = true
-                    $nextTick(() => $refs.userFid.focus())
-                  "
-              >
-                {pencil2Icon}
-              </button>
-
-              <button
-                aria-label="Restore User FID"
-                x-show="user && overrideUserFid"
-                class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
-                type="button"
-                style={{ right: '0.25rem' }}
-                x-on:click="
-                    userFid = user.userFid
-                    overrideUserFid = false
-                  "
-              >
-                {resetIcon}
-              </button>
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-0.5">
-            <div
-              class="text-xs text-gray-700 font-medium"
-              style={{ paddingLeft: '0.25rem' }}
-            >
-              Cast
-            </div>
-
-            <div class="bg-background-200 border rounded-md divide-y">
-              <input
-                aria-label="Cast FID"
-                autocomplete="off"
-                class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-t-md"
-                name="inputText"
-                type="text"
-                required
-                pattern="^[0-9]*$"
-                placeholder="FID"
-                x-model="castFid"
-              />
-
-              <input
-                aria-label="Cast Hash"
-                autocomplete="off"
-                class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-b-md"
-                name="inputText"
-                type="text"
-                required
-                pattern="^0x[a-fA-F0-9]{40}$"
-                placeholder="Hash"
-                x-model="castHash"
-              />
-            </div>
-          </div>
-
-          <div class="flex gap-1.5 mt-1.5">
-            <button
-              class="bg-background-100 border rounded-md w-full text-xs font-medium py-1.5"
-              type="button"
-              x-on:click="close"
-            >
-              Cancel
-            </button>
-            <button
-              class="bg-gray-200 hover:bg-gray-100 rounded-md w-full text-xs text-bg font-medium py-1.5"
-              type="submit"
-            >
-              Update
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
+// ;<form
+//   x-cloak
+//   x-show="open"
+//   class="border bg-background-100 rounded-lg w-full overflow-hidden px-4 pb-4 pt-3 flex flex-col gap-3 absolute"
+//   style={{
+//     marginBottom: '4px',
+//     bottom: '100%',
+//     right: '0',
+//     width: '230px',
+//     zIndex: '10',
+//   }}
+// >
+//   <div class="flex flex-col gap-0.5">
+//     <div
+//       class="text-xs text-gray-700 font-medium"
+//       style={{ paddingLeft: '0.25rem' }}
+//     >
+//       User
+//     </div>
+//
+//     <div class="relative flex items-center">
+//       <input
+//         aria-label="User FID"
+//         autocomplete="off"
+//         class="bg-background-200 rounded-md border px-3 py-2 text-sm leading-snug w-full text-xs"
+//         name="userFid"
+//         type="text"
+//         required
+//         pattern="^[0-9]*$"
+//         placeholder="FID"
+//         x-model="userFid"
+//         x-ref="userFid"
+//         data-1p-ignore
+//         {...{
+//           ':disabled': 'Boolean(user) && overrideUserFid === false',
+//         }}
+//       />
+//
+//       <button
+//         aria-label="Edit User FID"
+//         x-show="!overrideUserFid && user?.userFid === parseInt(userFid, 10)"
+//         class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+//         type="button"
+//         style={{ right: '0.25rem' }}
+//         x-on:click="
+//                     overrideUserFid = true
+//                     $nextTick(() => $refs.userFid.focus())
+//                   "
+//       >
+//         {pencil2Icon}
+//       </button>
+//
+//       <button
+//         aria-label="Restore User FID"
+//         x-show="user && overrideUserFid"
+//         class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+//         type="button"
+//         style={{ right: '0.25rem' }}
+//         x-on:click="
+//                     userFid = user.userFid
+//                     overrideUserFid = false
+//                   "
+//       >
+//         {resetIcon}
+//       </button>
+//     </div>
+//   </div>
+//
+//   <div class="flex flex-col gap-0.5">
+//     <div
+//       class="text-xs text-gray-700 font-medium"
+//       style={{ paddingLeft: '0.25rem' }}
+//     >
+//       Cast
+//     </div>
+//
+//     <div class="bg-background-200 border rounded-md divide-y">
+//       <input
+//         aria-label="Cast FID"
+//         autocomplete="off"
+//         class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-t-md"
+//         name="inputText"
+//         type="text"
+//         required
+//         pattern="^[0-9]*$"
+//         placeholder="FID"
+//         x-model="castFid"
+//       />
+//
+//       <input
+//         aria-label="Cast Hash"
+//         autocomplete="off"
+//         class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-b-md"
+//         name="inputText"
+//         type="text"
+//         required
+//         pattern="^0x[a-fA-F0-9]{40}$"
+//         placeholder="Hash"
+//         x-model="castHash"
+//       />
+//     </div>
+//   </div>
+//
+//   <div class="flex gap-1.5 mt-1.5">
+//     <button
+//       class="bg-background-100 border rounded-md w-full text-xs font-medium py-1.5"
+//       type="button"
+//       x-on:click="close"
+//     >
+//       Cancel
+//     </button>
+//     <button
+//       class="bg-gray-200 hover:bg-gray-100 rounded-md w-full text-xs text-bg font-medium py-1.5"
+//       type="submit"
+//     >
+//       Update
+//     </button>
+//   </div>
+// </form>
