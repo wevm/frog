@@ -1,5 +1,11 @@
 # frog
 
+## 0.2.13
+
+### Patch Changes
+
+- [#67](https://github.com/wevm/frog/pull/67) [`769bd30`](https://github.com/wevm/frog/commit/769bd3081b4d69249f519a3aad881b3f30aaef6e) Thanks [@jxom](https://github.com/jxom)! - Fixed issue where `deriveState` would trigger twice.
+
 ## 0.2.12
 
 ### Patch Changes
