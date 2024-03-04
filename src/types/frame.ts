@@ -28,6 +28,7 @@ export type FrameContext<path extends string = string, state = unknown> = {
    * The {@link FrameContext`verified`} flag indicates whether the data is trusted or not.
    */
   frameData?: Pretty<FrameData>
+  getState: () => state
   /**
    * Initial path of the frame set.
    */

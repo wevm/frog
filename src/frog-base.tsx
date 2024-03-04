@@ -324,6 +324,7 @@ export class FrogBase<
         ...context,
         // We can't serialize `request` (aka `c.req`), so we'll just set it to undefined.
         request: undefined,
+        state: context.getState(),
       }
       const frameImageParams = toSearchParams(baseContext)
 
@@ -452,11 +453,15 @@ export class FrogBase<
     // OG Image Route
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
       const query = c.req.query()
+      const queryContext = fromQuery<
+        FrameContext<path, state> & { state: state }
+      >(query)
       const context = await getFrameContext({
-        context: fromQuery<FrameContext<path, state>>(query),
+        context: queryContext,
         cycle: 'image',
         initialState: this._initialState,
         req: c.req,
+        state: queryContext?.state,
       })
 
       const defaultImageOptions =

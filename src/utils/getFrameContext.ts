@@ -18,12 +18,13 @@ type GetFrameContextParameters<state = unknown> = {
   cycle: FrameContext['cycle']
   initialState?: state
   req: Context['req']
+  state?: state
 }
 
 export async function getFrameContext<state>(
   options: GetFrameContextParameters<state>,
 ): Promise<FrameContext<string, state>> {
-  const { context, cycle, req } = options
+  const { context, cycle, req, state } = options
   const { frameData, initialPath, previousButtonValues, verified } =
     context || {}
 
@@ -48,9 +49,12 @@ export async function getFrameContext<state>(
     if (context.status === 'initial') return options.initialState
     return context?.previousState || options.initialState
   })()
+
   function deriveState(derive?: (state: state) => void): state {
-    if (status === 'response' && derive)
+    if (status === 'response' && derive) {
+      if (cycle === 'image') return state as state
       previousState = produce(previousState, derive)
+    }
     return previousState as state
   }
 
@@ -62,6 +66,7 @@ export async function getFrameContext<state>(
     initialPath,
     inputText,
     deriveState,
+    getState: () => previousState as state,
     previousButtonValues,
     previousState: previousState as any,
     req,
