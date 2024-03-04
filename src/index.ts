@@ -18,4 +18,4 @@ export {
   getFrameMetadata,
 } from './utils/getFrameMetadata.js'
 
-export type { FrameContext, FrameResponse } from './types.js'
+export type { FrameContext, FrameResponse } from './types/frame.js'

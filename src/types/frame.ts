@@ -1,5 +1,6 @@
 import { type Context, type Env } from 'hono'
 import { type ImageResponseOptions } from 'hono-og'
+import type { Pretty } from './utils.js'
 
 export type FrameContext<path extends string = string, state = unknown> = {
   /**
@@ -197,5 +198,3 @@ export type TrustedData = {
 }
 
 export type UntrustedData = FrameData
-
-export type Pretty<type> = { [key in keyof type]: type[key] } & unknown

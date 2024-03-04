@@ -1,4 +1,4 @@
-import { type FrameButtonValue, type FrameData } from '../types.js'
+import { type FrameButtonValue, type FrameData } from '../types/frame.js'
 
 type IntentState = {
   buttonValue: string | undefined

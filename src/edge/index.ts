@@ -13,4 +13,4 @@ export type {
 } from '../frog-base.js'
 export { FrogBase as Frog } from '../frog-base.js'
 
-export type { FrameContext, FrameResponse } from '../types.js'
+export type { FrameContext, FrameResponse } from '../types/frame.js'

@@ -12,8 +12,8 @@ import {
   type FrameContext,
   type FrameImageAspectRatio,
   type FrameResponse,
-  type Pretty,
-} from './types.js'
+} from './types/frame.js'
+import { type Pretty } from './types/utils.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
