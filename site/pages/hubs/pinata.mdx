@@ -1,0 +1,20 @@
+# Pinata
+
+Pinata provides a free to use Farcaster Hub that you can use inside of Frog.
+
+## Usage
+
+Since the Pinata Hub is free to use there is no required auth, simply supply the Hub API `hub.pinata.cloud` in the Frog app initialization.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+hub: { apiUrl: 'hub.pinata.cloud' }
+})
+```
+
+[Learn more about the Pinata Hub as well as the Hub API](https://docs.pinata.cloud/farcaster/hubs)
