@@ -1,6 +1,6 @@
-import { type Context } from 'hono'
+import { type HonoRequest } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
-import { type FrameContext } from '../types/frame.js'
+import type { Context } from '../types/context.js'
 import type { Hub } from '../types/hub.js'
 import { deserializeJson } from './deserializeJson.js'
 import { fromQuery } from './fromQuery.js'
@@ -13,19 +13,10 @@ type RequestToContextOptions = {
   verify?: FrogConstructorParameters['verify']
 }
 
-type RequestToContextReturnType<state = unknown> = Pick<
-  FrameContext<string, state>,
-  | 'initialPath'
-  | 'previousState'
-  | 'previousButtonValues'
-  | 'frameData'
-  | 'status'
-  | 'url'
-  | 'verified'
->
+type RequestToContextReturnType<state = unknown> = Context<state>
 
 export async function requestToContext<state>(
-  req: Context['req'],
+  req: HonoRequest,
   { hub, secret, verify = true }: RequestToContextOptions,
 ): Promise<RequestToContextReturnType<state>> {
   const { trustedData, untrustedData } =

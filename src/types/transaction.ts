@@ -1,4 +1,3 @@
-import type { Context, Env } from 'hono'
 import type {
   Abi,
   ContractFunctionArgs,
@@ -7,32 +6,6 @@ import type {
   Hex,
 } from 'viem'
 import type { UnionWiden, Widen } from './utils.js'
-
-export type TransactionContext<path extends string = string> = {
-  /**
-   * Contract transaction request.
-   *
-   * This is a convenience method for "eth_sendTransaction" requests for contracts as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869),
-   * with a type-safe interface to infer types based on a provided `abi`.
-   */
-  contract: ContractTransactionResponseFn
-  /**
-   * HTTP request object.
-   */
-  req: Context<Env, path>['req']
-  /**
-   * Raw transaction request.
-   *
-   * @see https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869
-   */
-  res: TransactionResponseFn<TransactionParameters>
-  /**
-   * Send transaction request.
-   *
-   * This is a convenience method for "eth_sendTransaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869).
-   */
-  send: TransactionResponseFn<SendTransactionParameters>
-}
 
 //////////////////////////////////////////////////////
 // Raw Transaction
@@ -70,7 +43,7 @@ export type TransactionResponseFn<parameters> = (
 //////////////////////////////////////////////////////
 // Send Transaction
 
-type SendTransactionParameters = Pick<TransactionParameters, 'chainId'> &
+export type SendTransactionParameters = Pick<TransactionParameters, 'chainId'> &
   EthSendTransactionParameters<bigint>
 
 //////////////////////////////////////////////////////

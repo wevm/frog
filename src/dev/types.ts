@@ -1,5 +1,5 @@
+import type { FrameContext } from '../types/context.js'
 import {
-  type FrameContext,
   type FrameImageAspectRatio,
   type FrameVersion,
 } from '../types/frame.js'

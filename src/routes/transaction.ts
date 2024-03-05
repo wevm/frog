@@ -1,19 +1,11 @@
 import type { Env } from 'hono'
-import {
-  type Abi,
-  AbiFunctionNotFoundError,
-  type EncodeFunctionDataParameters,
-  type GetAbiItemParameters,
-  encodeFunctionData,
-  getAbiItem,
-} from 'viem'
 
-import type { FrogBase } from '../frog-base.js'
-import type {
-  TransactionContext,
-  TransactionResponse,
-} from '../types/transaction.js'
+import type { FrogBase, RouteOptions } from '../frog-base.js'
+import type { TransactionContext } from '../types/context.js'
+import type { TransactionResponse } from '../types/transaction.js'
+import { getTransactionContext } from '../utils/getTransactionContext.js'
 import { parsePath } from '../utils/parsePath.js'
+import { requestToContext } from '../utils/requestToContext.js'
 
 export function transaction<state, env extends Env>(
   this: FrogBase<state, env>,
@@ -21,59 +13,21 @@ export function transaction<state, env extends Env>(
   handler: (
     context: TransactionContext,
   ) => TransactionResponse | Promise<TransactionResponse>,
+  options: RouteOptions = {},
 ) {
+  const { verify = this.verify } = options
+
   this.hono.post(parsePath(path), async (c) => {
-    const transaction = await handler({
-      contract(parameters) {
-        const { abi, chainId, functionName, to, args, value } = parameters
-
-        const abiItem = getAbiItem({
-          abi: abi,
-          name: functionName,
-          args,
-        } as GetAbiItemParameters)
-        if (!abiItem) throw new AbiFunctionNotFoundError(functionName)
-
-        const abiErrorItems = (abi as Abi).filter(
-          (item) => item.type === 'error',
-        )
-
-        return this.send({
-          abi: [abiItem, ...abiErrorItems],
-          chainId,
-          data: encodeFunctionData({
-            abi,
-            args,
-            functionName,
-          } as EncodeFunctionDataParameters),
-          to,
-          value,
-        })
-      },
+    const transactionContext = getTransactionContext({
+      context: await requestToContext(c.req, {
+        hub:
+          this.hub || (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
+        secret: this.secret,
+        verify,
+      }),
       req: c.req,
-      res(parameters) {
-        const { chainId, method, params } = parameters
-        const { abi, data, to, value } = params
-        const response: TransactionResponse = {
-          chainId,
-          method,
-          params: {
-            abi,
-            data,
-            to,
-          },
-        }
-        if (value) response.params.value = value.toString()
-        return response
-      },
-      send(parameters) {
-        return this.res({
-          chainId: parameters.chainId,
-          method: 'eth_sendTransaction',
-          params: parameters,
-        })
-      },
     })
+    const transaction = await handler(transactionContext)
     return c.json(transaction)
   })
 }

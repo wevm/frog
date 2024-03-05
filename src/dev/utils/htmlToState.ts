@@ -1,4 +1,4 @@
-import { type FrameContext } from '../../types/frame.js'
+import { type FrameContext } from '../../types/context.js'
 import { deserializeJson } from '../../utils/deserializeJson.js'
 import { type FrogMetaTagPropertyName } from '../types.js'
 import { htmlToMetaTags } from './htmlToMetaTags.js'
