@@ -1,0 +1,103 @@
+# Frog.transaction
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, parseEther } from 'frog'
+
+const app = new Frog()
+
+app.transaction('/send-ether', (c) => { // [!code focus]
+  // Send transaction response. // [!code focus]
+  return c.send({ // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+    value: parseEther('1'), // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+
+app.transaction('/mint', (c) => { // [!code focus]
+  // Contract transaction response. // [!code focus]
+  return c.contract({ // [!code focus]
+    abi, // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    functionName: 'mint', // [!code focus]
+    args: [69420n], // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B' // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, parseEther } from 'frog'
+
+const app = new Frog()
+
+app.transaction(
+  '/send-ether', // [!code focus] 
+  (c) => { 
+    // Send transaction response. 
+    return c.send({ 
+      chainId: 'eip155:1', 
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+      value: parseEther('1'), 
+    }) 
+  }
+) 
+```
+
+### handler
+
+- **Type:** `(c: Context) => FrameResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, parseEther } from 'frog'
+
+const app = new Frog()
+
+app.transaction(
+  '/send-ether',
+  (c) => { // [!code focus] 
+    return c.send({ // [!code focus] 
+      chainId: 'eip155:1', // [!code focus] 
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus] 
+      value: parseEther('1'), // [!code focus] 
+    }) // [!code focus] 
+  } // [!code focus] 
+) 
+```
+
+#### Context Parameter
+
+[See the Context API.](/reference/frog-transaction-context)
+
+#### Transaction Response
+
+[See the Transaction Response API.](/reference/frog-transaction-response)

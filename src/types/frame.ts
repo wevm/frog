@@ -116,6 +116,7 @@ export type FrameData = {
   network: number
   state?: string | undefined
   timestamp: number
+  transactionId?: string | undefined
   url: string
 }
 

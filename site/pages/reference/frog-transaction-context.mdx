@@ -1,0 +1,395 @@
+# Frog.transaction Context
+
+The `c` object is the parameter of the route handlers. It contains context for the transaction route.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => { // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## buttonIndex
+
+- **Type**: `number`
+
+The index of the button that was previously clicked.
+
+For example, if the user clicked `"Banana"`, then `buttonIndex` will be `2`.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select a fruit.
+      </div>
+    ),
+    intents: [
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="apple" // [!code focus]
+      > // [!code focus]
+        Apple // [!code focus]
+      </Button.Transaction>, // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="banana" // [!code focus]
+      > // [!code focus]
+        Banana // [!code focus]
+      </Button.Transaction>, // [!code focus]
+    ]
+  })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { buttonIndex } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## buttonValue
+
+- **Type**: `string`
+
+The value of the button that was previously clicked.
+
+For example, if the user clicked `"Banana"`, then `buttonValue` will be `"banana"`.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select a fruit.
+      </div>
+    ),
+    intents: [
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="apple" // [!code focus]
+      > // [!code focus]
+        Apple // [!code focus]
+      </Button.Transaction>, // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="banana" // [!code focus]
+      > // [!code focus]
+        Banana // [!code focus]
+      </Button.Transaction>, // [!code focus]
+    ]
+  })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { buttonValue } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## contract
+
+- **Type**: `TransactionResponseFn<ContractTransactionParameters>`
+
+Contract transaction response. [See more.](/reference/frog-transaction-response#contract-transaction-ccontract)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/mint', (c) => {
+  return c.contract({/* ... */}) // [!code focus]
+})
+```
+
+## frameData
+
+- **Type**: `FrameData`
+
+Data from the frame that was passed via the `POST` body from a Farcaster Client. [See more.](https://docs.farcaster.xyz/reference/frames/spec#frame-signature-packet)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  const { frameData } = c
+  const { castId, fid, messageHash, network, timestamp, url } = frameData // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## initialPath
+
+- **Type**: `string`
+
+Initial/start path of the frame set.
+
+If the user clicks `<Button.Reset>{:jsx}`, they will be directed to this URL.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  const { initialPath } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## inputText
+
+- **Type**: `string`
+
+The value of the input that was previously interacted with.
+
+For example, if the user typed `"Banana"`, then `inputText` will be `"Banana"`.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, TextInput } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Send Ether
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Value (ETH)" />, // [!code focus]
+      <Button target="/send-ether">Send</Button>,
+    ]
+  })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { inputText } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## previousButtonValues
+
+- **Type**: `string[]`
+
+The data of the previous intents.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select your fruit
+      </div>
+    ),
+    intents: [
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="apple" // [!code focus]
+      > // [!code focus]
+        Apple // [!code focus]
+      </Button.Transaction>, // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="banana" // [!code focus]
+      > // [!code focus]
+        Banana // [!code focus]
+      </Button.Transaction>, // [!code focus]
+    ]
+  })
+})
+
+app.transaction('/send-ether', (c) => { // [!code focus]
+  const { buttonValue, previousButtonValues } = c
+  console.log(previousButtonValues) // [!code focus]
+// @log:   ['apple', 'banana']
+  return c.send({/* ... */})
+})
+```
+
+## previousState
+
+- **Type**: `State`
+
+The state of the previous frame.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+type State = {     
+  values: string[] 
+} 
+ 
+export const app = new Frog<State>({ 
+  initialState: { 
+    values: [] 
+  } 
+}) 
+ 
+app.frame('/', (c) => {
+  const { buttonValue, deriveState } = c
+  const state = deriveState(previousState => { 
+    if (buttonValue) previousState.values.push(buttonValue)
+  })
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {values.map(value => <div>{value}</div>)}
+      </div>
+    ),
+    intents: [
+      <Button value="apple">Apple</Button>, 
+      <Button value="banana">Banana</Button>,
+      <Button.Transaction target="/send-ether">Send</Button.Transaction>,
+    ]
+  })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { previousState } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## req
+
+- **Type**: `Request`
+
+[Hono request object](https://hono.dev/api/request).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  const { req } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## res
+
+- **Type**: `TransactionResponseFn<TransactionParameters>`
+
+Raw transaction response. [See more.](/reference/frog-transaction-response#raw-transaction-craw)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  return c.res({/* ... */}) // [!code focus]
+})
+```
+
+## send
+
+- **Type**: `TransactionResponseFn<SendTransactionParameters>`
+
+Send transaction response. [See more.](/reference/frog-transaction-response#send-transaction-csend)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  return c.send({/* ... */}) // [!code focus]
+})
+```
+
+## verified
+
+- **Type**: `boolean`
+
+Whether or not the [`frameData`](#framedata) (and [`buttonIndex`](#buttonindex), [`buttonValue`](#buttonvalue), [`inputText`](#inputtext)) was verified by the Farcaster Hub API.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  const { verified } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```
+
+## url
+
+- **Type**: `string`
+
+Current URL.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/send-ether', (c) => {
+  const { url } = c // [!code focus]
+  return c.send({/* ... */})
+})
+```

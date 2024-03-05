@@ -63,6 +63,7 @@ export function getFrameContext<state>(
     req,
     res: (data) => data,
     status,
+    transactionId: frameData?.transactionId,
     url,
     verified,
   }

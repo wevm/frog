@@ -1,0 +1,363 @@
+# Frog.transaction Response
+
+The response returned from the `.transaction` handler.
+
+There are three types of responses:
+
+- [Send Transaction (`c.send`)](#send-transaction-csend): Convinience method to **send a transaction**.
+- [Contract Transaction (`c.contract`)](#contract-transaction-ccontract): Convinience method to **invoke a contract function** (with inferred types & automatic encoding).
+- [Raw Transaction (`c.raw`)](#raw-transaction-craw): Low-level method to **send raw transaction** (mimics the [Transaction Spec API](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4)).
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+    value: parseEther('1'), // [!code focus]
+  }) // [!code focus]
+})
+
+app.transaction('/mint', (c) => {
+  return c.contract({ // [!code focus]
+    abi, // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    functionName: 'mint', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+  }) // [!code focus]
+})
+
+app.transaction('/raw-send', (c) => {
+  return c.res({ // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    method: 'eth_sendTransaction', // [!code focus]
+    params: { // [!code focus]
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+      value: 1n, // [!code focus]
+    }, // [!code focus]
+  }) // [!code focus]
+})
+```
+
+## Send Transaction (`c.send`)
+
+### chainId
+
+- **Type:** `"eip155:${number}"`
+
+A CAIP-2 Chain ID to identify the transaction network.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ 
+    chainId: 'eip155:1', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: parseEther('1')
+  }) 
+})
+```
+
+### to
+
+- **Type:** `Address`
+
+Transaction recipient.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ 
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+    value: parseEther('1')
+  }) 
+})
+```
+
+### value
+
+- **Type:** `Address`
+
+Value (in wei) to send with the transaction.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ 
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: parseEther('1') // [!code focus]
+  }) 
+})
+```
+
+### abi (optional)
+
+- **Type:** `Abi`
+
+The ABI of the contract.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ 
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    abi, // [!code focus]
+  }) 
+})
+```
+
+### data (optional)
+
+- **Type:** `Hex`
+
+Calldata to send with the transaction
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ 
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    data: '0xdeadbeef', // [!code focus]
+  }) 
+})
+```
+
+## Contract Transaction (`c.contract`)
+
+### abi
+
+- **Type:** `Abi`
+
+The ABI of the contract.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi, // [!code focus]
+    chainId: 'eip155:1', 
+    functionName: 'mint', 
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+  }) 
+})
+```
+
+### chainId
+
+- **Type:** `"eip155:${number}"`
+
+A CAIP-2 Chain ID to identify the transaction network.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi,
+    chainId: 'eip155:1', // [!code focus]
+    functionName: 'mint', 
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+  }) 
+})
+```
+
+### functionName
+
+- **Type:** `string`
+
+Function to invoke on the contract.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi,
+    chainId: 'eip155:1',
+    functionName: 'mint', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+  }) 
+})
+```
+
+### args
+
+- **Type:** `unknown`
+
+Args to pass to the contract function.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi,
+    chainId: 'eip155:1',
+    functionName: 'mint',
+    args: [69420n], // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+  }) 
+})
+```
+
+### to
+
+- **Type:** `Address`
+
+The address of the contract.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi,
+    chainId: 'eip155:1',
+    functionName: 'mint',
+    args: [69420n],
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+  }) 
+})
+```
+
+### value (optional)
+
+- **Type:** `Address`
+
+Value to send with the transaction.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi,
+    chainId: 'eip155:1',
+    functionName: 'mint',
+    args: [69420n],
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: parseEther('1'), // [!code focus]
+  }) 
+})
+```
+
+## Raw Transaction (`c.raw`)
+
+### chainId
+
+- **Type:** `"eip155:${number}"`
+
+A CAIP-2 Chain ID to identify the transaction network.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/raw-send', (c) => {
+  return c.res({ 
+    chainId: 'eip155:1', // [!code focus] 
+    method: 'eth_sendTransaction', 
+    params: { 
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+      value: 1n, 
+    }, 
+  }) 
+})
+```
+
+### method
+
+- **Type:** `"eth_sendTransaction"`
+
+A method ID to identify the type of transaction request.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/raw-send', (c) => {
+  return c.res({ 
+    chainId: 'eip155:1',
+    method: 'eth_sendTransaction', // [!code focus] 
+    params: { 
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+      value: 1n, 
+    }, 
+  }) 
+})
+```
+
+### params
+
+- **Type:** `EthSendTransactionParameters`
+
+Transaction parameters
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/raw-send', (c) => {
+  return c.res({ 
+    chainId: 'eip155:1',
+    method: 'eth_sendTransaction',
+    params: { // [!code focus] 
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus] 
+      value: 1n, // [!code focus] 
+    }, // [!code focus] 
+  }) 
+})
+```

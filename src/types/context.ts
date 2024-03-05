@@ -76,6 +76,11 @@ export type FrameContext<
   req: Context_hono<Env, path>['req']
   /** Frame response that includes frame properties such as: image, intents, action, etc */
   res: FrameResponseFn
+  /**
+   * Transaction ID of the executed transaction (if any). Maps to:
+   * - Ethereum: a transaction hash
+   */
+  transactionId?: FrameData['transactionId'] | undefined
 }
 
 export type TransactionContext<

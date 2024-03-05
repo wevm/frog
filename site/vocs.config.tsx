@@ -302,6 +302,10 @@ export default defineConfig({
           text: 'Middleware',
           link: '/concepts/middleware',
         },
+        {
+          text: 'Transactions',
+          link: '/concepts/transactions',
+        },
       ],
     },
     {
@@ -353,11 +357,27 @@ export default defineConfig({
       text: 'Frog Reference',
       items: [
         { text: 'Frog', link: '/reference/frog' },
-        { text: 'Frog.frame', link: '/reference/frog-frame' },
-        { text: 'Frog.frame Context', link: '/reference/frog-frame-context' },
         {
-          text: 'Frog.frame Response',
-          link: '/reference/frog-frame-response',
+          text: 'Frog.frame',
+          link: '/reference/frog-frame',
+          items: [
+            { text: 'Context', link: '/reference/frog-frame-context' },
+            {
+              text: 'Response',
+              link: '/reference/frog-frame-response',
+            },
+          ],
+        },
+        {
+          text: 'Frog.transaction',
+          link: '/reference/frog-transaction',
+          items: [
+            { text: 'Context', link: '/reference/frog-transaction-context' },
+            {
+              text: 'Response',
+              link: '/reference/frog-transaction-response',
+            },
+          ],
         },
         { text: 'Frog.hono', link: '/reference/frog-hono' },
       ],
