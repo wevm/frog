@@ -267,12 +267,16 @@ export default defineConfig({
           link: '/concepts/routing',
         },
         {
-          text: 'Connecting Frames (Actions)',
-          link: '/concepts/actions',
-        },
-        {
           text: 'Images & Intents',
           link: '/concepts/images-intents',
+        },
+        {
+          text: 'Render Cycles',
+          link: '/concepts/render-cycles',
+        },
+        {
+          text: 'Connecting Frames (Actions)',
+          link: '/concepts/actions',
         },
         {
           text: 'Browser Redirects',
