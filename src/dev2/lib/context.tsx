@@ -179,7 +179,7 @@ export function Provider(props: Props) {
         }
       })
 
-      return data
+      return json
     },
 
     setState,

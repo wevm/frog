@@ -1,8 +1,11 @@
+import { useState as useLocalState, useRef } from 'hono/jsx/dom'
+
 import { type Frame } from '../types.js'
 import { clsx } from '../lib/clsx.js'
 import { externalLinkIcon, warpIcon } from './icons.js'
 import { useState } from '../hooks/useState.js'
 import { useDispatch } from '../hooks/useDispatch.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
 
 type PreviewProps = {
   frame: Frame
@@ -128,7 +131,10 @@ type ButtonProps = {
 function Button(props: ButtonProps) {
   const { index, target, title, type } = props
   const { frame, inputText, overrides, user } = useState()
-  const { postFrameAction, setState } = useDispatch()
+  const { postFrameAction, postFrameRedirect, setState } = useDispatch()
+
+  const [open, setOpen] = useLocalState(false)
+  const [url, setUrl] = useLocalState(target)
 
   const buttonClass =
     'bg-gray-alpha-100 border-gray-200 flex items-center justify-center flex-row text-sm rounded-lg border cursor-pointer gap-1.5 h-10 py-2 px-4 w-full'
@@ -138,72 +144,29 @@ function Button(props: ButtonProps) {
     </span>
   )
 
-  const leavingAppPrompt = (
-    <div
-      x-show="open"
-      class="flex flex-col gap-1.5 border bg-background-100 p-4 rounded-lg text-center absolute"
-      style={{
-        marginTop: '4px',
-        width: '20rem',
-        zIndex: '10',
-      }}
-      {...{
-        '@click.outside': 'open = false',
-        '@keyup.escape': 'open = false',
-        'x-trap': 'open',
-      }}
-    >
-      <h1 class="font-semibold text-base text-gray-1000">Leaving Warpcast</h1>
-      <div class="line-clamp-2 text-gray-700 text-sm font-mono" x-text="url" />
-      <p class="text-sm leading-snug text-gray-900">
-        If you connect your wallet and the site is malicious, you may lose
-        funds.
-      </p>
-      <div class="flex gap-1.5 mt-1.5">
-        <button
-          class="bg-background-100 border rounded-md w-full text-sm font-medium py-2"
-          type="button"
-          x-on:click="open = false"
-        >
-          Cancel
-        </button>
-        <button
-          class="bg-red-400 hover:bg-red-300 rounded-md w-full text-sm text-bg font-medium py-2"
-          type="button"
-          x-on:click={`open = false; window.open(url, '_blank');`}
-        >
-          Continue
-        </button>
-      </div>
-    </div>
-  )
-
   if (type === 'link')
     return (
       <div>
-        <button
-          class={buttonClass}
-          type="button"
-          x-on:click="
-              url = button.target
-              open = true
-            "
-        >
+        <button class={buttonClass} type="button" onClick={() => setOpen(true)}>
           {innerHtml}
-          <div class="text-gray-900" style={{ marginTop: '2px' }}>
-            {externalLinkIcon}
-          </div>
+          <div
+            class="text-gray-900"
+            style={{ marginTop: '2px' }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: externalLinkIcon.toString() }}
+          />
         </button>
 
-        {leavingAppPrompt}
+        <LeavingAppPrompt open={open} url={url} close={() => setOpen(false)} />
       </div>
     )
 
   if (type === 'mint')
     return (
-      <div style={{ display: 'contents' }} x-data="{ open: false }">
-        <button class={buttonClass} type="button" x-on:click="open = true">
-          <div>{warpIcon}</div>
+      <div style={{ display: 'contents' }}>
+        <button class={buttonClass} type="button" onClick={() => setOpen(true)}>
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+          <div dangerouslySetInnerHTML={{ __html: warpIcon.toString() }} />
           {innerHtml}
         </button>
         {/* <MintDialog /> */}
@@ -216,45 +179,56 @@ function Button(props: ButtonProps) {
         <button
           class={buttonClass}
           type="button"
-          x-on:click={`
-              if (open) return
-              const body = {
-                buttonIndex: index,
-                castId: {
-                  fid: overrides.castFid,
-                  hash: overrides.castHash,
-                },
-                fid: overrides.userFid !== user?.userFid ? overrides.userFid : user.userFid,
-                inputText,
-                state: frame.state,
-                url: target ?? frame.postUrl,
+          onClick={async () => {
+            if (open) return
+
+            const body = {
+              buttonIndex: index,
+              castId: {
+                fid: overrides.castFid,
+                hash: overrides.castHash,
+              },
+              fid:
+                overrides.userFid !== user?.userFid
+                  ? overrides.userFid
+                  : user.userFid,
+              inputText,
+              state: frame.state,
+              url: target ?? frame.postUrl,
+            }
+            const json = await postFrameRedirect(body)
+            const id = json.id
+
+            setState((x) => {
+              const nextStackIndex = x.stackIndex + 1
+              return {
+                ...x,
+                dataKey: id,
+                inputText: '',
+                stack:
+                  nextStackIndex < x.stack.length
+                    ? [...x.stack.slice(0, nextStackIndex), id]
+                    : [...x.stack, id],
+                stackIndex: nextStackIndex,
               }
-              postFrameRedirect(body)
-                .then((json) => {
-                  const id = json.id
-                  dataKey = id
+            })
 
-                  const nextStackIndex = stackIndex + 1
-                  if (nextStackIndex < stack.length) stack = [...stack.slice(0, nextStackIndex), id]
-                  else stack = [...stack, id]
-                  stackIndex = nextStackIndex
-
-                  if (json.response.status === 302) {
-                    url = json.response.location
-                    open = true
-                    inputText = ''
-                  }
-                })
-                .catch(console.error)
-          `}
+            if (json.response.status === 302 && 'location' in json.response) {
+              setUrl(json.response.location)
+              setOpen(true)
+            }
+          }}
         >
           {innerHtml}
-          <div class="text-gray-900" style={{ marginTop: '2px' }}>
-            {externalLinkIcon}
-          </div>
+          <div
+            class="text-gray-900"
+            style={{ marginTop: '2px' }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: externalLinkIcon.toString() }}
+          />
         </button>
 
-        {leavingAppPrompt}
+        <LeavingAppPrompt open={open} url={url} close={() => setOpen(false)} />
       </div>
     )
 
@@ -297,5 +271,67 @@ function Button(props: ButtonProps) {
     >
       {innerHtml}
     </button>
+  )
+}
+
+type LeavingAppPromptProps = {
+  open: boolean
+  url: string | undefined
+  close: () => void
+}
+
+function LeavingAppPrompt(props: LeavingAppPromptProps) {
+  const { close, open, url } = props
+
+  const ref = useRef<HTMLDivElement>(null)
+  useFocusTrap({
+    active: open,
+    clickOutsideDeactivates: true,
+    onDeactivate: close,
+    ref,
+  })
+
+  if (!open || !url) return <></>
+
+  return (
+    <div
+      class="flex flex-col gap-1.5 border bg-background-100 p-4 rounded-lg text-center absolute"
+      style={{
+        marginTop: '4px',
+        width: '20rem',
+        zIndex: '10',
+      }}
+      ref={ref}
+    >
+      <h1 class="font-semibold text-base text-gray-1000">Leaving Warpcast</h1>
+
+      <div class="line-clamp-2 text-gray-700 text-sm font-mono">{url}</div>
+
+      <p class="text-sm leading-snug text-gray-900">
+        If you connect your wallet and the site is malicious, you may lose
+        funds.
+      </p>
+
+      <div class="flex gap-1.5 mt-1.5">
+        <button
+          class="bg-background-100 border rounded-md w-full text-sm font-medium py-2"
+          type="button"
+          onClick={close}
+        >
+          Cancel
+        </button>
+
+        <button
+          class="bg-red-400 hover:bg-red-300 rounded-md w-full text-sm text-bg font-medium py-2"
+          type="button"
+          onClick={() => {
+            close()
+            window.open(url, '_blank')
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    </div>
   )
 }
