@@ -1,5 +1,11 @@
 # frog
 
+## 0.3.1
+
+### Patch Changes
+
+- [`00725e7`](https://github.com/wevm/frog/commit/00725e7be52727d2203e86d5855f824f6e1a96e9) Thanks [@jxom](https://github.com/jxom)! - Widened handler return types to allow [`Response` objects](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
 ## 0.3.0
 
 ### Minor Changes
