@@ -1,5 +1,11 @@
 # frog
 
+## 0.3.0
+
+### Minor Changes
+
+- [`af6828a`](https://github.com/wevm/frog/commit/af6828a87e4f08e5b9ff76d5a7337ba18e42d773) Thanks [@jxom](https://github.com/jxom)! - Added Transaction support. [Read more.](https://frog.fm/concepts/transactions)
+
 ## 0.2.14
 
 ### Patch Changes
