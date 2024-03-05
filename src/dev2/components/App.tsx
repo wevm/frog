@@ -9,6 +9,7 @@ import { Timeline } from './Timeline.js'
 
 export function App() {
   const state = useState()
+
   const url = 'body' in state.data ? state.data.body.url : state.data.url
 
   return (

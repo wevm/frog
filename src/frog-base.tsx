@@ -193,7 +193,7 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
-  dev: FrogConstructorParameters['dev'] | undefined
+  dev: NonNullable<FrogConstructorParameters['dev']>
   headers: FrogConstructorParameters['headers'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
@@ -236,7 +236,7 @@ export class FrogBase<
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
     if (headers) this.headers = headers
-    if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
+    this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (hub) this.hub = hub
     if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
@@ -323,7 +323,7 @@ export class FrogBase<
       const baseContext = {
         ...context,
         // We can't serialize `request` (aka `c.req`), so we'll just set it to undefined.
-        request: undefined,
+        req: undefined,
         state: context.getState(),
       }
       const frameImageParams = toSearchParams(baseContext)
@@ -380,19 +380,7 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      const isDevEnabled =
-        // check if devtools are enabled on constructor.
-        (this.dev?.enabled ?? true) &&
-        // check if route has `/dev` path.
-        this.hono.routes.some((r) => {
-          const currentFullPath =
-            (this.basePath === '/' ? '' : this.basePath) + parsePath(path)
-          if (!r.path.startsWith(currentFullPath)) return false
-          if (!r.path.includes('/dev')) return false
-          return true
-        })
-
-      const body = isDevEnabled ? (
+      const body = this.dev.enabled ? (
         <body
           style={{
             alignItems: 'center',
@@ -436,7 +424,7 @@ export class FrogBase<
               )}
               {parsedIntents}
 
-              {isDevEnabled && (
+              {this.dev.enabled && (
                 <meta
                   property="frog:context"
                   content={serializeJson(baseContext)}

@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  hono: 4.0.9
+
 importers:
 
   .:
@@ -45,8 +48,8 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       hono:
-        specifier: ^4
-        version: 4.0.7
+        specifier: 4.0.9
+        version: 4.0.9
       picocolors:
         specifier: ^1.0.0
         version: 1.0.0
@@ -90,12 +93,8 @@ importers:
         specifier: workspace:*
         version: link:../src
       hono:
-        specifier: ^4
-        version: 4.0.4
-    devDependencies:
-      tsx:
-        specifier: ^4.7.1
-        version: 4.7.1
+        specifier: 4.0.9
+        version: 4.0.9
 
   protobufs:
     dependencies:
@@ -115,8 +114,8 @@ importers:
   services/auth:
     dependencies:
       hono:
-        specifier: ^4
-        version: 4.0.7
+        specifier: 4.0.9
+        version: 4.0.9
       viem:
         specifier: ^2.7.10
         version: 2.7.11(typescript@4.9.5)
@@ -129,10 +128,10 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
       hono:
-        specifier: ^4
-        version: 4.0.7
+        specifier: 4.0.9
+        version: 4.0.9
     devDependencies:
       '@hono/node-server':
         specifier: ^1
@@ -148,7 +147,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: link:../src
+        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -172,7 +171,7 @@ importers:
         version: 0.13.8(typescript@5.3.3)
       '@hono/vite-dev-server':
         specifier: 0.7.0
-        version: 0.7.0(hono@4.0.4)
+        version: 0.7.0(hono@4.0.9)
       '@ngrok/ngrok':
         specifier: ^1.1.0
         version: 1.1.0
@@ -198,11 +197,11 @@ importers:
         specifier: ^13.3.8
         version: 13.3.8
       hono:
-        specifier: ^4
-        version: 4.0.4
+        specifier: 4.0.9
+        version: 4.0.9
       hono-og:
         specifier: 0.0.17
-        version: 0.0.17(hono@4.0.4)
+        version: 0.0.17(hono@4.0.9)
       immer:
         specifier: ^10.0.3
         version: 10.0.3
@@ -215,6 +214,9 @@ importers:
       qrcode:
         specifier: ^1.5.3
         version: 1.5.3
+      shiki:
+        specifier: ^1.1.7
+        version: 1.1.7
       typescript:
         specifier: '>=5.0.4'
         version: 5.3.3
@@ -229,10 +231,10 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: ^4
-        version: 4.0.5
+        specifier: 4.0.9
+        version: 4.0.9
     devDependencies:
       '@types/bun':
         specifier: latest
@@ -245,10 +247,10 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: ^4
-        version: 4.0.5
+        specifier: 4.0.9
+        version: 4.0.9
     devDependencies:
       wrangler:
         specifier: latest
@@ -261,10 +263,10 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: ^4
-        version: 4.0.5
+        specifier: 4.0.9
+        version: 4.0.9
     devDependencies:
       typescript:
         specifier: latest
@@ -274,10 +276,10 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: ^4
-        version: 4.0.7
+        specifier: 4.0.9
+        version: 4.0.9
       next:
         specifier: 14.1.0
         version: 14.1.0(react-dom@18.2.0)(react@18.2.0)
@@ -308,10 +310,10 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: ^4
-        version: 4.0.5
+        specifier: 4.0.9
+        version: 4.0.9
     devDependencies:
       '@types/node':
         specifier: ^20.11.17
@@ -324,10 +326,10 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: ^4
-        version: 4.0.7
+        specifier: 4.0.9
+        version: 4.0.9
     devDependencies:
       tsx:
         specifier: ^4.7.1
@@ -1757,6 +1759,23 @@ packages:
     requiresBuild: true
     optional: true
 
+  /@farcaster/core@0.13.8(typescript@4.9.5):
+    resolution: {integrity: sha512-h1WU5IinBwy8f5mGqyAQGxBGuCFPj+kYt/OQquE+898bdlU7LibwsAi2P2qD6Fkb+0GmqloF4m7DIg68wfpfWw==}
+    dependencies:
+      '@noble/curves': 1.3.0
+      '@noble/hashes': 1.3.3
+      ffi-napi: 4.0.3
+      neverthrow: 6.1.0
+      ref-napi: 3.0.3
+      viem: 1.21.4(typescript@4.9.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
   /@farcaster/core@0.13.8(typescript@5.3.3):
     resolution: {integrity: sha512-h1WU5IinBwy8f5mGqyAQGxBGuCFPj+kYt/OQquE+898bdlU7LibwsAi2P2qD6Fkb+0GmqloF4m7DIg68wfpfWw==}
     dependencies:
@@ -1828,14 +1847,14 @@ packages:
     engines: {node: '>=18.14.1'}
     dev: false
 
-  /@hono/vite-dev-server@0.7.0(hono@4.0.4):
+  /@hono/vite-dev-server@0.7.0(hono@4.0.9):
     resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
-      hono: '*'
+      hono: 4.0.9
     dependencies:
       '@hono/node-server': 1.8.2
-      hono: 4.0.4
+      hono: 4.0.9
       miniflare: 3.20240129.3
       minimatch: 9.0.3
     transitivePeerDependencies:
@@ -3141,6 +3160,10 @@ packages:
     resolution: {integrity: sha512-kt9hhvrWTm0EPtRDIsoAZnSsFlIDBVBBI5CQewpA/NZCPin+MOKRXg+JiWc4y+8fZ/v0HzfDhu/UC+OTZGMt7A==}
     dev: false
 
+  /@shikijs/core@1.1.7:
+    resolution: {integrity: sha512-gTYLUIuD1UbZp/11qozD3fWpUTuMqPSf3svDMMrL0UmlGU7D9dPw/V1FonwAorCUJBltaaESxq90jrSjQyGixg==}
+    dev: false
+
   /@shikijs/rehype@1.1.6:
     resolution: {integrity: sha512-Tk7PKoSUKDdOffmZgbCAh7FjI5/g56iU5AcecPRJ/8RoVqyx9UxJGB6N9my49PI8X6LV1M3IUHFjcuVYEppsrA==}
     dependencies:
@@ -3340,7 +3363,6 @@ packages:
 
   /@types/node@14.18.33:
     resolution: {integrity: sha512-qelS/Ra6sacc4loe/3MSjXNL1dNQ/GjxNHVzuChwMfmk7HuycRLVQN2qNY3XahK+fZc5E2szqQSKUyAF0E+2bg==}
-    dev: true
 
   /@types/node@20.11.19:
     resolution: {integrity: sha512-7xMnVEcZFu0DikYjWOlRq7NTPETrm7teqUT2WkQjrTIkEgUyyGdWsj/Zg8bEJt5TNklzbPD1X3fqfsHw3SpapQ==}
@@ -3897,6 +3919,20 @@ packages:
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
+
+  /abitype@0.9.8(typescript@4.9.5):
+    resolution: {integrity: sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3 >=3.19.1
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      zod:
+        optional: true
+    dependencies:
+      typescript: 4.9.5
+    dev: false
 
   /abitype@0.9.8(typescript@5.3.3):
     resolution: {integrity: sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==}
@@ -5695,6 +5731,138 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
+  /frog@0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
+    resolution: {integrity: sha512-Xoj9DU1EMkCJB5q9RsBORvBlnaHDtXiDKrSXVqz+WdaQmX0ujBTrAN2GfjJ0xuJ+l4OKOYc9pZDYJVKHhtL1tw==}
+    hasBin: true
+    peerDependencies:
+      hono: 4.0.9
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@bufbuild/protobuf': 1.7.2
+      '@farcaster/core': 0.13.8(typescript@4.9.5)
+      '@hono/vite-dev-server': 0.7.0(hono@4.0.9)
+      '@ngrok/ngrok': 1.1.0
+      '@noble/curves': 1.3.0
+      cac: 6.7.14
+      detect-browser: 5.3.0
+      dom-parser: 1.1.5
+      fast-glob: 3.3.2
+      fs-extra: 11.2.0
+      happy-dom: 13.3.8
+      hono: 4.0.9
+      hono-og: 0.0.17(hono@4.0.9)
+      immer: 10.0.3
+      jose: 5.2.2
+      path-browserify: 1.0.1
+      qrcode: 1.5.3
+      typescript: 4.9.5
+      viem: 2.7.11(typescript@4.9.5)
+      vite: 5.1.3(@types/node@14.18.33)
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /frog@0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-Xoj9DU1EMkCJB5q9RsBORvBlnaHDtXiDKrSXVqz+WdaQmX0ujBTrAN2GfjJ0xuJ+l4OKOYc9pZDYJVKHhtL1tw==}
+    hasBin: true
+    peerDependencies:
+      hono: 4.0.9
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@bufbuild/protobuf': 1.7.2
+      '@farcaster/core': 0.13.8(typescript@5.3.3)
+      '@hono/vite-dev-server': 0.7.0(hono@4.0.9)
+      '@ngrok/ngrok': 1.1.0
+      '@noble/curves': 1.3.0
+      cac: 6.7.14
+      detect-browser: 5.3.0
+      dom-parser: 1.1.5
+      fast-glob: 3.3.2
+      fs-extra: 11.2.0
+      happy-dom: 13.3.8
+      hono: 4.0.9
+      hono-og: 0.0.17(hono@4.0.9)
+      immer: 10.0.3
+      jose: 5.2.2
+      path-browserify: 1.0.1
+      qrcode: 1.5.3
+      typescript: 5.3.3
+      viem: 2.7.11(typescript@5.3.3)
+      vite: 5.1.3(@types/node@14.18.33)
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /frog@0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-Xoj9DU1EMkCJB5q9RsBORvBlnaHDtXiDKrSXVqz+WdaQmX0ujBTrAN2GfjJ0xuJ+l4OKOYc9pZDYJVKHhtL1tw==}
+    hasBin: true
+    peerDependencies:
+      hono: 4.0.9
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@bufbuild/protobuf': 1.7.2
+      '@farcaster/core': 0.13.8(typescript@5.3.3)
+      '@hono/vite-dev-server': 0.7.0(hono@4.0.9)
+      '@ngrok/ngrok': 1.1.0
+      '@noble/curves': 1.3.0
+      cac: 6.7.14
+      detect-browser: 5.3.0
+      dom-parser: 1.1.5
+      fast-glob: 3.3.2
+      fs-extra: 11.2.0
+      happy-dom: 13.3.8
+      hono: 4.0.9
+      hono-og: 0.0.17(hono@4.0.9)
+      immer: 10.0.3
+      jose: 5.2.2
+      path-browserify: 1.0.1
+      qrcode: 1.5.3
+      typescript: 5.3.3
+      viem: 2.7.11(typescript@5.3.3)
+      vite: 5.1.3(@types/node@20.11.19)
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - utf-8-validate
+      - zod
+    dev: false
+
   /fs-extra@11.1.0:
     resolution: {integrity: sha512-0rcTq621PD5jM/e0a3EJoGC/1TC5ZBCERW82LQuwfGnCa1V8w7dpYH1yNu+SLb6E5dkeCBzKEyLGlFrnr+dUyw==}
     engines: {node: '>=14.14'}
@@ -6150,33 +6318,18 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /hono-og@0.0.17(hono@4.0.4):
+  /hono-og@0.0.17(hono@4.0.9):
     resolution: {integrity: sha512-2EFPJ7Mcpk9B+NqastQHxpZvZR76iKH5viExhl/Ib73AoUhvKwcZZaosRclfFW1udLuG1Fxj6OjwhWKSP34Sbg==}
     peerDependencies:
-      hono: '>=3'
+      hono: 4.0.9
     dependencies:
       '@wevm/vercel-og': 0.6.11
-      hono: 4.0.4
+      hono: 4.0.9
       workers-og: 0.0.20
     dev: false
 
-  /hono@3.12.12:
-    resolution: {integrity: sha512-5IAMJOXfpA5nT+K0MNjClchzz0IhBHs2Szl7WFAhrFOsbtQsYmNynFyJRg/a3IPsmCfxcrf8txUGiNShXpK5Rg==}
-    engines: {node: '>=16.0.0'}
-    dev: false
-
-  /hono@4.0.4:
-    resolution: {integrity: sha512-WIwMh3b9TrtcdGpJ9ljA74bK/njL6f9S0nH3eBIKVAudnuHDqyVi4k0P8etD9HVU3xu74a9KBg3xA6UlXGEIZg==}
-    engines: {node: '>=16.0.0'}
-    dev: false
-
-  /hono@4.0.5:
-    resolution: {integrity: sha512-6LEGL1Pf3+dLjVA0NJxAB/3FJ6S3W5qxd/XOG7Wl9YOrpMRZT9lt83R4Ojs8dO6GbAUSutI7zTyjStnSn9sbEg==}
-    engines: {node: '>=16.0.0'}
-    dev: false
-
-  /hono@4.0.7:
-    resolution: {integrity: sha512-1fhi9MUzMIXWqPWA7OGPTpzjQupT78rf+U6N+2vxwy7U76jUX0dmkUtp572gR+dbGR1YugLYvyg/JrgPOSoutw==}
+  /hono@4.0.9:
+    resolution: {integrity: sha512-XkFx6y6jAl08bGmoy53oGtHl8eHUixvmBulfcghrSySoJD3cW4UfFUa7JDGLOsIeJUv/a9d2pBFQUX7rzRnjvA==}
     engines: {node: '>=16.0.0'}
 
   /hosted-git-info@2.8.9:
@@ -8973,6 +9126,12 @@ packages:
       '@shikijs/core': 1.1.6
     dev: false
 
+  /shiki@1.1.7:
+    resolution: {integrity: sha512-9kUTMjZtcPH3i7vHunA6EraTPpPOITYTdA5uMrvsJRexktqP0s7P3s9HVK80b4pP42FRVe03D7fT3NmJv2yYhw==}
+    dependencies:
+      '@shikijs/core': 1.1.7
+    dev: false
+
   /side-channel@1.0.5:
     resolution: {integrity: sha512-QcgiIWV4WV7qWExbN5llt6frQB/lBven9pqliLXfGPB+K9ZYXxDozp0wLkHS24kWCm+6YXH/f0HhnObZnZOBnQ==}
     engines: {node: '>= 0.4'}
@@ -9951,6 +10110,29 @@ packages:
       vfile-message: 4.0.2
     dev: false
 
+  /viem@1.21.4(typescript@4.9.5):
+    resolution: {integrity: sha512-BNVYdSaUjeS2zKQgPs+49e5JKocfo60Ib2yiXOWBT6LuVxY1I/6fFX3waEtpXvL1Xn4qu+BVitVtMh9lyThyhQ==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@adraffy/ens-normalize': 1.10.0
+      '@noble/curves': 1.2.0
+      '@noble/hashes': 1.3.2
+      '@scure/bip32': 1.3.2
+      '@scure/bip39': 1.2.1
+      abitype: 0.9.8(typescript@4.9.5)
+      isows: 1.0.3(ws@8.13.0)
+      typescript: 4.9.5
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
+    dev: false
+
   /viem@1.21.4(typescript@5.3.3):
     resolution: {integrity: sha512-BNVYdSaUjeS2zKQgPs+49e5JKocfo60Ib2yiXOWBT6LuVxY1I/6fFX3waEtpXvL1Xn4qu+BVitVtMh9lyThyhQ==}
     peerDependencies:
@@ -10039,6 +10221,42 @@ packages:
       - sugarss
       - supports-color
       - terser
+
+  /vite@5.1.3(@types/node@14.18.33):
+    resolution: {integrity: sha512-UfmUD36DKkqhi/F75RrxvPpry+9+tTkrXfMNZD+SboZqBCMsxKtO52XeGzzuh7ioz+Eo/SYDBbdb0Z7vgcDJew==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^18.0.0 || >=20.0.0
+      less: '*'
+      lightningcss: ^1.21.0
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 14.18.33
+      esbuild: 0.19.12
+      postcss: 8.4.35
+      rollup: 4.12.0
+    optionalDependencies:
+      fsevents: 2.3.3
+    dev: false
 
   /vite@5.1.3(@types/node@20.11.19):
     resolution: {integrity: sha512-UfmUD36DKkqhi/F75RrxvPpry+9+tTkrXfMNZD+SboZqBCMsxKtO52XeGzzuh7ioz+Eo/SYDBbdb0Z7vgcDJew==}
@@ -10168,7 +10386,7 @@ packages:
       fs-extra: 11.2.0
       globby: 13.2.2
       hastscript: 8.0.0
-      hono: 3.12.12
+      hono: 4.0.9
       mark.js: 8.11.1
       mdast-util-directive: 3.0.0
       mdast-util-from-markdown: 2.0.0

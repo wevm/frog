@@ -244,7 +244,24 @@ export function Navigator(props: NavigatorProps) {
         </div>
       </div>
 
-      <template x-if="user">
+      {!user && (
+        <div style={{ display: 'contents' }} x-data="{ open: false }">
+          <button
+            type="button"
+            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+            x-on:click="open = true"
+          >
+            <div
+              style={{ height: '30px', width: '30px' }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: farcasterIcon.toString() }}
+            />
+          </button>
+          {/* <AuthDialog /> */}
+        </div>
+      )}
+
+      {user && (
         <div class="relative grid h-full" x-data="{ open: false }">
           <button
             aria-label="open user menu"
@@ -315,23 +332,6 @@ export function Navigator(props: NavigatorProps) {
               </button>
             </div>
           </div>
-        </div>
-      </template>
-
-      {!user && (
-        <div style={{ display: 'contents' }} x-data="{ open: false }">
-          <button
-            type="button"
-            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-            x-on:click="open = true"
-          >
-            <div
-              style={{ height: '30px', width: '30px' }}
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-              dangerouslySetInnerHTML={{ __html: farcasterIcon.toString() }}
-            />
-          </button>
-          {/* <AuthDialog /> */}
         </div>
       )}
     </div>

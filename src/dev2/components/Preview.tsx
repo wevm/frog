@@ -95,6 +95,7 @@ type InputProps = {
 
 function Input(props: InputProps) {
   const { placeholder } = props
+
   const { inputText } = useState()
   const { setState } = useDispatch()
 

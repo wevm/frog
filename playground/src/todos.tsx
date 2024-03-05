@@ -8,6 +8,7 @@ export const app = new Frog<{
     index: -1,
     todos: [],
   },
+  verify: 'silent',
 })
 
 app.frame('/', (c) => {
