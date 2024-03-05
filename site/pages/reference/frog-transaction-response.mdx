@@ -6,7 +6,7 @@ There are three types of responses:
 
 - [Send Transaction (`c.send`)](#send-transaction-csend): Convinience method to **send a transaction**.
 - [Contract Transaction (`c.contract`)](#contract-transaction-ccontract): Convinience method to **invoke a contract function** (with inferred types & automatic encoding).
-- [Raw Transaction (`c.raw`)](#raw-transaction-craw): Low-level method to **send raw transaction** (mimics the [Transaction Spec API](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4)).
+- [Raw Transaction (`c.res`)](#raw-transaction-cres): Low-level method to **send raw transaction** (mimics the [Transaction Spec API](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4)).
 
 ```tsx twoslash
 // @noErrors
@@ -288,7 +288,7 @@ app.transaction('/mint', (c) => {
 })
 ```
 
-## Raw Transaction (`c.raw`)
+## Raw Transaction (`c.res`)
 
 ### chainId
 
