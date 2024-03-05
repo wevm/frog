@@ -2,8 +2,8 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog()
 
-app.frame('/', () => {
-  return {
+app.frame('/', (c) => {
+  return c.res({
     image: (
       <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
         Example
@@ -14,7 +14,7 @@ app.frame('/', () => {
       <Button.Transaction target="/send">Send Transaction</Button.Transaction>,
       <Button.Transaction target="/mint">Mint</Button.Transaction>,
     ],
-  }
+  })
 })
 
 // Raw transaction

@@ -61,7 +61,7 @@ export function getFrameContext<state>(
     previousButtonValues,
     previousState: previousState as any,
     req,
-    res: (data) => data,
+    res: (data) => ({ data, format: 'frame' }),
     status,
     transactionId: frameData?.transactionId,
     url,

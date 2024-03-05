@@ -1,4 +1,5 @@
 import { type ImageResponseOptions } from 'hono-og'
+import type { TypedResponse } from './response.js'
 
 export type FrameResponse = {
   /**
@@ -105,7 +106,9 @@ export type FrameResponse = {
   title?: string | undefined
 }
 
-export type FrameResponseFn = (response: FrameResponse) => FrameResponse
+export type FrameResponseFn = (
+  response: FrameResponse,
+) => TypedResponse<FrameResponse>
 
 export type FrameData = {
   buttonIndex?: 1 | 2 | 3 | 4 | undefined

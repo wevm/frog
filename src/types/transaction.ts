@@ -5,6 +5,7 @@ import type {
   GetValue,
   Hex,
 } from 'viem'
+import type { TypedResponse } from './response.js'
 import type { UnionWiden, Widen } from './utils.js'
 
 //////////////////////////////////////////////////////
@@ -38,7 +39,7 @@ export type EthSendTransactionParameters<quantity = string> = {
 
 export type TransactionResponseFn<parameters> = (
   parameters: parameters,
-) => TransactionResponse
+) => TypedResponse<TransactionResponse>
 
 //////////////////////////////////////////////////////
 // Send Transaction
@@ -85,4 +86,4 @@ export type ContractTransactionResponseFn = <
   >,
 >(
   response: ContractTransactionParameters<abi, functionName, args>,
-) => TransactionResponse
+) => TypedResponse<TransactionResponse>

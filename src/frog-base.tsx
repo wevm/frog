@@ -15,6 +15,7 @@ import {
   type FrameResponse,
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
+import type { HandlerResponse } from './types/response.js'
 import { type Pretty } from './types/utils.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
@@ -261,7 +262,7 @@ export class FrogBase<
     path: path,
     handler: (
       context: Pretty<FrameContext<path, state>>,
-    ) => FrameResponse | Promise<FrameResponse>,
+    ) => HandlerResponse<FrameResponse>,
     options: RouteOptions = {},
   ) {
     const { verify = this.verify } = options
@@ -287,6 +288,9 @@ export class FrogBase<
 
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
 
+      const response = await handler(context)
+      if (response instanceof Response) return response
+
       const {
         action,
         browserLocation = this.browserLocation,
@@ -295,7 +299,7 @@ export class FrogBase<
         image,
         intents,
         title = 'Frog Frame',
-      } = await handler(context)
+      } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
 
       if (context.status === 'redirect' && context.buttonIndex) {
@@ -472,11 +476,14 @@ export class FrogBase<
           ? await this.imageOptions()
           : this.imageOptions
 
+      const response = await handler(context)
+      if (response instanceof Response) return response
+
       const {
         image,
         headers = this.headers,
         imageOptions = defaultImageOptions,
-      } = await handler(context)
+      } = response.data
       if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image, {
         ...imageOptions,

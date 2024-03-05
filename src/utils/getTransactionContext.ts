@@ -81,7 +81,7 @@ export function getTransactionContext<state>(
         },
       }
       if (value) response.params.value = value.toString()
-      return response
+      return { data: response, format: 'transaction' }
     },
     send(parameters) {
       return this.res({

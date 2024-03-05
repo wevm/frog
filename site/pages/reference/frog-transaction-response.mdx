@@ -43,6 +43,21 @@ app.transaction('/raw-send', (c) => {
 })
 ```
 
+:::tip
+Frog also supports [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects as a return value of the `.transaction` handler. Useful for returning error responses.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return new Response('dang', { status: 400 }) // [!code focus]
+})
+```
+:::
+
 ## Send Transaction (`c.send`)
 
 ### chainId

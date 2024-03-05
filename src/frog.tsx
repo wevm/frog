@@ -4,6 +4,7 @@ import { routes as devRoutes } from './dev/routes.js'
 import { FrogBase, type RouteOptions } from './frog-base.js'
 import { type FrameContext } from './types/context.js'
 import { type FrameResponse } from './types/frame.js'
+import type { HandlerResponse } from './types/response.js'
 import { type Pretty } from './types/utils.js'
 
 /**
@@ -46,7 +47,7 @@ export class Frog<
     path: path,
     handler: (
       context: Pretty<FrameContext<path, state>>,
-    ) => FrameResponse | Promise<FrameResponse>,
+    ) => HandlerResponse<FrameResponse>,
     options: RouteOptions = {},
   ) {
     super.frame(path, handler, options)

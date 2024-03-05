@@ -2,6 +2,7 @@ import type { Env } from 'hono'
 
 import type { FrogBase, RouteOptions } from '../frog-base.js'
 import type { TransactionContext } from '../types/context.js'
+import type { HandlerResponse } from '../types/response.js'
 import type { TransactionResponse } from '../types/transaction.js'
 import { getTransactionContext } from '../utils/getTransactionContext.js'
 import { parsePath } from '../utils/parsePath.js'
@@ -12,7 +13,7 @@ export function transaction<state, env extends Env>(
   path: string,
   handler: (
     context: TransactionContext,
-  ) => TransactionResponse | Promise<TransactionResponse>,
+  ) => HandlerResponse<TransactionResponse>,
   options: RouteOptions = {},
 ) {
   const { verify = this.verify } = options
@@ -27,7 +28,8 @@ export function transaction<state, env extends Env>(
       }),
       req: c.req,
     })
-    const transaction = await handler(transactionContext)
-    return c.json(transaction)
+    const response = await handler(transactionContext)
+    if (response instanceof Response) return response
+    return c.json(response.data)
   })
 }
