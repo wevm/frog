@@ -350,6 +350,7 @@ export default defineConfig({
         { text: 'Button.Mint', link: '/intents/button-mint' },
         { text: 'Button.Redirect', link: '/intents/button-redirect' },
         { text: 'Button.Reset', link: '/intents/button-reset' },
+        { text: 'Button.Transaction', link: '/intents/button-transaction' },
         { text: 'TextInput', link: '/intents/textinput' },
       ],
     },
