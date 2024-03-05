@@ -1,30 +1,21 @@
-import { type Context } from 'hono'
+import { type HonoRequest } from 'hono'
 import { produce } from 'immer'
-import { type FrameContext } from '../types/frame.js'
+import type { Context, FrameContext } from '../types/context.js'
 import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
 
 type GetFrameContextParameters<state = unknown> = {
-  context: Pick<
-    FrameContext<string, state>,
-    | 'initialPath'
-    | 'previousState'
-    | 'previousButtonValues'
-    | 'frameData'
-    | 'status'
-    | 'url'
-    | 'verified'
-  >
+  context: Context
   cycle: FrameContext['cycle']
   initialState?: state
-  req: Context['req']
+  req: HonoRequest
   state?: state
 }
 
-export async function getFrameContext<state>(
-  options: GetFrameContextParameters<state>,
-): Promise<FrameContext<string, state>> {
-  const { context, cycle, req, state } = options
+export function getFrameContext<state>(
+  parameters: GetFrameContextParameters<state>,
+): FrameContext<string, state> {
+  const { context, cycle, req, state } = parameters
   const { frameData, initialPath, previousButtonValues, verified } =
     context || {}
 
@@ -46,8 +37,8 @@ export async function getFrameContext<state>(
     parsePath(context.url)
 
   let previousState = (() => {
-    if (context.status === 'initial') return options.initialState
-    return context?.previousState || options.initialState
+    if (context.status === 'initial') return parameters.initialState
+    return context?.previousState || parameters.initialState
   })()
 
   function deriveState(derive?: (state: state) => void): state {
@@ -72,6 +63,7 @@ export async function getFrameContext<state>(
     req,
     res: (data) => data,
     status,
+    transactionId: frameData?.transactionId,
     url,
     verified,
   }

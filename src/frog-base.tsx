@@ -2,14 +2,15 @@ import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse, type ImageResponseOptions } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
+import { html } from 'hono/html'
 import { type Env, type Schema } from 'hono/types'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import { html } from 'hono/html'
+import { transaction } from './routes/transaction.js'
+import type { FrameContext } from './types/context.js'
 import {
-  type FrameContext,
   type FrameImageAspectRatio,
   type FrameResponse,
 } from './types/frame.js'
@@ -145,7 +146,7 @@ export type FrogConstructorParameters<
   verify?: boolean | 'silent' | undefined
 }
 
-export type FrameOptions = Pick<FrogConstructorParameters, 'verify'>
+export type RouteOptions = Pick<FrogConstructorParameters, 'verify'>
 
 /**
  * A Frog instance.
@@ -217,6 +218,8 @@ export class FrogBase<
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
+  transaction = transaction
+
   constructor({
     assetsPath,
     basePath,
@@ -259,7 +262,7 @@ export class FrogBase<
     handler: (
       context: Pretty<FrameContext<path, state>>,
     ) => FrameResponse | Promise<FrameResponse>,
-    options: FrameOptions = {},
+    options: RouteOptions = {},
   ) {
     const { verify = this.verify } = options
 
@@ -269,7 +272,7 @@ export class FrogBase<
       const assetsUrl = url.origin + parsePath(this.assetsPath)
       const baseUrl = url.origin + parsePath(this.basePath)
 
-      const context = await getFrameContext<state>({
+      const context = getFrameContext<state>({
         context: await requestToContext(c.req, {
           hub:
             this.hub ||
@@ -456,7 +459,7 @@ export class FrogBase<
       const queryContext = fromQuery<
         FrameContext<path, state> & { state: state }
       >(query)
-      const context = await getFrameContext({
+      const context = getFrameContext({
         context: queryContext,
         cycle: 'image',
         initialState: this._initialState,

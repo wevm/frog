@@ -1,5 +1,13 @@
 import type { HtmlEscapedString } from 'hono/utils/html'
 
+export const buttonPrefix = {
+  link: '_l',
+  mint: '_m',
+  redirect: '_r',
+  reset: '_c',
+  transaction: '_t',
+}
+
 export type ButtonProps = {
   children: string | string[]
 }
@@ -45,7 +53,7 @@ export function ButtonLink({
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
-      data-value="_l"
+      data-value={buttonPrefix.link}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta property={`fc:frame:button:${index}:target`} content={href} />,
@@ -67,7 +75,7 @@ export function ButtonMint({
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
-      data-value="_m"
+      data-value={buttonPrefix.mint}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="mint" />,
     <meta property={`fc:frame:button:${index}:target`} content={target} />,
@@ -90,7 +98,7 @@ export function ButtonRedirect({
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
       data-type="redirect"
-      data-value={`_r:${location}`}
+      data-value={`${buttonPrefix.redirect}:${location}`}
     />,
     <meta
       property={`fc:frame:button:${index}:action`}
@@ -113,10 +121,32 @@ export function ButtonReset({
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
-      data-value="_c"
+      data-value={buttonPrefix.reset}
       data-type="reset"
     />
   )
+}
+
+export type ButtonTransactionProps = ButtonProps & {
+  target: string
+}
+
+ButtonTransaction.__type = 'button'
+export function ButtonTransaction({
+  children,
+  // @ts-ignore - private
+  index = 1,
+  target,
+}: ButtonTransactionProps) {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={normalizeChildren(children)}
+      data-value={buttonPrefix.transaction}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="tx" />,
+    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+  ] as unknown as HtmlEscapedString
 }
 
 export const Button = Object.assign(ButtonRoot, {
@@ -124,6 +154,7 @@ export const Button = Object.assign(ButtonRoot, {
   Mint: ButtonMint,
   Redirect: ButtonRedirect,
   Reset: ButtonReset,
+  Transaction: ButtonTransaction,
 })
 
 function normalizeChildren(children: string | string[]) {

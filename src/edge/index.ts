@@ -7,10 +7,12 @@ export {
 } from '../components/Button.js'
 export { TextInput, type TextInputProps } from '../components/TextInput.js'
 
-export type {
-  FrameOptions,
-  FrogConstructorParameters,
-} from '../frog-base.js'
+export type { FrogConstructorParameters, RouteOptions } from '../frog-base.js'
 export { FrogBase as Frog } from '../frog-base.js'
 
-export type { FrameContext, FrameResponse } from '../types/frame.js'
+export type {
+  Context,
+  FrameContext,
+  TransactionContext,
+} from '../types/context.js'
+export type { FrameResponse } from '../types/frame.js'

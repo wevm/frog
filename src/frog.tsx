@@ -1,8 +1,9 @@
 import { type Env, type Schema } from 'hono'
 
 import { routes as devRoutes } from './dev/routes.js'
-import { type FrameOptions, FrogBase } from './frog-base.js'
-import { type FrameContext, type FrameResponse } from './types/frame.js'
+import { FrogBase, type RouteOptions } from './frog-base.js'
+import { type FrameContext } from './types/context.js'
+import { type FrameResponse } from './types/frame.js'
 import { type Pretty } from './types/utils.js'
 
 /**
@@ -46,7 +47,7 @@ export class Frog<
     handler: (
       context: Pretty<FrameContext<path, state>>,
     ) => FrameResponse | Promise<FrameResponse>,
-    options: FrameOptions = {},
+    options: RouteOptions = {},
   ) {
     super.frame(path, handler, options)
 

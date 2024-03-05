@@ -3,6 +3,7 @@ import * as hubs from 'frog/hubs'
 
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
+import { app as transactionApp } from './transaction.js'
 
 export const app = new Frog({
   browserLocation: '/:path/dev',
@@ -225,5 +226,6 @@ app.frame('/redirect-buttons', (c) => {
   })
 })
 
-app.route('/todos', todoApp)
 app.route('/routing', routingApp)
+app.route('/transaction', transactionApp)
+app.route('/todos', todoApp)
