@@ -45,11 +45,10 @@ export class Frog<
   //
   _state = env['State'],
 > extends FrogBase<env, schema, basePath, _state> {
-  // @ts-expect-error TODO: Fix this
   override frame<path extends string>(
     path: path,
     handler: (
-      context: Pretty<FrameContext<env, path>>,
+      context: Pretty<FrameContext<env, path, _state>>,
     ) => HandlerResponse<FrameResponse>,
     options?: RouteOptions,
   ): void
@@ -57,11 +56,11 @@ export class Frog<
     path: path,
     middleware: MiddlewareHandler<env, path>,
     handler: (
-      context: Pretty<FrameContext<env, path>>,
+      context: Pretty<FrameContext<env, path, _state>>,
     ) => HandlerResponse<FrameResponse>,
     options?: RouteOptions,
   ): void
-  override frame(path: string, a: any, b: any, c: any) {
+  override frame(path: string, a: any, b: any, c?: any) {
     super.frame(path, a, b, c)
 
     if (this.dev?.enabled ?? true) devRoutes(this, path)

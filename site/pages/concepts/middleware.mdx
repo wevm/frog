@@ -4,6 +4,66 @@ Since Frog is built on top of [Hono](https://hono.dev), Frog supports Hono's mid
 
 Middleware works before and after the `.frame` [handler](/reference/frog-frame#handler) by allowing you to manipulate the request and response before and after dispatching respectively. We recommend checking out the Hono [documentation on Middleware](https://hono.dev/guides/middleware) for a more in-depth understanding.
 
+## Overview
+
+There are two ways to inject middleware:
+
+1. Globally, on the [App-level](#app-level).
+2. Isolated, on a [Route-level](#route-level).
+
+### App-level
+
+We can inject middleware on the `app` level using the `.use` method. This means middleware will be injected for all routes under `app`.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { neynar, type NeynarVariables } from 'frog/middlewares'
+
+export const app = new Frog<{ Variables: NeynarVariables }>()
+
+// @log: ↓ 1. Inject middleware onto the app.
+app.use(
+  neynar({
+    apiKey: 'NEYNAR_FROG_FM',
+    features: ['interactor', 'cast'],
+  }),
+)
+
+// @log: 2. All routes on `app` will inject the middleware.
+```
+
+### Route-level
+
+We can inject middleware on a route level:
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import {  neynar } from 'frog/middlewares'
+
+export const app = new Frog()
+
+// @log:                ↓ Inject middleware onto the route.
+app.frame('/', neynarMiddleware, (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {c.var.interactor?.displayName}
+      </div>
+    ),
+  })
+})
+```
+
+:::tip[Tip]
+If the middleware sets variable types, then their types will automatically be inferred onto `c.var` when using route-level middleware.
+:::
+
 ## Built-in Middlewares
 
 ### Neynar
