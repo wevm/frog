@@ -29,12 +29,6 @@ export type Context<
    */
   frameData?: Pretty<FrameData>
   /**
-   * Get Hono context.
-   *
-   * @see https://hono.dev/api/context#set-get
-   */
-  get: Context_hono<env, path>['get']
-  /**
    * Initial path of the frame set.
    */
   initialPath: string
@@ -57,12 +51,6 @@ export type Context<
    */
   req: Context_hono<env, path>['req']
   /**
-   * Set Hono context.
-   *
-   * @see https://hono.dev/api/context#set-get
-   */
-  set: Context_hono<env, path>['set']
-  /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.
    * - `redirect` - The frame interaction is a redirect (button of type `'post_redirect'`).
@@ -70,7 +58,7 @@ export type Context<
    */
   status: 'initial' | 'redirect' | 'response'
   /**
-   * Hono context variables.
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
    *
    * @see https://hono.dev/api/context#var
    */

@@ -42,12 +42,10 @@ export function getTransactionContext<
   const { context } = parameters
   const {
     frameData,
-    get,
     initialPath,
     previousButtonValues,
     previousState,
     req,
-    set,
     status,
     verified,
     url,
@@ -89,7 +87,6 @@ export function getTransactionContext<
         })
       },
       frameData,
-      get,
       initialPath,
       inputText,
       previousButtonValues,
@@ -117,7 +114,6 @@ export function getTransactionContext<
           params: parameters,
         })
       },
-      set,
       status,
       var: context.var,
       verified,
