@@ -24,6 +24,19 @@ export type Context<
    */
   buttonValue?: string | undefined
   /**
+   * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
+   *
+   * @example
+   * ```ts
+   * // Environment object for Cloudflare Workers
+   * app.frame('/', async c => {
+   *   const counter = c.env.COUNTER
+   * })
+   * ```
+   * @see https://hono.dev/api/context#env
+   */
+  env: Context_hono<env, path>['env']
+  /**
    * Data from the frame that was passed via the POST body.
    * The {@link Context`verified`} flag indicates whether the data is trusted or not.
    */

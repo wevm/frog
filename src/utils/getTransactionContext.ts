@@ -41,6 +41,7 @@ export function getTransactionContext<
 ): GetTransactionContextReturnType<env, path, _state> {
   const { context } = parameters
   const {
+    env,
     frameData,
     initialPath,
     previousButtonValues,
@@ -86,6 +87,7 @@ export function getTransactionContext<
           value,
         })
       },
+      env,
       frameData,
       initialPath,
       inputText,

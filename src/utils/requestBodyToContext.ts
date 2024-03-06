@@ -65,6 +65,7 @@ export async function requestBodyToContext<
   })()
 
   return {
+    env: c.env,
     initialPath: initialPath ? initialPath : new URL(c.req.url).pathname,
     previousState,
     previousButtonValues,
