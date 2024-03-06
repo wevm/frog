@@ -1,5 +1,11 @@
 # create-frog
 
+## 0.1.4
+
+### Patch Changes
+
+- [`e657a0c`](https://github.com/wevm/frog/commit/e657a0cb07299f730e016818768df9218c747c94) Thanks [@jxom](https://github.com/jxom)! - Updated templates.
+
 ## 0.1.3
 
 ### Patch Changes
