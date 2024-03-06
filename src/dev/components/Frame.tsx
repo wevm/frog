@@ -1,5 +1,5 @@
 import { MintDialog } from './MintDialog.js'
-import { externalLinkIcon, warpIcon } from './icons.js'
+import { externalLinkIcon, half2Icon, warpIcon } from './icons.js'
 
 export function Frame() {
   return (
@@ -224,6 +224,13 @@ function Button() {
           </button>
           <MintDialog />
         </div>
+      </template>
+
+      <template x-if="type === 'tx'">
+        <button class={buttonClass} type="button">
+          <div>{half2Icon}</div>
+          {innerHtml}
+        </button>
       </template>
 
       <template x-if="type === 'post'">
