@@ -2,7 +2,7 @@ import { useState as useLocalState, useRef } from 'hono/jsx/dom'
 
 import { type Frame } from '../types.js'
 import { clsx } from '../lib/clsx.js'
-import { externalLinkIcon, warpIcon } from './icons.js'
+import { externalLinkIcon, half2Icon, warpIcon } from './icons.js'
 import { useState } from '../hooks/useState.js'
 import { useDispatch } from '../hooks/useDispatch.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
@@ -131,7 +131,8 @@ type ButtonProps = {
 function Button(props: ButtonProps) {
   const { index, target, title, type } = props
   const { frame, inputText, overrides, user } = useState()
-  const { postFrameAction, postFrameRedirect, setState } = useDispatch()
+  const { postFrameAction, postFrameRedirect, postFrameTransaction, setState } =
+    useDispatch()
 
   const [open, setOpen] = useLocalState(false)
   const [url, setUrl] = useLocalState(target)
@@ -227,6 +228,38 @@ function Button(props: ButtonProps) {
 
         <LeavingAppPrompt open={open} url={url} close={() => setOpen(false)} />
       </div>
+    )
+
+  if (type === 'tx')
+    return (
+      <button
+        class={buttonClass}
+        type="button"
+        onClick={async () => {
+          if (open) return
+
+          const body = {
+            buttonIndex: index,
+            castId: {
+              fid: overrides.castFid,
+              hash: overrides.castHash,
+            },
+            fid:
+              overrides.userFid !== user?.userFid
+                ? overrides.userFid
+                : user.userFid,
+            inputText,
+            state: frame.state,
+            url: target ?? frame.postUrl,
+          }
+          const json = await postFrameTransaction(body)
+          console.log(json)
+        }}
+      >
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+        <div dangerouslySetInnerHTML={{ __html: half2Icon.toString() }} />
+        {innerHtml}
+      </button>
     )
 
   return (

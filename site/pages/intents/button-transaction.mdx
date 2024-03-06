@@ -1,0 +1,46 @@
+# Button.Transaction
+
+## Import
+
+```tsx twoslash
+import { Button } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Perform a transaction
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Value (ETH)" />,
+      <Button.Transaction target="/mint">Mint</Button.Transaction>, // [!code focus]
+    ]
+  })
+})
+```
+
+## Props
+
+### target
+
+- **Type:** `string`
+
+The target `.transaction` endpoint.
+
+### value (optional)
+
+- **Type:** `string`
+
+The value of the button. Casts to the `buttonValue` context property when clicked.

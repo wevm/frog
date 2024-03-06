@@ -1,31 +1,41 @@
-import { type Context } from 'hono'
 import { produce } from 'immer'
-import { type FrameContext } from '../types/frame.js'
+import type { Context, FrameContext } from '../types/context.js'
+import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
 
-type GetFrameContextParameters<state = unknown> = {
-  context: Pick<
-    FrameContext<string, state>,
-    | 'initialPath'
-    | 'previousState'
-    | 'previousButtonValues'
-    | 'frameData'
-    | 'status'
-    | 'url'
-    | 'verified'
-  >
+type GetFrameContextParameters<
+  env extends Env = Env,
+  path extends string = string,
+  //
+  _state = env['State'],
+> = {
+  context: Context<env, path>
   cycle: FrameContext['cycle']
-  initialState?: state
-  req: Context['req']
-  state?: state
+  initialState?: _state
+  state?: _state
 }
 
-export async function getFrameContext<state>(
-  options: GetFrameContextParameters<state>,
-): Promise<FrameContext<string, state>> {
-  const { context, cycle, req, state } = options
-  const { frameData, initialPath, previousButtonValues, verified } =
+type GetFrameContextReturnType<
+  env extends Env = Env,
+  path extends string = string,
+  //
+  _state = env['State'],
+> = {
+  context: FrameContext<env, path>
+  getState: () => _state
+}
+
+export function getFrameContext<
+  env extends Env,
+  path extends string,
+  //
+  _state = env['State'],
+>(
+  parameters: GetFrameContextParameters<env, path, _state>,
+): GetFrameContextReturnType<env, path, _state> {
+  const { context, cycle, state } = parameters
+  const { frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
   const { buttonValue, inputText, redirect, reset } = getIntentState({
@@ -46,33 +56,37 @@ export async function getFrameContext<state>(
     parsePath(context.url)
 
   let previousState = (() => {
-    if (context.status === 'initial') return options.initialState
-    return context?.previousState || options.initialState
+    if (context.status === 'initial') return parameters.initialState
+    return context?.previousState || parameters.initialState
   })()
 
-  function deriveState(derive?: (state: state) => void): state {
+  function deriveState(derive?: (state: _state) => void): _state {
     if (status === 'response' && derive) {
-      if (cycle === 'image') return state as state
+      if (cycle === 'image') return state as _state
       previousState = produce(previousState, derive)
     }
-    return previousState as state
+    return previousState as _state
   }
 
   return {
-    buttonIndex: frameData?.buttonIndex,
-    buttonValue,
-    cycle,
-    frameData,
-    initialPath,
-    inputText,
-    deriveState,
-    getState: () => previousState as state,
-    previousButtonValues,
-    previousState: previousState as any,
-    req,
-    res: (data) => data,
-    status,
-    url,
-    verified,
+    context: {
+      buttonIndex: frameData?.buttonIndex,
+      buttonValue,
+      cycle,
+      deriveState,
+      frameData,
+      initialPath,
+      inputText,
+      previousButtonValues,
+      previousState: previousState as any,
+      req,
+      res: (data) => ({ data, format: 'frame' }),
+      status,
+      transactionId: frameData?.transactionId,
+      url,
+      var: context.var,
+      verified,
+    },
+    getState: () => previousState as _state,
   }
 }

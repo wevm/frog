@@ -1,6 +1,6 @@
-# Frog.frame Context
+# Frog.transaction Context
 
-The `c` object is the parameter of the route handlers. It contains context about the current frame.
+The `c` object is the parameter of the route handlers. It contains context for the transaction route.
 
 ```tsx twoslash
 // @noErrors
@@ -8,8 +8,8 @@ import { Frog } from 'frog'
  
 export const app = new Frog()
 
-app.frame('/', (c) => { // [!code focus]
-  return c.res({/* ... */})
+app.transaction('/send-ether', (c) => { // [!code focus]
+  return c.send({/* ... */})
 })
 ```
 
@@ -22,6 +22,7 @@ The index of the button that was previously clicked.
 For example, if the user clicked `"Banana"`, then `buttonIndex` will be `2`.
 
 ```tsx twoslash
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
@@ -29,19 +30,32 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 app.frame('/', (c) => {
-  const { buttonIndex } = c
   return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        Selected: {buttonIndex} // [!code focus]
+        Select a fruit.
       </div>
     ),
     intents: [
-      <Button value="apple">Apple</Button>, // [!code focus]
-      <Button value="banana">Banana</Button>, // [!code focus]
-      <Button value="mango">Mango</Button> // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="apple" // [!code focus]
+      > // [!code focus]
+        Apple // [!code focus]
+      </Button.Transaction>, // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="banana" // [!code focus]
+      > // [!code focus]
+        Banana // [!code focus]
+      </Button.Transaction>, // [!code focus]
     ]
   })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { buttonIndex } = c // [!code focus]
+  return c.send({/* ... */})
 })
 ```
 
@@ -54,6 +68,7 @@ The value of the button that was previously clicked.
 For example, if the user clicked `"Banana"`, then `buttonValue` will be `"banana"`.
 
 ```tsx twoslash
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
@@ -61,101 +76,51 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 app.frame('/', (c) => {
-  const { buttonValue } = c
   return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        Selected: {buttonValue} // [!code focus]
+        Select a fruit.
       </div>
     ),
     intents: [
-      <Button value="apple">Apple</Button>, // [!code focus]
-      <Button value="banana">Banana</Button>, // [!code focus]
-      <Button value="mango">Mango</Button> // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="apple" // [!code focus]
+      > // [!code focus]
+        Apple // [!code focus]
+      </Button.Transaction>, // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="banana" // [!code focus]
+      > // [!code focus]
+        Banana // [!code focus]
+      </Button.Transaction>, // [!code focus]
     ]
   })
 })
+
+app.transaction('/send-ether', (c) => {
+  const { buttonValue } = c // [!code focus]
+  return c.send({/* ... */})
+})
 ```
 
-## cycle
+## contract
 
-- **Type**: `"main" | "image"`
+- **Type**: `TransactionResponseFn<ContractTransactionParameters>`
 
-Current render cycle of the frame.
-
-- `main` - Render cycle for the main frame route.
-- `image` - Render cycle for the OG image route.
+Contract transaction response. [See more.](/reference/frog-transaction-response#contract-transaction-ccontract)
 
 ```tsx twoslash
 // @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import { db } from './db'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
-  const { buttonValue, cycle } = c // [!code focus]
-
-  if (cycle === 'main') db.save(buttonValue) // [!code focus]
-
-  return c.res({
-    image: (
-      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        Selected: {buttonValue}
-      </div>
-    ),
-    intents: [
-      <Button value="apple">Apple</Button>,
-      <Button value="banana">Banana</Button>,
-      <Button value="mango">Mango</Button>
-    ]
-  })
-})
-```
-
-## deriveState
-
-- **Type**: `(state: State) => void`
-
-Derives new state from the state of the previous frame. 
-
-Internally uses [Immers's `produce` function](https://immerjs.github.io/immer/produce/) to create a draft of the state, and then applies the changes to the state.
-
-```tsx twoslash
-// @noErrors
-/** @jsxImportSource frog/jsx */
-// ---cut---
-import { Button, Frog } from 'frog'
-
-type State = {     // [!code focus]
-  values: string[] // [!code focus]
-} // [!code focus]
- 
-export const app = new Frog<{ State: State }>({ // [!code focus]
-  initialState: { // [!code focus]
-    values: [] // [!code focus]
-  } // [!code focus]
-}) // [!code focus]
- 
-app.frame('/', (c) => {
-  const { buttonValue, deriveState } = c
-  const state = deriveState(previousState => { // [!code focus]
-    if (buttonValue) previousState.values.push(buttonValue) // [!code focus]
-  }) // [!code focus]
-  return c.res({
-    image: (
-      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        {state.values.map(value => <div>{value}</div>)} // [!code focus]
-      </div>
-    ),
-    intents: [
-      <Button value="apple">Apple</Button>, 
-      <Button value="banana">Banana</Button>,
-      <Button value="mango">Mango</Button>,
-    ]
-  })
+app.transaction('/mint', (c) => {
+  return c.contract({/* ... */}) // [!code focus]
 })
 ```
 
@@ -173,10 +138,10 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   const { frameData } = c
   const { castId, fid, messageHash, network, timestamp, url } = frameData // [!code focus]
-  return c.res({/* ... */})
+  return c.send({/* ... */})
 })
 ```
 
@@ -196,9 +161,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   const { initialPath } = c // [!code focus]
-  return c.res({/* ... */})
+  return c.send({/* ... */})
 })
 ```
 
@@ -219,18 +184,22 @@ import { Button, Frog, TextInput } from 'frog'
 export const app = new Frog()
  
 app.frame('/', (c) => {
-  const { inputText } = c  // [!code focus]
   return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        Selected: {inputText} // [!code focus]
+        Send Ether
       </div>
     ),
     intents: [
-      <TextInput placeholder="Type your fruit..." />, // [!code focus]
-      <Button>Submit</Button>,
+      <TextInput placeholder="Value (ETH)" />, // [!code focus]
+      <Button target="/send-ether">Send</Button>,
     ]
   })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { inputText } = c // [!code focus]
+  return c.send({/* ... */})
 })
 ```
 
@@ -250,34 +219,33 @@ export const app = new Frog()
  
 app.frame('/', (c) => {
   return c.res({
-    action: '/result', // [!code focus]
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
         Select your fruit
       </div>
     ),
     intents: [
-      <Button value="apple">Apple</Button>, // [!code focus]
-      <Button value="banana">Banana</Button>, // [!code focus]
-      <Button value="mango">Mango</Button> // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="apple" // [!code focus]
+      > // [!code focus]
+        Apple // [!code focus]
+      </Button.Transaction>, // [!code focus]
+      <Button.Transaction // [!code focus]
+        target="/send-ether" // [!code focus]
+        value="banana" // [!code focus]
+      > // [!code focus]
+        Banana // [!code focus]
+      </Button.Transaction>, // [!code focus]
     ]
   })
 })
 
-app.frame('/result', (c) => { // [!code focus]
+app.transaction('/send-ether', (c) => { // [!code focus]
   const { buttonValue, previousButtonValues } = c
   console.log(previousButtonValues) // [!code focus]
-// @log:   ['apple', 'banana', 'mango']
-  return c.res({
-    image: (
-      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        Selected: {buttonValue}
-      </div>
-    ),
-    intents: [
-      <Button.Reset>Reset</Button.Reset>,
-    ]
-  })
+// @log:   ['apple', 'banana']
+  return c.send({/* ... */})
 })
 ```
 
@@ -304,7 +272,7 @@ export const app = new Frog<{ State: State }>({
 }) 
  
 app.frame('/', (c) => {
-  const { buttonValue, deriveState, previousState } = c // [!code focus]
+  const { buttonValue, deriveState } = c
   const state = deriveState(previousState => { 
     if (buttonValue) previousState.values.push(buttonValue)
   })
@@ -317,9 +285,14 @@ app.frame('/', (c) => {
     intents: [
       <Button value="apple">Apple</Button>, 
       <Button value="banana">Banana</Button>,
-      <Button value="mango">Mango</Button>,
+      <Button.Transaction target="/send-ether">Send</Button.Transaction>,
     ]
   })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { previousState } = c // [!code focus]
+  return c.send({/* ... */})
 })
 ```
 
@@ -337,7 +310,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   const { req } = c // [!code focus]
   return c.res({/* ... */})
 })
@@ -345,9 +318,9 @@ app.frame('/', (c) => {
 
 ## res
 
-- **Type**: `(response: FrameResponse) => FrameResponse`
+- **Type**: `TransactionResponseFn<TransactionParameters>`
 
-The frame response.
+Raw transaction response. [See more.](/reference/frog-transaction-response#raw-transaction-cres)
 
 ```tsx twoslash
 // @noErrors
@@ -357,20 +330,16 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   return c.res({/* ... */}) // [!code focus]
 })
 ```
 
-## status
+## send
 
-- **Type**: `"initial" | "redirect" | "response"`
+- **Type**: `TransactionResponseFn<SendTransactionParameters>`
 
-Status of the frame in the frame lifecycle.
-
-- `initial` - The frame has not yet been interacted with.
-- `redirect` - The frame interaction is a redirect (button of type `'post_redirect'`).
-- `response` - The frame has been interacted with (user presses button).
+Send transaction response. [See more.](/reference/frog-transaction-response#send-transaction-csend)
 
 ```tsx twoslash
 // @noErrors
@@ -380,9 +349,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
-  const { status } = c // [!code focus]
-  return c.res({/* ... */})
+app.transaction('/send-ether', (c) => {
+  return c.send({/* ... */}) // [!code focus]
 })
 ```
 
@@ -405,9 +373,9 @@ app.use(async (c, next) => {
   await next()
 })
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   const message = c.var.message // [!code focus]
-  return c.res({/* ... */})
+  return c.send({/* ... */})
 })
 ```
 
@@ -425,9 +393,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   const { verified } = c // [!code focus]
-  return c.res({/* ... */})
+  return c.send({/* ... */})
 })
 ```
 
@@ -435,7 +403,7 @@ app.frame('/', (c) => {
 
 - **Type**: `string`
 
-URL of the frame.
+Current URL.
 
 ```tsx twoslash
 // @noErrors
@@ -445,8 +413,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.frame('/', (c) => {
+app.transaction('/send-ether', (c) => {
   const { url } = c // [!code focus]
-  return c.res({/* ... */})
+  return c.send({/* ... */})
 })
 ```

@@ -1,3 +1,5 @@
+export { parseEther } from 'viem'
+
 export {
   Button,
   type ButtonLinkProps,
@@ -8,8 +10,8 @@ export {
 export { TextInput, type TextInputProps } from './components/TextInput.js'
 
 export type {
-  FrameOptions,
   FrogConstructorParameters,
+  RouteOptions,
 } from './frog-base.js'
 export { Frog } from './frog.js'
 
@@ -18,4 +20,15 @@ export {
   getFrameMetadata,
 } from './utils/getFrameMetadata.js'
 
-export type { FrameContext, FrameResponse } from './types/frame.js'
+export type {
+  Context,
+  FrameContext,
+  TransactionContext,
+} from './types/context.js'
+export type { FrameResponse } from './types/frame.js'
+export type {
+  TransactionResponse,
+  ContractTransactionParameters,
+  SendTransactionParameters,
+  TransactionParameters,
+} from './types/transaction.js'

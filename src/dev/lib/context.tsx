@@ -66,6 +66,10 @@ export type DispatchValue = {
     body: RequestBody,
     options?: { skipLogs?: boolean },
   ): Promise<Data>
+  postFrameTransaction(
+    body: RequestBody,
+    options?: { skipLogs?: boolean },
+  ): Promise<Data>
 
   fetchAuthCode(): Promise<{ token: string; url: string }>
   fetchAuthStatus(token: string): Promise<User>
@@ -221,6 +225,34 @@ export function Provider(props: Props) {
           routes,
         }
       })
+
+      return json
+    },
+    async postFrameTransaction(body, _options = { skipLogs: false }) {
+      const url = parsePath('body' in data ? data.body.url : data.url)
+      const json = await fetch(`${url}/dev/frame/transaction`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+      }).then((response) => response.json())
+
+      // setState((x) => {
+      //   const previousData = x.dataMap[x.logs.at(-1) ?? x.dataKey]
+      //   const data = {
+      //     context: previousData.context,
+      //     frame: previousData.frame,
+      //     ...json,
+      //   }
+      //   const id = json.id
+      //
+      //   return {
+      //     ...x,
+      //     dataMap: { ...x.dataMap, [id]: data },
+      //     logIndex: -1,
+      //     logs: options.skipLogs ? x.logs : [...x.logs, id],
+      //     routes,
+      //   }
+      // })
 
       return json
     },

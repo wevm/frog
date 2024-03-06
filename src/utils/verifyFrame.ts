@@ -35,7 +35,7 @@ export async function verifyFrame({
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`)
 
-  if (!parsePath(frameUrl)?.startsWith(parsePath(url)))
+  if (!parsePath(url)?.startsWith(parsePath(frameUrl)))
     throw new Error(`Invalid frame url: ${frameUrl}. Expected: ${url}.`)
 
   const message = Message.fromBinary(body)
@@ -46,7 +46,7 @@ export async function verifyFrame({
 ////////////////////////////////////////////////////////////////////
 // Utilties
 
-function messageToFrameData(message: Message): FrameData {
+export function messageToFrameData(message: Message): FrameData {
   const frameActionBody = message.data?.body.value as FrameActionBody
   const frameData: FrameData = {
     castId: {

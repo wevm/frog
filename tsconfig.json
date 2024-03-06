@@ -2,7 +2,7 @@
   // This configuration is used for local development and type checking.
   "extends": "./tsconfig.base.json",
   "exclude": ["templates/*", "create-frog/templates"],
-  "include": ["create-frog", "examples", "templates", "src"],
+  "include": ["create-frog", "examples", "playground", "src"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"

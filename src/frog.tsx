@@ -1,8 +1,11 @@
-import { type Env, type Schema } from 'hono'
+import { type Schema } from 'hono'
 
 import { routes as devRoutes } from './dev/routes.js'
-import { type FrameOptions, FrogBase } from './frog-base.js'
-import { type FrameContext, type FrameResponse } from './types/frame.js'
+import { FrogBase, type RouteOptions } from './frog-base.js'
+import { type FrameContext } from './types/context.js'
+import type { Env } from './types/env.js'
+import { type FrameResponse } from './types/frame.js'
+import type { HandlerResponse } from './types/response.js'
 import { type Pretty } from './types/utils.js'
 
 /**
@@ -36,19 +39,20 @@ import { type Pretty } from './types/utils.js'
  * ```
  */
 export class Frog<
-  state = undefined,
   env extends Env = Env,
   schema extends Schema = {},
   basePath extends string = '/',
-> extends FrogBase<state, env, schema, basePath> {
+  //
+  _state = env['State'],
+> extends FrogBase<env, schema, basePath, _state> {
   override frame<path extends string>(
     path: path,
     handler: (
-      context: Pretty<FrameContext<path, state>>,
-    ) => FrameResponse | Promise<FrameResponse>,
-    options: FrameOptions = {},
+      context: Pretty<FrameContext<env, path, _state>>,
+    ) => HandlerResponse<FrameResponse>,
+    options: RouteOptions = {},
   ) {
-    super.frame(path, handler, options)
+    super.frame(path, handler as any, options)
 
     if (this.dev?.enabled ?? true) devRoutes(this, path)
   }

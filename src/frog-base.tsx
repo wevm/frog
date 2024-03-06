@@ -2,35 +2,39 @@ import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse, type ImageResponseOptions } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
-import { type Env, type Schema } from 'hono/types'
+import { html } from 'hono/html'
+import { type Schema } from 'hono/types'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import { html } from 'hono/html'
+import { transaction } from './routes/transaction.js'
+import type { FrameContext, FrameQueryContext } from './types/context.js'
+import type { Env } from './types/env.js'
 import {
-  type FrameContext,
   type FrameImageAspectRatio,
   type FrameResponse,
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
+import type { HandlerResponse } from './types/response.js'
 import { type Pretty } from './types/utils.js'
-import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
-import { requestToContext } from './utils/requestToContext.js'
+import { requestBodyToContext } from './utils/requestBodyToContext.js'
+import { requestQueryToContext } from './utils/requestQueryToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
 
 export type FrogConstructorParameters<
-  state = undefined,
   env extends Env = Env,
   basePath extends string = '/',
+  //
+  _state = env['State'],
 > = Pick<FrameResponse, 'browserLocation'> & {
   /**
    * The base path for assets.
@@ -118,7 +122,7 @@ export type FrogConstructorParameters<
    * }
    * ```
    */
-  initialState?: state | undefined
+  initialState?: _state | undefined
   /**
    * Key used to sign secret data.
    *
@@ -145,7 +149,7 @@ export type FrogConstructorParameters<
   verify?: boolean | 'silent' | undefined
 }
 
-export type FrameOptions = Pick<FrogConstructorParameters, 'verify'>
+export type RouteOptions = Pick<FrogConstructorParameters, 'verify'>
 
 /**
  * A Frog instance.
@@ -178,14 +182,15 @@ export type FrameOptions = Pick<FrogConstructorParameters, 'verify'>
  * ```
  */
 export class FrogBase<
-  state = undefined,
   env extends Env = Env,
   schema extends Schema = {},
   basePath extends string = '/',
+  //
+  _state = env['State'],
 > {
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
-  _initialState: state = undefined as state
+  _initialState: env['State'] = undefined as env['State']
 
   /** Path for assets. */
   assetsPath: string
@@ -217,6 +222,8 @@ export class FrogBase<
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
+  transaction = transaction as typeof transaction<env, schema, basePath, _state>
+
   constructor({
     assetsPath,
     basePath,
@@ -231,7 +238,7 @@ export class FrogBase<
     initialState,
     secret,
     verify,
-  }: FrogConstructorParameters<state, env, basePath> = {}) {
+  }: FrogConstructorParameters<env, basePath, _state> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
@@ -257,9 +264,9 @@ export class FrogBase<
   frame<path extends string>(
     path: path,
     handler: (
-      context: Pretty<FrameContext<path, state>>,
-    ) => FrameResponse | Promise<FrameResponse>,
-    options: FrameOptions = {},
+      context: Pretty<FrameContext<env, path>>,
+    ) => HandlerResponse<FrameResponse>,
+    options: RouteOptions = {},
   ) {
     const { verify = this.verify } = options
 
@@ -269,8 +276,8 @@ export class FrogBase<
       const assetsUrl = url.origin + parsePath(this.assetsPath)
       const baseUrl = url.origin + parsePath(this.basePath)
 
-      const context = await getFrameContext<state>({
-        context: await requestToContext(c.req, {
+      const { context, getState } = getFrameContext<env, path>({
+        context: await requestBodyToContext(c, {
           hub:
             this.hub ||
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
@@ -279,10 +286,12 @@ export class FrogBase<
         }),
         cycle: 'main',
         initialState: this._initialState,
-        req: c.req,
       })
 
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
+
+      const response = await handler(context)
+      if (response instanceof Response) return response
 
       const {
         action,
@@ -292,7 +301,7 @@ export class FrogBase<
         image,
         intents,
         title = 'Frog Frame',
-      } = await handler(context)
+      } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
 
       if (context.status === 'redirect' && context.buttonIndex) {
@@ -320,13 +329,13 @@ export class FrogBase<
 
       // The OG route also needs context, so we will need to pass the current derived context,
       // via a query parameter to the OG image route (/image).
-      const baseContext = {
+      const queryContext: FrameQueryContext<env, path> = {
         ...context,
-        // We can't serialize `request` (aka `c.req`), so we'll just set it to undefined.
+        // `c.req` is not serializable.
         req: undefined,
-        state: context.getState(),
+        state: getState(),
       }
-      const frameImageParams = toSearchParams(baseContext)
+      const frameImageParams = toSearchParams(queryContext)
 
       // Derive the previous state, and sign it if a secret is provided.
       const previousState = await (async () => {
@@ -427,7 +436,7 @@ export class FrogBase<
               {this.dev.enabled && (
                 <meta
                   property="frog:context"
-                  content={serializeJson(baseContext)}
+                  content={serializeJson(queryContext)}
                 />
               )}
               <meta property="frog:version" content={version} />
@@ -440,16 +449,13 @@ export class FrogBase<
 
     // OG Image Route
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
-      const query = c.req.query()
-      const queryContext = fromQuery<
-        FrameContext<path, state> & { state: state }
-      >(query)
-      const context = await getFrameContext({
-        context: queryContext,
+      const baseContext = requestQueryToContext<env, path>(c)
+
+      const { context } = getFrameContext({
+        context: baseContext,
         cycle: 'image',
         initialState: this._initialState,
-        req: c.req,
-        state: queryContext?.state,
+        state: baseContext?.state,
       })
 
       const defaultImageOptions =
@@ -457,11 +463,14 @@ export class FrogBase<
           ? await this.imageOptions()
           : this.imageOptions
 
+      const response = await handler(context)
+      if (response instanceof Response) return response
+
       const {
         image,
         headers = this.headers,
         imageOptions = defaultImageOptions,
-      } = await handler(context)
+      } = response.data
       if (typeof image === 'string') return c.redirect(image, 302)
       return new ImageResponse(image, {
         ...imageOptions,
@@ -472,10 +481,9 @@ export class FrogBase<
 
   route<
     subPath extends string,
-    subEnv extends Env,
     subSchema extends Schema,
     subBasePath extends string,
-  >(path: subPath, frog: FrogBase<any, subEnv, subSchema, subBasePath>) {
+  >(path: subPath, frog: FrogBase<any, subSchema, subBasePath>) {
     if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
     if (frog.basePath === '/')
       frog.basePath = parsePath(this.basePath) + parsePath(path)

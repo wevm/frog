@@ -19,7 +19,7 @@ type State = {     // [!code focus]
   count: number // [!code focus]
 } // [!code focus]
  
-export const app = new Frog<State>({ // [!code focus]
+export const app = new Frog<{ State: State }>({ // [!code focus]
   initialState: { // [!code focus]
     count: 0 // [!code focus]
   } // [!code focus]

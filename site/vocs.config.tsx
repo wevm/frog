@@ -267,12 +267,16 @@ export default defineConfig({
           link: '/concepts/routing',
         },
         {
-          text: 'Connecting Frames (Actions)',
-          link: '/concepts/actions',
-        },
-        {
           text: 'Images & Intents',
           link: '/concepts/images-intents',
+        },
+        {
+          text: 'Render Cycles',
+          link: '/concepts/render-cycles',
+        },
+        {
+          text: 'Connecting Frames (Actions)',
+          link: '/concepts/actions',
         },
         {
           text: 'Browser Redirects',
@@ -297,6 +301,10 @@ export default defineConfig({
         {
           text: 'Middleware',
           link: '/concepts/middleware',
+        },
+        {
+          text: 'Transactions',
+          link: '/concepts/transactions',
         },
       ],
     },
@@ -326,6 +334,19 @@ export default defineConfig({
       ],
     },
     {
+      text: 'Hubs',
+      items: [
+        {
+          text: 'Neynar',
+          link: '/hubs/neynar',
+        },
+        {
+          text: 'Pinata',
+          link: '/hubs/pinata',
+        },
+      ],
+    },
+    {
       text: 'Intent Reference',
       items: [
         { text: 'Button', link: '/intents/button' },
@@ -333,6 +354,7 @@ export default defineConfig({
         { text: 'Button.Mint', link: '/intents/button-mint' },
         { text: 'Button.Redirect', link: '/intents/button-redirect' },
         { text: 'Button.Reset', link: '/intents/button-reset' },
+        { text: 'Button.Transaction', link: '/intents/button-transaction' },
         { text: 'TextInput', link: '/intents/textinput' },
       ],
     },
@@ -340,22 +362,29 @@ export default defineConfig({
       text: 'Frog Reference',
       items: [
         { text: 'Frog', link: '/reference/frog' },
-        { text: 'Frog.frame', link: '/reference/frog-frame' },
-        { text: 'Frog.frame Context', link: '/reference/frog-frame-context' },
         {
-          text: 'Frog.frame Response',
-          link: '/reference/frog-frame-response',
+          text: 'Frog.frame',
+          link: '/reference/frog-frame',
+          items: [
+            { text: 'Context', link: '/reference/frog-frame-context' },
+            {
+              text: 'Response',
+              link: '/reference/frog-frame-response',
+            },
+          ],
+        },
+        {
+          text: 'Frog.transaction',
+          link: '/reference/frog-transaction',
+          items: [
+            { text: 'Context', link: '/reference/frog-transaction-context' },
+            {
+              text: 'Response',
+              link: '/reference/frog-transaction-response',
+            },
+          ],
         },
         { text: 'Frog.hono', link: '/reference/frog-hono' },
-      ],
-    },
-    {
-      text: 'Hubs',
-      items: [
-        {
-          text: 'Neynar',
-          link: '/hubs/neynar',
-        },
       ],
     },
     {

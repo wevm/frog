@@ -1,5 +1,56 @@
 # frog
 
+## 0.4.0
+
+### Minor Changes
+
+- [#87](https://github.com/wevm/frog/pull/87) [`b7031ff`](https://github.com/wevm/frog/commit/b7031ff4f045a9539fb1a20899b35b41eb26515b) Thanks [@jxom](https://github.com/jxom)! - Added built-in middleware for Neynar. [Read more.](https://frog.fm/concepts/middleware#neynar)
+
+### Patch Changes
+
+- [#80](https://github.com/wevm/frog/pull/80) [`c377528`](https://github.com/wevm/frog/commit/c3775288bc8683d532d9c6ca2cd05e6f2f1bd69d) Thanks [@jxom](https://github.com/jxom)! - **Type Change:** The `state` generic in the `Frog` constructor type is now named.
+
+  ```diff
+  type State = { count: number }
+
+  - const frog = new Frog<State>({
+  + const frog = new Frog<{ State: State }>({
+    initialState: { count: 0 }
+  })
+  ```
+
+- [#80](https://github.com/wevm/frog/pull/80) [`c377528`](https://github.com/wevm/frog/commit/c3775288bc8683d532d9c6ca2cd05e6f2f1bd69d) Thanks [@jxom](https://github.com/jxom)! - Added a `var` property to context to extract variables that were previously set via `set` in Middleware. [Read more.](https://frog.fm/reference/frog-frame-context#var)
+
+## 0.3.3
+
+### Patch Changes
+
+- [`142040e`](https://github.com/wevm/frog/commit/142040e1a73ccd9d5f82c7b6578173c65c3dc3c6) Thanks [@jxom](https://github.com/jxom)! - Fixed URL comparison for frame verification.
+
+## 0.3.2
+
+### Patch Changes
+
+- [`f800940`](https://github.com/wevm/frog/commit/f800940eb89ffe41d46b724336765988a4a0b3df) Thanks [@jxom](https://github.com/jxom)! - Added `pinata` hub.
+
+## 0.3.1
+
+### Patch Changes
+
+- [`00725e7`](https://github.com/wevm/frog/commit/00725e7be52727d2203e86d5855f824f6e1a96e9) Thanks [@jxom](https://github.com/jxom)! - Widened handler return types to allow [`Response` objects](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
+## 0.3.0
+
+### Minor Changes
+
+- [`af6828a`](https://github.com/wevm/frog/commit/af6828a87e4f08e5b9ff76d5a7337ba18e42d773) Thanks [@jxom](https://github.com/jxom)! - Added Transaction support. [Read more.](https://frog.fm/concepts/transactions)
+
+## 0.2.14
+
+### Patch Changes
+
+- [`885347e`](https://github.com/wevm/frog/commit/885347e6f88c20238c58ac69591be54eec15a1f8) Thanks [@jxom](https://github.com/jxom)! - Fixed Next.js circular dependency on `getFrameMetadata`.
+
 ## 0.2.13
 
 ### Patch Changes

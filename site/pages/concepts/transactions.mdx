@@ -1,0 +1,370 @@
+# Transactions
+
+Farcaster Frames have the ability to instruct an App to invoke and perform Ethereum transactions (see the [spec](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4)).
+
+## Overview
+
+At a glance:
+
+1. A Frame has a `<Button.Transaction>{:jsx}` element with a specified target `.transaction` route.
+2. When the user presses the button in the App, the App will make a `POST` request to the `.transaction` route.
+3. The App uses the response to forward the transaction data to the user's wallet for signing and broadcasting.
+4. Once the user has sent the transaction, the App will perform a `POST` request to the frame.
+
+## Walkthrough
+
+Here is a trivial example on how to expose a transaction interface in a frame. We will break it down below.
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Button, Frog, TextInput, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  return c.res({
+    action: '/finish',
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Perform a transaction
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Value (ETH)" />,
+      <Button.Transaction target="/send-ether">Send Ether</Button.Transaction>,
+      <Button.Transaction target="/mint">Mint</Button.Transaction>,
+    ]
+  })
+})
+
+app.frame('/finish', (c) => {
+  const { transactionId } = c
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Transaction ID: {transactionId}
+      </div>
+    )
+  })
+})
+
+app.transaction('/send-ether', (c) => {
+  const { inputText } = c
+  // Send transaction response.
+  return c.send({
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: parseEther(inputText),
+  })
+})
+
+app.transaction('/mint', (c) => {
+  const { inputText } = c
+  // Contract transaction response.
+  return c.contract({
+    abi,
+    chainId: 'eip155:1',
+    functionName: 'mint',
+    args: [69420n],
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: parseEther(inputText)
+  })
+})
+```
+
+```tsx twoslash [src/abi.ts] filename="./abi.ts"
+export const abi = [
+  {
+    inputs: [{ internalType: 'uint256', name: 'tokenId', type: 'uint256' }],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+] as const
+```
+
+:::
+
+::::steps
+
+### 1. Render Frame & Intents
+
+In the example above, we are rendering three transaction intents:
+
+1. A **text input** to capture the amount of ether to send with the transaction.
+2. A **"Send Ether" button** that will call the `/send-ether` route, and expose a "send ethereum to an address" interface to the App.
+3. A **"Mint" button** that will call the `/mint` route, and expose a "mint NFT" interface to the App.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Perform a transaction
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Value (ETH)" />,
+      <Button.Transaction target="/send-ether">Send Ether</Button.Transaction>,
+      <Button.Transaction target="/mint">Mint</Button.Transaction>,
+    ]
+  })
+})
+
+// ...
+```
+
+
+### 2. Handle `/send-ether` Requests
+
+Without route handlers to handle these requests, these buttons will be meaningless. 
+
+Firstly, let's define a `/send-ether` route to handle the "Send Ether" button:
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Perform a transaction
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Value (ETH)" />,
+      <Button.Transaction target="/send-ether">Send Ether</Button.Transaction>, // [!code focus]
+      <Button.Transaction target="/mint">Mint</Button.Transaction>,
+    ]
+  })
+})
+
+// ...
+
+app.transaction('/send-ether', (c) => { // [!code focus]
+  const { inputText } = c // [!code focus]
+  // Send transaction response. // [!code focus]
+  return c.send({ // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+    value: parseEther(inputText), // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+```
+
+A breakdown of the `/send-ether` route handler:
+
+- We are responding with a `c.send` ("send transaction") response.
+- We are extracting user input from the previous frame via `inputText`.
+- Within `c.send`, we can specify a:
+  - `chainId`: CAIP-2 compliant chain ID. We are sending to `eip155:1` where `1` is Ethereum mainnet.
+  - `to`: a recipient.
+  - `value`: the amount of wei to send. We are using `parseEther` to convert ether → wei.
+  - `data`: optional calldata to include in the transaction.
+  - `abi`: optional ABI to include in the transaction.
+- The `c.send` function constructs a [well-formed JSON response](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4) to be consumed by the App.
+
+:::tip[Tip]
+We can also utilize the context to extract things like [frame data](/reference/frog-transaction-context#framedata), 
+[button index/value](/reference/frog-transaction-context#buttonvalue) or [input value](/reference/frog-transaction-context#inputvalue) that was interacted with, and [more](/reference/frog-transaction-context):
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.transaction('/send-ether', (c) => { 
+  const { buttonValue, inputText, frameData } = c // [!code focus]
+  return c.send({ 
+    chainId: 'eip155:1', 
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+    value: parseEther(inputText), 
+  }) 
+}) 
+```
+:::
+
+### 3. Handle `/mint` Requests
+
+Secondly, let's define a `/mint` route to handle the "Mint" button:
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+
+export const app = new Frog()
+// ---cut---
+import { abi } from './abi'
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Perform a transaction
+      </div>
+    ),
+    intents: [
+      <TextInput placeholder="Value (ETH)" />,
+      <Button.Transaction target="/send-ether">Send Ether</Button.Transaction>,
+      <Button.Transaction target="/mint">Mint</Button.Transaction>, // [!code focus]
+    ]
+  })
+})
+
+// ...
+
+app.transaction('/mint', (c) => { // [!code focus]
+  const { inputText } = c // [!code focus]
+  // Contract transaction response. // [!code focus]
+  return c.contract({ // [!code focus]
+    abi, // [!code focus]
+    functionName: 'mint', // [!code focus]
+    args: [69420n], // [!code focus]
+    chainId: 'eip155:1', // [!code focus]
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
+    value: parseEther(inputText) // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+``` 
+
+```tsx twoslash [src/abi.ts] filename="./abi.ts"
+export const abi = [
+  {
+    inputs: [{ internalType: 'uint256', name: 'tokenId', type: 'uint256' }],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+] as const
+```
+
+:::
+
+A breakdown of the `/mint` route handler:
+
+- We are responding with a `c.contract` ("contract transaction") response.
+- We are extracting user input from the previous frame via `inputText`.
+- Within `c.contract`, we can specify a:
+  - `abi`: ABI for the contract.
+  - `functionName`: Function to call on the contract.
+  - `args`: Arguments to supply to the function.
+  - `chainId`: CAIP-2 compliant chain ID.
+  - `to`: Contract address.
+  - `value`: Optional amount of wei to send to the payable function.
+- The `c.contract` function constructs a [well-formed JSON response](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4) to be consumed by the App.
+
+### 4. Handle Post-Transaction Execution
+
+Once the user has sent the transaction, the App will perform a `POST` request to the frame.
+
+We can extract the transaction ID from context via `c.transactionId`.
+
+:::note
+Note that if you don't specify an [`action` on the frame](/reference/frog-frame-response#action), the App will perform a request to the same frame.
+:::
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    action: '/finish', // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Perform a transaction
+      </div>
+    ),
+    intents: [
+      <Button.Transaction target="/send-ether">Send Ether</Button.Transaction>,
+      <Button.Transaction target="/mint">Mint</Button.Transaction>,
+    ]
+  })
+})
+
+app.frame('/finish', (c) => { // [!code focus]
+  const { transactionId } = c // [!code focus]
+  return c.res({ // [!code focus]
+    image: ( // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+        Transaction ID: {transactionId} // [!code focus]
+      </div> // [!code focus]
+    ) // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+
+app.transaction('/send-ether', (c) => {
+  // Send transaction response.
+  return c.send({
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: parseEther('1'),
+  })
+})
+
+app.transaction('/mint', (c) => {
+  // Contract transaction response.
+  return c.contract({
+    abi,
+    chainId: 'eip155:1',
+    functionName: 'mint',
+    args: [69420n],
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B'
+  })
+})
+```
+
+```tsx twoslash [src/abi.ts] filename="./abi.ts"
+export const abi = [
+  {
+    inputs: [{ internalType: 'uint256', name: 'tokenId', type: 'uint256' }],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+] as const
+```
+
+:::
+
+### 5. Bonus: Learn the API
+
+You can learn more about the transaction APIs here:
+
+- [`Frog.transaction` Reference](/reference/frog-transaction)
+- [`Frog.transaction` Context Reference](/reference/frog-transaction-context)
+- [`Frog.transaction` Response Reference](/reference/frog-transaction-response)
+
+::::

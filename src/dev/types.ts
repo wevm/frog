@@ -1,5 +1,5 @@
+import type { FrameContext } from '../types/context.js'
 import {
-  type FrameContext,
   type FrameImageAspectRatio,
   type FrameVersion,
 } from '../types/frame.js'
@@ -94,6 +94,7 @@ export type FrameDebug = {
   state?: string | undefined
 }
 
+// TODO: Replace with root type
 export type FrameButton = {
   index: 1 | 2 | 3 | 4
   title: string
@@ -106,6 +107,10 @@ export type FrameButton = {
   | {
       type: 'post' | 'post_redirect'
       target?: `http://${string}` | `https://${string}` | undefined
+    }
+  | {
+      type: 'tx'
+      target: string
     }
 )
 
@@ -126,7 +131,10 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
 
-export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'
+export type FrogMetaTagPropertyName =
+  | 'frog:context'
+  | 'frog:prev_context'
+  | 'frog:version'
 
 export type State = {
   context: FrameContext

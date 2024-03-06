@@ -1,6 +1,6 @@
 import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
-import { type Env, type Schema } from 'hono'
+import { type Schema } from 'hono'
 import {
   deleteCookie,
   getCookie,
@@ -15,6 +15,7 @@ import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
 
 import { type FrogBase } from '../frog-base.js'
+import type { Env } from '../types/env.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
@@ -50,11 +51,12 @@ declare module 'hono' {
 }
 
 export function routes<
-  state,
   env extends Env,
   schema extends Schema,
   basePath extends string,
->(app: FrogBase<state, env, schema, basePath>, path: string) {
+  ///
+  _state = env['State'],
+>(app: FrogBase<env, schema, basePath, _state>, path: string) {
   app.get(
     `${parsePath(path)}/dev`,
     jsxRenderer((props) => {
@@ -349,6 +351,46 @@ export function routes<
               },
           timestamp: Date.now(),
         } satisfies BaseData & RedirectData)
+      },
+    )
+    .post(
+      `${parsePath(path)}/dev/frame/transaction`,
+      validator('json', validateFramePostBody),
+      async (c) => {
+        const vars = c.var as unknown as {
+          fid: number
+          keypair: { privateKey: string } | undefined
+        }
+
+        const json = c.req.valid('json')
+        const fid = (json.fid ?? vars.fid) as number
+        const body = { ...json, fid }
+
+        let response: Response
+        let error: string | undefined
+        try {
+          const privateKey = vars.keypair?.privateKey
+          response = await fetchFrame({ body, privateKey })
+        } catch (err) {
+          response = {
+            ok: false,
+            redirected: false,
+            status: 500,
+            statusText: 'Internal Server Error',
+          } as Response
+          error = `${(err as Error).cause}`.replace('Error: ', '')
+        }
+
+        performance.measure('fetch', 'start', 'end')
+        const measure = performance.getEntriesByName('fetch')[0]
+        const speed = measure.duration
+        performance.clearMarks()
+        performance.clearMeasures()
+
+        const data = await response.json()
+        console.log({ data, error, speed })
+
+        return c.json({ success: true })
       },
     )
 

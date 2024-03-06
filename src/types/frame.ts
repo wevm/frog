@@ -1,72 +1,8 @@
-import { type Context, type Env } from 'hono'
 import type { ImageResponseOptions } from 'hono-og'
-import { type Pretty } from './utils.js'
+
+import type { TypedResponse } from './response.js'
 
 // TODO: Refactor to discriminated union based on `status`
-export type FrameContext<path extends string = string, state = unknown> = {
-  /**
-   * Index of the button that was interacted with on the previous frame.
-   */
-  buttonIndex?: FrameData['buttonIndex']
-  /**
-   * Value of the button that was interacted with on the previous frame.
-   */
-  buttonValue?: string | undefined
-  /**
-   * Current render cycle of the frame.
-   *
-   * - `main` - Render cycle for the main frame route.
-   * - `image` - Render cycle for the OG image route.
-   */
-  cycle: 'main' | 'image'
-  /**
-   * Function to derive the frame's state based off the state from the
-   * previous frame.
-   */
-  deriveState: (fn?: (previousState: state) => void) => state
-  /**
-   * Data from the frame that was passed via the POST body.
-   * The {@link FrameContext`verified`} flag indicates whether the data is trusted or not.
-   */
-  frameData?: Pretty<FrameData>
-  getState: () => state
-  /**
-   * Initial path of the frame set.
-   */
-  initialPath: string
-  /**
-   * Input text from the previous frame.
-   */
-  inputText?: string | undefined
-  /**
-   * Button values from the previous frame.
-   */
-  previousButtonValues?: FrameButtonValue[] | undefined
-  /**
-   * State from the previous frame.
-   */
-  previousState: state
-  /** Frame request object. */
-  req: Context<Env, path>['req']
-  /** Frame response that includes frame properties such as: image, intents, action, etc */
-  res: FrameResponseFn
-  /**
-   * Status of the frame in the frame lifecycle.
-   * - `initial` - The frame has not yet been interacted with.
-   * - `redirect` - The frame interaction is a redirect (button of type `'post_redirect'`).
-   * - `response` - The frame has been interacted with (user presses button).
-   */
-  status: 'initial' | 'redirect' | 'response'
-  /**
-   * Whether or not the {@link FrameContext`frameData`} was verified by the Farcaster Hub API.
-   */
-  verified: boolean
-  /**
-   * URL of the frame.
-   */
-  url: Context['req']['url']
-}
-
 export type FrameResponse = {
   /**
    * Path of the next frame.
@@ -172,7 +108,9 @@ export type FrameResponse = {
   title?: string | undefined
 }
 
-export type FrameResponseFn = (response: FrameResponse) => FrameResponse
+export type FrameResponseFn = (
+  response: FrameResponse,
+) => TypedResponse<FrameResponse>
 
 export type FrameData = {
   buttonIndex?: 1 | 2 | 3 | 4 | undefined
@@ -183,6 +121,7 @@ export type FrameData = {
   network: number
   state?: string | undefined
   timestamp: number
+  transactionId?: string | undefined
   url: string
 }
 
