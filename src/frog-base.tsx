@@ -264,33 +264,6 @@ export class FrogBase<
     if (initialState) this._initialState = initialState
   }
 
-  transaction<path extends string>(
-    this: FrogBase<env, schema, basePath, _state>,
-    path: path,
-    handler: (
-      context: TransactionContext<env, path, _state>,
-    ) => HandlerResponse<TransactionResponse>,
-    options: RouteOptions = {},
-  ) {
-    const { verify = this.verify } = options
-
-    this.hono.post(parsePath(path), async (c) => {
-      const { context } = getTransactionContext<env, path, _state>({
-        context: await requestBodyToContext(c, {
-          hub:
-            this.hub ||
-            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
-          secret: this.secret,
-          verify,
-        }),
-        req: c.req,
-      })
-      const response = await handler(context)
-      if (response instanceof Response) return response
-      return c.json(response.data)
-    })
-  }
-
   frame<path extends string>(
     path: path,
     handler: (
@@ -539,5 +512,32 @@ export class FrogBase<
     if (!frog.verify) frog.verify = this.verify
 
     return this.hono.route(path, frog.hono)
+  }
+
+  transaction<path extends string>(
+    this: FrogBase<env, schema, basePath, _state>,
+    path: path,
+    handler: (
+      context: TransactionContext<env, path, _state>,
+    ) => HandlerResponse<TransactionResponse>,
+    options: RouteOptions = {},
+  ) {
+    const { verify = this.verify } = options
+
+    this.hono.post(parsePath(path), async (c) => {
+      const { context } = getTransactionContext<env, path, _state>({
+        context: await requestBodyToContext(c, {
+          hub:
+            this.hub ||
+            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
+          secret: this.secret,
+          verify,
+        }),
+        req: c.req,
+      })
+      const response = await handler(context)
+      if (response instanceof Response) return response
+      return c.json(response.data)
+    })
   }
 }
