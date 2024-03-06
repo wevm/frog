@@ -42,7 +42,6 @@ export function getTransactionContext<
   const { context } = parameters
   const {
     frameData,
-    get,
     initialPath,
     previousButtonValues,
     previousState,
