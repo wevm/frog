@@ -1,5 +1,26 @@
 # frog
 
+## 0.4.0
+
+### Minor Changes
+
+- [#87](https://github.com/wevm/frog/pull/87) [`b7031ff`](https://github.com/wevm/frog/commit/b7031ff4f045a9539fb1a20899b35b41eb26515b) Thanks [@jxom](https://github.com/jxom)! - Added built-in middleware for Neynar. [Read more.](https://frog.fm/concepts/middleware#neynar)
+
+### Patch Changes
+
+- [#80](https://github.com/wevm/frog/pull/80) [`c377528`](https://github.com/wevm/frog/commit/c3775288bc8683d532d9c6ca2cd05e6f2f1bd69d) Thanks [@jxom](https://github.com/jxom)! - **Type Change:** The `state` generic in the `Frog` constructor type is now named.
+
+  ```diff
+  type State = { count: number }
+
+  - const frog = new Frog<State>({
+  + const frog = new Frog<{ State: State }>({
+    initialState: { count: 0 }
+  })
+  ```
+
+- [#80](https://github.com/wevm/frog/pull/80) [`c377528`](https://github.com/wevm/frog/commit/c3775288bc8683d532d9c6ca2cd05e6f2f1bd69d) Thanks [@jxom](https://github.com/jxom)! - Added a `var` property to context to extract variables that were previously set via `set` in Middleware. [Read more.](https://frog.fm/reference/frog-frame-context#var)
+
 ## 0.3.3
 
 ### Patch Changes
