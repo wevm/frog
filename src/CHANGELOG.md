@@ -1,5 +1,11 @@
 # frog
 
+## 0.3.2
+
+### Patch Changes
+
+- [`f800940`](https://github.com/wevm/frog/commit/f800940eb89ffe41d46b724336765988a4a0b3df) Thanks [@jxom](https://github.com/jxom)! - Added `pinata` hub.
+
 ## 0.3.1
 
 ### Patch Changes
