@@ -4,6 +4,64 @@ Since Frog is built on top of [Hono](https://hono.dev), Frog supports Hono's mid
 
 Middleware works before and after the `.frame` [handler](/reference/frog-frame#handler) by allowing you to manipulate the request and response before and after dispatching respectively. We recommend checking out the Hono [documentation on Middleware](https://hono.dev/guides/middleware) for a more in-depth understanding.
 
+## Built-in Middlewares
+
+### Neynar
+
+Frog comes with a built-in middleware for [Neynar](https://neynar.com) which allows you to easily integrate Neynar features (such as the interactor of your frame, and frame cast) into Frog context.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { type NeynarVariables, neynar } from 'frog/middlewares'
+
+export const app = new Frog<{ 
+  Variables: NeynarVariables 
+// @log:   ↑ 1. Inject variables to get type inference on context (`c.var`).
+}>()
+
+// @log:     ↓ 2. Inject `neynar` middleware onto the app.
+app.use(
+  neynar({
+    apiKey: 'NEYNAR_FROG_FM',
+    features: ['interactor', 'cast'],
+  }),
+)
+
+app.frame('/', (c) => {
+// @log:   ↓ 3. Use `c.var` to access Neynar variables!
+  const { displayName, followerCount } = c.var.interactor || {}
+  console.log('cast: ', c.var.cast)
+  console.log('interactor: ', c.var.interactor)
+  //                                ^?
+  return c.res({
+    image: (
+      <div
+        style={{
+          alignItems: 'center',
+          color: 'white',
+          display: 'flex',
+          justifyContent: 'center',
+          fontSize: 48,
+          height: '100%',
+          width: '100%',
+        }}
+      >
+        Greetings {displayName}, you have {followerCount} followers.
+      </div>
+    ),
+  })
+})
+```
+
+:::warning
+Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
+
 ## Custom Middleware
 
 You can write your own Frog middleware. This is great if you want to share common logic across or frames or if you are developing a SDK for Frog users to hook into their frames.

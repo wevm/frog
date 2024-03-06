@@ -105,10 +105,9 @@ export type FrameQueryContext<
   path extends string = string,
   //
   _state = env['State'],
-> = Omit<FrameContext<env, path, _state>, 'req' | 'var'> & {
+> = Omit<FrameContext<env, path, _state>, 'req'> & {
   req: undefined
   state: _state
-  var: undefined
 }
 
 export type TransactionContext<
