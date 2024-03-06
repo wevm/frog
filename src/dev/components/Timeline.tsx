@@ -1,7 +1,9 @@
-import { useCallback, useState as useLocalState, useRef } from 'hono/jsx/dom'
+import { useCallback, useRef, useState as useLocalState } from 'hono/jsx/dom'
 
 import { useDispatch } from '../hooks/useDispatch.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { clsx } from '../lib/clsx.js'
+import type { State } from '../lib/context.js'
 import { type Data } from '../types.js'
 import { formatSpeed, formatTime } from '../utils/format.js'
 import {
@@ -12,8 +14,6 @@ import {
   pencil2Icon,
   resetIcon,
 } from './icons.js'
-import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import type { State } from '../lib/context.js'
 
 type TimelineProps = {
   dataKey: string

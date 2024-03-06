@@ -1,6 +1,6 @@
-import { createFocusTrap, type Options } from 'focus-trap'
-import { useEffect } from 'hono/jsx/dom'
+import { type Options, createFocusTrap } from 'focus-trap'
 import { type RefObject } from 'hono/jsx'
+import { useEffect } from 'hono/jsx/dom'
 
 import { type Pretty } from '../../types/utils.js'
 
