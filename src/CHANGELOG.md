@@ -1,5 +1,11 @@
 # frog
 
+## 0.4.4
+
+### Patch Changes
+
+- [`2f7c148`](https://github.com/wevm/frog/commit/2f7c148bea730624596b84e7f091c6400a336298) Thanks [@jxom](https://github.com/jxom)! - Fixed `HandlerResponse` type.
+
 ## 0.4.3
 
 ### Patch Changes
