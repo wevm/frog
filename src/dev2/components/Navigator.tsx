@@ -22,7 +22,7 @@ export function Navigator(props: NavigatorProps) {
   const { routes, url } = props
 
   const { dataKey, dataMap, stackIndex, stack, user } = useState()
-  const { getFrame, postFrameAction, postFrameRedirect, setState } =
+  const { getFrame, postFrameAction, postFrameRedirect, setState, setMounted } =
     useDispatch()
 
   return (
@@ -123,7 +123,7 @@ export function Navigator(props: NavigatorProps) {
           if (event.shiftKey) {
             const route = window.location.pathname
             history.replaceState({}, '', route)
-            setState((x) => ({ ...x, mounted: false }))
+            setMounted(false)
 
             const nextFrame = window.location.toString().replace('/dev2', '')
             const json = await getFrame(nextFrame, { replaceLogs: true })
@@ -136,8 +136,11 @@ export function Navigator(props: NavigatorProps) {
               stackIndex: 0,
               inputText: '',
               tab: 'request',
-              mounted: true,
             }))
+
+            setTimeout(() => {
+              setMounted(true)
+            }, 100)
 
             return
           }
@@ -347,7 +350,7 @@ type AddressBarProps = { routes: readonly string[]; url: string }
 function AddressBar(props: AddressBarProps) {
   const { routes, url } = props
 
-  const { getFrame, setState } = useDispatch()
+  const { getFrame, setState, setMounted } = useDispatch()
 
   const [open, setOpen] = useLocalState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -408,7 +411,7 @@ function AddressBar(props: AddressBarProps) {
                 const nextRoute = route === '/' ? '/dev2' : `${route}/dev2`
                 history.replaceState({}, '', nextRoute)
 
-                setState((x) => ({ ...x, mounted: false }))
+                setMounted(false)
 
                 const nextFrame = window.location
                   .toString()
@@ -423,9 +426,10 @@ function AddressBar(props: AddressBarProps) {
                   stackIndex: 0,
                   inputText: '',
                   tab: 'request',
-                  mounted: true,
                 }))
                 setOpen(false)
+
+                setTimeout(() => setMounted(true), 100)
               }}
             >
               {`${urlObject.protocol}//${urlObject.host}${

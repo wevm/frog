@@ -1,4 +1,3 @@
-import { useEffect } from 'hono/jsx'
 import { useState } from '../hooks/useState.js'
 import { Data } from './Data.js'
 import { Metrics } from './Metrics.js'

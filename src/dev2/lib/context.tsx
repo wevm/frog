@@ -26,7 +26,6 @@ export type State = {
     castFid: number
     castHash: string
   }
-  mounted: boolean
   routes: readonly string[]
   stackIndex: number
   stack: string[]
@@ -37,7 +36,6 @@ export type State = {
 const defaultState = {
   inputText: '',
   logIndex: -1,
-  mounted: false,
   overrides: {
     userFid: 1,
     castFid: 1,
@@ -74,6 +72,7 @@ export type DispatchValue = {
   logout(): Promise<{ success: true }>
 
   setState: ReturnType<typeof useState<State>>[1]
+  setMounted(value: boolean): void
 }
 
 export const DispatchContext = createContext<DispatchValue>({} as DispatchValue)
@@ -84,19 +83,56 @@ export type Props = PropsWithChildren<{
   user?: User | null | undefined
 }>
 
+let mounted = false
+
 export function Provider(props: Props) {
   const { children, data: initialData, routes, user } = props
   const { id: initialDataKey } = initialData
 
-  const [state, setState] = useState<State>(() => ({
-    ...defaultState,
-    dataKey: initialDataKey,
-    dataMap: { [initialDataKey]: props.data },
-    logs: [initialDataKey],
-    routes,
-    stack: [initialDataKey],
-    user,
-  }))
+  const [state, setState] = useState<State>(() => {
+    // restore state on client
+    if (typeof window !== 'undefined') {
+      const state = location.hash.replace('#state/', '').trim()
+      try {
+        let restored = LZString.decompressFromEncodedURIComponent(state)
+        // Fallback incase there is an extra level of decoding:
+        // https://gitter.im/Microsoft/TypeScript?at=5dc478ab9c39821509ff189a
+        if (!restored)
+          restored = LZString.decompressFromEncodedURIComponent(
+            decodeURIComponent(state),
+          )
+
+        const parsed = JSON.parse(restored)
+        const logIndex =
+          parsed.logIndex === (parsed.logs?.length ?? 0) - 1
+            ? -1
+            : parsed.logIndex
+
+        return {
+          ...defaultState,
+          ...parsed,
+          logIndex,
+          user,
+        }
+      } catch (error) {
+        console.log('failed to restore state:', (error as Error).message)
+        history.replaceState(null, '', location.pathname)
+      }
+    }
+
+    return {
+      ...defaultState,
+      dataKey: initialDataKey,
+      dataMap: { [initialDataKey]: props.data },
+      logs: [initialDataKey],
+      overrides: user?.userFid
+        ? { ...defaultState.overrides, userFid: user.userFid }
+        : defaultState.overrides,
+      routes,
+      stack: [initialDataKey],
+      user,
+    }
+  })
 
   const data = state.dataMap[state.dataKey]
   const contextString = toSearchParams(data.context).toString()
@@ -218,127 +254,75 @@ export function Provider(props: Props) {
     },
 
     setState,
+    setMounted(value) {
+      mounted = value
+    },
   } satisfies DispatchValue
 
   useEffect(() => {
-    try {
-      const userCookie = getCookie('user')
-      const cookie = userCookie
-        ? JSON.parse(decodeURIComponent(userCookie))
-        : {}
-      if (cookie.token)
-        dispatchValue
-          .fetchAuthStatus(cookie.token)
-          .then((data) => {
-            if (data.state !== 'completed') return
-            if (data.userFid === user?.userFid) return
-            setState((x) => ({ ...x, user: data }))
-          })
-          .catch(console.error)
-    } catch (e) {
-      console.log({ e })
-    }
-
-    restoreState().finally(() => {
-      setState((x) => ({ ...x, mounted: true }))
-    })
-
-    async function restoreState() {
-      // restore state from url
-
-      // if (!location.hash.startsWith('#state')) {
-      //   const userFid = this.user?.userFid
-      //   if (userFid) this.overrides = { ...this.overrides, userFid }
-      //   return
-      // }
-
-      const state = location.hash.replace('#state/', '').trim()
+    // Refetch current frame if no other frame is selected or back in the stack (e.g. hit back button to previous frame in history)
+    // This allows you to make changes to the frame in code and see updates immediately
+    ;(async () => {
       try {
-        let restored = LZString.decompressFromEncodedURIComponent(state)
-        // Fallback incase there is an extra level of decoding:
-        // https://gitter.im/Microsoft/TypeScript?at=5dc478ab9c39821509ff189a
-        if (!restored)
-          restored = LZString.decompressFromEncodedURIComponent(
-            decodeURIComponent(state),
-          )
-
-        const parsed = JSON.parse(restored)
-        setState((x) => ({
-          ...x,
-          ...parsed,
-          logIndex:
-            (parsed.logIndex === (parsed.logs?.length ?? 0) - 1
-              ? -1
-              : parsed.logIndex) ?? x.logIndex,
-        }))
-
-        // Refetch current frame if no other frame is selected or back in the stack (e.g. hit back button to previous frame in history)
-        // This allows you to make changes to the frame in code and see updates immediately
-        const endOfStack = parsed.stackIndex === parsed.stack.length - 1
+        mounted = false
+        const endOfStack = state.stackIndex === state.stack.length - 1
         const endOfLogs =
-          parsed.logIndex === -1 || parsed.logIndex === parsed.logs.length - 1
-        const nextData = parsed.dataMap[parsed.dataKey]
+          state.logIndex === -1 || state.logIndex === state.logs.length - 1
+        const nextData = state.dataMap[state.dataKey]
         if (endOfStack && endOfLogs && nextData) {
           let json: Data
-          switch (nextData?.type) {
-            case 'initial': {
-              json = await dispatchValue.getFrame(nextData.url, {
-                skipLogs: true,
-              })
-              break
-            }
-            case 'action': {
-              json = await dispatchValue.postFrameAction(nextData.body, {
-                skipLogs: true,
-              })
-              break
-            }
-            case 'redirect': {
-              json = await dispatchValue.postFrameRedirect(nextData.body, {
-                skipLogs: true,
-              })
-              break
-            }
-          }
+          if (nextData.type === 'initial')
+            json = await dispatchValue.getFrame(nextData.url, {
+              skipLogs: true,
+            })
+          else if (nextData.type === 'action')
+            json = await dispatchValue.postFrameAction(nextData.body, {
+              skipLogs: true,
+            })
+          else
+            json = await dispatchValue.postFrameRedirect(nextData.body, {
+              skipLogs: true,
+            })
 
           setState((x) => ({
             ...x,
             logs: x.logs.slice(0, x.logs.length - 1).concat(json.id),
             dataKey: json.id,
           }))
+          setTimeout(() => {
+            mounted = true
+          }, 100)
         }
-      } catch (error) {
-        console.log('failed to restore state:', (error as Error).message)
-        history.replaceState(null, '', location.pathname)
-      }
-    }
+      } catch (error) {}
+    })()
   }, [])
 
-  const {
-    dataKey,
-    dataMap,
-    logs,
-    logIndex,
-    overrides,
-    stackIndex,
-    stack,
-    mounted,
-  } = state
+  // save partial state
   useEffect(() => {
     if (!mounted) return
     const compressed = LZString.compressToEncodedURIComponent(
       JSON.stringify({
-        dataKey,
-        dataMap,
-        logs,
-        logIndex,
-        overrides,
-        stackIndex,
-        stack,
+        dataKey: state.dataKey,
+        dataMap: state.dataMap,
+        logs: state.logs,
+        logIndex: state.logIndex,
+        overrides: state.overrides,
+        stackIndex: state.stackIndex,
+        stack: state.stack,
+        tab: state.tab,
       }),
     )
     window.history.replaceState(null, '', `#state/${compressed}`)
-  }, [dataKey, dataMap, logs, logIndex, overrides, stackIndex, stack, mounted])
+  }, [
+    state.dataKey,
+    state.dataMap,
+    state.logs,
+    state.logIndex,
+    state.overrides,
+    state.stackIndex,
+    state.stack,
+    state.tab,
+  ])
 
   return (
     <StateContext.Provider value={stateValue}>
@@ -347,17 +331,4 @@ export function Provider(props: Props) {
       </DispatchContext.Provider>
     </StateContext.Provider>
   )
-}
-
-function getCookie(name: string) {
-  const cookieArr = document.cookie.split(';')
-  for (let i = 0; i < cookieArr.length; i++) {
-    let cookie = cookieArr[i]
-    while (cookie.charAt(0) === ' ') {
-      cookie = cookie.substring(1, cookie.length)
-    }
-    if (cookie.indexOf(name) === 0)
-      return cookie.substring(name.length + 1, cookie.length)
-  }
-  return null
 }
