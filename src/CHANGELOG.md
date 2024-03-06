@@ -1,5 +1,11 @@
 # frog
 
+## 0.3.3
+
+### Patch Changes
+
+- [`142040e`](https://github.com/wevm/frog/commit/142040e1a73ccd9d5f82c7b6578173c65c3dc3c6) Thanks [@jxom](https://github.com/jxom)! - Fixed URL comparison for frame verification.
+
 ## 0.3.2
 
 ### Patch Changes
