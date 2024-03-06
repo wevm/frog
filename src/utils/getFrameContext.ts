@@ -1,4 +1,3 @@
-import { produce } from 'immer'
 import type { Context, FrameContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
@@ -60,11 +59,22 @@ export function getFrameContext<
     return context?.previousState || parameters.initialState
   })()
 
-  function deriveState(derive?: (state: _state) => void): _state {
-    if (status === 'response' && derive) {
-      if (cycle === 'image') return state as _state
-      previousState = produce(previousState, derive)
-    }
+  function deriveState(
+    derive?: (state: _state) => void | Promise<void>,
+  ): _state | Promise<_state> {
+    if (status !== 'response') return previousState as _state
+    if (!derive) return previousState as _state
+    if (cycle === 'image') return state as _state
+
+    const clone = structuredClone(previousState)
+    if ((derive as any)[Symbol.toStringTag] === 'AsyncFunction')
+      return (derive(clone as _state) as any).then(() => {
+        previousState = clone
+        return previousState
+      })
+
+    derive(clone as _state)
+    previousState = clone
     return previousState as _state
   }
 
@@ -73,7 +83,7 @@ export function getFrameContext<
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
       cycle,
-      deriveState,
+      deriveState: deriveState as FrameContext['deriveState'],
       frameData,
       initialPath,
       inputText,

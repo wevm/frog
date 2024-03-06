@@ -45,6 +45,37 @@ app.frame('/', (c) => {
 })
 ```
 
-:::note
-**Frog** internally uses [Immer's `produce` function](https://immerjs.github.io/immer/produce/) for `deriveState`.
+:::tip[Tip]
+`deriveState` can also be asynchronous:
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { Button, Frog } from 'frog'
+
+type State = {    
+  count: number
+}
+ 
+export const app = new Frog<{ State: State }>({
+  initialState: {
+    count: 0
+  }
+})
+ 
+// ---cut---
+app.frame('/', (c) => {
+  const { deriveState, frameData } = c  
+  const state = await deriveState(async previousState => { // [!code focus]
+    previousState.count = await fetchCount(frameData.fid) // [!code focus]
+  }) // [!code focus]
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Count: {state.count} 
+      </div>
+    )
+  })
+})
+```
 :::
