@@ -75,7 +75,7 @@ export default defineConfig({
     },
     {
       icon: 'warpcast',
-      link: 'https://wevm.com/warpcast',
+      link: 'https://warpcast.com/wevm',
     },
   ],
   sponsors: [
