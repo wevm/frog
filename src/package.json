@@ -39,6 +39,10 @@
       "types": "./_lib/jsx/jsx-dev-runtime/index.d.ts",
       "default": "./_lib/jsx/jsx-dev-runtime/index.js"
     },
+    "./middlewares": {
+      "types": "./_lib/middlewares/index.d.ts",
+      "default": "./_lib/middlewares/index.js"
+    },
     "./next": {
       "types": "./_lib/next/index.d.ts",
       "default": "./_lib/next/index.js"
@@ -80,10 +84,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

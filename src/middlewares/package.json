@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../_lib/middlewares/index.d.ts",
+  "module": "../_lib/middlewares/index.js"
+}

@@ -27,6 +27,5 @@ export function requestQueryToContext<
   return {
     ...queryContext,
     req: c.req,
-    var: c.var,
   }
 }

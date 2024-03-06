@@ -334,8 +334,6 @@ export class FrogBase<
         // `c.req` is not serializable.
         req: undefined,
         state: getState(),
-        // `c.var` is not serializable.
-        var: undefined,
       }
       const frameImageParams = toSearchParams(queryContext)
 

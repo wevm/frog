@@ -46,7 +46,7 @@ export async function verifyFrame({
 ////////////////////////////////////////////////////////////////////
 // Utilties
 
-function messageToFrameData(message: Message): FrameData {
+export function messageToFrameData(message: Message): FrameData {
   const frameActionBody = message.data?.body.value as FrameActionBody
   const frameData: FrameData = {
     castId: {
