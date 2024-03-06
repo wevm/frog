@@ -10,7 +10,7 @@ export const config = {
   runtime: 'edge',
 }
 
-export const app = new Frog<State>({
+export const app = new Frog<{ State: State }>({
   assetsPath: '/',
   basePath: '/api',
   browserLocation: 'https://frog.fm',

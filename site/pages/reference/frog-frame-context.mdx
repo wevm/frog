@@ -133,7 +133,7 @@ type State = {     // [!code focus]
   values: string[] // [!code focus]
 } // [!code focus]
  
-export const app = new Frog<State>({ // [!code focus]
+export const app = new Frog<{ State: State }>({ // [!code focus]
   initialState: { // [!code focus]
     values: [] // [!code focus]
   } // [!code focus]
@@ -297,7 +297,7 @@ type State = {
   values: string[] 
 } 
  
-export const app = new Frog<State>({ 
+export const app = new Frog<{ State: State }>({ 
   initialState: { 
     values: [] 
   } 
@@ -382,6 +382,31 @@ export const app = new Frog()
  
 app.frame('/', (c) => {
   const { status } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## var
+
+- **Type**: `HonoContext['var']`
+
+Extract a context value that was previously set via [`set`](#set) in [Middleware](/concepts/middleware).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.use(async (c, next) => {
+  c.set('message', 'Frog is cool!!')
+  await next()
+})
+ 
+app.frame('/', (c) => {
+  const message = c.var.message // [!code focus]
   return c.res({/* ... */})
 })
 ```

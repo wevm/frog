@@ -1,4 +1,5 @@
-import type { Context as Context_hono, Env } from 'hono'
+import type { Context as Context_hono } from 'hono'
+import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type {
   ContractTransactionResponseFn,
@@ -8,7 +9,12 @@ import type {
 } from './transaction.js'
 import type { Pretty } from './utils.js'
 
-export type Context<state = unknown> = {
+export type Context<
+  env extends Env = Env,
+  path extends string = string,
+  //
+  _state = env['State'],
+> = {
   /**
    * Index of the button that was interacted with on the previous frame.
    */
@@ -37,7 +43,13 @@ export type Context<state = unknown> = {
   /**
    * State from the previous frame.
    */
-  previousState: state
+  previousState: _state
+  /**
+   * Hono request object.
+   *
+   * @see https://hono.dev/api/context#req
+   */
+  req: Context_hono<env, path>['req']
   /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.
@@ -45,6 +57,12 @@ export type Context<state = unknown> = {
    * - `response` - The frame has been interacted with (user presses button).
    */
   status: 'initial' | 'redirect' | 'response'
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path>['var']
   /**
    * Whether or not the {@link Context`frameData`} was verified by the Farcaster Hub API.
    */
@@ -56,9 +74,11 @@ export type Context<state = unknown> = {
 }
 
 export type FrameContext<
+  env extends Env = Env,
   path extends string = string,
-  state = unknown,
-> = Context<state> & {
+  //
+  _state = env['State'],
+> = Context<env, path, _state> & {
   /**
    * Current render cycle of the frame.
    *
@@ -70,10 +90,7 @@ export type FrameContext<
    * Function to derive the frame's state based off the state from the
    * previous frame.
    */
-  deriveState: (fn?: (previousState: state) => void) => state
-  getState: () => state
-  /** Frame request object. */
-  req: Context_hono<Env, path>['req']
+  deriveState: (fn?: (previousState: _state) => void) => _state
   /** Frame response that includes frame properties such as: image, intents, action, etc */
   res: FrameResponseFn
   /**
@@ -83,10 +100,23 @@ export type FrameContext<
   transactionId?: FrameData['transactionId'] | undefined
 }
 
-export type TransactionContext<
+export type FrameQueryContext<
+  env extends Env = Env,
   path extends string = string,
-  state = unknown,
-> = Context<state> & {
+  //
+  _state = env['State'],
+> = Omit<FrameContext<env, path, _state>, 'req' | 'var'> & {
+  req: undefined
+  state: _state
+  var: undefined
+}
+
+export type TransactionContext<
+  env extends Env = Env,
+  path extends string = string,
+  //
+  _state = env['State'],
+> = Context<env, path, _state> & {
   /**
    * Contract transaction request.
    *
@@ -94,8 +124,6 @@ export type TransactionContext<
    * with a type-safe interface to infer types based on a provided `abi`.
    */
   contract: ContractTransactionResponseFn
-  /** Frame request object. */
-  req: Context_hono<Env, path>['req']
   /**
    * Raw transaction request.
    *

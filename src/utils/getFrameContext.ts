@@ -1,22 +1,41 @@
-import { type HonoRequest } from 'hono'
 import { produce } from 'immer'
 import type { Context, FrameContext } from '../types/context.js'
+import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
 
-type GetFrameContextParameters<state = unknown> = {
-  context: Context
+type GetFrameContextParameters<
+  env extends Env = Env,
+  path extends string = string,
+  //
+  _state = env['State'],
+> = {
+  context: Context<env, path>
   cycle: FrameContext['cycle']
-  initialState?: state
-  req: HonoRequest
-  state?: state
+  initialState?: _state
+  state?: _state
 }
 
-export function getFrameContext<state>(
-  parameters: GetFrameContextParameters<state>,
-): FrameContext<string, state> {
-  const { context, cycle, req, state } = parameters
-  const { frameData, initialPath, previousButtonValues, verified } =
+type GetFrameContextReturnType<
+  env extends Env = Env,
+  path extends string = string,
+  //
+  _state = env['State'],
+> = {
+  context: FrameContext<env, path>
+  getState: () => _state
+}
+
+export function getFrameContext<
+  env extends Env,
+  path extends string,
+  //
+  _state = env['State'],
+>(
+  parameters: GetFrameContextParameters<env, path, _state>,
+): GetFrameContextReturnType<env, path, _state> {
+  const { context, cycle, state } = parameters
+  const { frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
   const { buttonValue, inputText, redirect, reset } = getIntentState({
@@ -41,30 +60,33 @@ export function getFrameContext<state>(
     return context?.previousState || parameters.initialState
   })()
 
-  function deriveState(derive?: (state: state) => void): state {
+  function deriveState(derive?: (state: _state) => void): _state {
     if (status === 'response' && derive) {
-      if (cycle === 'image') return state as state
+      if (cycle === 'image') return state as _state
       previousState = produce(previousState, derive)
     }
-    return previousState as state
+    return previousState as _state
   }
 
   return {
-    buttonIndex: frameData?.buttonIndex,
-    buttonValue,
-    cycle,
-    frameData,
-    initialPath,
-    inputText,
-    deriveState,
-    getState: () => previousState as state,
-    previousButtonValues,
-    previousState: previousState as any,
-    req,
-    res: (data) => ({ data, format: 'frame' }),
-    status,
-    transactionId: frameData?.transactionId,
-    url,
-    verified,
+    context: {
+      buttonIndex: frameData?.buttonIndex,
+      buttonValue,
+      cycle,
+      deriveState,
+      frameData,
+      initialPath,
+      inputText,
+      previousButtonValues,
+      previousState: previousState as any,
+      req,
+      res: (data) => ({ data, format: 'frame' }),
+      status,
+      transactionId: frameData?.transactionId,
+      url,
+      var: context.var,
+      verified,
+    },
+    getState: () => previousState as _state,
   }
 }

@@ -1,8 +1,10 @@
 import { Button, Frog, TextInput } from 'frog'
 
 export const app = new Frog<{
-  index: number
-  todos: { completed: boolean; name: string }[]
+  State: {
+    index: number
+    todos: { completed: boolean; name: string }[]
+  }
 }>({
   initialState: {
     index: -1,

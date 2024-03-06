@@ -153,7 +153,7 @@ type State = {
   todos: string[]
 }
 
-const app = new Frog<State>({
+const app = new Frog<{ State: State }>({
   initialState: { // [!code focus]
     index: 0, // [!code focus]
     todos: [] // [!code focus]
