@@ -1,5 +1,11 @@
 # frog
 
+## 0.4.1
+
+### Patch Changes
+
+- [`f72026f`](https://github.com/wevm/frog/commit/f72026fc14987c2cfe1216834f6a41268e8c3462) Thanks [@jxom](https://github.com/jxom)! - Fixed `handle` generics.
+
 ## 0.4.0
 
 ### Minor Changes
