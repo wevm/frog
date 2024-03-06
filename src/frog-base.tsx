@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { ImageResponse, type ImageResponseOptions } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import { type Schema } from 'hono/types'
+import { type MiddlewareHandler, type Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
@@ -280,12 +280,32 @@ export class FrogBase<
     handler: (
       context: Pretty<FrameContext<env, path>>,
     ) => HandlerResponse<FrameResponse>,
-    options: RouteOptions = {},
-  ) {
+    options?: RouteOptions,
+  ): void
+  frame<path extends string, env extends Env>(
+    path: path,
+    middleware: MiddlewareHandler<env, path>,
+    handler: (
+      context: Pretty<FrameContext<env, path>>,
+    ) => HandlerResponse<FrameResponse>,
+    options?: RouteOptions,
+  ): void
+  frame<path extends string>(path: path, ...parameters: any[]) {
+    const [middleware, handler, options = {}] = (() => {
+      if (typeof parameters[1] === 'function') return parameters
+      return [(_, next) => next(), parameters[0], parameters[1]]
+    })() as [
+      MiddlewareHandler<env, path>,
+      (
+        context: Pretty<FrameContext<env, path>>,
+      ) => HandlerResponse<FrameResponse>,
+      RouteOptions,
+    ]
+
     const { verify = this.verify } = options
 
     // Frame Route (implements GET & POST).
-    this.hono.use(parsePath(path), async (c) => {
+    this.hono.use(parsePath(path), middleware, async (c) => {
       const url = new URL(c.req.url)
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)

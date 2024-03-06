@@ -1,4 +1,4 @@
-import { type Schema } from 'hono'
+import { type MiddlewareHandler, type Schema } from 'hono'
 
 import { routes as devRoutes } from './dev/routes.js'
 import { FrogBase, type RouteOptions } from './frog-base.js'
@@ -45,14 +45,24 @@ export class Frog<
   //
   _state = env['State'],
 > extends FrogBase<env, schema, basePath, _state> {
+  // @ts-expect-error TODO: Fix this
   override frame<path extends string>(
     path: path,
     handler: (
-      context: Pretty<FrameContext<env, path, _state>>,
+      context: Pretty<FrameContext<env, path>>,
     ) => HandlerResponse<FrameResponse>,
-    options: RouteOptions = {},
-  ) {
-    super.frame(path, handler as any, options)
+    options?: RouteOptions,
+  ): void
+  override frame<path extends string, env extends Env>(
+    path: path,
+    middleware: MiddlewareHandler<env, path>,
+    handler: (
+      context: Pretty<FrameContext<env, path>>,
+    ) => HandlerResponse<FrameResponse>,
+    options?: RouteOptions,
+  ): void
+  override frame(path: string, a: any, b: any, c: any) {
+    super.frame(path, a, b, c)
 
     if (this.dev?.enabled ?? true) devRoutes(this, path)
   }
