@@ -340,6 +340,10 @@ export default defineConfig({
           text: 'Neynar',
           link: '/hubs/neynar',
         },
+        {
+          text: 'Pinata',
+          link: '/hubs/pinata',
+        },
       ],
     },
     {

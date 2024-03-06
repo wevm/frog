@@ -1,0 +1,25 @@
+# Pinata
+
+Pinata provides a free to use Farcaster Hub that you can use inside of Frog.
+
+[Learn more about the Pinata Hub.](https://docs.pinata.cloud/farcaster/hubs)
+
+## Import
+
+```ts twoslash
+import { pinata } from 'frog/hubs'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { pinata } from 'frog/hubs' // [!code focus]
+ 
+export const app = new Frog({
+  hub: pinata() // [!code focus]
+})
+```
