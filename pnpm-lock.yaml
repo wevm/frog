@@ -128,7 +128,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
+        version: 0.3.1(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -147,7 +147,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -211,6 +211,9 @@ importers:
       jose:
         specifier: ^5.2.2
         version: 5.2.2
+      lz-string:
+        specifier: ^1.5.0
+        version: 1.5.0
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
@@ -234,7 +237,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -250,7 +253,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -266,7 +269,7 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -279,7 +282,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -313,7 +316,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -329,7 +332,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.3.1(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -5740,8 +5743,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /frog@0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
-    resolution: {integrity: sha512-Xoj9DU1EMkCJB5q9RsBORvBlnaHDtXiDKrSXVqz+WdaQmX0ujBTrAN2GfjJ0xuJ+l4OKOYc9pZDYJVKHhtL1tw==}
+  /frog@0.3.1(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
+    resolution: {integrity: sha512-PtXFu0lZ3o62KrWcw/nXm0svOrglCe8PFYD9vitxfkIsIgS0f33QBSbdXawZ+4bu9J0hHsJN9O933l4X/LwBDQ==}
     hasBin: true
     peerDependencies:
       hono: 4.0.9
@@ -5784,8 +5787,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.2.14(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
-    resolution: {integrity: sha512-Xoj9DU1EMkCJB5q9RsBORvBlnaHDtXiDKrSXVqz+WdaQmX0ujBTrAN2GfjJ0xuJ+l4OKOYc9pZDYJVKHhtL1tw==}
+  /frog@0.3.1(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-PtXFu0lZ3o62KrWcw/nXm0svOrglCe8PFYD9vitxfkIsIgS0f33QBSbdXawZ+4bu9J0hHsJN9O933l4X/LwBDQ==}
     hasBin: true
     peerDependencies:
       hono: 4.0.9
@@ -5828,8 +5831,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.2.14(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
-    resolution: {integrity: sha512-Xoj9DU1EMkCJB5q9RsBORvBlnaHDtXiDKrSXVqz+WdaQmX0ujBTrAN2GfjJ0xuJ+l4OKOYc9pZDYJVKHhtL1tw==}
+  /frog@0.3.1(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-PtXFu0lZ3o62KrWcw/nXm0svOrglCe8PFYD9vitxfkIsIgS0f33QBSbdXawZ+4bu9J0hHsJN9O933l4X/LwBDQ==}
     hasBin: true
     peerDependencies:
       hono: 4.0.9
@@ -6917,6 +6920,11 @@ packages:
     dependencies:
       yallist: 4.0.0
     dev: true
+
+  /lz-string@1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
+    dev: false
 
   /magic-string@0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}

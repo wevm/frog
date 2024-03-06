@@ -1,3 +1,5 @@
+import { useCallback, useState as useLocalState, useRef } from 'hono/jsx/dom'
+
 import { useDispatch } from '../hooks/useDispatch.js'
 import { clsx } from '../lib/clsx.js'
 import { type Data } from '../types.js'
@@ -7,18 +9,27 @@ import {
   chevronUpIcon,
   circleBackslashIcon,
   idCardIcon,
+  pencil2Icon,
+  resetIcon,
 } from './icons.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
+import type { State } from '../lib/context.js'
 
 type TimelineProps = {
+  dataKey: string
   dataMap: Record<string, Data>
   logs: string[]
   logIndex: number
+  overrides: State['overrides']
+  user: State['user']
 }
 
 export function Timeline(props: TimelineProps) {
-  const { dataMap, logs, logIndex } = props
+  const { dataKey, dataMap, logs, logIndex, overrides, user } = props
   const { setState } = useDispatch()
   const logsCount = logs.length
+
+  const [open, setOpen] = useLocalState(false)
 
   const buttonClass =
     'border rounded-sm bg-background-200 p-1.5 text-gray-700 hover:bg-gray-100'
@@ -121,9 +132,21 @@ export function Timeline(props: TimelineProps) {
             aria-label="change settings"
             class={buttonClass}
             type="button"
+            onClick={() => setOpen(true)}
             // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
             dangerouslySetInnerHTML={{ __html: idCardIcon.toString() }}
           />
+
+          {open && (
+            <UserForm
+              close={() => setOpen(false)}
+              dataKey={dataKey}
+              dataMap={dataMap}
+              open={open}
+              overrides={overrides}
+              user={user}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -200,7 +223,7 @@ function Row(props: RowProps) {
       </div>
 
       <div
-        class="font-mono text-gray-900 text-xs text-left whitespace-nowrap"
+        class="font-mono text-gray-900 text-xs text-left whitespace-nowrap w-full"
         title={url.toString()}
       >
         <div
@@ -215,122 +238,215 @@ function Row(props: RowProps) {
   )
 }
 
-// ;<form
-//   x-cloak
-//   x-show="open"
-//   class="border bg-background-100 rounded-lg w-full overflow-hidden px-4 pb-4 pt-3 flex flex-col gap-3 absolute"
-//   style={{
-//     marginBottom: '4px',
-//     bottom: '100%',
-//     right: '0',
-//     width: '230px',
-//     zIndex: '10',
-//   }}
-// >
-//   <div class="flex flex-col gap-0.5">
-//     <div
-//       class="text-xs text-gray-700 font-medium"
-//       style={{ paddingLeft: '0.25rem' }}
-//     >
-//       User
-//     </div>
-//
-//     <div class="relative flex items-center">
-//       <input
-//         aria-label="User FID"
-//         autocomplete="off"
-//         class="bg-background-200 rounded-md border px-3 py-2 text-sm leading-snug w-full text-xs"
-//         name="userFid"
-//         type="text"
-//         required
-//         pattern="^[0-9]*$"
-//         placeholder="FID"
-//         x-model="userFid"
-//         x-ref="userFid"
-//         data-1p-ignore
-//         {...{
-//           ':disabled': 'Boolean(user) && overrideUserFid === false',
-//         }}
-//       />
-//
-//       <button
-//         aria-label="Edit User FID"
-//         x-show="!overrideUserFid && user?.userFid === parseInt(userFid, 10)"
-//         class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
-//         type="button"
-//         style={{ right: '0.25rem' }}
-//         x-on:click="
-//                     overrideUserFid = true
-//                     $nextTick(() => $refs.userFid.focus())
-//                   "
-//       >
-//         {pencil2Icon}
-//       </button>
-//
-//       <button
-//         aria-label="Restore User FID"
-//         x-show="user && overrideUserFid"
-//         class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
-//         type="button"
-//         style={{ right: '0.25rem' }}
-//         x-on:click="
-//                     userFid = user.userFid
-//                     overrideUserFid = false
-//                   "
-//       >
-//         {resetIcon}
-//       </button>
-//     </div>
-//   </div>
-//
-//   <div class="flex flex-col gap-0.5">
-//     <div
-//       class="text-xs text-gray-700 font-medium"
-//       style={{ paddingLeft: '0.25rem' }}
-//     >
-//       Cast
-//     </div>
-//
-//     <div class="bg-background-200 border rounded-md divide-y">
-//       <input
-//         aria-label="Cast FID"
-//         autocomplete="off"
-//         class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-t-md"
-//         name="inputText"
-//         type="text"
-//         required
-//         pattern="^[0-9]*$"
-//         placeholder="FID"
-//         x-model="castFid"
-//       />
-//
-//       <input
-//         aria-label="Cast Hash"
-//         autocomplete="off"
-//         class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-b-md"
-//         name="inputText"
-//         type="text"
-//         required
-//         pattern="^0x[a-fA-F0-9]{40}$"
-//         placeholder="Hash"
-//         x-model="castHash"
-//       />
-//     </div>
-//   </div>
-//
-//   <div class="flex gap-1.5 mt-1.5">
-//     <button
-//       class="bg-background-100 border rounded-md w-full text-xs font-medium py-1.5"
-//       type="button"
-//       x-on:click="close"
-//     >
-//       Cancel
-//     </button>
-//     <button
-//       class="bg-gray-200 hover:bg-gray-100 rounded-md w-full text-xs text-bg font-medium py-1.5"
-//       type="submit"
-//     >
-//       Update
-//     </button>
-//   </div>
-// </form>
+type UserFormProps = {
+  dataKey: string
+  dataMap: Record<string, Data>
+  close: () => void
+  open: boolean
+  overrides: State['overrides']
+  user: State['user']
+}
+
+function UserForm(props: UserFormProps) {
+  const { close, dataKey, dataMap, open, overrides, user } = props
+
+  const { postFrameAction, postFrameRedirect, setState } = useDispatch()
+
+  const userFidRef = useRef<HTMLInputElement>(null)
+  const [userFid, setUserFid] = useLocalState(overrides.userFid.toString())
+  const [castFid, setCastFid] = useLocalState(overrides.castFid.toString())
+  const [castHash, setCastHash] = useLocalState(overrides.castHash)
+  const [overrideUserFid, setOverrideUserFid] = useLocalState(
+    user && overrides.userFid !== user.userFid,
+  )
+
+  const ref = useRef<HTMLDivElement>(null)
+  useFocusTrap({
+    active: open,
+    clickOutsideDeactivates: true,
+    onDeactivate() {
+      close()
+    },
+    ref,
+  })
+
+  const editFid = !overrideUserFid && user?.userFid === parseInt(userFid, 10)
+
+  const update = useCallback(
+    async (event) => {
+      ;(event as MouseEvent).preventDefault()
+
+      const nextOverrides = {
+        userFid: parseInt(userFid, 10),
+        castFid: parseInt(castFid, 10),
+        castHash,
+      }
+      setState((x) => ({ ...x, overrides: nextOverrides }))
+
+      const nextData = dataMap[dataKey]
+      if (!nextData || nextData?.type === 'initial') {
+        close()
+        return
+      }
+
+      const fid =
+        nextOverrides.userFid !== user?.userFid
+          ? nextOverrides.userFid
+          : user.userFid
+      const body = {
+        ...nextData.body,
+        castId: {
+          fid: nextOverrides.castFid,
+          hash: nextOverrides.castHash,
+        },
+        fid,
+      }
+
+      let json: Data
+      switch (nextData.type) {
+        case 'action': {
+          json = await postFrameAction(body)
+          break
+        }
+        case 'redirect': {
+          json = await postFrameRedirect(body)
+          break
+        }
+      }
+
+      setState((x) => ({
+        ...x,
+        dataKey: json.id,
+        inputText: '',
+      }))
+
+      close()
+    },
+    [dataKey, dataMap, userFid, castFid, castHash, setState],
+  )
+
+  // TODO: Switch to uncontrolled form
+  return (
+    <form
+      ref={ref}
+      class="border bg-background-100 rounded-lg w-full overflow-hidden px-4 pb-4 pt-3 flex flex-col gap-3 absolute"
+      style={{
+        marginBottom: '4px',
+        bottom: '100%',
+        right: '0',
+        width: '230px',
+        zIndex: '10',
+      }}
+    >
+      <div class="flex flex-col gap-0.5">
+        <div
+          class="text-xs text-gray-700 font-medium"
+          style={{ paddingLeft: '0.25rem' }}
+        >
+          User
+        </div>
+
+        <div class="relative flex items-center">
+          <input
+            aria-label="User FID"
+            autocomplete="off"
+            class="bg-background-200 rounded-md border px-3 py-2 text-sm leading-snug w-full text-xs"
+            data-1p-ignore
+            disabled={Boolean(user) && overrideUserFid === false}
+            name="userFid"
+            pattern="^[0-9]*$"
+            placeholder="FID"
+            ref={userFidRef}
+            required
+            type="text"
+            value={userFid}
+            onChange={(e) => setUserFid((e.target as HTMLInputElement).value)}
+          />
+
+          {editFid ? (
+            <button
+              aria-label="Edit User FID"
+              class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+              type="button"
+              style={{ right: '0.25rem' }}
+              onClick={() => {
+                setOverrideUserFid(true)
+                setTimeout(() => userFidRef.current?.focus())
+              }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: pencil2Icon.toString() }}
+            />
+          ) : (
+            <button
+              aria-label="Restore User FID"
+              class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+              type="button"
+              style={{ right: '0.25rem' }}
+              onClick={() => {
+                if (user) setUserFid(user.userFid.toString())
+                setOverrideUserFid(false)
+              }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: resetIcon.toString() }}
+            />
+          )}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-0.5">
+        <div
+          class="text-xs text-gray-700 font-medium"
+          style={{ paddingLeft: '0.25rem' }}
+        >
+          Cast
+        </div>
+
+        <div class="bg-background-200 border rounded-md divide-y">
+          <input
+            aria-label="Cast FID"
+            autocomplete="off"
+            class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-t-md"
+            name="inputText"
+            type="text"
+            required
+            pattern="^[0-9]*$"
+            placeholder="FID"
+            value={castFid}
+            onChange={(e) => setCastFid((e.target as HTMLInputElement).value)}
+          />
+
+          <input
+            aria-label="Cast Hash"
+            autocomplete="off"
+            class="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-b-md"
+            name="inputText"
+            type="text"
+            required
+            pattern="^0x[a-fA-F0-9]{40}$"
+            placeholder="Hash"
+            value={castHash}
+            onChange={(e) => setCastHash((e.target as HTMLInputElement).value)}
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-1.5 mt-1.5">
+        <button
+          class="bg-background-100 border rounded-md w-full text-xs font-medium py-1.5"
+          type="button"
+          onClick={close}
+        >
+          Cancel
+        </button>
+
+        <button
+          class="bg-gray-200 hover:bg-gray-100 rounded-md w-full text-xs text-bg font-medium py-1.5"
+          type="submit"
+          onClick={update}
+        >
+          Update
+        </button>
+      </div>
+    </form>
+  )
+}

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'hono/jsx/dom'
 
 type UseCopyToClipboardParameters = {
   timeout?: number | undefined
-  value: string
+  value: string | undefined
 }
 
 export function useCopyToClipboard(parameters: UseCopyToClipboardParameters) {
@@ -11,6 +11,7 @@ export function useCopyToClipboard(parameters: UseCopyToClipboardParameters) {
   const [copied, setCopied] = useState(false)
   const copy = useCallback(() => {
     if (copied) return
+    if (!value) return
     navigator.clipboard.writeText(value)
     setCopied(true)
     setTimeout(() => setCopied(false), timeout)

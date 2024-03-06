@@ -848,8 +848,6 @@ video {
   -webkit-line-clamp: 2;
 }
 
-[x-cloak] { display: none !important; }
-
 .sr-only {
   border-width: 0;
   clip: rect(0, 0, 0, 0);

@@ -1,5 +1,6 @@
 import { createContext, type PropsWithChildren } from 'hono/jsx'
-import { useState } from 'hono/jsx/dom'
+import { useEffect, useState } from 'hono/jsx/dom'
+import LZString from 'lz-string'
 
 import {
   type BaseData,
@@ -30,7 +31,7 @@ export type State = {
   stackIndex: number
   stack: string[]
   tab: 'context' | 'meta-tags' | 'request' | 'state'
-  user?: User | undefined
+  user?: User | null | undefined
 }
 
 const defaultState = {
@@ -68,6 +69,10 @@ export type DispatchValue = {
     options?: { skipLogs?: boolean },
   ): Promise<Data>
 
+  fetchAuthCode(): Promise<{ token: string; url: string }>
+  fetchAuthStatus(token: string): Promise<User>
+  logout(): Promise<{ success: true }>
+
   setState: ReturnType<typeof useState<State>>[1]
 }
 
@@ -76,19 +81,21 @@ export const DispatchContext = createContext<DispatchValue>({} as DispatchValue)
 export type Props = PropsWithChildren<{
   data: BaseData & InitialData
   routes: readonly string[]
+  user?: User | null | undefined
 }>
 
 export function Provider(props: Props) {
-  const { children, data: initialData, routes } = props
-  const { id: dataKey } = initialData
+  const { children, data: initialData, routes, user } = props
+  const { id: initialDataKey } = initialData
 
   const [state, setState] = useState<State>(() => ({
     ...defaultState,
-    dataKey,
-    dataMap: { [dataKey]: props.data },
-    logs: [dataKey],
+    dataKey: initialDataKey,
+    dataMap: { [initialDataKey]: props.data },
+    logs: [initialDataKey],
     routes,
-    stack: [dataKey],
+    stack: [initialDataKey],
+    user,
   }))
 
   const data = state.dataMap[state.dataKey]
@@ -182,8 +189,156 @@ export function Provider(props: Props) {
       return json
     },
 
+    async fetchAuthCode() {
+      const url = parsePath('body' in data ? data.body.url : data.url)
+      const json = await fetch(`${url}/dev2/frame/auth/code`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }).then((response) => response.json())
+      return json
+    },
+    async fetchAuthStatus(token) {
+      const url = parsePath('body' in data ? data.body.url : data.url)
+      const json = await fetch(`${url}/dev2/frame/auth/status/${token}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then((response) => response.json())
+      return json
+    },
+    async logout() {
+      const url = parsePath('body' in data ? data.body.url : data.url)
+      const json = await fetch(`${url}/dev2/frame/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }).then((response) => response.json())
+      setState((x) => ({ ...x, user: null }))
+      return json
+    },
+
     setState,
   } satisfies DispatchValue
+
+  useEffect(() => {
+    try {
+      const userCookie = getCookie('user')
+      const cookie = userCookie
+        ? JSON.parse(decodeURIComponent(userCookie))
+        : {}
+      if (cookie.token)
+        dispatchValue
+          .fetchAuthStatus(cookie.token)
+          .then((data) => {
+            if (data.state !== 'completed') return
+            if (data.userFid === user?.userFid) return
+            setState((x) => ({ ...x, user: data }))
+          })
+          .catch(console.error)
+    } catch (e) {
+      console.log({ e })
+    }
+
+    restoreState().finally(() => {
+      setState((x) => ({ ...x, mounted: true }))
+    })
+
+    async function restoreState() {
+      // restore state from url
+
+      // if (!location.hash.startsWith('#state')) {
+      //   const userFid = this.user?.userFid
+      //   if (userFid) this.overrides = { ...this.overrides, userFid }
+      //   return
+      // }
+
+      const state = location.hash.replace('#state/', '').trim()
+      try {
+        let restored = LZString.decompressFromEncodedURIComponent(state)
+        // Fallback incase there is an extra level of decoding:
+        // https://gitter.im/Microsoft/TypeScript?at=5dc478ab9c39821509ff189a
+        if (!restored)
+          restored = LZString.decompressFromEncodedURIComponent(
+            decodeURIComponent(state),
+          )
+
+        const parsed = JSON.parse(restored)
+        setState((x) => ({
+          ...x,
+          ...parsed,
+          logIndex:
+            (parsed.logIndex === (parsed.logs?.length ?? 0) - 1
+              ? -1
+              : parsed.logIndex) ?? x.logIndex,
+        }))
+
+        // Refetch current frame if no other frame is selected or back in the stack (e.g. hit back button to previous frame in history)
+        // This allows you to make changes to the frame in code and see updates immediately
+        const endOfStack = parsed.stackIndex === parsed.stack.length - 1
+        const endOfLogs =
+          parsed.logIndex === -1 || parsed.logIndex === parsed.logs.length - 1
+        const nextData = parsed.dataMap[parsed.dataKey]
+        if (endOfStack && endOfLogs && nextData) {
+          let json: Data
+          switch (nextData?.type) {
+            case 'initial': {
+              json = await dispatchValue.getFrame(nextData.url, {
+                skipLogs: true,
+              })
+              break
+            }
+            case 'action': {
+              json = await dispatchValue.postFrameAction(nextData.body, {
+                skipLogs: true,
+              })
+              break
+            }
+            case 'redirect': {
+              json = await dispatchValue.postFrameRedirect(nextData.body, {
+                skipLogs: true,
+              })
+              break
+            }
+          }
+
+          setState((x) => ({
+            ...x,
+            logs: x.logs.slice(0, x.logs.length - 1).concat(json.id),
+            dataKey: json.id,
+          }))
+        }
+      } catch (error) {
+        console.log('failed to restore state:', (error as Error).message)
+        history.replaceState(null, '', location.pathname)
+      }
+    }
+  }, [])
+
+  const {
+    dataKey,
+    dataMap,
+    logs,
+    logIndex,
+    overrides,
+    stackIndex,
+    stack,
+    mounted,
+  } = state
+  useEffect(() => {
+    if (!mounted) return
+    const compressed = LZString.compressToEncodedURIComponent(
+      JSON.stringify({
+        dataKey,
+        dataMap,
+        logs,
+        logIndex,
+        overrides,
+        stackIndex,
+        stack,
+      }),
+    )
+    window.history.replaceState(null, '', `#state/${compressed}`)
+  }, [dataKey, dataMap, logs, logIndex, overrides, stackIndex, stack, mounted])
 
   return (
     <StateContext.Provider value={stateValue}>
@@ -192,4 +347,17 @@ export function Provider(props: Props) {
       </DispatchContext.Provider>
     </StateContext.Provider>
   )
+}
+
+function getCookie(name: string) {
+  const cookieArr = document.cookie.split(';')
+  for (let i = 0; i < cookieArr.length; i++) {
+    let cookie = cookieArr[i]
+    while (cookie.charAt(0) === ' ') {
+      cookie = cookie.substring(1, cookie.length)
+    }
+    if (cookie.indexOf(name) === 0)
+      return cookie.substring(name.length + 1, cookie.length)
+  }
+  return null
 }

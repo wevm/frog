@@ -1,15 +1,33 @@
+import { bytesToHex } from '@noble/curves/abstract/utils'
+import { ed25519 } from '@noble/curves/ed25519'
 import { type Env, type Schema } from 'hono'
-import { getCookie, getSignedCookie } from 'hono/cookie'
+import {
+  deleteCookie,
+  getCookie,
+  getSignedCookie,
+  setCookie,
+  setSignedCookie,
+} from 'hono/cookie'
 import { inspectRoutes } from 'hono/dev'
 import { jsxRenderer } from 'hono/jsx-renderer'
+import { type CookieOptions } from 'hono/utils/cookie'
 import { validator } from 'hono/validator'
+import { mnemonicToAccount } from 'viem/accounts'
 
 import { type FrogBase } from '../frog-base.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
 import { App } from './components/App.js'
-import { type ActionData, type BaseData, type RedirectData } from './types.js'
+import { type Props, Provider, dataId } from './lib/context.js'
+import {
+  type ActionData,
+  type BaseData,
+  type RedirectData,
+  type SignedKeyRequestResponse,
+  type User,
+  type UserDataByFidResponse,
+} from './types.js'
 import { fetchFrame } from './utils/fetchFrame.js'
 import { getHtmlSize } from './utils/getHtmlSize.js'
 import { getImageSize } from './utils/getImageSize.js'
@@ -18,7 +36,6 @@ import { htmlToFrame } from './utils/htmlToFrame.js'
 import { htmlToContext } from './utils/htmlToState.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
-import { dataId, Provider, type Props } from './lib/context.js'
 
 declare module 'hono' {
   interface ContextRenderer {
@@ -76,11 +93,24 @@ export function routes<
     async (c) => {
       const url = c.req.url.replace('/dev2', '')
       const value = await get(url)
+      const cookie = getCookie(c, 'user')
+
+      let user: User | undefined = undefined
+      if (cookie)
+        try {
+          const parsed = JSON.parse(cookie)
+          const baseUrl = app.hub?.apiUrl || app.hubApiUrl
+          if (parsed && baseUrl) {
+            const data = await getUserByFid(baseUrl, parsed.userFid)
+            user = { state: 'completed', ...parsed, ...data }
+          }
+        } catch {}
+
       return c.render(
-        <Provider {...value}>
+        <Provider {...value} user={user}>
           <App />
         </Provider>,
-        { title: `frame: ${new URL(url).pathname}`, value },
+        { title: `frame: ${new URL(url).pathname}`, value: { ...value, user } },
       )
     },
   )
@@ -321,4 +351,149 @@ export function routes<
         } satisfies BaseData & RedirectData)
       },
     )
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  // Auth
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  const cookieOptions = {
+    maxAge: 30 * 86_400,
+    sameSite: 'Strict',
+    secure: true,
+  } as CookieOptions
+
+  app
+    .get(`${parsePath(path)}/dev2/frame/auth/code`, async (c) => {
+      // 1. Create keypair
+      const privateKeyBytes = ed25519.utils.randomPrivateKey()
+      const publicKeyBytes = ed25519.getPublicKey(privateKeyBytes)
+      const privateKey = `0x${bytesToHex(privateKeyBytes)}`
+      const publicKey = `0x${bytesToHex(publicKeyBytes)}` as const
+
+      // 2. Sign key request. By default, use hosted service.
+      let deadline: number
+      let requestFid: number
+      let signature: string
+      if (app.dev?.appFid && app.dev?.appMnemonic) {
+        const account = mnemonicToAccount(app.dev.appMnemonic)
+
+        deadline = Math.floor(Date.now() / 1000) + 60 * 60 // now + hour
+        requestFid = app.dev.appFid
+        signature = await account.signTypedData({
+          domain: {
+            name: 'Farcaster SignedKeyRequestValidator',
+            version: '1',
+            chainId: 10,
+            verifyingContract: '0x00000000FC700472606ED4fA22623Acf62c60553',
+          },
+          types: {
+            SignedKeyRequest: [
+              { name: 'requestFid', type: 'uint256' },
+              { name: 'key', type: 'bytes' },
+              { name: 'deadline', type: 'uint256' },
+            ],
+          },
+          primaryType: 'SignedKeyRequest',
+          message: {
+            requestFid: BigInt(app.dev.appFid),
+            key: publicKey,
+            deadline: BigInt(deadline),
+          },
+        })
+      } else {
+        const response = (await fetch(
+          `https://auth.frog.fm/api/signed-key-requests/${publicKey}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ).then((response) => response.json())) as {
+          deadline: number
+          requestFid: number
+          signature: string
+        }
+
+        deadline = response.deadline
+        requestFid = response.requestFid
+        signature = response.signature
+      }
+
+      // 3. Create key request to register public key
+      const response = (await fetch(
+        'https://api.warpcast.com/v2/signed-key-requests',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deadline,
+            key: publicKey,
+            requestFid,
+            signature,
+          }),
+        },
+      ).then((response) => response.json())) as SignedKeyRequestResponse
+      const { token, deeplinkUrl: url } = response.result.signedKeyRequest
+
+      // 4. Save keypair in cookie
+      const value = JSON.stringify({ privateKey, publicKey })
+      if (app.secret)
+        await setSignedCookie(c, 'session', value, app.secret, cookieOptions)
+      else setCookie(c, 'session', value, { ...cookieOptions, httpOnly: true })
+
+      return c.json({ token, url })
+    })
+    .get(`${parsePath(path)}/dev2/frame/auth/status/:token`, async (c) => {
+      // @ts-ignore
+      const token = c.req.param('token') as string
+      const response = (await fetch(
+        `https://api.warpcast.com/v2/signed-key-request?token=${token}`,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        },
+      ).then((response) => response.json())) as SignedKeyRequestResponse
+      const { state = 'pending', userFid } =
+        response.result?.signedKeyRequest ?? {}
+
+      if (state === 'completed' && userFid) {
+        let user: User = { state, token, userFid }
+        const baseUrl = app.hub?.apiUrl || app.hubApiUrl
+        if (baseUrl) {
+          const data = await getUserByFid(baseUrl, userFid)
+          user = { ...user, ...data }
+        }
+
+        setCookie(c, 'user', JSON.stringify({ token, userFid }), cookieOptions)
+        return c.json(user)
+      }
+
+      return c.json({ state })
+    })
+    .post(`${parsePath(path)}/dev2/frame/auth/logout`, async (c) => {
+      deleteCookie(c, 'session')
+      deleteCookie(c, 'user')
+      return c.json({ success: true })
+    })
+}
+
+async function getUserByFid(baseUrl: string, userFid: number) {
+  const response = (await fetch(
+    `${baseUrl}/v1/userDataByFid?fid=${userFid}`,
+  ).then((response) => response.json())) as UserDataByFidResponse
+
+  let displayName = undefined
+  let pfp = undefined
+  let username = undefined
+
+  for (const message of response.messages) {
+    if (message.data.type !== 'MESSAGE_TYPE_USER_DATA_ADD') continue
+
+    const type = message.data.userDataBody.type
+    const value = message.data.userDataBody.value
+    if (type === 'USER_DATA_TYPE_PFP') pfp = value
+    if (type === 'USER_DATA_TYPE_USERNAME') username = value
+    if (type === 'USER_DATA_TYPE_DISPLAY') displayName = value
+  }
+
+  return { displayName, pfp, userFid, username }
 }

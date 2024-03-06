@@ -1,7 +1,8 @@
-// import { AuthDialog } from './AuthDialog.js'
+import { useRef, useState as useLocalState, useEffect } from 'hono/jsx/dom'
+
 import { useDispatch } from '../hooks/useDispatch.js'
 import { useState } from '../hooks/useState.js'
-import type { Data } from '../types.js'
+import { type Data, type User } from '../types.js'
 import { formatUrl } from '../utils/format.js'
 import {
   chevronLeftIcon,
@@ -12,11 +13,13 @@ import {
   personIcon,
   refreshIcon,
 } from './icons.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
+import { AuthDialog } from './AuthDialog.js'
 
-type NavigatorProps = { url: string }
+type NavigatorProps = { url: string; routes: readonly string[] }
 
 export function Navigator(props: NavigatorProps) {
-  const { url } = props
+  const { routes, url } = props
 
   const { dataKey, dataMap, stackIndex, stack, user } = useState()
   const { getFrame, postFrameAction, postFrameRedirect, setState } =
@@ -164,174 +167,272 @@ export function Navigator(props: NavigatorProps) {
         dangerouslySetInnerHTML={{ __html: refreshIcon.toString() }}
       />
 
-      <div
-        class="relative grid h-full"
-        x-data="{ open: false }"
-        style={{ flex: '1' }}
+      <AddressBar routes={routes} url={url} />
+
+      {user ? <UserButton user={user} /> : <AuthButton />}
+    </div>
+  )
+}
+
+function AuthButton() {
+  const [open, setOpen] = useLocalState(false)
+
+  const [timedOut, setTimedOut] = useLocalState(false)
+  const [data, setData] = useLocalState<
+    { token: string; url: string } | undefined
+  >(undefined)
+  const { fetchAuthCode, fetchAuthStatus, setState } = useDispatch()
+
+  useEffect(() => {
+    if (!open) return
+    fetchAuthCode().then(setData)
+  }, [open])
+
+  useEffect(() => {
+    // poll for status change
+    let intervalId: Timer | null = null
+
+    if (!data) return
+    if (!open) return
+
+    const timeout = 300_000
+    const interval = 1_500
+    const deadline = Date.now() + timeout
+
+    const status = async () => {
+      if (Date.now() < deadline) {
+        const json = await fetchAuthStatus(data.token)
+        if (json.state !== 'completed') return
+
+        setState((x) => ({ ...x, user: json }))
+        if (intervalId) clearInterval(intervalId)
+        setOpen(false)
+      } else {
+        if (intervalId) clearInterval(intervalId)
+        setTimedOut(true)
+      }
+    }
+    ;(() => {
+      intervalId = setInterval(status, interval)
+    })()
+
+    // clean up when unmounted or dialog closed
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [data, open])
+
+  return (
+    <>
+      <button
+        type="button"
+        class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+        onClick={() => setOpen(true)}
       >
-        <button
-          type="button"
-          class="bg-background-100 border rounded-md w-full h-full relative overflow-hidden"
-          style={{
-            paddingLeft: '1.75rem',
-            paddingRight: '1.75rem',
-          }}
-          x-on:click="open = true"
-        >
-          <div
-            class="flex items-center h-full text-gray-700 absolute"
-            style={{ left: '0.5rem' }}
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-            dangerouslySetInnerHTML={{ __html: globeIcon.toString() }}
-          />
-
-          <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
-            <span
-              class="font-sans text-gray-1000"
-              style={{ lineHeight: '1.9rem', fontSize: '13px' }}
-            >
-              {formatUrl(url)}
-            </span>
-          </div>
-        </button>
-
         <div
-          x-cloak
-          x-show="open"
-          class="border bg-background-100 rounded-lg w-full overflow-hidden py-1 absolute"
+          style={{ height: '30px', width: '30px' }}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{ __html: farcasterIcon.toString() }}
+        />
+      </button>
+
+      <AuthDialog
+        close={() => setOpen(false)}
+        data={data}
+        open={open}
+        reset={() => {
+          fetchAuthCode()
+            .then(setData)
+            .then(() => setTimedOut(false))
+        }}
+        timedOut={timedOut}
+      />
+    </>
+  )
+}
+
+type UserButtonProps = {
+  user: User
+}
+
+function UserButton(props: UserButtonProps) {
+  const { user } = props
+
+  const { logout } = useDispatch()
+
+  const [open, setOpen] = useLocalState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useFocusTrap({
+    active: open,
+    clickOutsideDeactivates: true,
+    onDeactivate() {
+      setOpen(false)
+    },
+    ref,
+  })
+
+  return (
+    <div class="relative grid h-full">
+      <button
+        aria-label="open user menu"
+        type="button"
+        class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+        onClick={() => setOpen(true)}
+      >
+        {user.pfp ? (
+          <img style={{ height: '32px', width: '32px' }} src={user.pfp} />
+        ) : (
+          <div class="px-2">{personIcon}</div>
+        )}
+      </button>
+
+      {open && (
+        <div
+          ref={ref}
+          class="border bg-background-100 rounded-xl w-full overflow-hidden absolute"
           style={{
             marginTop: '4px',
             top: '100%',
+            right: '0',
+            width: '225px',
             zIndex: '10',
           }}
-          x-data="{ url: new URL(data.body ? data.body.url : data.url) }"
-          {...{
-            'x-on:click.outside': 'open = false',
-            'x-on:keyup.escape': 'open = false',
-            'x-trap': 'open',
-          }}
         >
-          <template x-for="(route, index) in routes">
-            <button
-              type="button"
-              class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left hover:bg-gray-100"
-              x-text="`${url.protocol}//${url.host}${route === '/' ? '' : route}`"
-              x-on:click="
-                const nextRoute = route === '/' ? '/dev' : route + '/dev'
-                history.replaceState({}, '', nextRoute)
-                mounted = false
+          <div class="text-sm p-4">
+            {user.username && <div>{user.displayName ?? user.username}</div>}
+            <div class="text-gray-700">{`FID #${user.userFid}`}</div>
+          </div>
 
-                const nextFrame = window.location.toString().replace('/dev', '')
-                getFrame(nextFrame, { replaceLogs: true })
-                  .then((json) => {
-                    const id = json.id
-                    dataKey = id
+          <div class="px-4">
+            <div class="border-t w-full" />
+          </div>
 
-                    stack = [id]
-                    stackIndex = 0
-
-                    inputText = ''
-                    open = false
-                    tab = 'request'
-                  })
-                  .catch(console.error)
-                  .finally(() => {
-                    mounted = true
-                  })
-              "
-            />
-          </template>
-        </div>
-      </div>
-
-      {!user && (
-        <div style={{ display: 'contents' }} x-data="{ open: false }">
-          <button
-            type="button"
-            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-            x-on:click="open = true"
-          >
-            <div
-              style={{ height: '30px', width: '30px' }}
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-              dangerouslySetInnerHTML={{ __html: farcasterIcon.toString() }}
-            />
-          </button>
-          {/* <AuthDialog /> */}
-        </div>
-      )}
-
-      {user && (
-        <div class="relative grid h-full" x-data="{ open: false }">
-          <button
-            aria-label="open user menu"
-            type="button"
-            class="bg-background-100 rounded-md border overflow-hidden text-gray-700"
-            x-on:click="open = true"
-          >
-            <div class="px-2" x-show="!user.pfp">
-              {personIcon}
-            </div>
-            <img
-              style={{ height: '32px', width: '32px' }}
-              x-show="user.pfp"
-              {...{ ':src': 'user.pfp' }}
-            />
-          </button>
-
-          <div
-            x-show="open"
-            class="border bg-background-100 rounded-xl w-full overflow-hidden absolute"
-            style={{
-              marginTop: '4px',
-              top: '100%',
-              right: '0',
-              width: '225px',
-              zIndex: '10',
-            }}
-            {...{
-              'x-on:click.outside': 'open = false',
-              'x-on:keyup.escape': 'open = false',
-              'x-trap': 'open',
-            }}
-          >
-            <div class="text-sm p-4">
-              <div
-                x-show="user.username"
-                x-text="user.displayName ?? user.username"
-              />
-              <div class="text-gray-700" x-text="`FID #${user.userFid}`" />
-            </div>
-
-            <div class="px-4">
-              <div class="border-t w-full" />
-            </div>
-
-            <div class="py-2">
+          <div class="py-2">
+            {user.username && (
               <a
                 type="button"
                 class="bg-transparent flex items-center justify-between font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
                 style={{ textDecoration: 'none' }}
                 target="_blank"
                 rel="noopener noreferrer"
-                x-show="user.username"
-                {...{
-                  ':href': '`https://warpcast.com/${user.username}`',
-                }}
+                href={`https://warpcast.com/${user.username}`}
               >
                 <span>Warpcast Profile</span>
-                <div style={{ marginTop: '1px' }}> {externalLinkIcon}</div>
+                <div
+                  style={{ marginTop: '1px' }}
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                  dangerouslySetInnerHTML={{
+                    __html: externalLinkIcon.toString(),
+                  }}
+                />
               </a>
+            )}
 
-              <button
-                type="button"
-                class="bg-transparent display-block font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
-                x-on:click="logout()"
-              >
-                Log Out
-              </button>
-            </div>
+            <button
+              type="button"
+              class="bg-transparent display-block font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
+              onClick={logout}
+            >
+              Log Out
+            </button>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+type AddressBarProps = { routes: readonly string[]; url: string }
+
+function AddressBar(props: AddressBarProps) {
+  const { routes, url } = props
+
+  const { getFrame, setState } = useDispatch()
+
+  const [open, setOpen] = useLocalState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useFocusTrap({
+    active: open,
+    clickOutsideDeactivates: true,
+    onDeactivate() {
+      setOpen(false)
+    },
+    ref,
+  })
+
+  const urlObject = new URL(url)
+
+  return (
+    <div class="relative grid h-full" style={{ flex: '1' }}>
+      <button
+        type="button"
+        class="bg-background-100 border rounded-md w-full h-full relative overflow-hidden"
+        style={{
+          paddingLeft: '1.75rem',
+          paddingRight: '1.75rem',
+        }}
+        onClick={() => setOpen(true)}
+      >
+        <div
+          class="flex items-center h-full text-gray-700 absolute"
+          style={{ left: '0.5rem' }}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+          dangerouslySetInnerHTML={{ __html: globeIcon.toString() }}
+        />
+
+        <div class="overflow-hidden whitespace-nowrap text-ellipsis h-full">
+          <span
+            class="font-sans text-gray-1000"
+            style={{ lineHeight: '1.9rem', fontSize: '13px' }}
+          >
+            {formatUrl(url)}
+          </span>
+        </div>
+      </button>
+
+      {open && (
+        <div
+          ref={ref}
+          class="border bg-background-100 rounded-lg w-full overflow-hidden py-1 absolute"
+          style={{
+            marginTop: '4px',
+            top: '100%',
+            zIndex: '10',
+          }}
+        >
+          {routes.map((route) => (
+            <button
+              type="button"
+              class="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left hover:bg-gray-100"
+              onClick={async () => {
+                const nextRoute = route === '/' ? '/dev2' : `${route}/dev2`
+                history.replaceState({}, '', nextRoute)
+
+                setState((x) => ({ ...x, mounted: false }))
+
+                const nextFrame = window.location
+                  .toString()
+                  .replace('/dev2', '')
+                const json = await getFrame(nextFrame, { replaceLogs: true })
+                const id = json.id
+
+                setState((x) => ({
+                  ...x,
+                  dataKey: id,
+                  stack: [id],
+                  stackIndex: 0,
+                  inputText: '',
+                  tab: 'request',
+                  mounted: true,
+                }))
+                setOpen(false)
+              }}
+            >
+              {`${urlObject.protocol}//${urlObject.host}${
+                route === '/' ? '' : route
+              }`}
+            </button>
+          ))}
         </div>
       )}
     </div>

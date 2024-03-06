@@ -1,3 +1,4 @@
+import { useEffect } from 'hono/jsx'
 import { useState } from '../hooks/useState.js'
 import { Data } from './Data.js'
 import { Metrics } from './Metrics.js'
@@ -9,7 +10,6 @@ import { Timeline } from './Timeline.js'
 
 export function App() {
   const state = useState()
-
   const url = 'body' in state.data ? state.data.body.url : state.data.url
 
   return (
@@ -30,15 +30,18 @@ export function App() {
         }}
       >
         <Timeline
+          dataKey={state.dataKey}
           dataMap={state.dataMap}
           logs={state.logs}
           logIndex={state.logIndex}
+          overrides={state.overrides}
+          user={state.user}
         />
         <QuickLinks url={url} />
       </aside>
 
       <main class="flex flex-col md:h-full w-full gap-4 order-0 md:order-1 overflow-hidden">
-        <Navigator url={url} />
+        <Navigator routes={state.routes} url={url} />
 
         <div class="flex flex-col lg:flex-row gap-4">
           <div class="flex flex-col gap-4">

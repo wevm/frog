@@ -163,14 +163,11 @@ function Button(props: ButtonProps) {
 
   if (type === 'mint')
     return (
-      <div style={{ display: 'contents' }}>
-        <button class={buttonClass} type="button" onClick={() => setOpen(true)}>
-          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
-          <div dangerouslySetInnerHTML={{ __html: warpIcon.toString() }} />
-          {innerHtml}
-        </button>
-        {/* <MintDialog /> */}
-      </div>
+      <button class={buttonClass} type="button">
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
+        <div dangerouslySetInnerHTML={{ __html: warpIcon.toString() }} />
+        {innerHtml}
+      </button>
     )
 
   if (type === 'post_redirect')
