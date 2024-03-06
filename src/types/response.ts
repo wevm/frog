@@ -6,5 +6,4 @@ export type TypedResponse<data> = {
 export type HandlerResponse<typedResponse> =
   | Response
   | TypedResponse<typedResponse>
-  | Promise<Response>
-  | Promise<TypedResponse<typedResponse>>
+  | Promise<Response | TypedResponse<typedResponse>>
