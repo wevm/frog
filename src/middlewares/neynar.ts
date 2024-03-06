@@ -4,8 +4,8 @@ import { Message } from '../protobufs/generated/message_pb.js'
 import { messageToFrameData } from '../utils/verifyFrame.js'
 
 export type NeynarVariables = {
-  cast?: Cast | undefined
-  interactor?: User | undefined
+  cast?: NeynarCast | undefined
+  interactor?: NeynarUser | undefined
 }
 
 export type NeynarMiddlewareParameters = {
@@ -62,7 +62,7 @@ const neynarApiUrl = 'https://api.neynar.com'
 
 type GetCastParameters = { apiKey: string; hash: string }
 type GetCastReturnType = {
-  cast: Cast
+  cast: NeynarCast
 }
 
 async function getCast({
@@ -83,7 +83,7 @@ async function getCast({
 
 type GetUsersParameters = { apiKey: string; castFid: number; fids: number[] }
 type GetUsersReturnType = {
-  users: User[]
+  users: NeynarUser[]
 }
 
 async function getUsers({
@@ -120,13 +120,13 @@ function camelCaseKeys(response: object): object {
 ///////////////////////////////////////////////////////////////////////////
 // Types
 
-export type Cast = {
-  author: User
+export type NeynarCast = {
+  author: NeynarUser
   embeds: { url: string }[]
   // TODO: populate with real type.
   frames: unknown
   hash: string
-  mentionedProfiles: User[]
+  mentionedProfiles: NeynarUser[]
   object: 'cast'
   parentAuthor: { fid: number | null }
   parentHash: string | null
@@ -142,7 +142,7 @@ export type Cast = {
   timestamp: string
 }
 
-export type User = {
+export type NeynarUser = {
   activeStatus: 'active' | 'inactive'
   custodyAddress: string
   displayName: string
