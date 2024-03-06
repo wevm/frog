@@ -1,9 +1,11 @@
-import { useRef, useState as useLocalState, useEffect } from 'hono/jsx/dom'
+import { useEffect, useRef, useState as useLocalState } from 'hono/jsx/dom'
 
 import { useDispatch } from '../hooks/useDispatch.js'
+import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useState } from '../hooks/useState.js'
 import { type Data, type User } from '../types.js'
 import { formatUrl } from '../utils/format.js'
+import { AuthDialog } from './AuthDialog.js'
 import {
   chevronLeftIcon,
   chevronRightIcon,
@@ -13,8 +15,6 @@ import {
   personIcon,
   refreshIcon,
 } from './icons.js'
-import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import { AuthDialog } from './AuthDialog.js'
 
 type NavigatorProps = { url: string; routes: readonly string[] }
 
@@ -413,9 +413,7 @@ function AddressBar(props: AddressBarProps) {
 
                 setMounted(false)
 
-                const nextFrame = window.location
-                  .toString()
-                  .replace('/dev', '')
+                const nextFrame = window.location.toString().replace('/dev', '')
                 const json = await getFrame(nextFrame, { replaceLogs: true })
                 const id = json.id
 
