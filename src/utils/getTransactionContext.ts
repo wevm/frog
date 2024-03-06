@@ -16,9 +16,9 @@ type GetTransactionContextParameters<state = unknown> = {
   req: HonoRequest
 }
 
-export function getTransactionContext<state>(
+export function getTransactionContext<path extends string, state>(
   parameters: GetTransactionContextParameters<state>,
-): TransactionContext<string, state> {
+): TransactionContext<path, state> {
   const { context, req } = parameters
   const {
     frameData,
