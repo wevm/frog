@@ -1,15 +1,31 @@
 import type { MiddlewareHandler } from 'hono'
 import { hexToBytes } from 'viem'
 import { Message } from '../protobufs/generated/message_pb.js'
+import type { Pretty } from '../types/utils.js'
 import { messageToFrameData } from '../utils/verifyFrame.js'
 
 export type NeynarVariables = {
-  cast?: NeynarCast | undefined
-  interactor?: NeynarUser | undefined
+  /**
+   * The cast of the frame.
+   */
+  cast?: Pretty<NeynarCast> | undefined
+  /**
+   * The user who interacted with the frame.
+   */
+  interactor?: Pretty<NeynarUser> | undefined
 }
 
 export type NeynarMiddlewareParameters = {
+  /**
+   * Neynar API Key.
+   */
   apiKey: string
+  /**
+   * Set of features to enable and inject into context.
+   *
+   * - `interactor`: Fetches the user who interacted with the frame.
+   * - `cast`: Fetches the cast of the frame.
+   */
   features: ('interactor' | 'cast')[]
 }
 
