@@ -1,14 +1,15 @@
+import { create } from 'qrcode'
+
 import { farcasterIcon } from './icons.js'
 
 export type QRCodeProps = {
   url: string
 }
 
-export async function QRCode(props: QRCodeProps) {
+export function QRCode(props: QRCodeProps) {
   const { url } = props
 
   // 1. Create QR code
-  const { create } = await import('qrcode')
   const arr = Array.prototype.slice.call(
     create(url, { errorCorrectionLevel: 'H' }).modules.data,
     0,
@@ -114,9 +115,9 @@ export async function QRCode(props: QRCodeProps) {
               height: `${logoSize - logoMargin}px`,
               width: `${logoSize - logoMargin}px`,
             }}
-          >
-            {farcasterIcon}
-          </div>
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: farcasterIcon.toString() }}
+          />
         </div>
 
         <svg height={size} style={{ all: 'revert' }} width={size}>

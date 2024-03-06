@@ -1,106 +1,111 @@
+import { type Data, type Frame } from '../types.js'
 import { checkCircledIcon, crossCircledIcon } from './icons.js'
 
-export function Data() {
+type DataProps = {
+  data: Data
+  frame: Frame
+}
+
+export function Data(props: DataProps) {
+  const { data, frame } = props
+
+  const imageSize = 'imageSize' in data.metrics ? data.metrics.imageSize : null
+  const limits = {
+    postUrl: 256,
+    inputText: 32,
+    state: 4_096,
+    image: 256,
+  }
+  const postUrlTooLong = frame.postUrl.length > limits.postUrl
+  const inputTextTooLong = frame.input?.text
+    ? frame.input.text.length > limits.inputText
+    : false
+  const stateTooLong = frame.state.length > limits.state
+  const imageTooLarge = imageSize ? imageSize / 1024 > limits.image : false
+
+  let hasState: boolean
+  if (!frame.state) hasState = false
+  else
+    try {
+      const decoded = decodeURIComponent(frame.state)
+      const parsed = JSON.parse(decoded)
+      hasState = Boolean(parsed.previousState)
+    } catch {
+      hasState = false
+    }
+
+  const validations = [
+    {
+      property: 'fc:frame',
+      value: frame.version,
+      status: frame.version === 'vNext' ? 'valid' : 'invalid',
+      message: `Version is ${frame.version} and must be vNext.`,
+    },
+    {
+      property: 'fc:frame:image',
+      value: frame.imageUrl,
+      status: imageTooLarge ? 'invalid' : 'valid',
+      message: `Image is ${((imageSize ?? 1024) / 1024).toFixed(
+        2,
+      )} kilobytes and must be ${limits.image.toLocaleString()} kilobytes or less.`,
+    },
+    {
+      property: 'fc:frame:aspect_ratio',
+      value: frame.imageAspectRatio,
+      status: 'valid',
+    },
+    {
+      property: 'fc:frame:post_url',
+      value: frame.postUrl,
+      status: postUrlTooLong ? 'invalid' : 'valid',
+      message: `Post URL is ${
+        frame.postUrl.length
+      } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
+    },
+    ...(hasState
+      ? [
+          {
+            property: 'fc:frame:state',
+            value: frame.state,
+            status: stateTooLong ? 'invalid' : 'valid',
+            message: `State is ${
+              frame.state.length
+            } bytes and must be ${limits.state.toLocaleString()} bytes or less.`,
+          },
+        ]
+      : []),
+    {
+      property: 'og:image',
+      value: frame.image,
+      status: 'valid',
+    },
+    ...(frame.input?.text
+      ? [
+          {
+            property: 'fc:frame:input:text',
+            value: frame.input.text,
+            status: inputTextTooLong ? 'invalid' : 'valid',
+            message: `Input text is ${
+              frame.input.text.length
+            } bytes and must be ${limits.inputText.toLocaleString()} bytes or less. Keep in mind non-ASCII characters, like emoji, can take up more than 1 byte of space.`,
+          },
+        ]
+      : []),
+    ...(frame.buttons ?? []).map((button) => ({
+      property: `fc:frame:button:${button.index}`,
+      value: `${button.title}${
+        button.type !== 'post' ? `, ${button.type}` : ''
+      }${button.target ? `, ${button.target}` : ''}`,
+      status: 'valid',
+    })),
+  ]
+
   return (
     <div
       role="grid"
       aria-colcount="16"
       class="bg-background-100 border rounded-md overflow-hidden"
       style={{ height: 'min-content' }}
-      x-data="{
-        get validations() {
-          const imageSize = data.metrics.imageSize
-          const limits = {
-            postUrl: 256,
-            inputText: 32,
-            state: 4_096,
-            image: 256,
-          }
-          const postUrlTooLong = frame.postUrl.length > limits.postUrl
-          const inputTextTooLong = frame.input?.text
-            ? frame.input.text.length > limits.inputText
-            : false
-          const stateTooLong = frame.state.length > limits.state
-          const imageTooLarge = imageSize ? imageSize / 1024 > limits.image : false
-
-          let hasState
-          if (!frame.state) hasState = false
-          else
-            try {
-              const decoded = decodeURIComponent(frame.state)
-              const parsed = JSON.parse(decoded)
-              hasState = Boolean(parsed.previousState)
-            } catch {
-              hasState = false
-            }
-
-          return [
-            {
-              property: 'fc:frame',
-              value: frame.version,
-              status: frame.version === 'vNext' ? 'valid' : 'invalid',
-              message: `Version is ${frame.version} and must be vNext.`,
-            },
-            {
-              property: 'fc:frame:image',
-              value: frame.imageUrl,
-              status: imageTooLarge ? 'invalid' : 'valid',
-              message: `Image is ${((imageSize ?? 1024) / 1024).toFixed(
-                2,
-              )} kilobytes and must be ${limits.image.toLocaleString()} kilobytes or less.`,
-            },
-            {
-              property: 'fc:frame:aspect_ratio',
-              value: frame.imageAspectRatio,
-              status: 'valid',
-            },
-            {
-              property: 'fc:frame:post_url',
-              value: frame.postUrl,
-              status: postUrlTooLong ? 'invalid' : 'valid',
-              message: `Post URL is ${
-                frame.postUrl.length
-              } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
-            },
-            ...(hasState
-              ? [
-                  {
-                    property: 'fc:frame:state',
-                    value: frame.state,
-                    status: stateTooLong ? 'invalid' : 'valid',
-                    message: `State is ${
-                      frame.state.length
-                    } bytes and must be ${limits.state.toLocaleString()} bytes or less.`,
-                  },
-                ]
-              : []),
-            {
-              property: 'og:image',
-              value: frame.image,
-              status: 'valid',
-            },
-            ...(frame.input?.text
-              ? [
-                  {
-                    property: 'fc:frame:input:text',
-                    value: frame.input.text,
-                    status: inputTextTooLong ? 'invalid' : 'valid',
-                    message: `Input text is ${
-                      frame.input.text.length
-                    } bytes and must be ${limits.inputText.toLocaleString()} bytes or less. Keep in mind non-ASCII characters, like emoji, can take up more than 1 byte of space.`,
-                  },
-                ]
-              : []),
-            ...(frame.buttons.map((button) => ({
-                property: `fc:frame:button:${button.index}`,
-                value: `${button.title}${button.type !== 'post' ? `, ${button.type}` : ''}${
-                  button.target ? `, ${button.target}` : ''
-                }`,
-                status: 'valid',
-              }))),
-          ]
-        },
-      }"
     >
       <div class="sr-only" role="rowgroup">
         <div role="row">
@@ -117,7 +122,7 @@ export function Data() {
       </div>
 
       <div role="rowgroup" class="overflow-hidden divide-y">
-        <template x-for="(row, index) in validations">
+        {validations.map((row) => (
           <div role="row" class="flex flex-col">
             <div
               class="items-center flex flex-row"
@@ -129,14 +134,18 @@ export function Data() {
                 style={{ minWidth: '10rem' }}
                 role="gridcell"
                 aria-colindex="1"
-              />
+              >
+                {row.property}
+              </div>
+
               <div
                 role="gridcell"
                 aria-colindex="2"
                 class="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap font-mono text-xs"
-                x-text="row.value"
-                {...{ ':title': 'row.value' }}
-              />
+                title={row.value}
+              >
+                {row.value}
+              </div>
 
               <div
                 role="gridcell"
@@ -148,28 +157,40 @@ export function Data() {
                   marginBottom: '2px',
                 }}
               >
-                <span class="sr-only" x-text="row.status" />
-                <template x-if="row.status === 'valid'">
-                  <span class="text-green-900">{checkCircledIcon}</span>
-                </template>
-                <template x-if="row.status === 'invalid'">
-                  <span class="text-red-900">{crossCircledIcon}</span>
-                </template>
+                <span class="sr-only">{row.status}</span>
+                {row.status === 'valid' && (
+                  <span
+                    class="text-green-900"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                    dangerouslySetInnerHTML={{
+                      __html: checkCircledIcon.toString(),
+                    }}
+                  />
+                )}
+                {row.status === 'invalid' && (
+                  <span
+                    class="text-red-900"
+                    // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                    dangerouslySetInnerHTML={{
+                      __html: crossCircledIcon.toString(),
+                    }}
+                  />
+                )}
               </div>
             </div>
 
-            <template x-if="row.status === 'invalid' && row.message">
+            {row.status === 'invalid' && row.message && (
               <div
                 class="p-3"
                 style={{ paddingTop: '0', paddingLeft: '10.75rem' }}
               >
                 <div class="text-red-900 text-xs rounded-lg leading-snug font-mono">
-                  <span style={{ textWrap: 'balance' }} x-html="row.message" />
+                  <span style={{ textWrap: 'balance' }}>{row.message}</span>
                 </div>
               </div>
-            </template>
+            )}
           </div>
-        </template>
+        ))}
       </div>
     </div>
   )

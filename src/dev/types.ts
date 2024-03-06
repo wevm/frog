@@ -4,12 +4,74 @@ import {
   type FrameVersion,
 } from '../types/frame.js'
 
+export type BaseData = {
+  id: string
+  metrics: {
+    speed: number
+  }
+  response: {
+    success: boolean
+    status: number
+    statusText: string
+    error?: string | undefined
+  }
+  timestamp: number
+}
+
+export type InitialData = {
+  type: 'initial'
+  method: 'get'
+  context: FrameContext
+  frame: Frame
+  metrics: {
+    htmlSize: number
+    imageSize: number
+  }
+  url: string
+}
+
+export type ActionData = {
+  type: 'action'
+  method: 'post'
+  body: RequestBody
+  context: FrameContext
+  frame: Frame
+  metrics: {
+    htmlSize: number
+    imageSize: number
+  }
+}
+
+export type RedirectData = {
+  type: 'redirect'
+  method: 'post'
+  body: RequestBody
+  response: {
+    location?: string
+  }
+}
+
+export type Data = BaseData & {
+  context: FrameContext
+  frame: Frame
+} & (InitialData | ActionData | RedirectData)
+
 export type RequestBody = {
   buttonIndex: number
   castId: { fid: number; hash: string }
   fid?: number | undefined
   inputText?: string | undefined
   state?: string | undefined
+  url: string
+}
+
+export type User = {
+  displayName?: string | undefined
+  pfp?: string | undefined
+  state: 'completed'
+  token: string
+  userFid: number
+  username?: string | undefined
 }
 
 export type Frame = {
@@ -64,10 +126,7 @@ export type FrameMetaTagPropertyName =
   | `fc:frame:button:${FrameButton['index']}:target`
   | `fc:frame:button:${FrameButton['index']}`
 
-export type FrogMetaTagPropertyName =
-  | 'frog:context'
-  | 'frog:prev_context'
-  | 'frog:version'
+export type FrogMetaTagPropertyName = 'frog:context' | 'frog:prev_context'
 
 export type State = {
   context: FrameContext

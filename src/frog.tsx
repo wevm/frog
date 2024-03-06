@@ -1,7 +1,6 @@
 import { type Env, type Schema } from 'hono'
 
 import { routes as devRoutes } from './dev/routes.js'
-import { routes as devRoutes2 } from './dev2/routes.js'
 import { type FrameOptions, FrogBase } from './frog-base.js'
 import { type FrameContext, type FrameResponse } from './types/frame.js'
 import { type Pretty } from './types/utils.js'
@@ -51,9 +50,6 @@ export class Frog<
   ) {
     super.frame(path, handler, options)
 
-    if (this.dev?.enabled ?? true) {
-      devRoutes(this, path)
-      devRoutes2(this, path)
-    }
+    if (this.dev?.enabled ?? true) devRoutes(this, path)
   }
 }

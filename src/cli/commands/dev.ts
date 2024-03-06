@@ -35,9 +35,6 @@ export async function dev(
     publicDir: staticDir ?? 'public',
     plugins: [
       devServer({
-        // exclude: [
-        //   /.+\.(gif|jpe?g|tiff?|png|webp|bmp|woff|eot|woff2|ttf|otf|ico|txt)$/,
-        // ],
         entry: entry_resolved,
         // Note: we are not relying on the default export so we can be compatible with
         // runtimes that rely on it (ie. Vercel Serverless Functions).

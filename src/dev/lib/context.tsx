@@ -153,7 +153,7 @@ export function Provider(props: Props) {
       url: string,
       options = { replaceLogs: false, skipLogs: false },
     ) {
-      const json = await fetch(`${parsePath(url)}/dev2/frame`, {
+      const json = await fetch(`${parsePath(url)}/dev/frame`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       }).then((response) => response.json())
@@ -177,7 +177,7 @@ export function Provider(props: Props) {
     },
     async postFrameAction(body, options = { skipLogs: false }) {
       const url = parsePath(body.url)
-      const json = await fetch(`${url}/dev2/frame/action`, {
+      const json = await fetch(`${url}/dev/frame/action`, {
         method: 'POST',
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
@@ -198,7 +198,7 @@ export function Provider(props: Props) {
     },
     async postFrameRedirect(body, options = { skipLogs: false }) {
       const url = parsePath(body.url)
-      const json = await fetch(`${url}/dev2/frame/redirect`, {
+      const json = await fetch(`${url}/dev/frame/redirect`, {
         method: 'POST',
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
@@ -227,7 +227,7 @@ export function Provider(props: Props) {
 
     async fetchAuthCode() {
       const url = parsePath('body' in data ? data.body.url : data.url)
-      const json = await fetch(`${url}/dev2/frame/auth/code`, {
+      const json = await fetch(`${url}/dev/frame/auth/code`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       }).then((response) => response.json())
@@ -235,7 +235,7 @@ export function Provider(props: Props) {
     },
     async fetchAuthStatus(token) {
       const url = parsePath('body' in data ? data.body.url : data.url)
-      const json = await fetch(`${url}/dev2/frame/auth/status/${token}`, {
+      const json = await fetch(`${url}/dev/frame/auth/status/${token}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -245,7 +245,7 @@ export function Provider(props: Props) {
     },
     async logout() {
       const url = parsePath('body' in data ? data.body.url : data.url)
-      const json = await fetch(`${url}/dev2/frame/auth/logout`, {
+      const json = await fetch(`${url}/dev/frame/auth/logout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       }).then((response) => response.json())

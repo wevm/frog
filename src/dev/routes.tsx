@@ -18,13 +18,14 @@ import { type FrogBase } from '../frog-base.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
-import { Fonts } from './components/Fonts.js'
-import { Preview, type PreviewProps } from './components/Preview.js'
-import { QRCode } from './components/QRCode.js'
-import { Scripts } from './components/Scripts.js'
-import { Styles } from './components/Styles.js'
+import { App } from './components/App.js'
+import { type Props, Provider, dataId } from './lib/context.js'
 import {
+  type ActionData,
+  type BaseData,
+  type RedirectData,
   type SignedKeyRequestResponse,
+  type User,
   type UserDataByFidResponse,
 } from './types.js'
 import { fetchFrame } from './utils/fetchFrame.js'
@@ -36,40 +37,83 @@ import { htmlToContext } from './utils/htmlToState.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
 
+declare module 'hono' {
+  interface ContextRenderer {
+    (
+      content: string | Promise<string>,
+      props?: {
+        title: string
+        value: Props
+      },
+    ): Response
+  }
+}
+
 export function routes<
   state,
   env extends Env,
   schema extends Schema,
   basePath extends string,
 >(app: FrogBase<state, env, schema, basePath>, path: string) {
-  app
-    .use(`${parsePath(path)}/dev`, (c, next) =>
-      jsxRenderer((props) => {
-        const { children } = props
-        const path = new URL(c.req.url).pathname.replace('/dev', '')
-        return (
-          <html lang="en">
-            <head>
-              <title>frame: {path || '/'}</title>
-              <Fonts />
-              <Styles />
-              <Scripts />
-              <link
-                rel="icon"
-                href="https://frog.fm/icon.png"
-                type="image/png"
-              />
-            </head>
-            <body>{children}</body>
-          </html>
-        )
-      })(c, next),
-    )
-    .get(async (c) => {
+  app.get(
+    `${parsePath(path)}/dev`,
+    jsxRenderer((props) => {
+      const { children, value, title } = props
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            />
+            <title>{title}</title>
+            <link
+              rel="stylesheet"
+              href="/node_modules/frog/dev/client/styles.css"
+            />
+            {/* TODO: Load from file system */}
+            <link rel="preconnect" href="https://rsms.me/" />
+            <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+            <link rel="icon" href="https://frog.fm/icon.png" type="image/png" />
+          </head>
+          <body>
+            <div id="root">{children}</div>
+            <script type="module" src="/node_modules/frog/dev/client" />
+            <script
+              id={dataId}
+              type="application/json"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(value) }}
+            />
+          </body>
+        </html>
+      )
+    }),
+    async (c) => {
       const url = c.req.url.replace('/dev', '')
-      const props = await get(url)
-      return c.render(<Preview {...props} />)
-    })
+      const value = await get(url)
+      const cookie = getCookie(c, 'user')
+
+      let user: User | undefined = undefined
+      if (cookie)
+        try {
+          const parsed = JSON.parse(cookie)
+          const baseUrl = app.hub?.apiUrl || app.hubApiUrl
+          if (parsed && baseUrl) {
+            const data = await getUserByFid(baseUrl, parsed.userFid)
+            user = { state: 'completed', ...parsed, ...data }
+          }
+        } catch {}
+
+      return c.render(
+        <Provider {...value} user={user}>
+          <App />
+        </Provider>,
+        { title: `frame: ${new URL(url).pathname}`, value: { ...value, user } },
+      )
+    },
+  )
 
   app.get(`${parsePath(path)}/dev/frame`, async (c) => {
     const url = c.req.url.replace('/dev/frame', '')
@@ -144,7 +188,7 @@ export function routes<
         url: cleanedUrlString,
       },
       routes,
-    } satisfies PreviewProps
+    } satisfies Props
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +287,10 @@ export function routes<
             timestamp: Date.now(),
           },
           routes,
-        } satisfies PreviewProps)
+        } satisfies {
+          data: BaseData & ActionData
+          routes: string[]
+        })
       },
     )
     .post(
@@ -301,7 +348,7 @@ export function routes<
                 statusText: response.statusText,
               },
           timestamp: Date.now(),
-        } satisfies PreviewProps['data'])
+        } satisfies BaseData & RedirectData)
       },
     )
 
@@ -385,20 +432,15 @@ export function routes<
           }),
         },
       ).then((response) => response.json())) as SignedKeyRequestResponse
-
       const { token, deeplinkUrl: url } = response.result.signedKeyRequest
 
-      // 4. Return QR code matrix for deeplink
-      const rendered = await c.render(<QRCode url={url} />)
-      const code = await rendered.text()
-
-      // 5. Save keypair in cookie
+      // 4. Save keypair in cookie
       const value = JSON.stringify({ privateKey, publicKey })
       if (app.secret)
         await setSignedCookie(c, 'session', value, app.secret, cookieOptions)
       else setCookie(c, 'session', value, { ...cookieOptions, httpOnly: true })
 
-      return c.json({ code, token, url })
+      return c.json({ token, url })
     })
     .get(`${parsePath(path)}/dev/frame/auth/status/:token`, async (c) => {
       // @ts-ignore
@@ -413,30 +455,16 @@ export function routes<
       const { state = 'pending', userFid } =
         response.result?.signedKeyRequest ?? {}
 
-      if (state === 'completed') {
-        let pfp = undefined
-        let username = undefined
-        let displayName = undefined
-        if (app.hub || app.hubApiUrl) {
-          const response = (await fetch(
-            `${
-              app.hub?.apiUrl || app.hubApiUrl
-            }/v1/userDataByFid?fid=${userFid}`,
-          ).then((response) => response.json())) as UserDataByFidResponse
-
-          for (const message of response.messages) {
-            if (message.data.type !== 'MESSAGE_TYPE_USER_DATA_ADD') continue
-
-            const type = message.data.userDataBody.type
-            const value = message.data.userDataBody.value
-            if (type === 'USER_DATA_TYPE_PFP') pfp = value
-            if (type === 'USER_DATA_TYPE_USERNAME') username = value
-            if (type === 'USER_DATA_TYPE_DISPLAY') displayName = value
-          }
+      if (state === 'completed' && userFid) {
+        let user: User = { state, token, userFid }
+        const baseUrl = app.hub?.apiUrl || app.hubApiUrl
+        if (baseUrl) {
+          const data = await getUserByFid(baseUrl, userFid)
+          user = { ...user, ...data }
         }
 
         setCookie(c, 'user', JSON.stringify({ token, userFid }), cookieOptions)
-        return c.json({ state, userFid, pfp, token, username, displayName })
+        return c.json(user)
       }
 
       return c.json({ state })
@@ -446,4 +474,26 @@ export function routes<
       deleteCookie(c, 'user')
       return c.json({ success: true })
     })
+}
+
+async function getUserByFid(baseUrl: string, userFid: number) {
+  const response = (await fetch(
+    `${baseUrl}/v1/userDataByFid?fid=${userFid}`,
+  ).then((response) => response.json())) as UserDataByFidResponse
+
+  let displayName = undefined
+  let pfp = undefined
+  let username = undefined
+
+  for (const message of response.messages) {
+    if (message.data.type !== 'MESSAGE_TYPE_USER_DATA_ADD') continue
+
+    const type = message.data.userDataBody.type
+    const value = message.data.userDataBody.value
+    if (type === 'USER_DATA_TYPE_PFP') pfp = value
+    if (type === 'USER_DATA_TYPE_USERNAME') username = value
+    if (type === 'USER_DATA_TYPE_DISPLAY') displayName = value
+  }
+
+  return { displayName, pfp, userFid, username }
 }
