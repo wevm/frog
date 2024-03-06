@@ -1,6 +1,6 @@
 import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
-import { type Env, type Schema } from 'hono'
+import { type Schema } from 'hono'
 import {
   deleteCookie,
   getCookie,
@@ -15,6 +15,7 @@ import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
 
 import { type FrogBase } from '../frog-base.js'
+import type { Env } from '../types/env.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
@@ -37,11 +38,12 @@ import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
 
 export function routes<
-  state,
   env extends Env,
   schema extends Schema,
   basePath extends string,
->(app: FrogBase<state, env, schema, basePath>, path: string) {
+  //
+  _state = env['State'],
+>(app: FrogBase<env, schema, basePath, _state>, path: string) {
   app
     .use(`${parsePath(path)}/dev`, (c, next) =>
       jsxRenderer((props) => {
