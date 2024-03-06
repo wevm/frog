@@ -74,8 +74,8 @@ export default defineConfig({
       link: 'https://github.com/wevm/frog',
     },
     {
-      icon: 'x',
-      link: 'https://twitter.com/wevm_dev',
+      icon: 'warpcast',
+      link: 'https://wevm.com/warpcast',
     },
   ],
   sponsors: [
