@@ -2,4 +2,4 @@
 "frog": patch
 ---
 
-Fixes the typing of `c.req.param()` in `.transaction` route.
+Fixed typing of `c.req.param()` in `.transaction` route.
