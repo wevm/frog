@@ -297,10 +297,17 @@ export function Provider(props: Props) {
     ;(async () => {
       try {
         mounted = false
+
+        const hasHashState = Boolean(
+          location.hash.replace('#state/', '').trim(),
+        )
+        if (!hasHashState) return
+
         const endOfStack = state.stackIndex === state.stack.length - 1
         const endOfLogs =
           state.logIndex === -1 || state.logIndex === state.logs.length - 1
         const nextData = state.dataMap[state.dataKey]
+
         if (endOfStack && endOfLogs && nextData) {
           let json: Data
           if (nextData.type === 'initial')
@@ -321,6 +328,7 @@ export function Provider(props: Props) {
             logs: x.logs.slice(0, x.logs.length - 1).concat(json.id),
             dataKey: json.id,
           }))
+
           setTimeout(() => {
             mounted = true
           }, 100)

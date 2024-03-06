@@ -1,5 +1,17 @@
 # frog
 
+## 0.4.2
+
+### Patch Changes
+
+- [#92](https://github.com/wevm/frog/pull/92) [`d6b8bbb`](https://github.com/wevm/frog/commit/d6b8bbb8c5c08d60f094bacc260a1d7af7338c47) Thanks [@jxom](https://github.com/jxom)! - Added support for asynchronous `deriveState`.
+
+## 0.4.1
+
+### Patch Changes
+
+- [`f72026f`](https://github.com/wevm/frog/commit/f72026fc14987c2cfe1216834f6a41268e8c3462) Thanks [@jxom](https://github.com/jxom)! - Fixed `handle` generics.
+
 ## 0.4.0
 
 ### Minor Changes

@@ -90,7 +90,11 @@ export type FrameContext<
    * Function to derive the frame's state based off the state from the
    * previous frame.
    */
-  deriveState: (fn?: (previousState: _state) => void) => _state
+  deriveState: <
+    deriveFn extends (previousState: _state) => void | Promise<void>,
+  >(
+    fn?: deriveFn,
+  ) => ReturnType<deriveFn> extends Promise<void> ? Promise<_state> : _state
   /** Frame response that includes frame properties such as: image, intents, action, etc */
   res: FrameResponseFn
   /**

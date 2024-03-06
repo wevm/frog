@@ -339,7 +339,7 @@ export class FrogBase<
 
       // Derive the previous state, and sign it if a secret is provided.
       const previousState = await (async () => {
-        const state = context.deriveState()
+        const state = await context.deriveState()
         if (!this.secret) return state
         if (!state) return state
         return jws.sign(JSON.stringify(state), this.secret)

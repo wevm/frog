@@ -1,7 +1,7 @@
 {
   "name": "frog",
   "description": "Framework for Farcaster Frames",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
@@ -82,7 +82,6 @@
     "fs-extra": "^11.2.0",
     "happy-dom": "^13.3.8",
     "hono-og": "0.0.17",
-    "immer": "^10.0.3",
     "jose": "^5.2.2",
     "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",
