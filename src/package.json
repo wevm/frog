@@ -85,7 +85,7 @@
     "jose": "^5.2.2",
     "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",
-    "qrcode": "^1.5.3",
+    "qrcode": "1.5.1",
     "shiki": "^1.1.7",
     "viem": "^2.7.10",
     "vite": "^5.1.3"
@@ -93,10 +93,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

@@ -1,6 +1,7 @@
 import { createContext, type PropsWithChildren } from 'hono/jsx'
 import { useEffect, useState } from 'hono/jsx/dom'
-import LZString from 'lz-string'
+
+import { LZString } from './lz-string.js'
 
 import {
   type BaseData,
@@ -106,17 +107,20 @@ export function Provider(props: Props) {
             decodeURIComponent(state),
           )
 
-        const parsed = JSON.parse(restored)
-        const logIndex =
-          parsed.logIndex === (parsed.logs?.length ?? 0) - 1
-            ? -1
-            : parsed.logIndex
+        const parsed = JSON.parse(restored ?? 'null')
+        console.log({ parsed })
+        if (parsed) {
+          const logIndex =
+            parsed.logIndex === (parsed.logs?.length ?? 0) - 1
+              ? -1
+              : parsed.logIndex
 
-        return {
-          ...defaultState,
-          ...parsed,
-          logIndex,
-          user,
+          return {
+            ...defaultState,
+            ...parsed,
+            logIndex,
+            user,
+          }
         }
       } catch (error) {
         console.log('failed to restore state:', (error as Error).message)
@@ -301,38 +305,38 @@ export function Provider(props: Props) {
         const hasHashState = Boolean(
           location.hash.replace('#state/', '').trim(),
         )
-        if (!hasHashState) return
+        if (hasHashState) {
+          const endOfStack = state.stackIndex === state.stack.length - 1
+          const endOfLogs =
+            state.logIndex === -1 || state.logIndex === state.logs.length - 1
+          const nextData = state.dataMap[state.dataKey]
 
-        const endOfStack = state.stackIndex === state.stack.length - 1
-        const endOfLogs =
-          state.logIndex === -1 || state.logIndex === state.logs.length - 1
-        const nextData = state.dataMap[state.dataKey]
+          if (endOfStack && endOfLogs && nextData) {
+            let json: Data
+            if (nextData.type === 'initial')
+              json = await dispatchValue.getFrame(nextData.url, {
+                skipLogs: true,
+              })
+            else if (nextData.type === 'action')
+              json = await dispatchValue.postFrameAction(nextData.body, {
+                skipLogs: true,
+              })
+            else
+              json = await dispatchValue.postFrameRedirect(nextData.body, {
+                skipLogs: true,
+              })
 
-        if (endOfStack && endOfLogs && nextData) {
-          let json: Data
-          if (nextData.type === 'initial')
-            json = await dispatchValue.getFrame(nextData.url, {
-              skipLogs: true,
-            })
-          else if (nextData.type === 'action')
-            json = await dispatchValue.postFrameAction(nextData.body, {
-              skipLogs: true,
-            })
-          else
-            json = await dispatchValue.postFrameRedirect(nextData.body, {
-              skipLogs: true,
-            })
-
-          setState((x) => ({
-            ...x,
-            logs: x.logs.slice(0, x.logs.length - 1).concat(json.id),
-            dataKey: json.id,
-          }))
-
-          setTimeout(() => {
-            mounted = true
-          }, 100)
+            setState((x) => ({
+              ...x,
+              logs: x.logs.slice(0, x.logs.length - 1).concat(json.id),
+              dataKey: json.id,
+            }))
+          }
         }
+
+        setTimeout(() => {
+          mounted = true
+        }, 100)
       } catch (error) {}
     })()
   }, [])

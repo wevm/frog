@@ -81,7 +81,17 @@ export function routes<
           </head>
           <body>
             <div id="root">{children}</div>
-            <script type="module" src="/node_modules/frog/dev/client" />
+            {import.meta.env.PROD ? (
+              <script
+                type="module"
+                src="/node_modules/frog/_lib/dev/client/index.js"
+              />
+            ) : (
+              <script
+                type="module"
+                src="/node_modules/frog/dev/client/index.tsx"
+              />
+            )}
             <script
               id={dataId}
               type="application/json"
