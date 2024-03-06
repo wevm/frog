@@ -265,7 +265,7 @@ type State = {
   values: string[] 
 } 
  
-export const app = new Frog<State>({ 
+export const app = new Frog<{ State: State }>({ 
   initialState: { 
     values: [] 
   } 
