@@ -48,6 +48,15 @@ app.transaction('/mint', (c) => {
   })
 })
 
+// Send tansaction with path parameter
+app.transaction('/send/:value', (c) => {
+  return c.send({
+    chainId: 'eip155:1',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    value: BigInt(c.req.param('value')),
+  })
+})
+
 /////////////////////////////////////////////////////////////////////
 // Constants
 

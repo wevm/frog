@@ -8,8 +8,11 @@ import { type Schema } from 'hono/types'
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import { transaction } from './routes/transaction.js'
-import type { FrameContext, FrameQueryContext } from './types/context.js'
+import type {
+  FrameContext,
+  FrameQueryContext,
+  TransactionContext,
+} from './types/context.js'
 import type { Env } from './types/env.js'
 import {
   type FrameImageAspectRatio,
@@ -17,9 +20,11 @@ import {
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
 import type { HandlerResponse } from './types/response.js'
+import type { TransactionResponse } from './types/transaction.js'
 import { type Pretty } from './types/utils.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseIntents } from './utils/parseIntents.js'
@@ -222,8 +227,6 @@ export class FrogBase<
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
-  transaction = transaction as typeof transaction<env, schema, basePath, _state>
-
   constructor({
     assetsPath,
     basePath,
@@ -259,6 +262,33 @@ export class FrogBase<
     this.use = this.hono.use.bind(this.hono)
 
     if (initialState) this._initialState = initialState
+  }
+
+  transaction<path extends string>(
+    this: FrogBase<env, schema, basePath, _state>,
+    path: path,
+    handler: (
+      context: TransactionContext<env, path, _state>,
+    ) => HandlerResponse<TransactionResponse>,
+    options: RouteOptions = {},
+  ) {
+    const { verify = this.verify } = options
+
+    this.hono.post(parsePath(path), async (c) => {
+      const { context } = getTransactionContext<env, path, _state>({
+        context: await requestBodyToContext(c, {
+          hub:
+            this.hub ||
+            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
+          secret: this.secret,
+          verify,
+        }),
+        req: c.req,
+      })
+      const response = await handler(context)
+      if (response instanceof Response) return response
+      return c.json(response.data)
+    })
   }
 
   frame<path extends string>(
