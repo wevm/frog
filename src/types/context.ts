@@ -29,6 +29,12 @@ export type Context<
    */
   frameData?: Pretty<FrameData>
   /**
+   * Get Hono context.
+   *
+   * @see https://hono.dev/api/context#set-get
+   */
+  get: Context_hono<env, path>['get']
+  /**
    * Initial path of the frame set.
    */
   initialPath: string
