@@ -93,13 +93,6 @@ export type FrameContext<
   _state = env['State'],
 > = Context<env, path, _state> & {
   /**
-   * Current render cycle of the frame.
-   *
-   * - `main` - Render cycle for the main frame route.
-   * - `image` - Render cycle for the OG image route.
-   */
-  cycle: 'main' | 'image'
-  /**
    * Function to derive the frame's state based off the state from the
    * previous frame.
    */
@@ -115,16 +108,6 @@ export type FrameContext<
    * - Ethereum: a transaction hash
    */
   transactionId?: FrameData['transactionId'] | undefined
-}
-
-export type FrameQueryContext<
-  env extends Env = Env,
-  path extends string = string,
-  //
-  _state = env['State'],
-> = Omit<FrameContext<env, path, _state>, 'req'> & {
-  req: undefined
-  state: _state
 }
 
 export type TransactionContext<

@@ -10,9 +10,7 @@ type GetFrameContextParameters<
   _state = env['State'],
 > = {
   context: Context<env, path>
-  cycle: FrameContext['cycle']
   initialState?: _state
-  state?: _state
 }
 
 type GetFrameContextReturnType<
@@ -33,7 +31,7 @@ export function getFrameContext<
 >(
   parameters: GetFrameContextParameters<env, path, _state>,
 ): GetFrameContextReturnType<env, path, _state> {
-  const { context, cycle, state } = parameters
+  const { context } = parameters
   const { env, frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
@@ -64,7 +62,6 @@ export function getFrameContext<
   ): _state | Promise<_state> {
     if (status !== 'response') return previousState as _state
     if (!derive) return previousState as _state
-    if (cycle === 'image') return state as _state
 
     const clone = structuredClone(previousState)
     if ((derive as any)[Symbol.toStringTag] === 'AsyncFunction')
@@ -82,7 +79,6 @@ export function getFrameContext<
     context: {
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
-      cycle,
       deriveState: deriveState as FrameContext['deriveState'],
       env,
       frameData,

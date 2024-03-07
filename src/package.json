@@ -75,6 +75,7 @@
     "happy-dom": "^13.3.8",
     "hono-og": "0.0.21",
     "jose": "^5.2.2",
+    "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",
     "qrcode": "^1.5.3",
     "viem": "^2.7.10",
@@ -83,10 +84,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

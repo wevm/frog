@@ -206,6 +206,9 @@ importers:
       jose:
         specifier: ^5.2.2
         version: 5.2.2
+      lz-string:
+        specifier: ^1.5.0
+        version: 1.5.0
       path-browserify:
         specifier: ^1.0.1
         version: 1.0.1
@@ -6745,6 +6748,11 @@ packages:
     dependencies:
       yallist: 4.0.0
     dev: true
+
+  /lz-string@1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
+    dev: false
 
   /magic-string@0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
