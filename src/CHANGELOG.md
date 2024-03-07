@@ -1,5 +1,11 @@
 # frog
 
+## 0.4.7
+
+### Patch Changes
+
+- [`efe1f6a`](https://github.com/wevm/frog/commit/efe1f6a9b9d809cbc9ec714676189e5c87bb3062) Thanks [@jxom](https://github.com/jxom)! - Strengthened `chainId` type for transactions.
+
 ## 0.4.6
 
 ### Patch Changes
