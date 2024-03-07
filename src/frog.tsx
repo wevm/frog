@@ -45,7 +45,7 @@ export class Frog<
   //
   _state = env['State'],
 > extends FrogBase<env, schema, basePath, _state> {
-  override frame<path extends string>(
+  override async frame<path extends string>(
     path: path,
     handler: (
       context: Pretty<FrameContext<env, path, _state>>,
@@ -53,6 +53,6 @@ export class Frog<
     options: RouteOptions = {},
   ) {
     super.frame(path, handler as any, options)
-    if (this.dev.enabled) devRoutes(this, path)
+    if (this.dev.enabled) await devRoutes(this, path)
   }
 }

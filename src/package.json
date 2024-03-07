@@ -50,13 +50,6 @@
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
-    },
-    "./dev/client": {
-      "types": "./_lib/dev/client/index.d.ts",
-      "default": "./_lib/dev/client/index.js"
-    },
-    "./dev/client/styles.css": {
-      "default": "./_lib/dev/client/styles.css"
     }
   },
   "peerDependencies": {

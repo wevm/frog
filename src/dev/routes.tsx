@@ -12,13 +12,16 @@ import { inspectRoutes } from 'hono/dev'
 import { type CookieOptions } from 'hono/utils/cookie'
 import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
+import { existsSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { join, dirname } from 'path'
 
 import { type FrogBase } from '../frog-base.js'
 import type { Env } from '../types/env.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
-import { type Props } from './lib/context.js'
+import { type ProviderProps } from './Context.js'
 import {
   type ActionData,
   type BaseData,
@@ -36,14 +39,36 @@ import { htmlToContext } from './utils/htmlToState.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
 import { EntryServer } from './entry-server.js'
+import { staticPath } from './constants.js'
 
-export function routes<
+const hasStaticBundle = existsSync(
+  join(dirname(fileURLToPath(import.meta.url)), './static/entry-client.js'),
+)
+
+export async function routes<
   env extends Env,
   schema extends Schema,
   basePath extends string,
   ///
   _state = env['State'],
 >(app: FrogBase<env, schema, basePath, _state>, path: string) {
+  // serve devtools client files in production
+  // TODO: cloudflare workers
+  // TODO: vercel-build handles static files
+  if (hasStaticBundle) {
+    const { manifest, root, serveStatic } = await getStaticFileHandler()
+    if (serveStatic)
+      app.use(
+        `${parsePath(path)}${staticPath}/*`,
+        serveStatic({
+          manifest,
+          root,
+          rewriteRequestPath: (path) => path.replace(`${staticPath}/`, '/'),
+        }),
+      )
+    else console.warn('No static file handler found for environment')
+  }
+
   app.get(`${parsePath(path)}/dev`, async (c) => {
     const url = c.req.url.replace('/dev', '')
     const value = await get(url)
@@ -61,7 +86,11 @@ export function routes<
       } catch {}
 
     return c.render(
-      <EntryServer path={path} providerProps={{ ...value, user }} />,
+      <EntryServer
+        hasStaticBundle={hasStaticBundle}
+        path={path}
+        providerProps={{ ...value, user }}
+      />,
     )
   })
 
@@ -138,12 +167,12 @@ export function routes<
         url: cleanedUrlString,
       },
       routes,
-    } satisfies Props
+    } satisfies ProviderProps
   }
 
-  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////
   // Post Frame Actions
-  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////
 
   app
     .use('*', async (c, next) => {
@@ -342,9 +371,9 @@ export function routes<
       },
     )
 
-  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////
   // Auth
-  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////
 
   const cookieOptions = {
     maxAge: 30 * 86_400,
@@ -486,4 +515,39 @@ async function getUserByFid(baseUrl: string, userFid: number) {
   }
 
   return { displayName, pfp, userFid, username }
+}
+
+async function getStaticFileHandler() {
+  // @ts-ignore
+  const isDeno = typeof Deno !== 'undefined'
+  const isBun = typeof Bun !== 'undefined'
+  const isCloudflareWorker = typeof caches !== 'undefined'
+  const isNode =
+    !isBun &&
+    !isDeno &&
+    typeof process !== 'undefined' &&
+    !!process.versions?.node
+
+  const root = `./node_modules/frog/_lib${staticPath}`
+
+  if (isBun) {
+    const { serveStatic } = await import('hono/bun')
+    return { root, serveStatic }
+  }
+
+  if (isCloudflareWorker) {
+    const { serveStatic } = await import('hono/cloudflare-workers')
+    try {
+      // @ts-ignore
+      const manifest = await import('__STATIC_CONTENT_MANIFEST')
+      return { manifest, root, serveStatic }
+    } catch {}
+  }
+
+  if (isNode) {
+    const { serveStatic } = await import('./vendor/hono-node-server.js')
+    return { root, serveStatic }
+  }
+
+  return {}
 }

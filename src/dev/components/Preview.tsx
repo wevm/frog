@@ -3,7 +3,7 @@ import { useRef, useState as useLocalState } from 'hono/jsx/dom'
 import { useDispatch } from '../hooks/useDispatch.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useState } from '../hooks/useState.js'
-import { clsx } from '../lib/clsx.js'
+import { clsx } from '../vendor/clsx.js'
 import { type Frame } from '../types.js'
 import { externalLinkIcon, half2Icon, warpIcon } from './icons.js'
 

@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState as useLocalState } from 'hono/jsx/dom'
 
+import type { State } from '../Context.js'
 import { useDispatch } from '../hooks/useDispatch.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import { clsx } from '../lib/clsx.js'
-import type { State } from '../lib/context.js'
 import { type Data } from '../types.js'
 import { formatSpeed, formatTime } from '../utils/format.js'
+import { clsx } from '../vendor/clsx.js'
 import {
   chevronDownIcon,
   chevronUpIcon,

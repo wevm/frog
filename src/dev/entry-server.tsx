@@ -1,42 +1,65 @@
+import { html } from 'hono/html'
 import { App } from './App.js'
-import { Provider, type Props, dataId } from './lib/context.js'
+import { staticPath } from './constants.js'
+import { Provider, type ProviderProps, dataId } from './Context.js'
 
 type EntryServer = {
+  hasStaticBundle: boolean
   path: string
-  providerProps: Props
+  providerProps: ProviderProps
 }
 
 export function EntryServer(props: EntryServer) {
-  const { path, providerProps } = props
+  const { hasStaticBundle, path, providerProps } = props
   return (
-    <html lang="en">
-      <head>
-        <title>frame: {path || '/'}</title>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <>
+      {html`<!doctype html>`}
+      <html lang="en">
+        <head>
+          <title>frame: {path || '/'}</title>
+          <meta charset="UTF-8" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
 
-        {/* Inlined during build */}
-        <script type="module" src="/node_modules/frog/dev/entry-client.tsx" />
-        <link rel="stylesheet" href="/node_modules/frog/dev/styles.css" />
+          {hasStaticBundle ? (
+            <>
+              <link
+                rel="stylesheet"
+                href={`${staticPath}/assets/entry-client.css`}
+              />
+              <script type="module" src={`${staticPath}/entry-client.js`} />
+            </>
+          ) : (
+            <>
+              <link rel="stylesheet" href="/node_modules/frog/dev/styles.css" />
+              <script
+                type="module"
+                src="/node_modules/frog/dev/entry-client.tsx"
+              />
+            </>
+          )}
 
-        {/* TODO: Load from file system */}
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-        <link rel="icon" href="https://frog.fm/icon.png" type="image/png" />
-      </head>
-      <body>
-        <div id="root">
-          <Provider {...providerProps}>
-            <App />
-          </Provider>
-        </div>
-        <script
-          id={dataId}
-          type="application/json"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(providerProps) }}
-        />
-      </body>
-    </html>
+          {/* TODO: Load from file system */}
+          <link rel="preconnect" href="https://rsms.me/" />
+          <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+          <link rel="icon" href="https://frog.fm/icon.png" type="image/png" />
+        </head>
+        <body>
+          <div id="root">
+            <Provider {...providerProps}>
+              <App />
+            </Provider>
+          </div>
+          <script
+            id={dataId}
+            type="application/json"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(providerProps) }}
+          />
+        </body>
+      </html>
+    </>
   )
 }

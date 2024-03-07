@@ -1,10 +1,9 @@
 import { type PropsWithChildren, createContext } from 'hono/jsx'
 import { useEffect, useState } from 'hono/jsx/dom'
+import lz from 'lz-string'
 
-import { LZString } from './lz-string.js'
-
-import { parsePath } from '../../utils/parsePath.js'
-import { toSearchParams } from '../../utils/toSearchParams.js'
+import { parsePath } from '../utils/parsePath.js'
+import { toSearchParams } from '../utils/toSearchParams.js'
 import {
   type BaseData,
   type Data,
@@ -12,7 +11,7 @@ import {
   type InitialData,
   type RequestBody,
   type User,
-} from '../types.js'
+} from './types.js'
 
 export const dataId = '__FROG_DATA__'
 
@@ -82,7 +81,7 @@ export type DispatchValue = {
 
 export const DispatchContext = createContext<DispatchValue>({} as DispatchValue)
 
-export type Props = PropsWithChildren<{
+export type ProviderProps = PropsWithChildren<{
   data: BaseData & InitialData
   routes: readonly string[]
   user?: User | null | undefined
@@ -90,7 +89,7 @@ export type Props = PropsWithChildren<{
 
 let mounted = false
 
-export function Provider(props: Props) {
+export function Provider(props: ProviderProps) {
   const { children, data: initialData, routes, user } = props
   const { id: initialDataKey } = initialData
 
@@ -99,11 +98,11 @@ export function Provider(props: Props) {
     if (typeof window !== 'undefined') {
       const state = location.hash.replace('#state/', '').trim()
       try {
-        let restored = LZString.decompressFromEncodedURIComponent(state)
+        let restored = lz.decompressFromEncodedURIComponent(state)
         // Fallback incase there is an extra level of decoding:
         // https://gitter.im/Microsoft/TypeScript?at=5dc478ab9c39821509ff189a
         if (!restored)
-          restored = LZString.decompressFromEncodedURIComponent(
+          restored = lz.decompressFromEncodedURIComponent(
             decodeURIComponent(state),
           )
 
@@ -343,7 +342,7 @@ export function Provider(props: Props) {
   // save partial state
   useEffect(() => {
     if (!mounted) return
-    const compressed = LZString.compressToEncodedURIComponent(
+    const compressed = lz.compressToEncodedURIComponent(
       JSON.stringify({
         dataKey: state.dataKey,
         dataMap: state.dataMap,
