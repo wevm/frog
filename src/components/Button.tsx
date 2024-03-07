@@ -128,11 +128,13 @@ export function ButtonReset({
 }
 
 export type ButtonTransactionProps = ButtonProps & {
+  action?: string | undefined
   target: string
 }
 
 ButtonTransaction.__type = 'button'
 export function ButtonTransaction({
+  action,
   children,
   // @ts-ignore - private
   index = 1,
@@ -146,6 +148,9 @@ export function ButtonTransaction({
     />,
     <meta property={`fc:frame:button:${index}:action`} content="tx" />,
     <meta property={`fc:frame:button:${index}:target`} content={target} />,
+    action && (
+      <meta property={`fc:frame:button:${index}:post_url`} content={action} />
+    ),
   ] as unknown as HtmlEscapedString
 }
 
