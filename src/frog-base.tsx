@@ -476,9 +476,9 @@ export class FrogBase<
           : this.imageOptions
 
       const {
+        headers = this.headers,
         image,
         imageOptions = defaultImageOptions,
-        headers = this.headers,
       } = fromQuery<any>(c.req.query())
       const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
       return new ImageResponse(image_, {
