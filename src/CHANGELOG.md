@@ -1,5 +1,11 @@
 # frog
 
+## 0.4.6
+
+### Patch Changes
+
+- [`9d2bf3f`](https://github.com/wevm/frog/commit/9d2bf3fd06bb78bc00d7b09bcaea71043418ee60) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og`.
+
 ## 0.4.5
 
 ### Patch Changes
