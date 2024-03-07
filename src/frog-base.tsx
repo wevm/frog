@@ -470,9 +470,14 @@ export class FrogBase<
 
     // OG Image Route
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
+      const defaultImageOptions =
+        typeof this.imageOptions === 'function'
+          ? await this.imageOptions()
+          : this.imageOptions
+
       const {
         image,
-        imageOptions = this.imageOptions,
+        imageOptions = defaultImageOptions,
         headers = this.headers,
       } = fromQuery<any>(c.req.query())
       const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
