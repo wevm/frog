@@ -57,7 +57,7 @@ app.transaction('/send-ether', (c) => {
   const { inputText } = c
   // Send transaction response.
   return c.send({
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
     value: parseEther(inputText),
   })
@@ -68,7 +68,7 @@ app.transaction('/mint', (c) => {
   // Contract transaction response.
   return c.contract({
     abi,
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     functionName: 'mint',
     args: [69420n],
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
@@ -163,7 +163,7 @@ app.transaction('/send-ether', (c) => { // [!code focus]
   const { inputText } = c // [!code focus]
   // Send transaction response. // [!code focus]
   return c.send({ // [!code focus]
-    chainId: 'eip155:1', // [!code focus]
+    chainId: 'eip155:10', // [!code focus]
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
     value: parseEther(inputText), // [!code focus]
   }) // [!code focus]
@@ -175,7 +175,7 @@ A breakdown of the `/send-ether` route handler:
 - We are responding with a `c.send` ("send transaction") response.
 - We are extracting user input from the previous frame via `inputText`.
 - Within `c.send`, we can specify a:
-  - `chainId`: CAIP-2 compliant chain ID. We are sending to `eip155:1` where `1` is Ethereum mainnet.
+  - `chainId`: CAIP-2 compliant chain ID. We are sending to `eip155:10` where `1` is Ethereum mainnet.
   - `to`: a recipient.
   - `value`: the amount of wei to send. We are using `parseEther` to convert ether → wei.
   - `data`: optional calldata to include in the transaction.
@@ -197,7 +197,7 @@ export const app = new Frog()
 app.transaction('/send-ether', (c) => { 
   const { buttonValue, inputText, frameData } = c // [!code focus]
   return c.send({ 
-    chainId: 'eip155:1', 
+    chainId: 'eip155:10', 
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
     value: parseEther(inputText), 
   }) 
@@ -244,7 +244,7 @@ app.transaction('/mint', (c) => { // [!code focus]
     abi, // [!code focus]
     functionName: 'mint', // [!code focus]
     args: [69420n], // [!code focus]
-    chainId: 'eip155:1', // [!code focus]
+    chainId: 'eip155:10', // [!code focus]
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
     value: parseEther(inputText) // [!code focus]
   }) // [!code focus]
@@ -327,7 +327,7 @@ app.frame('/finish', (c) => { // [!code focus]
 app.transaction('/send-ether', (c) => {
   // Send transaction response.
   return c.send({
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
     value: parseEther('1'),
   })
@@ -337,7 +337,7 @@ app.transaction('/mint', (c) => {
   // Contract transaction response.
   return c.contract({
     abi,
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     functionName: 'mint',
     args: [69420n],
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B'

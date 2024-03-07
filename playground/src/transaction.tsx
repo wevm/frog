@@ -20,7 +20,7 @@ app.frame('/', (c) => {
 // Raw transaction
 app.transaction('/raw-send', (c) => {
   return c.res({
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     method: 'eth_sendTransaction',
     params: {
       to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
@@ -32,7 +32,7 @@ app.transaction('/raw-send', (c) => {
 // Send transaction
 app.transaction('/send', (c) => {
   return c.send({
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
     value: 1n,
   })
@@ -42,7 +42,7 @@ app.transaction('/send', (c) => {
 app.transaction('/mint', (c) => {
   return c.contract({
     abi: wagmiExampleAbi,
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     functionName: 'mint',
     to: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
   })
@@ -51,7 +51,7 @@ app.transaction('/mint', (c) => {
 // Send tansaction with path parameter
 app.transaction('/send/:value', (c) => {
   return c.send({
-    chainId: 'eip155:1',
+    chainId: 'eip155:10',
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
     value: BigInt(c.req.param('value')),
   })
