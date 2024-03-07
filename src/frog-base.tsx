@@ -483,8 +483,8 @@ export class FrogBase<
       const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
       return new ImageResponse(image_, {
         ...imageOptions,
-        fonts: options?.fonts || imageOptions?.fonts,
-        headers,
+        fonts: options?.fonts ?? imageOptions?.fonts,
+        headers: imageOptions?.headers ?? headers,
       })
     })
   }
