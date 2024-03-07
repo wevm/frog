@@ -334,6 +334,12 @@ export class FrogBase<
       // via a query parameter to the OG image route (/image).
       const queryContext: FrameQueryContext<env, path> = {
         ...context,
+        env: context.env
+          ? Object.assign(context.env, {
+              incoming: undefined,
+              outgoing: undefined,
+            })
+          : undefined,
         // `c.req` is not serializable.
         req: undefined,
         state: getState(),

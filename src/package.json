@@ -73,7 +73,7 @@
     "fast-glob": "3.3.2",
     "fs-extra": "^11.2.0",
     "happy-dom": "^13.3.8",
-    "hono-og": "0.0.17",
+    "hono-og": "0.0.18",
     "jose": "^5.2.2",
     "path-browserify": "^1.0.1",
     "qrcode": "^1.5.3",
@@ -83,10 +83,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
