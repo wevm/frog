@@ -1,5 +1,11 @@
 # frog
 
+## 0.4.8
+
+### Patch Changes
+
+- [`12bff46`](https://github.com/wevm/frog/commit/12bff468a37ffd622aae74791205b76f5f94dba7) Thanks [@jxom](https://github.com/jxom)! - Fixed Base chain ID.
+
 ## 0.4.7
 
 ### Patch Changes
