@@ -237,6 +237,41 @@ app.frame('/', (c) => {
 })
 ```
 
+:::warning
+The `fonts` property is not available on the `imageOptions` passed to `c.res`. If you would like to add custom fonts, either:
+
+1. Add it to `imageOptions.fonts` on the `new Frog(){:js}` instance:
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+  imageOptions: { fonts: [/* ... */] } // [!code focus]
+})
+```
+
+2. Add it to the route options:
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+  imageOptions: { fonts: [/* ... */] }
+})
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({})
+}, {
+  fonts: [/* ... */] // [!code focus]
+})
+```
+
+:::
+
 ## intents
 
 A set of intents (ie. buttons, text inputs, etc) to render for the frame
