@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.1
+
+### Patch Changes
+
+- [`51610c2`](https://github.com/wevm/frog/commit/51610c2614597e29088b6a1618f5cdf7e79db19b) Thanks [@jxom](https://github.com/jxom)! - Added `action` prop to `Button.Transaction`.
+
 ## 0.5.0
 
 ### Minor Changes
