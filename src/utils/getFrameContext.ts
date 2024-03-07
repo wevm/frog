@@ -79,6 +79,7 @@ export function getFrameContext<
     context: {
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
+      cycle: 'main',
       deriveState: deriveState as FrameContext['deriveState'],
       env,
       frameData,

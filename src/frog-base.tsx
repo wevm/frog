@@ -213,8 +213,16 @@ export class FrogBase<
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
   imageOptions:
-    | Omit<ImageResponseOptions, 'fonts'>
-    | (() => Promise<Omit<ImageResponseOptions, 'fonts'>>)
+    | (Omit<ImageResponseOptions, 'fonts'> & {
+        /** @deprecated Pass `fonts` to the route options instead. @see https://frog.fm/reference/frog-frame-response#imageoptions */
+        fonts?: ImageResponseOptions['fonts']
+      })
+    | (() => Promise<
+        Omit<ImageResponseOptions, 'fonts'> & {
+          /** @deprecated Pass `fonts` to the route options instead. @see https://frog.fm/reference/frog-frame-response#imageoptions */
+          fonts?: ImageResponseOptions['fonts']
+        }
+      >)
     | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
@@ -360,7 +368,11 @@ export class FrogBase<
           )
           const imageParams = toSearchParams({
             image: encodedImage,
-            imageOptions,
+            imageOptions: {
+              ...imageOptions,
+              // TODO: Remove once `fonts` is removed from `imageOptions`.
+              fonts: undefined,
+            },
             headers,
           })
           return `${parsePath(context.url)}/image?${imageParams}`

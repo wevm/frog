@@ -4,9 +4,9 @@
 
 This version of Frog removes the concept of "Render Cycles". All frames now facilitate a single cycle.
 
-There are a couple of small **breaking changes**:
+There are a couple of small **deprecations**:
 
-1. Removed `cycle` from context – you can now omit the conditionals completely.
+1. Deprecated `cycle` from context – you can now omit the conditionals completely.
 
 ```diff
 app.frame('/', c => {
@@ -15,7 +15,7 @@ app.frame('/', c => {
 })
 ```
 
-2. Moved `fonts` property in `c.res` to frame route options:
+2. Deprecated `fonts` property in `c.res` in favor of `fonts` on frame route options:
 
 ```diff
 app.frame('/', c => {
