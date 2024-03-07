@@ -1,5 +1,36 @@
 # frog
 
+## 0.5.0
+
+### Minor Changes
+
+- [#109](https://github.com/wevm/frog/pull/109) [`e5296d8`](https://github.com/wevm/frog/commit/e5296d8be88efba603aa7b56290a2063fcf27154) Thanks [@jxom](https://github.com/jxom)! - This version of Frog removes the concept of "Render Cycles". All frames now facilitate a single cycle.
+
+  There are a couple of small **deprecations**:
+
+  1. Deprecated `cycle` from context – you can now omit the conditionals completely.
+
+  ```diff
+  app.frame('/', c => {
+  -  if (c.cycle === 'main') console.log('hello world')
+  +  console.log('hello world')
+  })
+  ```
+
+  2. Deprecated `fonts` property in `c.res` in favor of `fonts` on frame route options:
+
+  ```diff
+  app.frame('/', c => {
+    return c.res({
+      imageOptions: {
+  -     fonts: // ...
+      }
+    })
+  }, {
+  +  fonts: // ...
+  })
+  ```
+
 ## 0.4.8
 
 ### Patch Changes
