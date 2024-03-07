@@ -1,7 +1,9 @@
 import { render } from 'hono/jsx/dom'
 
-import { App } from '../components/App.js'
-import { Provider, dataId } from '../lib/context.js'
+import { App } from './App.js'
+import { Provider, dataId } from './lib/context.js'
+
+import './styles.css'
 
 const element = document.getElementById(dataId)
 const value = JSON.parse(element!.textContent!)

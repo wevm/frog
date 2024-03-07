@@ -2,8 +2,9 @@
   "scripts": {
     "dev": "pnpm --filter playground dev",
     "dev:create-frog": "bun create-frog/bin.ts",
-    "build": "pnpm clean && pnpm protobufs:generate && pnpm build:frog && pnpm build:create-frog && bun .scripts/postbuild.ts",
+    "build": "pnpm clean && pnpm protobufs:generate && pnpm build:frog && pnpm build:frog:static && pnpm build:create-frog && bun .scripts/postbuild.ts",
     "build:frog": "tsc --project ./tsconfig.build.json",
+    "build:frog:static": "vite build",
     "build:create-frog": "rimraf create-frog/_lib && tsc -p create-frog/tsconfig.build.json",
     "changeset": "changeset",
     "changeset:release": "pnpm build && changeset publish",
@@ -38,6 +39,7 @@
     "rimraf": "^5.0.5",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3",
+    "vite": "^5.1.3",
     "vitest": "^1.2.2"
   },
   "packageManager": "pnpm@8.15.3",

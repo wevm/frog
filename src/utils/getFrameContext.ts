@@ -34,7 +34,7 @@ export function getFrameContext<
   parameters: GetFrameContextParameters<env, path, _state>,
 ): GetFrameContextReturnType<env, path, _state> {
   const { context, cycle, state } = parameters
-  const { frameData, initialPath, previousButtonValues, req, verified } =
+  const { env, frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
   const { buttonValue, inputText, redirect, reset } = getIntentState({
@@ -84,6 +84,7 @@ export function getFrameContext<
       buttonValue,
       cycle,
       deriveState: deriveState as FrameContext['deriveState'],
+      env,
       frameData,
       initialPath,
       inputText,

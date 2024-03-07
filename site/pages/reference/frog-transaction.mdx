@@ -19,7 +19,7 @@ const app = new Frog()
 app.transaction('/send-ether', (c) => { // [!code focus]
   // Send transaction response. // [!code focus]
   return c.send({ // [!code focus]
-    chainId: 'eip155:1', // [!code focus]
+    chainId: 'eip155:10', // [!code focus]
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus]
     value: parseEther('1'), // [!code focus]
   }) // [!code focus]
@@ -29,7 +29,7 @@ app.transaction('/mint', (c) => { // [!code focus]
   // Contract transaction response. // [!code focus]
   return c.contract({ // [!code focus]
     abi, // [!code focus]
-    chainId: 'eip155:1', // [!code focus]
+    chainId: 'eip155:10', // [!code focus]
     functionName: 'mint', // [!code focus]
     args: [69420n], // [!code focus]
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B' // [!code focus]
@@ -60,7 +60,7 @@ app.transaction(
   (c) => { 
     // Send transaction response. 
     return c.send({ 
-      chainId: 'eip155:1', 
+      chainId: 'eip155:10', 
       to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
       value: parseEther('1'), 
     }) 
@@ -86,7 +86,7 @@ app.transaction(
   '/send-ether',
   (c) => { // [!code focus] 
     return c.send({ // [!code focus] 
-      chainId: 'eip155:1', // [!code focus] 
+      chainId: 'eip155:10', // [!code focus] 
       to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus] 
       value: parseEther('1'), // [!code focus] 
     }) // [!code focus] 

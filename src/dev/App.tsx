@@ -1,11 +1,11 @@
-import { useState } from '../hooks/useState.js'
-import { Data } from './Data.js'
-import { Metrics } from './Metrics.js'
-import { Navigator } from './Navigator.js'
-import { Preview } from './Preview.js'
-import { QuickLinks } from './QuickLinks.js'
-import { Tabs } from './Tabs.js'
-import { Timeline } from './Timeline.js'
+import { useState } from './hooks/useState.js'
+import { Data } from './components/Data.js'
+import { Metrics } from './components/Metrics.js'
+import { Navigator } from './components/Navigator.js'
+import { Preview } from './components/Preview.js'
+import { QuickLinks } from './components/QuickLinks.js'
+import { Tabs } from './components/Tabs.js'
+import { Timeline } from './components/Timeline.js'
 
 export function App() {
   const state = useState()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'hono/jsx/dom'
-import { createCssVariablesTheme, getHighlighter } from 'shiki'
+import { createCssVariablesTheme, getHighlighterCore } from 'shiki'
+import getWasm from 'shiki/wasm'
 
 type CodeToHtmlProps = {
   code: string
@@ -7,8 +8,8 @@ type CodeToHtmlProps = {
 }
 
 const cache: Record<string, string> = {}
-const highlighter = await getHighlighter({
-  langs: ['html', 'json'],
+const highlighter = await getHighlighterCore({
+  langs: [import('shiki/langs/html.mjs'), import('shiki/langs/json.mjs')],
   themes: [
     createCssVariablesTheme({
       name: 'css-variables',
@@ -17,6 +18,7 @@ const highlighter = await getHighlighter({
       fontStyle: true,
     }),
   ],
+  loadWasm: getWasm,
 })
 
 export function CodeToHtml(props: CodeToHtmlProps) {

@@ -11,9 +11,19 @@ import type { UnionWiden, Widen } from './utils.js'
 //////////////////////////////////////////////////////
 // Raw Transaction
 
+export type ChainNamespace = 'eip155'
+
+/**
+ * Current supported chain IDs:
+ * - 10: Optimism
+ * - 8543: Base
+ * - 7777777: Zora
+ */
+export type ChainIdEip155 = 10 | 8543 | 7777777
+
 export type TransactionParameters = {
   /** A CAIP-2 Chain ID to identify the transaction network. */
-  chainId: `eip155:${number}`
+  chainId: `${ChainNamespace}:${ChainIdEip155}`
 } & EthSendTransactionSchema<bigint>
 
 export type TransactionResponse = Pick<TransactionParameters, 'chainId'> &

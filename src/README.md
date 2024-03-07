@@ -45,7 +45,7 @@
 
 Check out the following places for more Frog-related content:
 
-- Follow [@awkweb](https://twitter.com/awkweb), [@jakemoxey](https://twitter.com/jakemoxey), and [@wevm_dev](https://twitter.com/wevm_dev) on Twitter for project updates
+- Follow [@awkweb](https://warpcast.com/awkweb), [@jxom](https://warpcast.com/jxom), and [@wevm_dev](https://warpcast.com/wevm_dev) on Warpcast for project updates
 - Join the [discussions on GitHub](https://github.com/wevm/frog/discussions)
 
 ## Support
@@ -60,8 +60,8 @@ If you're interested in contributing, please read the [contributing docs](/.gith
 
 ## Authors
 
-- [@jxom](https://github.com/jxom) (jxom.eth, [Twitter](https://twitter.com/_jxom))
-- [@tmm](https://github.com/tmm) (awkweb.eth, [Twitter](https://twitter.com/awkweb))
+- [@jxom](https://github.com/jxom) (jxom.eth, [Warpcast](https://warpcast.com/jxom))
+- [@tmm](https://github.com/tmm) (awkweb.eth, [Warpcast](https://warpcast.com/awkweb))
 
 ## License
 

@@ -9,7 +9,6 @@ import {
   setSignedCookie,
 } from 'hono/cookie'
 import { inspectRoutes } from 'hono/dev'
-import { jsxRenderer } from 'hono/jsx-renderer'
 import { type CookieOptions } from 'hono/utils/cookie'
 import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
@@ -19,8 +18,7 @@ import type { Env } from '../types/env.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
-import { App } from './components/App.js'
-import { type Props, Provider, dataId } from './lib/context.js'
+import { type Props } from './lib/context.js'
 import {
   type ActionData,
   type BaseData,
@@ -37,18 +35,7 @@ import { htmlToFrame } from './utils/htmlToFrame.js'
 import { htmlToContext } from './utils/htmlToState.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
-
-declare module 'hono' {
-  interface ContextRenderer {
-    (
-      content: string | Promise<string>,
-      props?: {
-        title: string
-        value: Props
-      },
-    ): Response
-  }
-}
+import { EntryServer } from './entry-server.js'
 
 export function routes<
   env extends Env,
@@ -57,75 +44,26 @@ export function routes<
   ///
   _state = env['State'],
 >(app: FrogBase<env, schema, basePath, _state>, path: string) {
-  app.get(
-    `${parsePath(path)}/dev`,
-    jsxRenderer((props) => {
-      const { children, value, title } = props
-      return (
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1.0"
-            />
-            <title>{title}</title>
-            <link
-              rel="stylesheet"
-              href="/node_modules/frog/dev/client/styles.css"
-            />
-            {/* TODO: Load from file system */}
-            <link rel="preconnect" href="https://rsms.me/" />
-            <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-            <link rel="icon" href="https://frog.fm/icon.png" type="image/png" />
-          </head>
-          <body>
-            <div id="root">{children}</div>
-            {import.meta.env.PROD ? (
-              <script
-                type="module"
-                src="/node_modules/frog/_lib/dev/client/index.js"
-              />
-            ) : (
-              <script
-                type="module"
-                src="/node_modules/frog/dev/client/index.tsx"
-              />
-            )}
-            <script
-              id={dataId}
-              type="application/json"
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(value) }}
-            />
-          </body>
-        </html>
-      )
-    }),
-    async (c) => {
-      const url = c.req.url.replace('/dev', '')
-      const value = await get(url)
-      const cookie = getCookie(c, 'user')
+  app.get(`${parsePath(path)}/dev`, async (c) => {
+    const url = c.req.url.replace('/dev', '')
+    const value = await get(url)
+    const cookie = getCookie(c, 'user')
 
-      let user: User | undefined = undefined
-      if (cookie)
-        try {
-          const parsed = JSON.parse(cookie)
-          const baseUrl = app.hub?.apiUrl || app.hubApiUrl
-          if (parsed && baseUrl) {
-            const data = await getUserByFid(baseUrl, parsed.userFid)
-            user = { state: 'completed', ...parsed, ...data }
-          }
-        } catch {}
+    let user: User | undefined = undefined
+    if (cookie)
+      try {
+        const parsed = JSON.parse(cookie)
+        const baseUrl = app.hub?.apiUrl || app.hubApiUrl
+        if (parsed && baseUrl) {
+          const data = await getUserByFid(baseUrl, parsed.userFid)
+          user = { state: 'completed', ...parsed, ...data }
+        }
+      } catch {}
 
-      return c.render(
-        <Provider {...value} user={user}>
-          <App />
-        </Provider>,
-        { title: `frame: ${new URL(url).pathname}`, value: { ...value, user } },
-      )
-    },
-  )
+    return c.render(
+      <EntryServer path={path} providerProps={{ ...value, user }} />,
+    )
+  })
 
   app.get(`${parsePath(path)}/dev/frame`, async (c) => {
     const url = c.req.url.replace('/dev/frame', '')

@@ -553,9 +553,6 @@
 .text-gray-alpha-1000 { color: var(--gray-alpha-1000); }
 .text-background-100 { color: var(--background-100); }
 .text-background-200 { color: var(--background-200); }
-`
-const styles = `
-${colors}
 
 :root {
   --page-margin: 1rem;

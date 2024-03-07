@@ -1,5 +1,39 @@
 # frog
 
+## 0.4.7
+
+### Patch Changes
+
+- [`efe1f6a`](https://github.com/wevm/frog/commit/efe1f6a9b9d809cbc9ec714676189e5c87bb3062) Thanks [@jxom](https://github.com/jxom)! - Strengthened `chainId` type for transactions.
+
+## 0.4.6
+
+### Patch Changes
+
+- [`9d2bf3f`](https://github.com/wevm/frog/commit/9d2bf3fd06bb78bc00d7b09bcaea71043418ee60) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og`.
+
+## 0.4.5
+
+### Patch Changes
+
+- [`f150fe9`](https://github.com/wevm/frog/commit/f150fe98dd999c35aa8dc9769bcce9d5f2721c46) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og`.
+
+## 0.4.4
+
+### Patch Changes
+
+- [`2f7c148`](https://github.com/wevm/frog/commit/2f7c148bea730624596b84e7f091c6400a336298) Thanks [@jxom](https://github.com/jxom)! - Fixed `HandlerResponse` type.
+
+## 0.4.3
+
+### Patch Changes
+
+- [`0d379e4`](https://github.com/wevm/frog/commit/0d379e48548ce72bd43501bd4bfb93eef4ec01a6) Thanks [@tmm](https://github.com/tmm)! - Added transaction buttons
+
+- [#95](https://github.com/wevm/frog/pull/95) [`84caa33`](https://github.com/wevm/frog/commit/84caa337b700cc22ac0e3ddf468631e7d679e545) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed typing of `c.req.param()` in `.transaction` route.
+
+- [`3683778`](https://github.com/wevm/frog/commit/3683778151bf1179a1bf674108986e024da7287c) Thanks [@jxom](https://github.com/jxom)! - Added support for [Hono's `.env`](https://hono.dev/api/context#env).
+
 ## 0.4.2
 
 ### Patch Changes

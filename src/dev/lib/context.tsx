@@ -108,7 +108,6 @@ export function Provider(props: Props) {
           )
 
         const parsed = JSON.parse(restored ?? 'null')
-        console.log({ parsed })
         if (parsed) {
           const logIndex =
             parsed.logIndex === (parsed.logs?.length ?? 0) - 1
