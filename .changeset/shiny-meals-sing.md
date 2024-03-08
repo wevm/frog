@@ -1,0 +1,5 @@
+---
+"frog": patch
+---
+
+Fixed type.

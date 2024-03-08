@@ -89,7 +89,7 @@ export type FrameResponse = {
   imageOptions?:
     | (Omit<ImageResponseOptions, 'fonts'> & {
         /** @deprecated Pass `fonts` to the route options instead. @see https://frog.fm/reference/frog-frame-response#imageoptions  */
-        fonts: ImageResponseOptions['fonts']
+        fonts?: ImageResponseOptions['fonts']
       })
     | undefined
   /**
