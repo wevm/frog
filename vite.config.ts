@@ -10,7 +10,11 @@ export default defineConfig({
         dir: 'src/_lib/dev/static',
         entryFileNames: 'entry-client.js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name].[ext]',
+        assetFileNames(assetInfo) {
+          if (assetInfo.name?.endsWith('.woff2'))
+            return 'dev/static/assets/[name].[ext]'
+          return 'assets/[name].[ext]'
+        },
       },
     },
     target: 'esnext',

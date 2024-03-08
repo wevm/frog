@@ -571,7 +571,7 @@
 }
 
 @supports (font-variation-settings: normal) {
-  :root { font-family: InterVariable, arial, sans-serif; }
+  :root { font-family: 'Inter Variable', arial, sans-serif; }
 }
 
 *,

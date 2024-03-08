@@ -42,8 +42,6 @@ export function EntryServer(props: EntryServer) {
           )}
 
           {/* TODO: Load from file system */}
-          <link rel="preconnect" href="https://rsms.me/" />
-          <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
           <link rel="icon" href="https://frog.fm/icon.png" type="image/png" />
         </head>
         <body>

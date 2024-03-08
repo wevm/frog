@@ -131,7 +131,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
+        version: 0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -150,7 +150,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -172,6 +172,9 @@ importers:
       '@farcaster/core':
         specifier: ^0.13.7
         version: 0.13.8(typescript@5.3.3)
+      '@fontsource-variable/inter':
+        specifier: ^5.0.17
+        version: 5.0.17
       '@hono/vite-dev-server':
         specifier: 0.7.0
         version: 0.7.0(hono@4.0.9)
@@ -237,7 +240,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -253,7 +256,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -269,7 +272,7 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -282,7 +285,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -316,7 +319,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -332,7 +335,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.0(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
       hono:
         specifier: 4.0.9
         version: 4.0.9
@@ -1842,6 +1845,10 @@ packages:
 
   /@floating-ui/utils@0.2.1:
     resolution: {integrity: sha512-9TANp6GPoMtYzQdt54kfAyMmz1+osLlXdg2ENroU7zzrtflTLrrC/lgrIfaSe+Wu0b89GKccT7vxXA0MoAIO+Q==}
+    dev: false
+
+  /@fontsource-variable/inter@5.0.17:
+    resolution: {integrity: sha512-sa80nNnqF8kzhBvqusWiL9vlPMVpdmOwMmDBup46Jggsr1VBqo+YuzwB36Ls+X6uHJtb8Yv3ALBHL/zGmT862A==}
     dev: false
 
   /@hono/node-server@1.8.1:
@@ -3931,15 +3938,6 @@ packages:
       yoga-wasm-web: 0.3.3
     dev: false
 
-  /@wevm/vercel-og@0.6.12:
-    resolution: {integrity: sha512-gaFbJR7fV7oFega1/8omhpp/cTHWpZkFpuiIaevDil6HroQYhX1RBFNse3uYeSbnhb3pHnAm85tjYuOi/wB6EQ==}
-    engines: {node: '>=16'}
-    dependencies:
-      '@resvg/resvg-wasm': 2.4.0
-      satori: 0.10.9
-      yoga-wasm-web: 0.3.3
-    dev: false
-
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
@@ -5761,8 +5759,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /frog@0.5.0(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
-    resolution: {integrity: sha512-P4JOYrkBmp2n1Gd7BiHuAHCxlEN8eKR/AaOlXC3SAxNJRE/GGJ52k/QpE6No++K1tI6IbKCAnV0gw6bXo3iYzQ==}
+  /frog@0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
+    resolution: {integrity: sha512-hxNUiV6X7/gDQvfWfcGEK3uUpjQx1U+lltOHChgK7YcZkF+Ix4P2cEl+LzUER7tjpj+JIuZddiZbiVCSp3wOsw==}
     hasBin: true
     peerDependencies:
       hono: 4.0.9
@@ -5783,9 +5781,8 @@ packages:
       fs-extra: 11.2.0
       happy-dom: 13.3.8
       hono: 4.0.9
-      hono-og: 0.0.22(hono@4.0.9)
+      hono-og: 0.0.21(hono@4.0.9)
       jose: 5.2.2
-      lz-string: 1.5.0
       path-browserify: 1.0.1
       qrcode: 1.5.3
       typescript: 4.9.5
@@ -5805,8 +5802,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.5.0(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
-    resolution: {integrity: sha512-P4JOYrkBmp2n1Gd7BiHuAHCxlEN8eKR/AaOlXC3SAxNJRE/GGJ52k/QpE6No++K1tI6IbKCAnV0gw6bXo3iYzQ==}
+  /frog@0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-hxNUiV6X7/gDQvfWfcGEK3uUpjQx1U+lltOHChgK7YcZkF+Ix4P2cEl+LzUER7tjpj+JIuZddiZbiVCSp3wOsw==}
     hasBin: true
     peerDependencies:
       hono: 4.0.9
@@ -5827,9 +5824,8 @@ packages:
       fs-extra: 11.2.0
       happy-dom: 13.3.8
       hono: 4.0.9
-      hono-og: 0.0.22(hono@4.0.9)
+      hono-og: 0.0.21(hono@4.0.9)
       jose: 5.2.2
-      lz-string: 1.5.0
       path-browserify: 1.0.1
       qrcode: 1.5.3
       typescript: 5.3.3
@@ -5849,8 +5845,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.5.0(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
-    resolution: {integrity: sha512-P4JOYrkBmp2n1Gd7BiHuAHCxlEN8eKR/AaOlXC3SAxNJRE/GGJ52k/QpE6No++K1tI6IbKCAnV0gw6bXo3iYzQ==}
+  /frog@0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-hxNUiV6X7/gDQvfWfcGEK3uUpjQx1U+lltOHChgK7YcZkF+Ix4P2cEl+LzUER7tjpj+JIuZddiZbiVCSp3wOsw==}
     hasBin: true
     peerDependencies:
       hono: 4.0.9
@@ -5871,9 +5867,8 @@ packages:
       fs-extra: 11.2.0
       happy-dom: 13.3.8
       hono: 4.0.9
-      hono-og: 0.0.22(hono@4.0.9)
+      hono-og: 0.0.21(hono@4.0.9)
       jose: 5.2.2
-      lz-string: 1.5.0
       path-browserify: 1.0.1
       qrcode: 1.5.3
       typescript: 5.3.3
@@ -6355,17 +6350,6 @@ packages:
     dependencies:
       '@vercel/og': 0.6.2
       '@wevm/vercel-og': 0.6.11
-      hono: 4.0.9
-      workers-og: 0.0.20
-    dev: false
-
-  /hono-og@0.0.22(hono@4.0.9):
-    resolution: {integrity: sha512-fq04Nhhbtyto4WL8r9+ozUB9e0PKUD/G+bdI7+NkU7+H4ZqkiTjTSAg94FDq1Kdz9Bql4ZaqyOkGo7cmVFo84g==}
-    peerDependencies:
-      hono: 4.0.9
-    dependencies:
-      '@vercel/og': 0.6.2
-      '@wevm/vercel-og': 0.6.12
       hono: 4.0.9
       workers-og: 0.0.20
     dev: false

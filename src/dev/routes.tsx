@@ -63,7 +63,11 @@ export async function routes<
         serveStatic({
           manifest,
           root,
-          rewriteRequestPath: (path) => path.replace(`${staticPath}/`, '/'),
+          rewriteRequestPath(path) {
+            // fonts loaded from mirrored directory to `staticPath`
+            if (path.endsWith('.woff2')) return path
+            return path.replace(`${staticPath}/`, '/')
+          },
         }),
       )
     else console.warn('No static file handler found for environment')
