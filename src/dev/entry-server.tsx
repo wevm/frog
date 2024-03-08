@@ -1,7 +1,7 @@
 import { html } from 'hono/html'
 import { App } from './App.js'
-import { staticPath } from './constants.js'
 import { Provider, type ProviderProps, dataId } from './Context.js'
+import { staticPath } from './constants.js'
 
 type EntryServer = {
   hasStaticBundle: boolean

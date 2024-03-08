@@ -1,9 +1,9 @@
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useDispatch } from '../hooks/useDispatch.js'
 import { useState as useGlobalState } from '../hooks/useState.js'
-import { clsx } from '../vendor//clsx.js'
 import { type Data, type Frame } from '../types.js'
 import { formatFileSize, formatSpeed } from '../utils/format.js'
+import { clsx } from '../vendor//clsx.js'
 import { CodeToHtml } from './CodeToHtml.js'
 import { checkIcon, copyIcon } from './icons.js'
 
