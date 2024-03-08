@@ -16,10 +16,10 @@ export type ChainNamespace = 'eip155'
 /**
  * Current supported chain IDs:
  * - 10: Optimism
- * - 8543: Base
+ * - 8453: Base
  * - 7777777: Zora
  */
-export type ChainIdEip155 = 10 | 8543 | 7777777
+export type ChainIdEip155 = 10 | 8453 | 7777777
 
 export type TransactionParameters = {
   /** A CAIP-2 Chain ID to identify the transaction network. */

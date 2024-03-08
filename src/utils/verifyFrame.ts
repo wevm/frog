@@ -61,6 +61,9 @@ export function messageToFrameData(message: Message): FrameData {
     buttonIndex: frameActionBody.buttonIndex as any,
     inputText: bytesToString(frameActionBody.inputText),
     state: bytesToString(frameActionBody.state),
+    transactionId: frameActionBody.transactionId
+      ? bytesToHex(frameActionBody.transactionId)
+      : undefined,
   }
 
   return frameData

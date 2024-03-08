@@ -141,6 +141,23 @@ However, please note that this API Key is for development purposes only – it i
 It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
 :::
 
+### imageOptions 
+
+Image options to apply to frames. 
+
+[Read more.](https://vercel.com/docs/functions/og-image-generation/og-image-api)
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  imageOptions: { // [!code focus]
+    height: 600, // [!code focus]
+    width: 600, // [!code focus]
+  }, // [!code focus]
+})
+```
+
 ### initialState 
 
 Initial state for the frames.

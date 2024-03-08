@@ -4,15 +4,12 @@ import { ImageResponse, type ImageResponseOptions } from 'hono-og'
 import { type HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
 import { type Schema } from 'hono/types'
+import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import type {
-  FrameContext,
-  FrameQueryContext,
-  TransactionContext,
-} from './types/context.js'
+import type { FrameContext, TransactionContext } from './types/context.js'
 import type { Env } from './types/env.js'
 import {
   type FrameImageAspectRatio,
@@ -22,15 +19,16 @@ import type { Hub } from './types/hub.js'
 import type { HandlerResponse } from './types/response.js'
 import type { TransactionResponse } from './types/transaction.js'
 import { type Pretty } from './types/utils.js'
+import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
+import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestBodyToContext } from './utils/requestBodyToContext.js'
-import { requestQueryToContext } from './utils/requestQueryToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
@@ -154,7 +152,8 @@ export type FrogConstructorParameters<
   verify?: boolean | 'silent' | undefined
 }
 
-export type RouteOptions = Pick<FrogConstructorParameters, 'verify'>
+export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> &
+  Partial<Pick<ImageResponseOptions, 'fonts'>>
 
 /**
  * A Frog instance.
@@ -287,7 +286,6 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
-        cycle: 'main',
         initialState: this._initialState,
       })
 
@@ -302,6 +300,7 @@ export class FrogBase<
         headers = this.headers,
         imageAspectRatio = this.imageAspectRatio,
         image,
+        imageOptions,
         intents,
         title = 'Frog Frame',
       } = response.data
@@ -330,22 +329,6 @@ export class FrogBase<
           302,
         )
 
-      // The OG route also needs context, so we will need to pass the current derived context,
-      // via a query parameter to the OG image route (/image).
-      const queryContext: FrameQueryContext<env, path> = {
-        ...context,
-        env: context.env
-          ? Object.assign(context.env, {
-              incoming: undefined,
-              outgoing: undefined,
-            })
-          : undefined,
-        // `c.req` is not serializable.
-        req: undefined,
-        state: getState(),
-      }
-      const frameImageParams = toSearchParams(queryContext)
-
       // Derive the previous state, and sign it if a secret is provided.
       const previousState = await (async () => {
         const state = await context.deriveState()
@@ -371,11 +354,22 @@ export class FrogBase<
         previousState,
       })
 
-      const imageUrl = (() => {
-        if (typeof image !== 'string')
-          return `${parsePath(
-            context.url,
-          )}/image?${frameImageParams.toString()}`
+      const imageUrl = await (async () => {
+        if (typeof image !== 'string') {
+          const encodedImage = lz.compressToEncodedURIComponent(
+            JSON.stringify(await parseImage(image, { assetsUrl })),
+          )
+          const imageParams = toSearchParams({
+            image: encodedImage,
+            imageOptions: {
+              ...imageOptions,
+              // TODO: Remove once `fonts` is removed from `imageOptions`.
+              fonts: undefined,
+            },
+            headers,
+          })
+          return `${parsePath(context.url)}/image?${imageParams}`
+        }
         if (image.startsWith('http')) return image
         return `${assetsUrl + parsePath(image)}`
       })()
@@ -397,6 +391,20 @@ export class FrogBase<
       // Set response headers provided by consumer.
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
+
+      // The devtools needs a serialized context.
+      const serializedContext = serializeJson({
+        ...context,
+        // note: unserializable entities are undefined.
+        env: context.env
+          ? Object.assign(context.env, {
+              incoming: undefined,
+              outgoing: undefined,
+            })
+          : undefined,
+        req: undefined,
+        state: getState(),
+      })
 
       const body = this.dev.enabled ? (
         <body
@@ -443,10 +451,7 @@ export class FrogBase<
               {parsedIntents}
 
               {this.dev.enabled && (
-                <meta
-                  property="frog:context"
-                  content={serializeJson(queryContext)}
-                />
+                <meta property="frog:context" content={serializedContext} />
               )}
               <meta property="frog:version" content={version} />
             </head>
@@ -458,31 +463,20 @@ export class FrogBase<
 
     // OG Image Route
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
-      const baseContext = requestQueryToContext<env, path>(c)
-
-      const { context } = getFrameContext({
-        context: baseContext,
-        cycle: 'image',
-        initialState: this._initialState,
-        state: baseContext?.state,
-      })
-
       const defaultImageOptions =
         typeof this.imageOptions === 'function'
           ? await this.imageOptions()
           : this.imageOptions
 
-      const response = await handler(context)
-      if (response instanceof Response) return response
-
       const {
-        image,
         headers = this.headers,
+        image,
         imageOptions = defaultImageOptions,
-      } = response.data
-      if (typeof image === 'string') return c.redirect(image, 302)
-      return new ImageResponse(image, {
+      } = fromQuery<any>(c.req.query())
+      const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
+      return new ImageResponse(image_, {
         ...imageOptions,
+        fonts: options?.fonts ?? imageOptions?.fonts,
         headers: imageOptions?.headers ?? headers,
       })
     })

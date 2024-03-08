@@ -1,5 +1,60 @@
 # frog
 
+## 0.5.3
+
+### Patch Changes
+
+- [`a18f5e5`](https://github.com/wevm/frog/commit/a18f5e507dcd90566a9f1de05ae91dc4e6aa9462) Thanks [@jxom](https://github.com/jxom)! - Added `transactionId` to `messageToFrameData`.
+
+## 0.5.2
+
+### Patch Changes
+
+- [`3b2d353`](https://github.com/wevm/frog/commit/3b2d3533098a5c2d54bd9584feed0fd7a50000f7) Thanks [@jxom](https://github.com/jxom)! - Unwrap JSX elements before passing them as parameters.
+
+## 0.5.1
+
+### Patch Changes
+
+- [`51610c2`](https://github.com/wevm/frog/commit/51610c2614597e29088b6a1618f5cdf7e79db19b) Thanks [@jxom](https://github.com/jxom)! - Added `action` prop to `Button.Transaction`.
+
+## 0.5.0
+
+### Minor Changes
+
+- [#109](https://github.com/wevm/frog/pull/109) [`e5296d8`](https://github.com/wevm/frog/commit/e5296d8be88efba603aa7b56290a2063fcf27154) Thanks [@jxom](https://github.com/jxom)! - This version of Frog removes the concept of "Render Cycles". All frames now facilitate a single cycle.
+
+  There are a couple of small **deprecations**:
+
+  1. Deprecated `cycle` from context – you can now omit the conditionals completely.
+
+  ```diff
+  app.frame('/', c => {
+  -  if (c.cycle === 'main') console.log('hello world')
+  +  console.log('hello world')
+  })
+  ```
+
+  2. Deprecated `fonts` property in `c.res` in favor of `fonts` on frame route options:
+
+  ```diff
+  app.frame('/', c => {
+    return c.res({
+      imageOptions: {
+  -     fonts: // ...
+      }
+    })
+  }, {
+  +  fonts: // ...
+  })
+  ```
+
+## 0.4.8
+
+### Patch Changes
+
+- [`12bff46`](https://github.com/wevm/frog/commit/12bff468a37ffd622aae74791205b76f5f94dba7) Thanks [@jxom](https://github.com/jxom)! - Fixed Base chain ID.
+
 ## 0.4.7
 
 ### Patch Changes

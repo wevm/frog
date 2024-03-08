@@ -252,10 +252,6 @@ export default defineConfig({
       link: '/getting-started',
     },
     {
-      text: 'FAQ',
-      link: '/faq',
-    },
-    {
       text: 'Concepts',
       items: [
         {
@@ -269,10 +265,6 @@ export default defineConfig({
         {
           text: 'Images & Intents',
           link: '/concepts/images-intents',
-        },
-        {
-          text: 'Render Cycles',
-          link: '/concepts/render-cycles',
         },
         {
           text: 'Connecting Frames (Actions)',
