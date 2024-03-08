@@ -152,8 +152,11 @@ export type FrogConstructorParameters<
   verify?: boolean | 'silent' | undefined
 }
 
-export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> &
-  Partial<Pick<ImageResponseOptions, 'fonts'>>
+export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
+  fonts?:
+    | ImageResponseOptions['fonts']
+    | (() => Promise<ImageResponseOptions['fonts']>)
+}
 
 /**
  * A Frog instance.
@@ -477,10 +480,17 @@ export class FrogBase<
 
     // OG Image Route
     this.hono.get(`${parsePath(path)}/image`, async (c) => {
-      const defaultImageOptions =
-        typeof this.imageOptions === 'function'
-          ? await this.imageOptions()
-          : this.imageOptions
+      const defaultImageOptions = await (async () => {
+        if (typeof this.imageOptions === 'function')
+          return await this.imageOptions()
+        return this.imageOptions
+      })()
+
+      const fonts = await (async () => {
+        if (typeof options?.fonts === 'function') return await options.fonts()
+        if (options?.fonts) return options.fonts
+        return defaultImageOptions?.fonts
+      })()
 
       const {
         headers = this.headers,
@@ -490,7 +500,7 @@ export class FrogBase<
       const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
       return new ImageResponse(image_, {
         ...imageOptions,
-        fonts: options?.fonts ?? imageOptions?.fonts,
+        fonts,
         headers: imageOptions?.headers ?? headers,
       })
     })
