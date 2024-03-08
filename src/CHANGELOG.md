@@ -1,5 +1,17 @@
 # frog
 
+## 0.5.5
+
+### Patch Changes
+
+- [`808be3d`](https://github.com/wevm/frog/commit/808be3d68f214927c0e4a02e1c9e3a55e2bcf5b6) Thanks [@jxom](https://github.com/jxom)! - Fixed type.
+
+## 0.5.4
+
+### Patch Changes
+
+- [`d0ce9cc`](https://github.com/wevm/frog/commit/d0ce9cc81cdccb0734c7348a7caec4adb4c5ce60) Thanks [@jxom](https://github.com/jxom)! - Fixed `imageOptions` propagation when passed to `Frog`.
+
 ## 0.5.3
 
 ### Patch Changes

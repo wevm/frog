@@ -88,12 +88,7 @@ export type FrameResponse = {
    * @example
    * { width: 1200, height: 630 }
    */
-  imageOptions?:
-    | (Omit<ImageResponseOptions, 'fonts'> & {
-        /** @deprecated Pass `fonts` to the route options instead. @see https://frog.fm/reference/frog-frame-response#imageoptions  */
-        fonts: ImageResponseOptions['fonts']
-      })
-    | undefined
+  imageOptions?: Omit<ImageResponseOptions, 'fonts'> | undefined
   /**
    * A set of intents (ie. buttons, text inputs, etc) to render for the frame
    * (beneath the OG image).
