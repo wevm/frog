@@ -3,13 +3,13 @@ import { ed25519 } from '@noble/curves/ed25519'
 import { blake3 } from '@noble/hashes/blake3'
 
 import {
+  FarcasterNetwork,
   FrameActionBody,
+  HashScheme,
   Message,
   MessageData,
   MessageType,
   SignatureScheme,
-  HashScheme,
-  FarcasterNetwork,
 } from '../../protobufs/generated/message_pb.js'
 
 export type FetchFrameParameters = {
