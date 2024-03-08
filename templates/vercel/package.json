@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "frog": "latest",
-    "hono": "^4"
+    "hono": "^4.0.9"
   },
   "devDependencies": {
     "tsx": "^4.7.1",

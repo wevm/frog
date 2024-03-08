@@ -7,7 +7,7 @@
     "serve": "bun run src/index.tsx"
   },
   "dependencies": {
-    "hono": "^4",
+    "hono": "^4.0.9",
     "frog": "latest"
   },
   "devDependencies": {

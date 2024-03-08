@@ -8,7 +8,7 @@
   "dependencies": {
     "@hono/node-server": "latest",
     "frog": "latest",
-    "hono": "^4"
+    "hono": "^4.0.9"
   },
   "devDependencies": {
     "typescript": "latest"

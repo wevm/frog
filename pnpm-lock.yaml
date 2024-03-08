@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  hono: 4.0.9
-
 importers:
 
   .:
@@ -48,7 +45,7 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
       picocolors:
         specifier: ^1.0.0
@@ -96,7 +93,7 @@ importers:
         specifier: workspace:*
         version: link:../src
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
 
   protobufs:
@@ -117,7 +114,7 @@ importers:
   services/auth:
     dependencies:
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
       viem:
         specifier: ^2.7.10
@@ -131,9 +128,9 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
+        version: 0.5.2(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
     devDependencies:
       '@hono/node-server':
@@ -150,7 +147,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -206,7 +203,7 @@ importers:
         specifier: ^13.3.8
         version: 13.3.8
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
       hono-og:
         specifier: 0.0.21
@@ -240,9 +237,9 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
     devDependencies:
       '@types/bun':
@@ -256,9 +253,9 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
     devDependencies:
       wrangler:
@@ -272,9 +269,9 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
     devDependencies:
       typescript:
@@ -285,9 +282,9 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
       next:
         specifier: 14.1.0
@@ -319,9 +316,9 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
     devDependencies:
       '@types/node':
@@ -335,9 +332,9 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
+        version: 0.5.2(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3)
       hono:
-        specifier: 4.0.9
+        specifier: ^4.0.9
         version: 4.0.9
     devDependencies:
       tsx:
@@ -1864,7 +1861,7 @@ packages:
     resolution: {integrity: sha512-NFcBuyklOammhiExJUYvTfzoU9Mzv4F7ddUCjTe9hy37/AHGZXoksZaBWFl2fRSPVZaPvmX9eiRLBMIrML2iYw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
-      hono: 4.0.9
+      hono: '*'
     dependencies:
       '@hono/node-server': 1.8.2
       hono: 4.0.9
@@ -3938,6 +3935,15 @@ packages:
       yoga-wasm-web: 0.3.3
     dev: false
 
+  /@wevm/vercel-og@0.6.12:
+    resolution: {integrity: sha512-gaFbJR7fV7oFega1/8omhpp/cTHWpZkFpuiIaevDil6HroQYhX1RBFNse3uYeSbnhb3pHnAm85tjYuOi/wB6EQ==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@resvg/resvg-wasm': 2.4.0
+      satori: 0.10.9
+      yoga-wasm-web: 0.3.3
+    dev: false
+
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
@@ -5759,11 +5765,11 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /frog@0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
-    resolution: {integrity: sha512-hxNUiV6X7/gDQvfWfcGEK3uUpjQx1U+lltOHChgK7YcZkF+Ix4P2cEl+LzUER7tjpj+JIuZddiZbiVCSp3wOsw==}
+  /frog@0.5.2(@types/node@14.18.33)(hono@4.0.9)(typescript@4.9.5):
+    resolution: {integrity: sha512-WOUK7+7wrHChGtkmufcL8zki3Ny56Px3rVF7i8KLxToeI3qWksXHxCbEO8DWbRuoQGs4nrVSh8l3yXfmGS2Etg==}
     hasBin: true
     peerDependencies:
-      hono: 4.0.9
+      hono: ^4
       typescript: '>=5.0.4'
     peerDependenciesMeta:
       typescript:
@@ -5781,8 +5787,9 @@ packages:
       fs-extra: 11.2.0
       happy-dom: 13.3.8
       hono: 4.0.9
-      hono-og: 0.0.21(hono@4.0.9)
+      hono-og: 0.0.22(hono@4.0.9)
       jose: 5.2.2
+      lz-string: 1.5.0
       path-browserify: 1.0.1
       qrcode: 1.5.3
       typescript: 4.9.5
@@ -5802,11 +5809,11 @@ packages:
       - zod
     dev: false
 
-  /frog@0.4.8(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
-    resolution: {integrity: sha512-hxNUiV6X7/gDQvfWfcGEK3uUpjQx1U+lltOHChgK7YcZkF+Ix4P2cEl+LzUER7tjpj+JIuZddiZbiVCSp3wOsw==}
+  /frog@0.5.2(@types/node@14.18.33)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-WOUK7+7wrHChGtkmufcL8zki3Ny56Px3rVF7i8KLxToeI3qWksXHxCbEO8DWbRuoQGs4nrVSh8l3yXfmGS2Etg==}
     hasBin: true
     peerDependencies:
-      hono: 4.0.9
+      hono: ^4
       typescript: '>=5.0.4'
     peerDependenciesMeta:
       typescript:
@@ -5824,8 +5831,9 @@ packages:
       fs-extra: 11.2.0
       happy-dom: 13.3.8
       hono: 4.0.9
-      hono-og: 0.0.21(hono@4.0.9)
+      hono-og: 0.0.22(hono@4.0.9)
       jose: 5.2.2
+      lz-string: 1.5.0
       path-browserify: 1.0.1
       qrcode: 1.5.3
       typescript: 5.3.3
@@ -5845,11 +5853,11 @@ packages:
       - zod
     dev: false
 
-  /frog@0.4.8(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
-    resolution: {integrity: sha512-hxNUiV6X7/gDQvfWfcGEK3uUpjQx1U+lltOHChgK7YcZkF+Ix4P2cEl+LzUER7tjpj+JIuZddiZbiVCSp3wOsw==}
+  /frog@0.5.2(@types/node@20.11.19)(hono@4.0.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-WOUK7+7wrHChGtkmufcL8zki3Ny56Px3rVF7i8KLxToeI3qWksXHxCbEO8DWbRuoQGs4nrVSh8l3yXfmGS2Etg==}
     hasBin: true
     peerDependencies:
-      hono: 4.0.9
+      hono: ^4
       typescript: '>=5.0.4'
     peerDependenciesMeta:
       typescript:
@@ -5867,8 +5875,9 @@ packages:
       fs-extra: 11.2.0
       happy-dom: 13.3.8
       hono: 4.0.9
-      hono-og: 0.0.21(hono@4.0.9)
+      hono-og: 0.0.22(hono@4.0.9)
       jose: 5.2.2
+      lz-string: 1.5.0
       path-browserify: 1.0.1
       qrcode: 1.5.3
       typescript: 5.3.3
@@ -6346,12 +6355,28 @@ packages:
   /hono-og@0.0.21(hono@4.0.9):
     resolution: {integrity: sha512-DWU58MIoDAPznvqiZ3DPuk4VzQBBFiCF4QTNGG7Z9gUwqGQUnIVnYoWlswPk5laPJpFJbVjJ9Whllw2NTCE+OA==}
     peerDependencies:
-      hono: 4.0.9
+      hono: '>=3'
     dependencies:
       '@vercel/og': 0.6.2
       '@wevm/vercel-og': 0.6.11
       hono: 4.0.9
       workers-og: 0.0.20
+    dev: false
+
+  /hono-og@0.0.22(hono@4.0.9):
+    resolution: {integrity: sha512-fq04Nhhbtyto4WL8r9+ozUB9e0PKUD/G+bdI7+NkU7+H4ZqkiTjTSAg94FDq1Kdz9Bql4ZaqyOkGo7cmVFo84g==}
+    peerDependencies:
+      hono: 4.0.9
+    dependencies:
+      '@vercel/og': 0.6.2
+      '@wevm/vercel-og': 0.6.12
+      hono: 4.0.9
+      workers-og: 0.0.20
+    dev: false
+
+  /hono@3.12.12:
+    resolution: {integrity: sha512-5IAMJOXfpA5nT+K0MNjClchzz0IhBHs2Szl7WFAhrFOsbtQsYmNynFyJRg/a3IPsmCfxcrf8txUGiNShXpK5Rg==}
+    engines: {node: '>=16.0.0'}
     dev: false
 
   /hono@4.0.9:
@@ -10424,7 +10449,7 @@ packages:
       fs-extra: 11.2.0
       globby: 13.2.2
       hastscript: 8.0.0
-      hono: 4.0.9
+      hono: 3.12.12
       mark.js: 8.11.1
       mdast-util-directive: 3.0.0
       mdast-util-from-markdown: 2.0.0

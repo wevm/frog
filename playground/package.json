@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "frog": "workspace:*",
-    "hono": "^4"
+    "hono": "^4.0.9"
   }
 }

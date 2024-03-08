@@ -6,7 +6,7 @@
     "deploy": "vercel"
   },
   "dependencies": {
-    "hono": "^4",
+    "hono": "^4.0.9",
     "viem": "^2.7.10"
   },
   "devDependencies": {

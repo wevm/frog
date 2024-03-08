@@ -53,7 +53,7 @@
     }
   },
   "peerDependencies": {
-    "hono": "^4",
+    "hono": "^4.0.9",
     "typescript": ">=5.0.4"
   },
   "peerDependenciesMeta": {
