@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.3
+
+### Patch Changes
+
+- [`a18f5e5`](https://github.com/wevm/frog/commit/a18f5e507dcd90566a9f1de05ae91dc4e6aa9462) Thanks [@jxom](https://github.com/jxom)! - Added `transactionId` to `messageToFrameData`.
+
 ## 0.5.2
 
 ### Patch Changes
