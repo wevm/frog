@@ -375,7 +375,7 @@ export class FrogBase<
           })
           return `${parsePath(context.url)}/image?${imageParams}`
         }
-        if (image.startsWith('http')) return image
+        if (image.startsWith('http') || image.startsWith('data')) return image
         return `${assetsUrl + parsePath(image)}`
       })()
 
