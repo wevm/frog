@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.2
+
+### Patch Changes
+
+- [`3b2d353`](https://github.com/wevm/frog/commit/3b2d3533098a5c2d54bd9584feed0fd7a50000f7) Thanks [@jxom](https://github.com/jxom)! - Unwrap JSX elements before passing them as parameters.
+
 ## 0.5.1
 
 ### Patch Changes
