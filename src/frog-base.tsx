@@ -25,6 +25,7 @@ import { getFrameContext } from './utils/getFrameContext.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
+import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestBodyToContext } from './utils/requestBodyToContext.js'
@@ -353,10 +354,10 @@ export class FrogBase<
         previousState,
       })
 
-      const imageUrl = (() => {
+      const imageUrl = await (async () => {
         if (typeof image !== 'string') {
           const encodedImage = lz.compressToEncodedURIComponent(
-            JSON.stringify(image),
+            JSON.stringify(await parseImage(image, { assetsUrl })),
           )
           const imageParams = toSearchParams({
             image: encodedImage,
