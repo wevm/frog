@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.5
+
+### Patch Changes
+
+- [`808be3d`](https://github.com/wevm/frog/commit/808be3d68f214927c0e4a02e1c9e3a55e2bcf5b6) Thanks [@jxom](https://github.com/jxom)! - Fixed type.
+
 ## 0.5.4
 
 ### Patch Changes
