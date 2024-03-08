@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.4
+
+### Patch Changes
+
+- [`d0ce9cc`](https://github.com/wevm/frog/commit/d0ce9cc81cdccb0734c7348a7caec4adb4c5ce60) Thanks [@jxom](https://github.com/jxom)! - Fixed `imageOptions` propagation when passed to `Frog`.
+
 ## 0.5.3
 
 ### Patch Changes
