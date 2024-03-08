@@ -363,32 +363,36 @@ function UserForm(props: UserFormProps) {
             onChange={(e) => setUserFid((e.target as HTMLInputElement).value)}
           />
 
-          {editFid ? (
-            <button
-              aria-label="Edit User FID"
-              class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
-              type="button"
-              style={{ right: '0.25rem' }}
-              onClick={() => {
-                setOverrideUserFid(true)
-                setTimeout(() => userFidRef.current?.focus())
-              }}
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-              dangerouslySetInnerHTML={{ __html: pencil2Icon.toString() }}
-            />
-          ) : (
-            <button
-              aria-label="Restore User FID"
-              class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
-              type="button"
-              style={{ right: '0.25rem' }}
-              onClick={() => {
-                if (user) setUserFid(user.userFid.toString())
-                setOverrideUserFid(false)
-              }}
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-              dangerouslySetInnerHTML={{ __html: resetIcon.toString() }}
-            />
+          {user && (
+            <>
+              {editFid ? (
+                <button
+                  aria-label="Edit User FID"
+                  class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+                  type="button"
+                  style={{ right: '0.25rem' }}
+                  onClick={() => {
+                    setOverrideUserFid(true)
+                    setTimeout(() => userFidRef.current?.focus())
+                  }}
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                  dangerouslySetInnerHTML={{ __html: pencil2Icon.toString() }}
+                />
+              ) : (
+                <button
+                  aria-label="Restore User FID"
+                  class="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+                  type="button"
+                  style={{ right: '0.25rem' }}
+                  onClick={() => {
+                    if (user) setUserFid(user.userFid.toString())
+                    setOverrideUserFid(false)
+                  }}
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                  dangerouslySetInnerHTML={{ __html: resetIcon.toString() }}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
