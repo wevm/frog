@@ -4,7 +4,7 @@
     "dev:create-frog": "bun create-frog/bin.ts",
     "build": "pnpm clean && pnpm protobufs:generate && pnpm build:frog && pnpm build:frog:static && pnpm build:create-frog && bun .scripts/postbuild.ts",
     "build:frog": "tsc --project ./tsconfig.build.json",
-    "build:frog:static": "vite build && cp -r ./node_modules/@fontsource-variable/inter/files/ ./src/_lib/dev/static/assets",
+    "build:frog:static": "vite build && cp -r ./node_modules/@fontsource-variable/inter/files/* ./src/_lib/dev/static/assets/",
     "build:create-frog": "rimraf create-frog/_lib && tsc -p create-frog/tsconfig.build.json",
     "changeset": "changeset",
     "changeset:release": "pnpm build && changeset publish",
