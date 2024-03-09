@@ -2,7 +2,6 @@
  * Detects if request has `FCBot` set in the `User-Agent` which tells that request is being done from a frame.
  *
  * @example
- * // app/page.tsx
  * import { Suspense } from 'react'
  * import { headers } from 'next/headers'
  * import { isFrameRequest } from 'frog/next'
