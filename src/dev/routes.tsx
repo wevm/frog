@@ -40,9 +40,11 @@ import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
 
 const staticPath = '/dev/static'
-const hasStaticBundle = existsSync(
-  join(dirname(fileURLToPath(import.meta.url)), './static/entry-client.js'),
-)
+const hasStaticBundle =
+  true ||
+  existsSync(
+    join(dirname(fileURLToPath(import.meta.url)), './static/entry-client.js'),
+  )
 
 export function routes<
   env extends Env,
@@ -72,9 +74,10 @@ export function routes<
         hasStaticBundle={hasStaticBundle}
         path={path}
         providerProps={{ ...value, user }}
-        staticPath={`${
-          app.dev.basePath === '/' ? '' : app.dev.basePath
-        }${staticPath}`}
+        staticPath="/static"
+        // staticPath={`${
+        //   app.dev.basePath === '/' ? '' : app.dev.basePath
+        // }${staticPath}`}
       />,
     )
   })
@@ -104,7 +107,6 @@ export function routes<
     if (text.includes(ngrokHostname))
       text = text.replace(ngrokHttpRegex, 'https$2')
 
-    console.log({ text })
     const metadata = htmlToMetadata(text)
     const { context, frame } = metadata
 
@@ -511,27 +513,28 @@ export async function staticRoutes<
   basePath extends string,
   ///
   _state = env['State'],
->(app: FrogBase<env, schema, basePath, _state>, path: string) {
+>(_app: FrogBase<env, schema, basePath, _state>, _path: string) {
   if (!hasStaticBundle) return
 
   const { manifest, root, serveStatic } = await getStaticFileHandler()
+  console.log({ manifest, root, serveStatic })
 
-  if (serveStatic)
-    app.use(
-      `${staticPath}/*`,
-      serveStatic({
-        manifest,
-        root,
-        rewriteRequestPath(requestPath) {
-          const rewritten = requestPath.replace(
-            `${path === '/' ? '' : path}${staticPath}/`,
-            '/',
-          )
-          return rewritten
-        },
-      }),
-    )
-  else console.warn('No static file handler found for environment')
+  // if (serveStatic)
+  //   app.use(
+  //     `${staticPath}/*`,
+  //     serveStatic({
+  //       manifest,
+  //       root,
+  //       rewriteRequestPath(requestPath) {
+  //         const rewritten = requestPath.replace(
+  //           `${path === '/' ? '' : path}${staticPath}/`,
+  //           '/',
+  //         )
+  //         return rewritten
+  //       },
+  //     }),
+  //   )
+  // else console.warn('No static file handler found for environment')
 }
 
 async function getStaticFileHandler() {

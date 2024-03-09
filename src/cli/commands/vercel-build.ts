@@ -21,8 +21,16 @@ export async function build() {
 
   ensureDirSync('./.vercel/output')
   ensureDirSync('./.vercel/output/static')
+
   if (pathExistsSync('./public'))
     copySync('./public', './.vercel/output/static')
+
+  ensureDirSync('./.vercel/output/static/static')
+  copySync(
+    './node_modules/frog/_lib/dev/static',
+    './.vercel/output/static/static',
+  )
+
   writeJsonSync('./.vercel/output/config.json', {
     version: 3,
     routes: [
