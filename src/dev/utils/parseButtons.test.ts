@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { expect, test } from 'vitest'
 import { parseFromString } from 'dom-parser'
 
 import { type FrameMetadata } from '../../utils/getFrameMetadata.js'
@@ -38,33 +38,31 @@ for (const node of nodes) {
   metadata.push({ property, content })
 }
 
-describe('parseFrameButtons', () => {
-  test('default', () => {
-    const buttons = parseButtons(metadata)
-    expect(buttons).toEqual([
-      {
-        title: 'foo',
-        index: 1,
-        type: 'post',
-      },
-      {
-        title: 'bar',
-        index: 2,
-        target: 'https://example.com',
-        type: 'link',
-      },
-      {
-        title: 'baz',
-        index: 3,
-        target: 'https://example.com/redirect',
-        type: 'post_redirect',
-      },
-      {
-        title: 'mint',
-        index: 4,
-        target: 'eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df',
-        type: 'mint',
-      },
-    ])
-  })
+test('default', () => {
+  const buttons = parseButtons(metadata)
+  expect(buttons).toEqual([
+    {
+      title: 'foo',
+      index: 1,
+      type: 'post',
+    },
+    {
+      title: 'bar',
+      index: 2,
+      target: 'https://example.com',
+      type: 'link',
+    },
+    {
+      title: 'baz',
+      index: 3,
+      target: 'https://example.com/redirect',
+      type: 'post_redirect',
+    },
+    {
+      title: 'mint',
+      index: 4,
+      target: 'eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df',
+      type: 'mint',
+    },
+  ])
 })

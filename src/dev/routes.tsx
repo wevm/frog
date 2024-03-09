@@ -104,6 +104,7 @@ export function routes<
     if (text.includes(ngrokHostname))
       text = text.replace(ngrokHttpRegex, 'https$2')
 
+    console.log({ text })
     const metadata = htmlToMetadata(text)
     const { context, frame } = metadata
 
