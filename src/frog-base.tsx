@@ -9,6 +9,7 @@ import lz from 'lz-string'
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
+import { staticRoutes as devStaticRoutes } from './dev/routes.js'
 import type { FrameContext, TransactionContext } from './types/context.js'
 import type { Env } from './types/env.js'
 import {
@@ -32,7 +33,6 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
-import { staticRoutes as devStaticRoutes } from './dev/routes.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
