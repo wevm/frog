@@ -35,9 +35,9 @@ import { fetchFrame } from './utils/fetchFrame.js'
 import { getHtmlSize } from './utils/getHtmlSize.js'
 import { getImageSize } from './utils/getImageSize.js'
 import { getRoutes } from './utils/getRoutes.js'
+import { htmlToMetadata } from './utils/htmlToMetadata.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
-import { htmlToMetadata } from './utils/htmlToMetadata.js'
 
 const staticPath = '/dev/static'
 const hasStaticBundle = existsSync(

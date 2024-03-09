@@ -1,17 +1,17 @@
 import { parseFromString } from 'dom-parser'
 
-import {
-  metaTagPropertyRegex,
-  type FrameMetadata,
-} from '../../utils/getFrameMetadata.js'
-import { type Frame } from '../types.js'
+import { type FrameContext } from '../../types/context.js'
 import {
   type FrameImageAspectRatio,
   type FrameVersion,
 } from '../../types/frame.js'
-import { parseButtons } from './parseButtons.js'
-import { type FrameContext } from '../../types/context.js'
 import { deserializeJson } from '../../utils/deserializeJson.js'
+import {
+  type FrameMetadata,
+  metaTagPropertyRegex,
+} from '../../utils/getFrameMetadata.js'
+import { type Frame } from '../types.js'
+import { parseButtons } from './parseButtons.js'
 
 export function htmlToMetadata(html: string) {
   const dom = parseFromString(html.replace('<!DOCTYPE html>', ''))
