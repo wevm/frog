@@ -236,4 +236,52 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 ```
 
+:::note
+Note that if you have any suspended component within the frame co-located Next.js page, the request
+for a frame from Warpcast will fallback for streaming, and although [`generateMetadata`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata#generatemetadata-function)
+makes sure `<head>` tags are [present within the first stream response](https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming#seo), Warpcast currently
+doesn't handle streams.
+
+The consequence of such is timing out on a frame that is co-located with suspended page.
+
+Since Next.js engine selectively decides wether to respond in a stream or not, we can selectively not render suspended components
+with `isFrameRequest` util.
+
+```tsx twoslash [app/suspense-component.tsx]
+// @noErrors
+import { Suspense } from 'react'
+
+export function SuspendedComponent() {
+  return (
+    <Suspense fallback={<>Loading</>}>
+      <ComponentThrowingSuspense />
+    </Suspense>
+  )
+}
+```
+
+```tsx twoslash [app/page.tsx]
+// @noErrors
+import { headers } from 'next/headers'
+import { getFrameMetadata, isFrameRequest } from 'frog/next'
+import type { Metadata } from 'next'
+import { SuspendedComponent } from './suspense-component'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const url = process.env.VERCEL_URL || 'http://localhost:3000'
+  const frameMetadata = await getFrameMetadata(`${url}/api`)
+  return {
+    other: frameMetadata,
+  }
+}
+
+export default function Page() {
+  if (isFrameRequest(headers())) return null
+
+  return <SuspendedComponent />
+}
+```
+
+:::
+
 ::::
