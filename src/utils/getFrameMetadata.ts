@@ -1,13 +1,28 @@
 import { parseFromString } from 'dom-parser'
-import type {
-  FrameMetaTagPropertyName,
-  FrogMetaTagPropertyName,
-} from '../dev/types.js'
 
 export type FrameMetadata = {
   property: FrameMetaTagPropertyName | FrogMetaTagPropertyName
   content: string
 }[]
+
+type FrameMetaTagPropertyName =
+  | 'fc:frame'
+  | 'fc:frame:image'
+  | 'fc:frame:image:aspect_ratio'
+  | 'fc:frame:input:text'
+  | 'fc:frame:post_url'
+  | 'fc:frame:state'
+  | 'og:image'
+  | 'og:title'
+  | `fc:frame:button:${1 | 2 | 3 | 4}`
+  | `fc:frame:button:${1 | 2 | 3 | 4}:${'action' | 'target'}`
+
+type FrogMetaTagPropertyName =
+  | 'frog:context'
+  | 'frog:prev_context'
+  | 'frog:version'
+
+export const metaTagPropertyRegex = /^(fc|frog|og:image|og:title)/
 
 /**
  * Extracts frame metadata from a given URL.
@@ -28,8 +43,11 @@ export async function getFrameMetadata(url: string): Promise<FrameMetadata> {
       const property = node.getAttribute('property')
       const content = node.getAttribute('content')
 
-      if (!property.match(/^(fc|frog|og:image)/)) continue
-      metaTags.push({ property: property as FrameMetaTagPropertyName, content })
+      if (!property.match(metaTagPropertyRegex)) continue
+      metaTags.push({
+        property: property as FrameMetadata[number]['property'],
+        content,
+      })
     }
 
     return metaTags

@@ -245,7 +245,7 @@ export function Tabs() {
           <div
             class={rowClass}
             x-cloak
-            x-show="data.context.verified !== undefined"
+            x-show="body && data.context.verified !== undefined"
           >
             <div class={labelClass}>Verified</div>
             <div class={valueClass} x-text="data.context.verified" />
