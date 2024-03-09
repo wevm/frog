@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest'
 import { parseFromString } from 'dom-parser'
+import { expect, test } from 'vitest'
 
 import { type FrameMetadata } from '../../utils/getFrameMetadata.js'
 import { parseButtons } from './parseButtons.js'
