@@ -3,8 +3,15 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import type {
+  BinaryReadOptions,
+  FieldList,
+  JsonReadOptions,
+  JsonValue,
+  PartialMessage,
+  PlainMessage,
+} from '@bufbuild/protobuf'
+import { Message, proto3, protoInt64 } from '@bufbuild/protobuf'
 
 /**
  * @generated from enum UserNameType
@@ -26,11 +33,11 @@ export enum UserNameType {
   USERNAME_TYPE_ENS_L1 = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(UserNameType)
-proto3.util.setEnumType(UserNameType, "UserNameType", [
-  { no: 0, name: "USERNAME_TYPE_NONE" },
-  { no: 1, name: "USERNAME_TYPE_FNAME" },
-  { no: 2, name: "USERNAME_TYPE_ENS_L1" },
-]);
+proto3.util.setEnumType(UserNameType, 'UserNameType', [
+  { no: 0, name: 'USERNAME_TYPE_NONE' },
+  { no: 1, name: 'USERNAME_TYPE_FNAME' },
+  { no: 2, name: 'USERNAME_TYPE_ENS_L1' },
+])
 
 /**
  * @generated from message UserNameProof
@@ -39,63 +46,74 @@ export class UserNameProof extends Message<UserNameProof> {
   /**
    * @generated from field: uint64 timestamp = 1;
    */
-  timestamp = protoInt64.zero;
+  timestamp = protoInt64.zero
 
   /**
    * @generated from field: bytes name = 2;
    */
-  name = new Uint8Array(0);
+  name = new Uint8Array(0)
 
   /**
    * @generated from field: bytes owner = 3;
    */
-  owner = new Uint8Array(0);
+  owner = new Uint8Array(0)
 
   /**
    * @generated from field: bytes signature = 4;
    */
-  signature = new Uint8Array(0);
+  signature = new Uint8Array(0)
 
   /**
    * @generated from field: uint64 fid = 5;
    */
-  fid = protoInt64.zero;
+  fid = protoInt64.zero
 
   /**
    * @generated from field: UserNameType type = 6;
    */
-  type = UserNameType.USERNAME_TYPE_NONE;
+  type = UserNameType.USERNAME_TYPE_NONE
 
   constructor(data?: PartialMessage<UserNameProof>) {
-    super();
-    proto3.util.initPartial(data, this);
+    super()
+    proto3.util.initPartial(data, this)
   }
 
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "UserNameProof";
+  static readonly runtime: typeof proto3 = proto3
+  static readonly typeName = 'UserNameProof'
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "timestamp", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 2, name: "name", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-    { no: 3, name: "owner", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-    { no: 4, name: "signature", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-    { no: 5, name: "fid", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 6, name: "type", kind: "enum", T: proto3.getEnumType(UserNameType) },
-  ]);
+    { no: 1, name: 'timestamp', kind: 'scalar', T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: 'name', kind: 'scalar', T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: 'owner', kind: 'scalar', T: 12 /* ScalarType.BYTES */ },
+    { no: 4, name: 'signature', kind: 'scalar', T: 12 /* ScalarType.BYTES */ },
+    { no: 5, name: 'fid', kind: 'scalar', T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: 'type', kind: 'enum', T: proto3.getEnumType(UserNameType) },
+  ])
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserNameProof {
-    return new UserNameProof().fromBinary(bytes, options);
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>,
+  ): UserNameProof {
+    return new UserNameProof().fromBinary(bytes, options)
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UserNameProof {
-    return new UserNameProof().fromJson(jsonValue, options);
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>,
+  ): UserNameProof {
+    return new UserNameProof().fromJson(jsonValue, options)
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UserNameProof {
-    return new UserNameProof().fromJsonString(jsonString, options);
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>,
+  ): UserNameProof {
+    return new UserNameProof().fromJsonString(jsonString, options)
   }
 
-  static equals(a: UserNameProof | PlainMessage<UserNameProof> | undefined, b: UserNameProof | PlainMessage<UserNameProof> | undefined): boolean {
-    return proto3.util.equals(UserNameProof, a, b);
+  static equals(
+    a: UserNameProof | PlainMessage<UserNameProof> | undefined,
+    b: UserNameProof | PlainMessage<UserNameProof> | undefined,
+  ): boolean {
+    return proto3.util.equals(UserNameProof, a, b)
   }
 }
-
