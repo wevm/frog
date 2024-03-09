@@ -20,7 +20,7 @@ export function Data(props: DataProps) {
   const inputTextTooLong = frame.input?.text
     ? frame.input.text.length > limits.inputText
     : false
-  const stateTooLong = frame.state.length > limits.state
+  const stateTooLong = (frame.state?.length ?? 0) > limits.state
   const imageTooLarge = imageSize ? imageSize / 1024 > limits.image : false
 
   let hasState: boolean
@@ -69,7 +69,7 @@ export function Data(props: DataProps) {
             value: frame.state,
             status: stateTooLong ? 'invalid' : 'valid',
             message: `State is ${
-              frame.state.length
+              frame.state?.length
             } bytes and must be ${limits.state.toLocaleString()} bytes or less.`,
           },
         ]

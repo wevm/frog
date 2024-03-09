@@ -22,7 +22,6 @@ import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
 import { toSearchParams } from '../utils/toSearchParams.js'
 import { type ProviderProps } from './Context.js'
-import { staticPath } from './constants.js'
 import { EntryServer } from './entry-server.js'
 import {
   type ActionData,
@@ -36,43 +35,22 @@ import { fetchFrame } from './utils/fetchFrame.js'
 import { getHtmlSize } from './utils/getHtmlSize.js'
 import { getImageSize } from './utils/getImageSize.js'
 import { getRoutes } from './utils/getRoutes.js'
-import { htmlToFrame } from './utils/htmlToFrame.js'
-import { htmlToContext } from './utils/htmlToState.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
+import { htmlToMetadata } from './utils/htmlToMetadata.js'
 
+const staticPath = '/dev/static'
 const hasStaticBundle = existsSync(
   join(dirname(fileURLToPath(import.meta.url)), './static/entry-client.js'),
 )
 
-export async function routes<
+export function routes<
   env extends Env,
   schema extends Schema,
   basePath extends string,
   ///
   _state = env['State'],
 >(app: FrogBase<env, schema, basePath, _state>, path: string) {
-  // serve devtools client files in production
-  // TODO: cloudflare workers
-  // TODO: vercel-build handles static files
-  if (hasStaticBundle) {
-    const { manifest, root, serveStatic } = await getStaticFileHandler()
-    if (serveStatic)
-      app.use(
-        `${parsePath(path)}${staticPath}/*`,
-        serveStatic({
-          manifest,
-          root,
-          rewriteRequestPath(path) {
-            // fonts loaded from mirrored directory to `staticPath`
-            if (path.endsWith('.woff2')) return path
-            return path.replace(`${staticPath}/`, '/')
-          },
-        }),
-      )
-    else console.warn('No static file handler found for environment')
-  }
-
   app.get(`${parsePath(path)}/dev`, async (c) => {
     const url = c.req.url.replace('/dev', '')
     const value = await get(url)
@@ -94,6 +72,9 @@ export async function routes<
         hasStaticBundle={hasStaticBundle}
         path={path}
         providerProps={{ ...value, user }}
+        staticPath={`${
+          app.dev.basePath === '/' ? '' : app.dev.basePath
+        }${staticPath}`}
       />,
     )
   })
@@ -123,14 +104,8 @@ export async function routes<
     if (text.includes(ngrokHostname))
       text = text.replace(ngrokHttpRegex, 'https$2')
 
-    const frame = htmlToFrame(text)
-    const context = htmlToContext(text)
-
-    // remove serialized context from image/imageUrl to save url space
-    // tip: search for `_frog_` to see where it's added back
-    const contextString = toSearchParams(context).toString()
-    frame.image = frame.image.replace(contextString, '_frog_image')
-    frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
+    const metadata = htmlToMetadata(text)
+    const { context, frame } = metadata
 
     performance.measure('fetch', 'start', 'end')
     const measure = performance.getEntriesByName('fetch')[0]
@@ -146,9 +121,15 @@ export async function routes<
 
     const [htmlSize, imageSize] = await Promise.all([
       getHtmlSize(clonedResponse),
-      getImageSize(text),
+      getImageSize(frame.imageUrl),
     ])
     const routes = getRoutes(url, inspectRoutes(app.hono))
+
+    // remove serialized context from image/imageUrl to save url space
+    // tip: search for `_frog_` to see where it's added back
+    const contextString = toSearchParams(context).toString()
+    frame.image = frame.image.replace(contextString, '_frog_image')
+    frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
 
     return {
       data: {
@@ -221,8 +202,8 @@ export async function routes<
         if (text.includes(ngrokHostname))
           text = text.replace(ngrokHttpRegex, 'https$2')
 
-        const frame = htmlToFrame(text)
-        const context = htmlToContext(text)
+        const metadata = htmlToMetadata(text)
+        const { context, frame } = metadata
 
         // decode frame state for debugging
         try {
@@ -235,19 +216,19 @@ export async function routes<
             else frame.debug.state = state
         } catch (error) {}
 
+        const [htmlSize, imageSize] = await Promise.all([
+          getHtmlSize(clonedResponse),
+          getImageSize(frame.imageUrl),
+        ])
+
+        const baseUrl = c.req.url.replace('/dev/frame/action', '')
+        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
+
         // remove serialized context from image/imageUrl to save url space
         // tip: search for `_frog_` to see where it's added back
         const contextString = toSearchParams(context).toString()
         frame.image = frame.image.replace(contextString, '_frog_image')
         frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
-
-        const [htmlSize, imageSize] = await Promise.all([
-          getHtmlSize(clonedResponse),
-          getImageSize(text),
-        ])
-
-        const baseUrl = c.req.url.replace('/dev/frame/action', '')
-        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
         return c.json({
           data: {
@@ -497,6 +478,8 @@ export async function routes<
       deleteCookie(c, 'user')
       return c.json({ success: true })
     })
+
+  app.get(`${parsePath(path)}/dev/ping`, async (c) => c.text('pong'))
 }
 
 async function getUserByFid(baseUrl: string, userFid: number) {
@@ -519,6 +502,35 @@ async function getUserByFid(baseUrl: string, userFid: number) {
   }
 
   return { displayName, pfp, userFid, username }
+}
+
+export async function staticRoutes<
+  env extends Env,
+  schema extends Schema,
+  basePath extends string,
+  ///
+  _state = env['State'],
+>(app: FrogBase<env, schema, basePath, _state>, path: string) {
+  if (!hasStaticBundle) return
+
+  const { manifest, root, serveStatic } = await getStaticFileHandler()
+
+  if (serveStatic)
+    app.use(
+      `${staticPath}/*`,
+      serveStatic({
+        manifest,
+        root,
+        rewriteRequestPath(requestPath) {
+          const rewritten = requestPath.replace(
+            `${path === '/' ? '' : path}${staticPath}/`,
+            '/',
+          )
+          return rewritten
+        },
+      }),
+    )
+  else console.warn('No static file handler found for environment')
 }
 
 async function getStaticFileHandler() {

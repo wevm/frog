@@ -4,6 +4,11 @@ import {
   type FrameVersion,
 } from '../types/frame.js'
 
+export type Data = BaseData & {
+  context: FrameContext
+  frame: Frame
+} & (InitialData | ActionData | RedirectData)
+
 export type BaseData = {
   id: string
   metrics: {
@@ -51,11 +56,6 @@ export type RedirectData = {
   }
 }
 
-export type Data = BaseData & {
-  context: FrameContext
-  frame: Frame
-} & (InitialData | ActionData | RedirectData)
-
 export type RequestBody = {
   buttonIndex: number
   castId: { fid: number; hash: string }
@@ -76,22 +76,15 @@ export type User = {
 
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
-  debug?: FrameDebug | undefined
+  debug?: { htmlTags: readonly string[]; state: string | undefined } | undefined
   imageAspectRatio: FrameImageAspectRatio
   image: string
   imageUrl: string
-  input?: FrameInput | undefined
+  input?: { text: string } | undefined
   postUrl: string
-  state: string
+  state: string | undefined
   title: string
   version: FrameVersion
-}
-
-export type FrameDebug = {
-  buttonsAreOutOfOrder: boolean
-  htmlTags: readonly string[]
-  invalidButtons: readonly FrameButton['index'][]
-  state?: string | undefined
 }
 
 // TODO: Replace with root type
@@ -114,35 +107,10 @@ export type FrameButton = {
     }
 )
 
-export type FrameInput = {
-  text: string
-}
-
-export type FrameMetaTagPropertyName =
-  | 'fc:frame'
-  | 'fc:frame:image'
-  | 'fc:frame:image:aspect_ratio'
-  | 'fc:frame:input:text'
-  | 'fc:frame:post_url'
-  | 'fc:frame:state'
-  | 'og:image'
-  | 'og:title'
-  | `fc:frame:button:${FrameButton['index']}:action`
-  | `fc:frame:button:${FrameButton['index']}:target`
-  | `fc:frame:button:${FrameButton['index']}`
-
-export type FrogMetaTagPropertyName =
-  | 'frog:context'
-  | 'frog:prev_context'
-  | 'frog:version'
-
-export type State = {
-  context: FrameContext
-}
-
 export type SignedKeyRequestResponse = {
   result: { signedKeyRequest: SignedKeyRequest }
 }
+
 type SignedKeyRequest = {
   token: string
   deeplinkUrl: string

@@ -24,6 +24,10 @@ test('default', async () => {
         "property": "og:image",
       },
       {
+        "content": "Frog Frame",
+        "property": "og:title",
+      },
+      {
         "content": "https://frame.frog.fm/api?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
         "property": "fc:frame:post_url",
       },

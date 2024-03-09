@@ -32,6 +32,7 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import { staticRoutes as devStaticRoutes } from './dev/routes.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -202,7 +203,7 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
-  dev: NonNullable<FrogConstructorParameters['dev']>
+  dev: NonNullable<FrogConstructorParameters['dev']> & { basePath: string }
   headers: FrogConstructorParameters['headers'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
@@ -251,16 +252,17 @@ export class FrogBase<
     if (imageOptions) this.imageOptions = imageOptions
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
-    this.dev = { enabled: true, ...(dev ?? {}) }
 
     this.basePath = basePath ?? '/'
     this.assetsPath = assetsPath ?? this.basePath
+    this.dev = { enabled: true, basePath: this.basePath, ...(dev ?? {}) }
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
     this.use = this.hono.use.bind(this.hono)
 
     if (initialState) this._initialState = initialState
+    if (this.dev.enabled) devStaticRoutes(this, this.dev.basePath)
   }
 
   frame<path extends string>(
@@ -408,23 +410,26 @@ export class FrogBase<
         state: getState(),
       })
 
-      const body = this.dev.enabled ? (
-        <body
-          style={{
-            alignItems: 'center',
-            display: 'flex',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            overflow: 'hidden',
-          }}
-        >
-          <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
-            open 𝒇𝒓𝒂𝒎𝒆 devtools
-          </a>
-        </body>
-      ) : (
-        <body />
-      )
+      let devHead: JSX.Element | undefined
+      let body = <body />
+      if (this.dev.enabled) {
+        devHead = <meta property="frog:context" content={serializedContext} />
+        body = (
+          <body
+            style={{
+              alignItems: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+              minHeight: '100vh',
+              overflow: 'hidden',
+            }}
+          >
+            <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
+              open 𝒇𝒓𝒂𝒎𝒆 devtools
+            </a>
+          </body>
+        )
+      }
 
       return c.render(
         <>
@@ -452,9 +457,7 @@ export class FrogBase<
               )}
               {parsedIntents}
 
-              {this.dev.enabled && (
-                <meta property="frog:context" content={serializedContext} />
-              )}
+              {devHead}
               <meta property="frog:version" content={version} />
             </head>
             {body}
@@ -490,8 +493,10 @@ export class FrogBase<
     subBasePath extends string,
   >(path: subPath, frog: FrogBase<any, subSchema, subBasePath>) {
     if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
-    if (frog.basePath === '/')
+    if (frog.basePath === '/') {
       frog.basePath = parsePath(this.basePath) + parsePath(path)
+      frog.dev.basePath = parsePath(this.basePath)
+    }
     if (!frog.browserLocation) frog.browserLocation = this.browserLocation
     if (!frog.dev) frog.dev = this.dev
     if (!frog.headers) frog.headers = this.headers

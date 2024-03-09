@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
+import { parseFromString } from 'dom-parser'
 
-import { htmlToMetaTags } from './htmlToMetaTags.js'
+import { type FrameMetadata } from '../../utils/getFrameMetadata.js'
 import { parseButtons } from './parseButtons.js'
 
 const html = `
@@ -25,12 +26,21 @@ const html = `
   <meta property="fc:frame:state" content="frog">
   <meta property="og:image" content="https://example.com/og">
 `
-const selector = 'meta[property^="fc:"], meta[property^="og:"]'
-const metaTags = htmlToMetaTags(html, selector)
+
+const dom = parseFromString(html)
+const nodes = dom.getElementsByTagName('meta')
+const metadata: FrameMetadata = []
+for (const node of nodes) {
+  const property = node.getAttribute(
+    'property',
+  ) as FrameMetadata[number]['property']
+  const content = node.getAttribute('content')
+  metadata.push({ property, content })
+}
 
 describe('parseFrameButtons', () => {
   test('default', () => {
-    const buttons = parseButtons(metaTags)
+    const buttons = parseButtons(metadata)
     expect(buttons).toEqual([
       {
         title: 'foo',

@@ -1,11 +1,4 @@
-import { htmlToMetaTags } from './htmlToMetaTags.js'
-import { parseProperties } from './parseProperties.js'
-
-export async function getImageSize(text: string) {
-  const metaTags = htmlToMetaTags(text, 'meta[property^="fc:frame:image"]')
-  const properties = parseProperties(metaTags)
-
-  const url = properties.imageUrl
+export async function getImageSize(url: string) {
   const response = await fetch(url)
   const blob = await response.blob()
   return blob.size

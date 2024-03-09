@@ -1,19 +1,19 @@
 import { html } from 'hono/html'
 import { App } from './App.js'
 import { Provider, type ProviderProps, dataId } from './Context.js'
-import { staticPath } from './constants.js'
 
 type EntryServer = {
   hasStaticBundle: boolean
   path: string
   providerProps: ProviderProps
+  staticPath: string
 }
 
 export function EntryServer(props: EntryServer) {
-  const { hasStaticBundle, path, providerProps } = props
+  const { hasStaticBundle, path, providerProps, staticPath } = props
   return (
     <>
-      {html`<!doctype html>`}
+      {html`<!DOCTYPE html>`}
       <html lang="en">
         <head>
           <title>frame: {path || '/'}</title>
@@ -25,15 +25,19 @@ export function EntryServer(props: EntryServer) {
 
           {hasStaticBundle ? (
             <>
-              <link
-                rel="stylesheet"
-                href={`${staticPath}/assets/entry-client.css`}
-              />
+              <link rel="stylesheet" href={`${staticPath}/assets/style.css`} />
               <script type="module" src={`${staticPath}/entry-client.js`} />
             </>
           ) : (
             <>
-              <link rel="stylesheet" href="/node_modules/frog/dev/styles.css" />
+              <link
+                rel="stylesheet"
+                href="/node_modules/frog/dev/styles/colors.css"
+              />
+              <link
+                rel="stylesheet"
+                href="/node_modules/frog/dev/styles/globals.css"
+              />
               <script
                 type="module"
                 src="/node_modules/frog/dev/entry-client.tsx"

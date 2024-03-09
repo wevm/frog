@@ -1,9 +1,10 @@
-import { type FrameButton, type FrameMetaTagPropertyName } from '../types.js'
+import type { FrameMetadata } from '../../utils/getFrameMetadata.js'
+import { type FrameButton } from '../types.js'
 
-export function parseButtons(metaTags: readonly HTMLMetaElement[]) {
-  // https://regexr.com/7rlm0
-  const buttonRegex = /fc:frame:button:(1|2|3|4)(?::(action|target))?$/
+// https://regexr.com/7rlm0
+const buttonRegex = /fc:frame:button:(1|2|3|4)(?::(action|target))?$/
 
+export function parseButtons(metadata: FrameMetadata) {
   let currentButtonIndex = 0
   let buttonsAreMissing = false
   let buttonsAreOutOfOrder = false
@@ -12,12 +13,8 @@ export function parseButtons(metaTags: readonly HTMLMetaElement[]) {
   const buttonTargetMap = new Map<number, FrameButton['target']>()
   const invalidButtons: FrameButton['index'][] = []
 
-  for (const metaTag of metaTags) {
-    const property = metaTag.getAttribute(
-      'property',
-    ) as FrameMetaTagPropertyName | null
-    if (!property) continue
-
+  for (const meta of metadata) {
+    const { property } = meta
     if (!buttonRegex.test(property)) continue
     const matchArray = property.match(buttonRegex) as [
       string,
@@ -27,7 +24,7 @@ export function parseButtons(metaTags: readonly HTMLMetaElement[]) {
     const index = parseInt(matchArray[1], 10) as FrameButton['index']
     const type = matchArray[2]
 
-    const content = metaTag.getAttribute('content') ?? ''
+    const content = meta.content ?? ''
     if (type === 'action')
       buttonActionMap.set(index, content as FrameButton['type'])
     else if (type === 'target')

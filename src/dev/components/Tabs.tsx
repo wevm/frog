@@ -420,7 +420,7 @@ type MetaTagsContentProps = {
   image: string
   imageUrl: string
   postUrl: string
-  state: string
+  state: string | undefined
 }
 
 function MetaTagsContent(props: MetaTagsContentProps) {
@@ -434,7 +434,7 @@ function MetaTagsContent(props: MetaTagsContentProps) {
         text = text.replace('_frog_fc:frame:image', imageUrl)
       else if (text.includes('_frog_fc:frame:post_url'))
         text = text.replace('_frog_fc:frame:post_url', postUrl)
-      else if (text.includes('_frog_fc:frame:state'))
+      else if (text.includes('_frog_fc:frame:state') && state)
         text = text.replace('_frog_fc:frame:state', state)
       else if (text.includes('_frog_og:image'))
         text = text.replace('_frog_og:image', image)
