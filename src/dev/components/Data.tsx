@@ -20,7 +20,7 @@ export function Data() {
           const inputTextTooLong = frame.input?.text
             ? frame.input.text.length > limits.inputText
             : false
-          const stateTooLong = frame.state.length > limits.state
+          const stateTooLong = (frame.state?.length ?? 0) > limits.state
           const imageTooLarge = imageSize ? imageSize / 1024 > limits.image : false
 
           let hasState

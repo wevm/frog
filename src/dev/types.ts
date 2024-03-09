@@ -14,22 +14,20 @@ export type RequestBody = {
 
 export type Frame = {
   buttons?: readonly FrameButton[] | undefined
-  debug?: FrameDebug | undefined
+  debug?:
+    | {
+        htmlTags: readonly string[]
+        state?: string | undefined
+      }
+    | undefined
   imageAspectRatio: FrameImageAspectRatio
   image: string
   imageUrl: string
-  input?: FrameInput | undefined
+  input?: { text: string } | undefined
   postUrl: string
   state: string
   title: string
   version: FrameVersion
-}
-
-export type FrameDebug = {
-  buttonsAreOutOfOrder: boolean
-  htmlTags: readonly string[]
-  invalidButtons: readonly FrameButton['index'][]
-  state?: string | undefined
 }
 
 export type FrameButton = {
@@ -47,28 +45,6 @@ export type FrameButton = {
     }
 )
 
-export type FrameInput = {
-  text: string
-}
-
-export type FrameMetaTagPropertyName =
-  | 'fc:frame'
-  | 'fc:frame:image'
-  | 'fc:frame:image:aspect_ratio'
-  | 'fc:frame:input:text'
-  | 'fc:frame:post_url'
-  | 'fc:frame:state'
-  | 'og:image'
-  | 'og:title'
-  | `fc:frame:button:${FrameButton['index']}:action`
-  | `fc:frame:button:${FrameButton['index']}:target`
-  | `fc:frame:button:${FrameButton['index']}`
-
-export type FrogMetaTagPropertyName =
-  | 'frog:context'
-  | 'frog:prev_context'
-  | 'frog:version'
-
 export type State = {
   context: FrameContext
 }
@@ -76,6 +52,7 @@ export type State = {
 export type SignedKeyRequestResponse = {
   result: { signedKeyRequest: SignedKeyRequest }
 }
+
 type SignedKeyRequest = {
   token: string
   deeplinkUrl: string

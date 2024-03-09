@@ -32,10 +32,9 @@ import { fetchFrame } from './utils/fetchFrame.js'
 import { getHtmlSize } from './utils/getHtmlSize.js'
 import { getImageSize } from './utils/getImageSize.js'
 import { getRoutes } from './utils/getRoutes.js'
-import { htmlToFrame } from './utils/htmlToFrame.js'
-import { htmlToContext } from './utils/htmlToState.js'
 import { uid } from './utils/uid.js'
 import { validateFramePostBody } from './utils/validateFramePostBody.js'
+import { htmlToMetadata } from './utils/htmlToMetadata.js'
 
 export function routes<
   env extends Env,
@@ -98,14 +97,8 @@ export function routes<
     if (text.includes(ngrokHostname))
       text = text.replace(ngrokHttpRegex, 'https$2')
 
-    const frame = htmlToFrame(text)
-    const context = htmlToContext(text)
-
-    // remove serialized context from image/imageUrl to save url space
-    // tip: search for `_frog_` to see where it's added back
-    const contextString = toSearchParams(context).toString()
-    frame.image = frame.image.replace(contextString, '_frog_image')
-    frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
+    const metadata = htmlToMetadata(text)
+    const { context, frame } = metadata
 
     performance.measure('fetch', 'start', 'end')
     const measure = performance.getEntriesByName('fetch')[0]
@@ -121,9 +114,15 @@ export function routes<
 
     const [htmlSize, imageSize] = await Promise.all([
       getHtmlSize(clonedResponse),
-      getImageSize(text),
+      getImageSize(frame.imageUrl),
     ])
     const routes = getRoutes(url, inspectRoutes(app.hono))
+
+    // remove serialized context from image/imageUrl to save url space
+    // tip: search for `_frog_` to see where it's added back
+    const contextString = toSearchParams(context).toString()
+    frame.image = frame.image.replace(contextString, '_frog_image')
+    frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
 
     return {
       data: {
@@ -196,8 +195,8 @@ export function routes<
         if (text.includes(ngrokHostname))
           text = text.replace(ngrokHttpRegex, 'https$2')
 
-        const frame = htmlToFrame(text)
-        const context = htmlToContext(text)
+        const metadata = htmlToMetadata(text)
+        const { context, frame } = metadata
 
         // decode frame state for debugging
         try {
@@ -210,19 +209,19 @@ export function routes<
             else frame.debug.state = state
         } catch (error) {}
 
+        const [htmlSize, imageSize] = await Promise.all([
+          getHtmlSize(clonedResponse),
+          getImageSize(frame.imageUrl),
+        ])
+
+        const baseUrl = c.req.url.replace('/dev/frame/action', '')
+        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
+
         // remove serialized context from image/imageUrl to save url space
         // tip: search for `_frog_` to see where it's added back
         const contextString = toSearchParams(context).toString()
         frame.image = frame.image.replace(contextString, '_frog_image')
         frame.imageUrl = frame.imageUrl.replace(contextString, '_frog_imageUrl')
-
-        const [htmlSize, imageSize] = await Promise.all([
-          getHtmlSize(clonedResponse),
-          getImageSize(text),
-        ])
-
-        const baseUrl = c.req.url.replace('/dev/frame/action', '')
-        const routes = getRoutes(baseUrl, inspectRoutes(app.hono))
 
         return c.json({
           data: {
