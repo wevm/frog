@@ -1,5 +1,19 @@
 # frog
 
+## 0.5.6
+
+### Patch Changes
+
+- [`9d77208`](https://github.com/wevm/frog/commit/9d7720896ac981f5857990a22650975598b32a3d) Thanks [@jxom](https://github.com/jxom)! - Added ability for `fonts` on route options to be an async function.
+
+- [`b6069c1`](https://github.com/wevm/frog/commit/b6069c1f942a6b45f78fbc7bd283f3b4f6069568) Thanks [@jxom](https://github.com/jxom)! - Support `data:` image URIs.
+
+- [`0c040f0`](https://github.com/wevm/frog/commit/0c040f0deedb3c65a4b98cb01e7b85dfe22577ad) Thanks [@jxom](https://github.com/jxom)! - Support external url actions on \`Button\`.
+
+- [#126](https://github.com/wevm/frog/pull/126) [`5d32a99`](https://github.com/wevm/frog/commit/5d32a990438e26de1ea99c3e71fbae922014c21d) Thanks [@tmm](https://github.com/tmm)! - Updated devtools deps
+
+- [`b6069c1`](https://github.com/wevm/frog/commit/b6069c1f942a6b45f78fbc7bd283f3b4f6069568) Thanks [@jxom](https://github.com/jxom)! - Exported `FrameIntent` type.
+
 ## 0.5.5
 
 ### Patch Changes
