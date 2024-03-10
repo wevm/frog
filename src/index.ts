@@ -25,7 +25,11 @@ export type {
   FrameContext,
   TransactionContext,
 } from './types/context.js'
-export type { FrameResponse } from './types/frame.js'
+export type {
+  FrameResponse,
+  FrameIntent,
+  FrameIntents,
+} from './types/frame.js'
 export type {
   TransactionResponse,
   ContractTransactionParameters,
