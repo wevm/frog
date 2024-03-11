@@ -14,7 +14,7 @@ export function Data() {
             postUrl: 256,
             inputText: 32,
             state: 4_096,
-            image: 10_000,
+            image: 10_485_760,
           }
           const postUrlTooLong = frame.postUrl.length > limits.postUrl
           const inputTextTooLong = frame.input?.text
