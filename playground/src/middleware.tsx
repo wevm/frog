@@ -14,11 +14,11 @@ const echoMiddleware: MiddlewareHandler<{
   await next()
 }
 
-export const app = new Frog<{
-  Variables: EchoMiddlewareVariables
-}>()
+export const app = new Frog().use(echoMiddleware)
 
-app.use(echoMiddleware)
+// app.frame('/', (c) => {})
+
+// app.use(echoMiddleware)
 
 app.frame('/', (c) => {
   return c.res({
@@ -31,6 +31,16 @@ app.frame('/', (c) => {
 })
 
 app.frame('/neynar', neynarMiddleware, (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        {c.var.interactor?.displayName}
+      </div>
+    ),
+  })
+})
+
+app.frame('/neynar', neynarMiddleware, echoMiddleware, (c) => {
   return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>

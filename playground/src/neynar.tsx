@@ -1,14 +1,12 @@
 import { Button, Frog } from 'frog'
-import { type NeynarVariables, neynar } from 'frog/middlewares'
-
-export const app = new Frog<{ Variables: NeynarVariables }>()
+import { neynar } from 'frog/middlewares'
 
 export const neynarMiddleware = neynar({
   apiKey: 'NEYNAR_FROG_FM',
   features: ['interactor', 'cast'],
 })
 
-app.use(neynarMiddleware)
+export const app = new Frog().use(neynarMiddleware)
 
 app.frame('/', (c) => {
   return c.res({

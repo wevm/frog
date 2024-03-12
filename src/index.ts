@@ -13,7 +13,7 @@ export type {
   FrogConstructorParameters,
   RouteOptions,
 } from './frog-base.js'
-export { Frog } from './frog.js'
+export { Frog } from './frog-base.js'
 
 export {
   type FrameMetadata,

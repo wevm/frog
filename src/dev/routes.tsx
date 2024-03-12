@@ -14,7 +14,7 @@ import { type CookieOptions } from 'hono/utils/cookie'
 import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
 
-import { type FrogBase } from '../frog-base.js'
+import { type Frog } from '../frog-base.js'
 import type { Env } from '../types/env.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'
@@ -42,7 +42,7 @@ export function routes<
   basePath extends string,
   //
   _state = env['State'],
->(app: FrogBase<env, schema, basePath, _state>, path: string) {
+>(app: Frog<env, schema, basePath, _state>, path: string) {
   app
     .use(`${parsePath(path)}/dev`, (c, next) =>
       jsxRenderer((props) => {
