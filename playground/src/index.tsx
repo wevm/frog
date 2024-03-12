@@ -1,5 +1,6 @@
 import { Button, Frog, TextInput } from 'frog'
 import * as hubs from 'frog/hubs'
+import { devtools } from 'frog/dev'
 
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
@@ -8,7 +9,6 @@ import { app as todoApp } from './todos.js'
 import { app as transactionApp } from './transaction.js'
 
 export const app = new Frog({
-  browserLocation: '/:path/dev',
   hub: hubs.frog(),
   verify: 'silent',
 })
@@ -233,3 +233,5 @@ app.route('/neynar', neynarApp)
 app.route('/routing', routingApp)
 app.route('/transaction', transactionApp)
 app.route('/todos', todoApp)
+
+devtools(app)

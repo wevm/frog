@@ -1,4 +1,5 @@
 import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
 // import { neynar } from 'frog/hubs'
 
 export const app = new Frog({
@@ -55,6 +56,8 @@ app.frame('/', (c) => {
     ],
   })
 })
+
+devtools(app)
 
 if (typeof Bun !== 'undefined') {
   app.use('/*', (await import('hono/bun')).serveStatic({ root: './public' }))

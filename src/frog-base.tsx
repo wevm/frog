@@ -52,23 +52,6 @@ export type FrogConstructorParameters<
    */
   basePath?: basePath | string | undefined
   /**
-   * Options for built-in devtools.
-   */
-  dev?:
-    | {
-        /**
-         * Enables built-in devtools
-         *
-         * @default true
-         */
-        enabled?: boolean | undefined
-        /** Custom app fid to auth with. */
-        appFid?: number | undefined
-        /** Custom app mnemonic to auth with. */
-        appMnemonic?: string | undefined
-      }
-    | undefined
-  /**
    * HTTP response headers.
    */
   headers?: Record<string, string> | undefined
@@ -205,7 +188,6 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
-  dev: FrogConstructorParameters['dev'] | undefined
   headers: FrogConstructorParameters['headers'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
@@ -233,7 +215,6 @@ export class FrogBase<
     assetsPath,
     basePath,
     browserLocation,
-    dev,
     headers,
     honoOptions,
     hubApiUrl,
@@ -248,7 +229,6 @@ export class FrogBase<
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
     if (headers) this.headers = headers
-    if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (hub) this.hub = hub
     if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
@@ -397,50 +377,6 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      const isDevEnabled =
-        // check if devtools are enabled on constructor.
-        (this.dev?.enabled ?? true) &&
-        // check if route has `/dev` path.
-        this.hono.routes.some((r) => {
-          const currentFullPath =
-            (this.basePath === '/' ? '' : this.basePath) + parsePath(path)
-          if (!r.path.startsWith(currentFullPath)) return false
-          if (!r.path.includes('/dev')) return false
-          return true
-        })
-
-      // The devtools needs a serialized context.
-      const serializedContext = serializeJson({
-        ...context,
-        // note: unserializable entities are undefined.
-        env: context.env
-          ? Object.assign(context.env, {
-              incoming: undefined,
-              outgoing: undefined,
-            })
-          : undefined,
-        req: undefined,
-        state: getState(),
-      })
-
-      const body = isDevEnabled ? (
-        <body
-          style={{
-            alignItems: 'center',
-            display: 'flex',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            overflow: 'hidden',
-          }}
-        >
-          <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
-            open 𝒇𝒓𝒂𝒎𝒆 devtools
-          </a>
-        </body>
-      ) : (
-        <body />
-      )
-
       return c.render(
         <>
           {html`<!DOCTYPE html>`}
@@ -467,12 +403,27 @@ export class FrogBase<
               )}
               {parsedIntents}
 
-              {isDevEnabled && (
-                <meta property="frog:context" content={serializedContext} />
-              )}
               <meta property="frog:version" content={version} />
+              {/* The devtools needs a serialized context. */}
+              {c.req.header('x-frog-dev') !== undefined && (
+                <meta
+                  property="frog:context"
+                  content={serializeJson({
+                    ...context,
+                    // note: unserializable entities are undefined.
+                    env: context.env
+                      ? Object.assign(context.env, {
+                          incoming: undefined,
+                          outgoing: undefined,
+                        })
+                      : undefined,
+                    req: undefined,
+                    state: getState(),
+                  })}
+                />
+              )}
             </head>
-            {body}
+            <body />
           </html>
         </>,
       )
@@ -515,7 +466,6 @@ export class FrogBase<
     if (frog.basePath === '/')
       frog.basePath = parsePath(this.basePath) + parsePath(path)
     if (!frog.browserLocation) frog.browserLocation = this.browserLocation
-    if (!frog.dev) frog.dev = this.dev
     if (!frog.headers) frog.headers = this.headers
     if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
     if (!frog.hub) frog.hub = this.hub

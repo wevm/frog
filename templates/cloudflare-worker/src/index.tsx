@@ -1,4 +1,5 @@
 import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
 // import { neynar } from 'frog/hubs'
 import { serveStatic } from 'hono/cloudflare-workers'
 
@@ -65,5 +66,7 @@ if (import.meta.env?.MODE !== 'development')
       manifest: await import('__STATIC_CONTENT_MANIFEST'),
     }),
   )
+
+devtools(app)
 
 export default app

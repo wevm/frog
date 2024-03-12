@@ -1,6 +1,7 @@
 /** @jsxImportSource frog/jsx */
 
 import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
 // import { neynar } from 'frog/hubs'
 import { handle } from 'frog/next'
 
@@ -63,6 +64,8 @@ app.frame('/', (c) => {
     ],
   })
 })
+
+devtools(app)
 
 export const GET = handle(app)
 export const POST = handle(app)
