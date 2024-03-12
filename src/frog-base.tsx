@@ -305,6 +305,7 @@ export class FrogBase<
         image,
         imageOptions,
         intents,
+        ogImage,
         title = 'Frog Frame',
       } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
@@ -377,6 +378,12 @@ export class FrogBase<
         }
         if (image.startsWith('http') || image.startsWith('data')) return image
         return `${assetsUrl + parsePath(image)}`
+      })()
+
+      const ogImageUrl = (() => {
+        if (!ogImage) return undefined
+        if (ogImage.startsWith('http')) return ogImage
+        return baseUrl + parsePath(ogImage)
       })()
 
       const postUrl = (() => {
@@ -452,7 +459,7 @@ export class FrogBase<
                 content={imageAspectRatio}
               />
               <meta property="fc:frame:image" content={imageUrl} />
-              <meta property="og:image" content={imageUrl} />
+              <meta property="og:image" content={ogImageUrl ?? imageUrl} />
               <meta property="og:title" content={title} />
               <meta
                 property="fc:frame:post_url"

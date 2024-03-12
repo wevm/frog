@@ -88,6 +88,12 @@ export type FrameResponse = {
    */
   imageOptions?: Omit<ImageResponseOptions, 'fonts'> | undefined
   /**
+   * Path or URI to the OG image.
+   *
+   * @default The `image` property.
+   */
+  ogImage?: string | undefined
+  /**
    * A set of intents (ie. buttons, text inputs, etc) to render for the frame
    * (beneath the OG image).
    *
