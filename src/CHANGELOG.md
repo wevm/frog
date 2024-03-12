@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.7
+
+### Patch Changes
+
+- [`0bb6768`](https://github.com/wevm/frog/commit/0bb6768e004ba846c919383e633f683a2e08b55e) Thanks [@jxom](https://github.com/jxom)! - Added `ogImage` property to frame response.
+
 ## 0.5.6
 
 ### Patch Changes
