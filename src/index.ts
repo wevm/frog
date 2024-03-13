@@ -12,7 +12,7 @@ export { TextInput, type TextInputProps } from './components/TextInput.js'
 export type {
   FrogConstructorParameters,
   RouteOptions,
-} from './frog.js'
+} from './frog-base.js'
 export { Frog } from './frog.js'
 
 export {
