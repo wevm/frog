@@ -54,6 +54,7 @@ export type MiddlewareHandler<
   E extends Env = any,
   P extends string = string,
   I extends Input = {},
+  // biome-ignore lint/suspicious/noConfusingVoidType:
 > = (c: Context_hono<E, P, I>, next: Next) => Promise<Response | void>
 
 export type H<
