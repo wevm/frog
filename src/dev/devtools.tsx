@@ -44,7 +44,7 @@ export function devtools<
   basePath extends string,
   ///
   state = env['State'],
->(frog: FrogBase<env, schema, basePath, state>, options: DevtoolsOptions = {}) {
+>(frog: FrogBase<env, schema, basePath, state>, options?: DevtoolsOptions) {
   const {
     appFid,
     appMnemonic,
@@ -52,7 +52,7 @@ export function devtools<
     basePath = '/dev',
     serveStatic,
     serveStaticOptions = { manifest: '' },
-  } = options
+  } = options ?? {}
 
   const app = new Hono()
   let publicPath = ''

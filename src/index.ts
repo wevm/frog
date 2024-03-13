@@ -25,11 +25,20 @@ export type {
   FrameContext,
   TransactionContext,
 } from './types/context.js'
+export type { Env } from './types/env.js'
 export type {
   FrameResponse,
   FrameIntent,
   FrameIntents,
 } from './types/frame.js'
+export type { HandlerResponse, TypedResponse } from './types/response.js'
+export type {
+  FrameHandler,
+  HandlerInterface,
+  MiddlewareHandler,
+  MiddlewareHandlerInterface,
+  TransactionHandler,
+} from './types/routes.js'
 export type {
   TransactionResponse,
   ContractTransactionParameters,

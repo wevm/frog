@@ -1,5 +1,31 @@
 # frog
 
+## 0.6.0
+
+### Minor Changes
+
+- [#140](https://github.com/wevm/frog/pull/140) [`c8d03fa`](https://github.com/wevm/frog/commit/c8d03fa4081b94f7a93431d48b9e5e221da9f1df) Thanks [@jxom](https://github.com/jxom)! - Added route-level middleware. [See more.](https://frog.fm/concepts/middleware#route-level)
+
+## 0.5.9
+
+### Patch Changes
+
+- [`1f379f4`](https://github.com/wevm/frog/commit/1f379f417560362dbe1878e85f88bb84a9b0072b) Thanks [@jxom](https://github.com/jxom)! - Added `origin` property to `Frog` instance.
+
+## 0.5.8
+
+### Patch Changes
+
+- [#138](https://github.com/wevm/frog/pull/138) [`d555b1c`](https://github.com/wevm/frog/commit/d555b1c05962ff1549f8ffa8b99a6ecc9404de24) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `address` to `FrameData`. Read more at https://warpcast.com/horsefacts.eth/0xb98e17d8.
+
+- [`a0bc957`](https://github.com/wevm/frog/commit/a0bc9572b27d67b550bc556f91996d57579380b4) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og`.
+
+## 0.5.7
+
+### Patch Changes
+
+- [`0bb6768`](https://github.com/wevm/frog/commit/0bb6768e004ba846c919383e633f683a2e08b55e) Thanks [@jxom](https://github.com/jxom)! - Added `ogImage` property to frame response.
+
 ## 0.5.6
 
 ### Patch Changes

@@ -1141,6 +1141,13 @@ export class FrameActionBody extends Message$1<FrameActionBody> {
    */
   transactionId = new Uint8Array(0);
 
+  /**
+   * Chain-specific address for tx actions
+   *
+   * @generated from field: bytes address = 7;
+   */
+  address = new Uint8Array(0);
+
   constructor(data?: PartialMessage<FrameActionBody>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1155,6 +1162,7 @@ export class FrameActionBody extends Message$1<FrameActionBody> {
     { no: 4, name: "input_text", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
     { no: 5, name: "state", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
     { no: 6, name: "transaction_id", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 7, name: "address", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FrameActionBody {

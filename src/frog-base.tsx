@@ -1,27 +1,27 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse, type ImageResponseOptions } from 'hono-og'
-import { type HonoOptions } from 'hono/hono-base'
+import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import { type Schema } from 'hono/types'
+import type { Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import type { FrameContext, TransactionContext } from './types/context.js'
 import type { Env } from './types/env.js'
-import {
-  type FrameImageAspectRatio,
-  type FrameResponse,
-} from './types/frame.js'
+import type { FrameImageAspectRatio, FrameResponse } from './types/frame.js'
 import type { Hub } from './types/hub.js'
-import type { HandlerResponse } from './types/response.js'
-import type { TransactionResponse } from './types/transaction.js'
-import { type Pretty } from './types/utils.js'
+import type {
+  FrameHandler,
+  HandlerInterface,
+  MiddlewareHandlerInterface,
+  TransactionHandler,
+} from './types/routes.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
@@ -110,6 +110,12 @@ export type FrogConstructorParameters<
    */
   initialState?: _state | undefined
   /**
+   * Origin URL of the server instance.
+   *
+   * @link https://developer.mozilla.org/en-US/docs/Web/API/URL/origin
+   */
+  origin?: string | undefined
+  /**
    * Key used to sign secret data.
    *
    * It is used for:
@@ -145,7 +151,7 @@ export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
  * A Frog instance.
  *
  * @param parameters - {@link FrogConstructorParameters}
- * @returns instance. {@link FrogBase}
+ * @returns instance. {@link Frog}
  *
  * @example
  * ```
@@ -171,6 +177,7 @@ export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
  * })
  * ```
  */
+
 export class FrogBase<
   env extends Env = Env,
   schema extends Schema = {},
@@ -181,7 +188,6 @@ export class FrogBase<
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
   _initialState: env['State'] = undefined as env['State']
-
   /** Path for assets. */
   assetsPath: string
   /** Base path of the server instance. */
@@ -202,10 +208,10 @@ export class FrogBase<
     | ImageResponseOptions
     | (() => Promise<ImageResponseOptions>)
     | undefined
+  origin: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
-  use: Hono<env, schema, basePath>['use']
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
   /** Whether or not frames should be verified. */
@@ -222,6 +228,7 @@ export class FrogBase<
     imageAspectRatio,
     imageOptions,
     initialState,
+    origin,
     secret,
     verify,
   }: FrogConstructorParameters<env, basePath, _state> = {}) {
@@ -233,6 +240,7 @@ export class FrogBase<
     if (hub) this.hub = hub
     if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
     if (imageOptions) this.imageOptions = imageOptions
+    if (origin) this.origin = origin
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -241,27 +249,28 @@ export class FrogBase<
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
-    this.use = this.hono.use.bind(this.hono)
 
     if (initialState) this._initialState = initialState
   }
 
-  frame<path extends string>(
-    path: path,
-    handler: (
-      context: Pretty<FrameContext<env, path>>,
-    ) => HandlerResponse<FrameResponse>,
-    options: RouteOptions = {},
-  ) {
+  frame: HandlerInterface<env, 'frame', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      FrameHandler<env>
+    >(...parameters)
+
     const { verify = this.verify } = options
 
     // Frame Route (implements GET & POST).
-    this.hono.use(parsePath(path), async (c) => {
+    this.hono.use(parsePath(path), ...middlewares, async (c) => {
       const url = new URL(c.req.url)
-      const assetsUrl = url.origin + parsePath(this.assetsPath)
-      const baseUrl = url.origin + parsePath(this.basePath)
+      const origin = this.origin ?? url.origin
+      const assetsUrl = origin + parsePath(this.assetsPath)
+      const baseUrl = origin + parsePath(this.basePath)
 
-      const { context, getState } = getFrameContext<env, path>({
+      const { context, getState } = getFrameContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -270,6 +279,7 @@ export class FrogBase<
           verify,
         }),
         initialState: this._initialState,
+        origin,
       })
 
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
@@ -285,6 +295,7 @@ export class FrogBase<
         image,
         imageOptions,
         intents,
+        ogImage,
         title = 'Frog Frame',
       } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
@@ -308,7 +319,7 @@ export class FrogBase<
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
-            : `${url.origin + p.resolve(this.basePath, browserLocation_)}`,
+            : `${origin + p.resolve(this.basePath, browserLocation_)}`,
           302,
         )
 
@@ -359,6 +370,12 @@ export class FrogBase<
         return `${assetsUrl + parsePath(image)}`
       })()
 
+      const ogImageUrl = (() => {
+        if (!ogImage) return undefined
+        if (ogImage.startsWith('http')) return ogImage
+        return baseUrl + parsePath(ogImage)
+      })()
+
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
@@ -388,7 +405,7 @@ export class FrogBase<
                 content={imageAspectRatio}
               />
               <meta property="fc:frame:image" content={imageUrl} />
-              <meta property="og:image" content={imageUrl} />
+              <meta property="og:image" content={ogImageUrl ?? imageUrl} />
               <meta property="og:title" content={title} />
               <meta
                 property="fc:frame:post_url"
@@ -455,6 +472,8 @@ export class FrogBase<
         headers: imageOptions?.headers ?? headers,
       })
     })
+
+    return this
   }
 
   route<
@@ -470,24 +489,27 @@ export class FrogBase<
     if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
     if (!frog.hub) frog.hub = this.hub
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
+    if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
     if (!frog.verify) frog.verify = this.verify
 
-    return this.hono.route(path, frog.hono)
+    this.hono.route(path, frog.hono)
+
+    return this
   }
 
-  transaction<path extends string>(
-    this: FrogBase<env, schema, basePath, _state>,
-    path: path,
-    handler: (
-      context: TransactionContext<env, path, _state>,
-    ) => HandlerResponse<TransactionResponse>,
-    options: RouteOptions = {},
-  ) {
+  transaction: HandlerInterface<env, 'transaction', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      TransactionHandler<env>
+    >(...parameters)
+
     const { verify = this.verify } = options
 
-    this.hono.post(parsePath(path), async (c) => {
-      const { context } = getTransactionContext<env, path, _state>({
+    this.hono.post(parsePath(path), ...middlewares, async (c) => {
+      const { context } = getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -501,5 +523,12 @@ export class FrogBase<
       if (response instanceof Response) return response
       return c.json(response.data)
     })
+
+    return this
+  }
+
+  use: MiddlewareHandlerInterface<env, schema, basePath> = (...args: any[]) => {
+    this.hono.use(...args)
+    return this as any
   }
 }

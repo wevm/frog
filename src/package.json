@@ -1,7 +1,7 @@
 {
   "name": "frog",
   "description": "Framework for Farcaster Frames",
-  "version": "0.5.6",
+  "version": "0.6.0",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
@@ -24,7 +24,7 @@
       "default": "./_lib/dev/index.js"
     },
     "./edge": {
-      "types": "./_lib/edge/index.d.ts",
+      "types": "./_lib/index.d.ts",
       "default": "./_lib/edge/index.js"
     },
     "./hubs": {
@@ -80,7 +80,7 @@
     "dom-parser": "^1.1.5",
     "fast-glob": "3.3.2",
     "fs-extra": "^11.2.0",
-    "hono-og": "0.0.22",
+    "hono-og": "0.0.24",
     "jose": "^5.2.2",
     "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",

@@ -1,11 +1,7 @@
 import { type Schema } from 'hono'
 
-import { FrogBase, type RouteOptions } from './frog-base.js'
-import { type FrameContext } from './types/context.js'
+import { FrogBase, type FrogConstructorParameters } from './frog-base.js'
 import type { Env } from './types/env.js'
-import { type FrameResponse } from './types/frame.js'
-import type { HandlerResponse } from './types/response.js'
-import { type Pretty } from './types/utils.js'
 
 /**
  * A Frog instance.
@@ -44,13 +40,14 @@ export class Frog<
   //
   _state = env['State'],
 > extends FrogBase<env, schema, basePath, _state> {
-  override frame<path extends string>(
-    path: path,
-    handler: (
-      context: Pretty<FrameContext<env, path, _state>>,
-    ) => HandlerResponse<FrameResponse>,
-    options: RouteOptions = {},
-  ) {
-    super.frame(path, handler as any, options)
+  constructor(params: FrogConstructorParameters = {}) {
+    super(params as any)
+
+    const frame = this.frame
+
+    this.frame = (path: string, ...args: any[]) => {
+      ;(frame as any)(path, ...args)
+      return this
+    }
   }
 }
