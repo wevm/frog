@@ -1,5 +1,11 @@
 # frog
 
+## 0.6.1
+
+### Patch Changes
+
+- [`aa1496e`](https://github.com/wevm/frog/commit/aa1496e3c582d41af95fa3fe746bdc18fc55d603) Thanks [@jxom](https://github.com/jxom)! - Fixed JSX composition bug.
+
 ## 0.6.0
 
 ### Minor Changes
