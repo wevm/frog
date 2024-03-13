@@ -198,8 +198,8 @@ importers:
         specifier: ^4
         version: 4.0.4
       hono-og:
-        specifier: 0.0.22
-        version: 0.0.22(hono@4.0.4)
+        specifier: 0.0.24
+        version: 0.0.24(hono@4.0.4)
       jose:
         specifier: ^5.2.2
         version: 5.2.2
@@ -3868,15 +3868,6 @@ packages:
       pretty-format: 29.7.0
     dev: true
 
-  /@wevm/vercel-og@0.6.12:
-    resolution: {integrity: sha512-gaFbJR7fV7oFega1/8omhpp/cTHWpZkFpuiIaevDil6HroQYhX1RBFNse3uYeSbnhb3pHnAm85tjYuOi/wB6EQ==}
-    engines: {node: '>=16'}
-    dependencies:
-      '@resvg/resvg-wasm': 2.4.0
-      satori: 0.10.9
-      yoga-wasm-web: 0.3.3
-    dev: false
-
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
@@ -6062,15 +6053,14 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /hono-og@0.0.22(hono@4.0.4):
-    resolution: {integrity: sha512-fq04Nhhbtyto4WL8r9+ozUB9e0PKUD/G+bdI7+NkU7+H4ZqkiTjTSAg94FDq1Kdz9Bql4ZaqyOkGo7cmVFo84g==}
+  /hono-og@0.0.24(hono@4.0.4):
+    resolution: {integrity: sha512-V+npyPvqlfuJ3A7UEfCjs7ZdZ9380KsYPQ+Y1dmQ0+NKkrpeTQbDQELptVkbOJH7Pi+m+RQLRLyqOzbSKyOZ9Q==}
     peerDependencies:
       hono: '>=3'
     dependencies:
       '@vercel/og': 0.6.2
-      '@wevm/vercel-og': 0.6.12
       hono: 4.0.4
-      workers-og: 0.0.20
+      workers-og: 0.0.23
     dev: false
 
   /hono@3.12.12:
@@ -10199,8 +10189,8 @@ packages:
       '@cloudflare/workerd-windows-64': 1.20240208.0
     dev: true
 
-  /workers-og@0.0.20:
-    resolution: {integrity: sha512-GgWLpfpGxzgqYnT2HdBybXdAePn7+W5zQUl+NUbnggp2zeCaliZdQh5su7XXM5TSAlveSAiwRrG/kOFSIXiOKQ==}
+  /workers-og@0.0.23:
+    resolution: {integrity: sha512-caVuk/muVgLwc0frelrrIxvSUhkRRrPNeHCh4psy6l6MPTngCkDXxqIHOTG/b54NvCCC57T+uobohDO0Se54xw==}
     dependencies:
       '@resvg/resvg-wasm': 2.4.0
       just-camel-case: 6.2.0
