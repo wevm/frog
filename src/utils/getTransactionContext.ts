@@ -1,4 +1,4 @@
-import { type HonoRequest } from 'hono'
+import { type HonoRequest, type Input } from 'hono'
 import {
   type Abi,
   AbiFunctionNotFoundError,
@@ -15,30 +15,33 @@ import { getIntentState } from './getIntentState.js'
 type GetTransactionContextParameters<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
 > = {
-  context: Context<env, path, _state>
+  context: Context<env, path, input, _state>
   req: HonoRequest
 }
 
 type GetTransactionContextReturnType<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
 > = {
-  context: TransactionContext<env, path, _state>
+  context: TransactionContext<env, path, input, _state>
 }
 
 export function getTransactionContext<
   env extends Env,
   path extends string,
+  input extends Input,
   //
   _state = env['State'],
 >(
-  parameters: GetTransactionContextParameters<env, path, _state>,
-): GetTransactionContextReturnType<env, path, _state> {
+  parameters: GetTransactionContextParameters<env, path, input, _state>,
+): GetTransactionContextReturnType<env, path, input, _state> {
   const { context } = parameters
   const {
     env,

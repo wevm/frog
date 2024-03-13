@@ -20,7 +20,7 @@
       "default": "./_lib/index.js"
     },
     "./edge": {
-      "types": "./_lib/edge/index.d.ts",
+      "types": "./_lib/index.d.ts",
       "default": "./_lib/edge/index.js"
     },
     "./hubs": {
@@ -83,10 +83,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
