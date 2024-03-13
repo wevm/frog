@@ -179,6 +179,20 @@ const app = new Frog<{ State: State }>({
 })
 ```
 
+### origin
+
+- **Type:** `string`
+
+Origin URL for the server instance.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  origin: 'https://sweetframe.com' // [!code focus]
+})
+```
+
 ### secret
 
 - **Type:** `string`

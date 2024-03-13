@@ -11,6 +11,7 @@ type GetFrameContextParameters<
 > = {
   context: Context<env, path>
   initialState?: _state
+  origin: string
 }
 
 type GetFrameContextReturnType<
@@ -49,8 +50,7 @@ export function getFrameContext<
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
   const url =
-    (reset ? `${new URL(req.url).origin}${initialPath}` : undefined) ||
-    parsePath(context.url)
+    (reset ? `${origin}${initialPath}` : undefined) || parsePath(context.url)
 
   let previousState = (() => {
     if (context.status === 'initial') return parameters.initialState
