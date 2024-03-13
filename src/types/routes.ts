@@ -1,3 +1,5 @@
+// NOTE: THIS IS A FORK OF https://github.com/honojs/hono/blob/139e863aa214118397e442329121f8f39833b2f9/src/types.ts
+
 import type { Context as Context_hono } from 'hono'
 import type {
   IfAnyThenEmptyObject,
@@ -6,6 +8,7 @@ import type {
 } from 'hono/utils/types'
 import type { Frog, RouteOptions } from '../frog-base.js'
 import type { Context, FrameContext, TransactionContext } from './context.js'
+import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'
 import type { HandlerResponse } from './response.js'
 import type { TransactionResponse } from './transaction.js'
@@ -15,14 +18,6 @@ import type { TransactionResponse } from './transaction.js'
 //////           Values           //////
 //////                            //////
 ////////////////////////////////////////
-
-export type Bindings = Record<string, unknown>
-export type Variables = Record<string, unknown>
-
-export type Env = {
-  Bindings?: Bindings
-  Variables?: Variables
-}
 
 export type Next = () => Promise<void>
 
@@ -1455,9 +1450,9 @@ export type Schema = {
 
 type ExtractParams<Path extends string> = string extends Path
   ? Record<string, string>
-  : Path extends `${infer Start}:${infer Param}/${infer Rest}`
+  : Path extends `${infer _Start}:${infer Param}/${infer Rest}`
     ? { [K in Param | keyof ExtractParams<`/${Rest}`>]: string }
-    : Path extends `${infer Start}:${infer Param}`
+    : Path extends `${infer _Start}:${infer Param}`
       ? { [K in Param]: string }
       : never
 

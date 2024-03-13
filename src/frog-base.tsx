@@ -1,20 +1,18 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse, type ImageResponseOptions } from 'hono-og'
-import { type HonoOptions } from 'hono/hono-base'
+import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import { type MiddlewareHandler, type Schema } from 'hono/types'
+import type { Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
+import { routes as devRoutes } from './dev/routes.js'
 import type { TransactionContext } from './types/context.js'
 import type { Env } from './types/env.js'
-import {
-  type FrameImageAspectRatio,
-  type FrameResponse,
-} from './types/frame.js'
+import type { FrameImageAspectRatio, FrameResponse } from './types/frame.js'
 import type { Hub } from './types/hub.js'
 import type { HandlerResponse } from './types/response.js'
 import type {
@@ -26,6 +24,7 @@ import type { TransactionResponse } from './types/transaction.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
@@ -282,21 +281,10 @@ export class Frog<
   frame: HandlerInterface<env, 'frame', schema, basePath> = (
     ...parameters: any[]
   ) => {
-    const [path, middlewares, handler, options = {}] = (() => {
-      const options: RouteOptions =
-        typeof parameters[parameters.length - 1] === 'object'
-          ? parameters[parameters.length - 1]
-          : {}
-
-      const middlewares = [] as MiddlewareHandler<env>[]
-      let handler: FrameHandler<env> | undefined
-      for (let i = parameters.length - 2; i > 0; i--) {
-        if (!handler) handler = parameters[i]
-        else middlewares.push(parameters[i])
-      }
-
-      return [parameters[0], middlewares, handler, options]
-    })() as [string, MiddlewareHandler<env>[], FrameHandler<env>, RouteOptions]
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      FrameHandler<env>
+    >(...parameters)
 
     const { verify = this.verify } = options
 
@@ -538,6 +526,8 @@ export class Frog<
         headers: imageOptions?.headers ?? headers,
       })
     })
+
+    if (this.dev?.enabled ?? true) devRoutes(this, path)
 
     return this
   }

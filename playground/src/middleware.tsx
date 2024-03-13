@@ -1,7 +1,7 @@
 import { Frog } from 'frog'
 import type { MiddlewareHandler } from 'hono'
 
-import { neynarMiddleware } from './neynar'
+import { neynarMiddleware } from './neynar.js'
 
 type EchoMiddlewareVariables = {
   echo: (str: string) => string
