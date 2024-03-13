@@ -360,22 +360,6 @@ export class Frog<
           302,
         )
 
-      // The OG route also needs context, so we will need to pass the current derived context,
-      // via a query parameter to the OG image route (/image).
-      const queryContext: FrameQueryContext<env, string> = {
-        ...context,
-        env: context.env
-          ? Object.assign(context.env, {
-              incoming: undefined,
-              outgoing: undefined,
-            })
-          : undefined,
-        // `c.req` is not serializable.
-        req: undefined,
-        state: getState(),
-      }
-      const frameImageParams = toSearchParams(queryContext)
-
       // Derive the previous state, and sign it if a secret is provided.
       const previousState = await (async () => {
         const state = await context.deriveState()
