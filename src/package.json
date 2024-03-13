@@ -21,10 +21,6 @@
     },
     "./dev": {
       "types": "./_lib/dev/index.d.ts",
-      "bun": "./_lib/dev/index.js",
-      "edge": "./_lib/dev/edge/index.js",
-      "edge-light": "./_lib/dev/edge/index.js",
-      "worker": "./_lib/dev/edge/index.js",
       "default": "./_lib/dev/index.js"
     },
     "./edge": {
@@ -83,7 +79,6 @@
     "jose": "^5.2.2",
     "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",
-    "pathe": "^1.1.2",
     "viem": "^2.7.10",
     "vite": "^5.1.3"
   },

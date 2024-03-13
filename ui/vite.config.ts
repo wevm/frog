@@ -8,7 +8,6 @@ export default defineConfig({
     copyPublicDir: false,
     emptyOutDir: true,
     rollupOptions: {
-      input: ['index.html', 'src/frog-client.ts'],
       output: {
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',
@@ -16,7 +15,7 @@ export default defineConfig({
         entryFileNames: '[name].js',
       },
     },
+    target: 'esnext',
   },
-  logLevel: 'error',
   plugins: [react()],
 })

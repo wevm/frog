@@ -44,7 +44,6 @@ export async function dev(
       host,
       port,
     },
-    mode: 'frog',
   })
 
   const module = await server.ssrLoadModule(entry_resolved)
