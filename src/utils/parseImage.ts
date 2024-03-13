@@ -1,4 +1,4 @@
-import type { Child } from 'hono/jsx'
+import type { Child, JSXNode } from 'hono/jsx'
 import { parsePath } from './parsePath.js'
 
 export async function parseImage(
@@ -13,11 +13,13 @@ export async function parseImage(
   if (node_ instanceof Promise) return await node_
 
   let node = node_
-  if (typeof node.tag === 'function')
+  if (typeof node.tag === 'function') {
     node = await node.tag({
       ...node.props,
       children: node.children,
     })
+    node = (await parseImage(node, { assetsUrl })) as JSXNode
+  }
   if (node.children)
     node.children = await Promise.all(
       node.children.map(async (e) => await parseImage(e, { assetsUrl })),
