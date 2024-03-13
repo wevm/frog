@@ -547,7 +547,7 @@ export class FrogBase<
     const { verify = this.verify } = options
 
     this.hono.post(parsePath(path), ...middlewares, async (c) => {
-      const { context } = getTransactionContext<env, string, _state>({
+      const { context } = getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||

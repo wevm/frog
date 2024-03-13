@@ -1,4 +1,4 @@
-import { type Context as Context_hono } from 'hono'
+import { type Context as Context_hono, type Input } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
 import type { Context } from '../types/context.js'
 import type { Env } from '../types/env.js'
@@ -17,19 +17,21 @@ type RequestBodyToContextOptions = {
 type RequestBodyToContextReturnType<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, _state>
+> = Context<env, path, input, _state>
 
 export async function requestBodyToContext<
   env extends Env,
   path extends string,
+  input extends Input,
   //
   _state = env['State'],
 >(
   c: Context_hono<env, path>,
   { hub, secret, verify = true }: RequestBodyToContextOptions,
-): Promise<RequestBodyToContextReturnType<env, path, _state>> {
+): Promise<RequestBodyToContextReturnType<env, path, input, _state>> {
   const { trustedData, untrustedData } =
     (await c.req.json().catch(() => {})) || {}
   const { initialPath, previousState, previousButtonValues } =

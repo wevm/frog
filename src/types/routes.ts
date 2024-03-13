@@ -35,20 +35,24 @@ export type BlankInput = {}
 //////                            //////
 ////////////////////////////////////////
 
-export type FrameHandler<E extends Env = any, P extends string = any> = (
-  c: FrameContext<E, P>,
-) => HandlerResponse<FrameResponse>
+export type FrameHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: FrameContext<E, P, I>) => HandlerResponse<FrameResponse>
 
-export type TransactionHandler<E extends Env = any, P extends string = any> = (
-  c: TransactionContext<E, P>,
-) => HandlerResponse<TransactionResponse>
+export type TransactionHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: TransactionContext<E, P, I>) => HandlerResponse<TransactionResponse>
 
 export type Handler<
   E extends Env = any,
   P extends string = any,
-  _I extends Input = BlankInput,
+  I extends Input = BlankInput,
   R extends HandlerResponse<any> = any,
-> = (c: Context<E, P>) => R
+> = (c: Context<E, P, I>) => R
 
 export type MiddlewareHandler<
   E extends Env = any,
@@ -64,9 +68,9 @@ export type H<
   R extends HandlerResponse<any> = any,
   M extends string = string,
 > = M extends 'frame'
-  ? FrameHandler<E, P>
+  ? FrameHandler<E, P, I>
   : M extends 'transaction'
-    ? TransactionHandler<E, P>
+    ? TransactionHandler<E, P, I>
     : Handler<E, P, I, R>
 
 ////////////////////////////////////////
