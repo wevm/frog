@@ -117,6 +117,7 @@ export type FrameResponseFn = (
 ) => TypedResponse<FrameResponse>
 
 export type FrameData = {
+  address?: string | undefined
   buttonIndex?: 1 | 2 | 3 | 4 | undefined
   castId: { fid: number; hash: string }
   fid: number

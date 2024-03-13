@@ -59,6 +59,7 @@ export function getTransactionContext<
 
   return {
     context: {
+      address: frameData?.address!,
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
       contract(parameters) {
