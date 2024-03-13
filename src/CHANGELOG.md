@@ -1,5 +1,11 @@
 # frog
 
+## 0.6.0
+
+### Minor Changes
+
+- [#140](https://github.com/wevm/frog/pull/140) [`c8d03fa`](https://github.com/wevm/frog/commit/c8d03fa4081b94f7a93431d48b9e5e221da9f1df) Thanks [@jxom](https://github.com/jxom)! - Added route-level middleware. [See more.](https://frog.fm/concepts/middleware#route-level)
+
 ## 0.5.9
 
 ### Patch Changes
