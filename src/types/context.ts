@@ -126,21 +126,15 @@ export type TransactionContext<
   _state = env['State'],
 > = Context<env, path, _state> & {
   /**
-   * Data from the frame that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
-   */
-  frameData?: Pretty<FrameData> & {
-    /**
-     * Address of the account that is executing a transaction (if any). Maps to:
-     * - Ethereum: 20-byte address string.
-     */
-    address?: string | undefined
-  }
-  /**
    * Address of the account that is executing a transaction (if any). Maps to:
    * - Ethereum: 20-byte address string.
    */
-  address?: string | undefined
+  address: string
+  /**
+   * Data from the frame that was passed via the POST body.
+   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   */
+  frameData?: Pretty<FrameData>
   /**
    * Contract transaction request.
    *

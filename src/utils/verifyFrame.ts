@@ -46,11 +46,12 @@ export async function verifyFrame({
 ////////////////////////////////////////////////////////////////////
 // Utilties
 
-export function messageToFrameData(
-  message: Message,
-): FrameData & { address?: string | undefined } {
+export function messageToFrameData(message: Message): FrameData {
   const frameActionBody = message.data?.body.value as FrameActionBody
-  const frameData: FrameData & { address?: string | undefined } = {
+  const frameData: FrameData = {
+    address: frameActionBody.address
+      ? bytesToHex(frameActionBody.address)
+      : undefined,
     castId: {
       fid: Number(frameActionBody.castId?.fid),
       hash: bytesToHex(frameActionBody.castId?.hash!),
@@ -65,9 +66,6 @@ export function messageToFrameData(
     state: bytesToString(frameActionBody.state),
     transactionId: frameActionBody.transactionId
       ? bytesToHex(frameActionBody.transactionId)
-      : undefined,
-    address: frameActionBody.address
-      ? bytesToHex(frameActionBody.address)
       : undefined,
   }
 
