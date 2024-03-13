@@ -129,7 +129,12 @@ export type TransactionContext<
    * Data from the frame that was passed via the POST body.
    * The {@link Context`verified`} flag indicates whether the data is trusted or not.
    */
-  frameData?: Pretty<FrameData> & { address?: string | undefined }
+  frameData?: Pretty<FrameData> & {
+    /**
+     * Address of the wallet that sends a transaction.
+     */
+    address?: string | undefined
+  }
   /**
    * Contract transaction request.
    *
