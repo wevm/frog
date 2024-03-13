@@ -16,7 +16,6 @@ export function App() {
       .$get()
       .then((res) => res.json())
       .then((frames) => {
-        console.log('frames', frames)
         store.setState((state) => ({ ...state, frames }))
       })
       .catch((err) => {

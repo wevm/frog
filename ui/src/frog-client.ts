@@ -53,7 +53,10 @@ function setupWebSocket(
   // Listen for messages
   socket.addEventListener('message', async ({ data }) => {
     const payload = JSON.parse(data) as HMRPayload
-    store.setState((state) => ({ ...state, bears: state.bears + 1 }))
+    store.setState((state) => ({
+      ...state,
+      refreshCount: state.refreshCount + 1,
+    }))
     switch (payload.type) {
       case 'connected':
         console.debug('[frog] connected.')
@@ -71,7 +74,6 @@ function setupWebSocket(
           .$get()
           .then((res) => res.json())
           .then((frames) => {
-            console.log('frames', frames)
             store.setState((state) => ({ ...state, frames }))
           })
           .catch((err) => {
