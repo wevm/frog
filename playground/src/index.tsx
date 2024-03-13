@@ -1,6 +1,7 @@
 import { Button, Frog, TextInput } from 'frog'
 import * as hubs from 'frog/hubs'
 import { devtools } from 'frog/dev'
+import { serveStatic } from '@hono/node-server/serve-static'
 
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
@@ -234,4 +235,4 @@ app.route('/routing', routingApp)
 app.route('/transaction', transactionApp)
 app.route('/todos', todoApp)
 
-devtools(app)
+devtools(app, { serveStatic })

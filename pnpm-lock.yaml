@@ -89,6 +89,9 @@ importers:
 
   playground:
     dependencies:
+      '@hono/node-server':
+        specifier: ^1.8.2
+        version: 1.8.2
       frog:
         specifier: workspace:*
         version: link:../src
@@ -132,7 +135,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5)
+        version: 0.5.8(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -151,7 +154,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -170,6 +173,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^1.7.2
         version: 1.7.2
+      '@hono/node-server':
+        specifier: ^1.8.2
+        version: 1.8.2
       '@hono/vite-dev-server':
         specifier: 0.7.0
         version: 0.7.0(hono@4.1.0)
@@ -223,7 +229,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -239,7 +245,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -255,7 +261,7 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -268,7 +274,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -302,7 +308,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -318,7 +324,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.5.7(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.5.8(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -5813,8 +5819,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /frog@0.5.7(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5):
-    resolution: {integrity: sha512-6PySAMU45J/fIGyhiOmm2+6rSpUC/eD87b6MndBo/+CeJ+k4w/B9jGY34zUiq0xT4fRDCrH61YYggP8INaSaFw==}
+  /frog@0.5.8(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5):
+    resolution: {integrity: sha512-53/fBzfXpAp/eh8uunKHIw+ohu+Eb+jAkeoDe1GgKvARdH3Nhd1vInDmRRu77nNquj099zkk67hYg/0eVSYaXw==}
     hasBin: true
     peerDependencies:
       hono: ^4.1.0
@@ -5834,7 +5840,7 @@ packages:
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       hono: 4.1.0
-      hono-og: 0.0.22(hono@4.1.0)
+      hono-og: 0.0.24(hono@4.1.0)
       jose: 5.2.2
       lz-string: 1.5.0
       path-browserify: 1.0.1
@@ -5856,8 +5862,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.5.7(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-6PySAMU45J/fIGyhiOmm2+6rSpUC/eD87b6MndBo/+CeJ+k4w/B9jGY34zUiq0xT4fRDCrH61YYggP8INaSaFw==}
+  /frog@0.5.8(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-53/fBzfXpAp/eh8uunKHIw+ohu+Eb+jAkeoDe1GgKvARdH3Nhd1vInDmRRu77nNquj099zkk67hYg/0eVSYaXw==}
     hasBin: true
     peerDependencies:
       hono: ^4.1.0
@@ -5877,7 +5883,7 @@ packages:
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       hono: 4.1.0
-      hono-og: 0.0.22(hono@4.1.0)
+      hono-og: 0.0.24(hono@4.1.0)
       jose: 5.2.2
       lz-string: 1.5.0
       path-browserify: 1.0.1
@@ -5899,8 +5905,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.5.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-6PySAMU45J/fIGyhiOmm2+6rSpUC/eD87b6MndBo/+CeJ+k4w/B9jGY34zUiq0xT4fRDCrH61YYggP8INaSaFw==}
+  /frog@0.5.8(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-53/fBzfXpAp/eh8uunKHIw+ohu+Eb+jAkeoDe1GgKvARdH3Nhd1vInDmRRu77nNquj099zkk67hYg/0eVSYaXw==}
     hasBin: true
     peerDependencies:
       hono: ^4.1.0
@@ -5920,7 +5926,7 @@ packages:
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       hono: 4.1.0
-      hono-og: 0.0.22(hono@4.1.0)
+      hono-og: 0.0.24(hono@4.1.0)
       jose: 5.2.2
       lz-string: 1.5.0
       path-browserify: 1.0.1
@@ -6387,6 +6393,16 @@ packages:
       '@wevm/vercel-og': 0.6.12
       hono: 4.1.0
       workers-og: 0.0.20
+    dev: false
+
+  /hono-og@0.0.24(hono@4.1.0):
+    resolution: {integrity: sha512-V+npyPvqlfuJ3A7UEfCjs7ZdZ9380KsYPQ+Y1dmQ0+NKkrpeTQbDQELptVkbOJH7Pi+m+RQLRLyqOzbSKyOZ9Q==}
+    peerDependencies:
+      hono: ^4.1.0
+    dependencies:
+      '@vercel/og': 0.6.2
+      hono: 4.1.0
+      workers-og: 0.0.23
     dev: false
 
   /hono@4.1.0:
@@ -10572,6 +10588,15 @@ packages:
 
   /workers-og@0.0.20:
     resolution: {integrity: sha512-GgWLpfpGxzgqYnT2HdBybXdAePn7+W5zQUl+NUbnggp2zeCaliZdQh5su7XXM5TSAlveSAiwRrG/kOFSIXiOKQ==}
+    dependencies:
+      '@resvg/resvg-wasm': 2.4.0
+      just-camel-case: 6.2.0
+      satori: 0.10.13
+      yoga-wasm-web: 0.3.3
+    dev: false
+
+  /workers-og@0.0.23:
+    resolution: {integrity: sha512-caVuk/muVgLwc0frelrrIxvSUhkRRrPNeHCh4psy6l6MPTngCkDXxqIHOTG/b54NvCCC57T+uobohDO0Se54xw==}
     dependencies:
       '@resvg/resvg-wasm': 2.4.0
       just-camel-case: 6.2.0

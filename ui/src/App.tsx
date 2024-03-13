@@ -4,6 +4,8 @@ import { useStore } from 'zustand'
 import { client } from './lib/api'
 import { store } from './lib/store'
 
+import reactLogo from './assets/react.svg'
+import viteLogo from './assets/vite.svg'
 import './App.css'
 
 export function App() {
@@ -26,8 +28,14 @@ export function App() {
 
   return (
     <>
-      <div>bears: {bears}</div>
-
+      <div>
+        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank" rel="noreferrer">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
       <h1>Vite + React</h1>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)} type="button">
@@ -41,8 +49,10 @@ export function App() {
         Click on the Vite and React logos to learn more
       </p>
 
+      <div>bears: {bears}</div>
+
       {frames.map((frame) => (
-        <span key={frame}>{frame}</span>
+        <span key={frame}>{frame} </span>
       ))}
     </>
   )
