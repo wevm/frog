@@ -131,10 +131,16 @@ export type TransactionContext<
    */
   frameData?: Pretty<FrameData> & {
     /**
-     * Address of the wallet that sends a transaction.
+     * Address of the account that is executing a transaction (if any). Maps to:
+     * - Ethereum: 20-byte address string.
      */
     address?: string | undefined
   }
+  /**
+   * Address of the account that is executing a transaction (if any). Maps to:
+   * - Ethereum: 20-byte address string.
+   */
+  address?: string | undefined
   /**
    * Contract transaction request.
    *

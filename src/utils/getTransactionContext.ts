@@ -18,7 +18,9 @@ type GetTransactionContextParameters<
   //
   _state = env['State'],
 > = {
-  context: Context<env, path, _state>
+  context: Context<env, path, _state> & {
+    frameData?: { address?: string | undefined }
+  }
   req: HonoRequest
 }
 
@@ -59,6 +61,7 @@ export function getTransactionContext<
 
   return {
     context: {
+      address: frameData?.address,
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
       contract(parameters) {
