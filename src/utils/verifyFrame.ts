@@ -64,6 +64,9 @@ export function messageToFrameData(message: Message): FrameData {
     transactionId: frameActionBody.transactionId
       ? bytesToHex(frameActionBody.transactionId)
       : undefined,
+    address: frameActionBody.address
+      ? bytesToHex(frameActionBody.address)
+      : undefined,
   }
 
   return frameData
