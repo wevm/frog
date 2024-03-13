@@ -1,4 +1,4 @@
-import type { RouteOptions } from '../frog.js'
+import type { RouteOptions } from '../frog-base.js'
 import type { Env } from '../types/env.js'
 import type { MiddlewareHandler } from '../types/routes.js'
 

@@ -6,7 +6,7 @@ import type {
   RemoveBlankRecord,
   UnionToIntersection,
 } from 'hono/utils/types'
-import type { Frog, RouteOptions } from '../frog.js'
+import type { FrogBase, RouteOptions } from '../frog-base.js'
 import type { Context, FrameContext, TransactionContext } from './context.js'
 import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'
@@ -92,7 +92,7 @@ export interface HandlerInterface<
     path: P,
     handler: H<E2, MergedPath, I, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S & ToSchema<M, MergePath<BasePath, P>, I['in'], MergeTypedResponseData<R>>,
     BasePath
@@ -112,7 +112,7 @@ export interface HandlerInterface<
     middleware: MiddlewareHandler<E2, MergedPath, I>,
     handler: H<E3, MergedPath, I2, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I2['in'], MergeTypedResponseData<R>>,
@@ -136,7 +136,7 @@ export interface HandlerInterface<
     middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
     handler: H<E4, MergedPath, I3, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I3['in'], MergeTypedResponseData<R>>,
@@ -163,7 +163,7 @@ export interface HandlerInterface<
     middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
     handler: H<E5, MergedPath, I4, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I4['in'], MergeTypedResponseData<R>>,
@@ -193,7 +193,7 @@ export interface HandlerInterface<
     middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
     handler: H<E6, MergedPath, I5, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I5['in'], MergeTypedResponseData<R>>,
@@ -226,7 +226,7 @@ export interface HandlerInterface<
     middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
     handler: H<E7, MergedPath, I6, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I6['in'], MergeTypedResponseData<R>>,
@@ -262,7 +262,7 @@ export interface HandlerInterface<
     middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
     handler: H<E8, MergedPath, I7, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I7['in'], MergeTypedResponseData<R>>,
@@ -301,7 +301,7 @@ export interface HandlerInterface<
     middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
     handler: H<E9, MergedPath, I8, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I8['in'], MergeTypedResponseData<R>>,
@@ -343,7 +343,7 @@ export interface HandlerInterface<
     middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
     handler: H<E10, MergedPath, I9, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I9['in'], MergeTypedResponseData<R>>,
@@ -390,7 +390,7 @@ export interface HandlerInterface<
     middleware_9: MiddlewareHandler<E10, MergedPath, I9>,
     handler: H<E11, MergedPath, I10, R, M>,
     options?: RouteOptions,
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<M, MergePath<BasePath, P>, I10['in'], MergeTypedResponseData<R>>,
@@ -412,12 +412,12 @@ export interface MiddlewareHandlerInterface<
   //// app.use(...handlers[])
   <E2 extends Env = E>(
     ...handlers: MiddlewareHandler<E2, MergePath<BasePath, ExtractKey<S>>>[]
-  ): Frog<IntersectNonAnyTypes<[E, E2]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2]>, S, BasePath>
 
   // app.use(handler)
   <E2 extends Env = E>(
     handler: MiddlewareHandler<E2, MergePath<BasePath, ExtractKey<S>>>,
-  ): Frog<IntersectNonAnyTypes<[E, E2]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2]>, S, BasePath>
 
   // app.use(handler x2)
   <
@@ -426,7 +426,7 @@ export interface MiddlewareHandlerInterface<
     P extends string = MergePath<BasePath, ExtractKey<S>>,
   >(
     ...handlers: [MiddlewareHandler<E2, P>, MiddlewareHandler<E3, P>]
-  ): Frog<IntersectNonAnyTypes<[E, E2, E3]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2, E3]>, S, BasePath>
 
   // app.use(handler x3)
   <
@@ -440,7 +440,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E3, P>,
       MiddlewareHandler<E4, P>,
     ]
-  ): Frog<IntersectNonAnyTypes<[E, E2, E3, E4]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2, E3, E4]>, S, BasePath>
 
   // app.use(handler x4)
   <
@@ -456,7 +456,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E4, P>,
       MiddlewareHandler<E5, P>,
     ]
-  ): Frog<IntersectNonAnyTypes<[E, E2, E3, E4, E5]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5]>, S, BasePath>
 
   // app.use(handler x5)
   <
@@ -474,7 +474,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E5, P>,
       MiddlewareHandler<E6, P>,
     ]
-  ): Frog<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>, S, BasePath>
 
   // app.use(handler x6)
   <
@@ -494,7 +494,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E6, P>,
       MiddlewareHandler<E7, P>,
     ]
-  ): Frog<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>, S, BasePath>
+  ): FrogBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>, S, BasePath>
 
   // app.use(handler x7)
   <
@@ -516,7 +516,11 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E7, P>,
       MiddlewareHandler<E8, P>,
     ]
-  ): Frog<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>, S, BasePath>
+  ): FrogBase<
+    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    S,
+    BasePath
+  >
 
   // app.use(handler x8)
   <
@@ -540,7 +544,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E8, P>,
       MiddlewareHandler<E9, P>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S,
     BasePath
@@ -570,7 +574,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E9, P>,
       MiddlewareHandler<E10, P>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S,
     BasePath
@@ -604,7 +608,7 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E10, P>,
       MiddlewareHandler<E11, P>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
     S,
     BasePath
@@ -614,7 +618,7 @@ export interface MiddlewareHandlerInterface<
   <P extends string, E2 extends Env = E>(
     path: P,
     ...handlers: MiddlewareHandler<E2, MergePath<BasePath, P>>[]
-  ): Frog<E, S, BasePath>
+  ): FrogBase<E, S, BasePath>
 }
 
 ////////////////////////////////////////
@@ -640,7 +644,7 @@ export interface OnHandlerInterface<
     method: M,
     path: P,
     handler: H<E2, MergedPath, I, R>,
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2]>,
     S & ToSchema<M, MergePath<BasePath, P>, I['in'], MergeTypedResponseData<R>>,
     BasePath
@@ -660,7 +664,7 @@ export interface OnHandlerInterface<
     method: M,
     path: P,
     ...handlers: [H<E2, MergedPath, I>, H<E3, MergedPath, I2, R>]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I2['in'], MergeTypedResponseData<R>>,
@@ -687,7 +691,7 @@ export interface OnHandlerInterface<
       H<E3, MergedPath, I2>,
       H<E4, MergedPath, I3, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I3['in'], MergeTypedResponseData<R>>,
@@ -717,7 +721,7 @@ export interface OnHandlerInterface<
       H<E4, MergedPath, I3>,
       H<E5, MergedPath, I4, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I4['in'], MergeTypedResponseData<R>>,
@@ -750,7 +754,7 @@ export interface OnHandlerInterface<
       H<E5, MergedPath, I4>,
       H<E6, MergedPath, I5, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I5['in'], MergeTypedResponseData<R>>,
@@ -786,7 +790,7 @@ export interface OnHandlerInterface<
       H<E6, MergedPath, I5>,
       H<E7, MergedPath, I6, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I6['in'], MergeTypedResponseData<R>>,
@@ -825,7 +829,7 @@ export interface OnHandlerInterface<
       H<E7, MergedPath, I6>,
       H<E8, MergedPath, I7, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I7['in'], MergeTypedResponseData<R>>,
@@ -867,7 +871,7 @@ export interface OnHandlerInterface<
       H<E8, MergedPath, I7>,
       H<E9, MergedPath, I8, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I8['in'], MergeTypedResponseData<R>>,
@@ -912,7 +916,7 @@ export interface OnHandlerInterface<
       H<E9, MergedPath, I8>,
       H<E10, MergedPath, I9, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S &
       ToSchema<M, MergePath<BasePath, P>, I9['in'], MergeTypedResponseData<R>>,
@@ -961,7 +965,7 @@ export interface OnHandlerInterface<
       H<E10, MergedPath, I9>,
       H<E11, MergedPath, I10>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
     S &
       ToSchema<
@@ -983,7 +987,7 @@ export interface OnHandlerInterface<
     method: M,
     path: P,
     ...handlers: H<E, MergePath<BasePath, P>, I, R>[]
-  ): Frog<
+  ): FrogBase<
     E,
     S & ToSchema<M, MergePath<BasePath, P>, I['in'], MergeTypedResponseData<R>>,
     BasePath
@@ -1001,7 +1005,7 @@ export interface OnHandlerInterface<
     methods: Ms,
     path: P,
     handler: H<E2, MergedPath, I, R>,
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2]>,
     S &
       ToSchema<
@@ -1027,7 +1031,7 @@ export interface OnHandlerInterface<
     methods: Ms,
     path: P,
     ...handlers: [H<E2, MergedPath, I>, H<E3, MergedPath, I2, R>]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3]>,
     S &
       ToSchema<
@@ -1059,7 +1063,7 @@ export interface OnHandlerInterface<
       H<E3, MergedPath, I2>,
       H<E4, MergedPath, I3, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4]>,
     S &
       ToSchema<
@@ -1094,7 +1098,7 @@ export interface OnHandlerInterface<
       H<E4, MergedPath, I3>,
       H<E5, MergedPath, I4, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
     S &
       ToSchema<
@@ -1132,7 +1136,7 @@ export interface OnHandlerInterface<
       H<E5, MergedPath, I4>,
       H<E6, MergedPath, I5, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
     S &
       ToSchema<
@@ -1173,7 +1177,7 @@ export interface OnHandlerInterface<
       H<E6, MergedPath, I5>,
       H<E7, MergedPath, I6, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
     S &
       ToSchema<
@@ -1217,7 +1221,7 @@ export interface OnHandlerInterface<
       H<E7, MergedPath, I6>,
       H<E8, MergedPath, I7, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
     S &
       ToSchema<
@@ -1264,7 +1268,7 @@ export interface OnHandlerInterface<
       H<E8, MergedPath, I7>,
       H<E9, MergedPath, I8, R>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S &
       ToSchema<
@@ -1313,7 +1317,7 @@ export interface OnHandlerInterface<
       H<E9, MergedPath, I8>,
       H<E10, MergedPath, I9>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S &
       ToSchema<
@@ -1367,7 +1371,7 @@ export interface OnHandlerInterface<
       H<E10, MergedPath, I9>,
       H<E11, MergedPath, I10>,
     ]
-  ): Frog<
+  ): FrogBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
     S &
       ToSchema<
@@ -1388,7 +1392,7 @@ export interface OnHandlerInterface<
     methods: string[],
     path: P,
     ...handlers: H<E, MergePath<BasePath, P>, I, R>[]
-  ): Frog<
+  ): FrogBase<
     E,
     S &
       ToSchema<
@@ -1405,7 +1409,7 @@ export interface OnHandlerInterface<
     methods: string | string[],
     paths: string[],
     ...handlers: H<E, any, I, R>[]
-  ): Frog<
+  ): FrogBase<
     E,
     S & ToSchema<string, string, I['in'], MergeTypedResponseData<R>>,
     BasePath
@@ -1595,7 +1599,7 @@ export type UndefinedIfHavingQuestion<T> = T extends `${infer _}?`
 ////////////////////////////////////////
 
 export type ExtractSchema<T> = UnionToIntersection<
-  T extends Frog<infer _, infer S, any> ? S : never
+  T extends FrogBase<infer _, infer S, any> ? S : never
 >
 
 type EnvOrEmpty<T> = T extends Env ? (Env extends T ? {} : T) : T
