@@ -127,6 +127,12 @@ export type FrogConstructorParameters<
    */
   initialState?: _state | undefined
   /**
+   * Origin URL of the server instance.
+   *
+   * @link https://developer.mozilla.org/en-US/docs/Web/API/URL/origin
+   */
+  origin?: string | undefined
+  /**
    * Key used to sign secret data.
    *
    * It is used for:
@@ -220,6 +226,7 @@ export class FrogBase<
     | ImageResponseOptions
     | (() => Promise<ImageResponseOptions>)
     | undefined
+  origin: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
@@ -240,6 +247,7 @@ export class FrogBase<
     imageAspectRatio,
     imageOptions,
     initialState,
+    origin,
     secret,
     verify,
   }: FrogConstructorParameters<env, basePath, _state> = {}) {
@@ -252,6 +260,7 @@ export class FrogBase<
     if (hub) this.hub = hub
     if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
     if (imageOptions) this.imageOptions = imageOptions
+    if (origin) this.origin = origin
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -277,8 +286,9 @@ export class FrogBase<
     // Frame Route (implements GET & POST).
     this.hono.use(parsePath(path), ...middlewares, async (c) => {
       const url = new URL(c.req.url)
-      const assetsUrl = url.origin + parsePath(this.assetsPath)
-      const baseUrl = url.origin + parsePath(this.basePath)
+      const origin = this.origin ?? url.origin
+      const assetsUrl = origin + parsePath(this.assetsPath)
+      const baseUrl = origin + parsePath(this.basePath)
 
       const { context, getState } = getFrameContext<env, string>({
         context: await requestBodyToContext(c, {
@@ -289,6 +299,7 @@ export class FrogBase<
           verify,
         }),
         initialState: this._initialState,
+        origin,
       })
 
       if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
@@ -328,7 +339,7 @@ export class FrogBase<
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
-            : `${url.origin + p.resolve(this.basePath, browserLocation_)}`,
+            : `${origin + p.resolve(this.basePath, browserLocation_)}`,
           302,
         )
 
@@ -528,6 +539,7 @@ export class FrogBase<
     if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
     if (!frog.hub) frog.hub = this.hub
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
+    if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
     if (!frog.verify) frog.verify = this.verify
 
