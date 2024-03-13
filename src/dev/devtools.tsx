@@ -9,7 +9,12 @@ import { html } from 'hono/html'
 
 import type { FrogBase } from '../frog-base.js'
 import type { Env } from '../types/env.js'
-import { apiRoutes, type ApiRoutesOptions } from './api.js'
+import {
+  apiRoutes,
+  getInitialData,
+  type ApiRoutesOptions,
+  getFrameRoutes,
+} from './api.js'
 import type { Pretty } from '../types/utils.js'
 
 export type DevtoolsOptions = Pretty<
@@ -63,8 +68,20 @@ export function devtools<
   const rootBasePath = frog.basePath === '/' ? '' : frog.basePath
   const devBasePath = `${rootBasePath}${basePath}`
 
+  const routes = inspectRoutes(frog.hono)
+
   app
-    .get('/', (c) => {
+    .get('/', async (c) => {
+      const url = new URL(c.req.url)
+
+      let initialData = {}
+      let frameRoutes: string[] = []
+      if (routes.length) {
+        const frameUrl = `${url.origin}${routes[0].path}`
+        initialData = await getInitialData(frameUrl)
+        frameRoutes = getFrameRoutes(routes)
+      }
+
       return c.html(
         <>
           {html`<!DOCTYPE html>`}
@@ -100,6 +117,17 @@ export function devtools<
             </head>
             <body>
               <div id="root" />
+              <script
+                id="__FROG_DATA__"
+                type="application/json"
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    data: initialData,
+                    routes: frameRoutes,
+                  }),
+                }}
+              />
             </body>
           </html>
         </>,
@@ -110,7 +138,7 @@ export function devtools<
       apiRoutes({
         appFid,
         appMnemonic,
-        routes: inspectRoutes(frog.hono),
+        routes,
       }),
     )
 

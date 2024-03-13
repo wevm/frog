@@ -1,31 +1,14 @@
-import { useEffect, useState } from 'react'
-import { useStore } from 'zustand'
+import { useState } from 'react'
 
-import { client } from './lib/api'
-import { store } from './lib/store'
-
-import './App.css'
+import { useFrame } from './hooks/useFrame'
 
 export function App() {
+  const frame = useFrame()
   const [count, setCount] = useState(0)
-  const frames = useStore(store, (state) => state.frames)
-  const refreshCount = useStore(store, (state) => state.refreshCount)
-
-  useEffect(() => {
-    client.frames
-      .$get()
-      .then((res) => res.json())
-      .then((frames) => {
-        store.setState((state) => ({ ...state, frames }))
-      })
-      .catch((err) => {
-        console.error('error fetching frames', err)
-      })
-  }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div>
+    <div>
+      <div flex="" bg-red>
         <button onClick={() => setCount((count) => count - 1)} type="button">
           -
         </button>
@@ -35,16 +18,7 @@ export function App() {
         </button>
       </div>
 
-      <div>
-        frames
-        <ul>
-          {frames.map((frame) => (
-            <li key={frame}>{frame} </li>
-          ))}
-        </ul>
-      </div>
-
-      <div>refreshCount: {refreshCount}</div>
+      {JSON.stringify(frame)}
     </div>
   )
 }

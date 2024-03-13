@@ -5,3 +5,5 @@ const apiUrl = `${__FROG_BASE_URL__}/api`
 
 type Route = import('../../../src/dev/api.js').ApiRoutes
 export const client = hc<Route>(apiUrl)
+
+export type Client = typeof client

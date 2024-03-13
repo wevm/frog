@@ -44,7 +44,7 @@ export function devServer(options?: DevServerOptions): VitePlugin {
     ) => {
       const exclude = options?.exclude ?? defaultOptions.exclude
 
-      const devtoolsAssetsRegex = /assets\/.*(css|js|png)/
+      const devtoolsAssetsRegex = /assets\/.*(css|js|png|woff2)/
       for (const pattern of exclude) {
         if (!req.url) continue
         if (devtoolsAssetsRegex.test(req.url)) continue

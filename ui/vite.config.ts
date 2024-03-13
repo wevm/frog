@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import React from '@vitejs/plugin-react'
+import UnoCSS from 'unocss/vite'
+import { presetAttributify, presetUno, transformerAttributifyJsx } from 'unocss'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,12 +13,17 @@ export default defineConfig({
       input: 'src/main.tsx',
       output: {
         assetFileNames: 'assets/[name].[ext]',
-        chunkFileNames: 'assets/[name].js',
         dir: '../src/ui',
         entryFileNames: '[name].js',
       },
     },
     target: 'esnext',
   },
-  plugins: [react()],
+  plugins: [
+    UnoCSS({
+      presets: [presetUno(), presetAttributify()],
+      transformers: [transformerAttributifyJsx()],
+    }),
+    React(),
+  ],
 })
