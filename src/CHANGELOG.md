@@ -1,5 +1,13 @@
 # frog
 
+## 0.5.8
+
+### Patch Changes
+
+- [#138](https://github.com/wevm/frog/pull/138) [`d555b1c`](https://github.com/wevm/frog/commit/d555b1c05962ff1549f8ffa8b99a6ecc9404de24) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `address` to `FrameData`. Read more at https://warpcast.com/horsefacts.eth/0xb98e17d8.
+
+- [`a0bc957`](https://github.com/wevm/frog/commit/a0bc9572b27d67b550bc556f91996d57579380b4) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og`.
+
 ## 0.5.7
 
 ### Patch Changes
