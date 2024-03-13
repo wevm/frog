@@ -22,15 +22,14 @@ We can inject middleware on the `app` level using the `.use` method. This means 
 import { Button, Frog } from 'frog'
 import { neynar, type NeynarVariables } from 'frog/middlewares'
 
-export const app = new Frog<{ Variables: NeynarVariables }>()
-
-// @log: ↓ 1. Inject middleware onto the app.
-app.use(
-  neynar({
-    apiKey: 'NEYNAR_FROG_FM',
-    features: ['interactor', 'cast'],
-  }),
-)
+export const app = new Frog()
+// @log:    ↓ 1. Inject middleware onto the app.
+  .use(
+    neynar({
+      apiKey: 'NEYNAR_FROG_FM',
+      features: ['interactor', 'cast'],
+    }),
+  )
 
 // @log: 2. All routes on `app` will inject the middleware.
 ```
@@ -44,7 +43,12 @@ We can inject middleware on a route level:
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import {  neynar } from 'frog/middlewares'
+import { neynar } from 'frog/middlewares'
+
+const neynarMiddleware = neynar({
+  apiKey: 'NEYNAR_FROG_FM',
+  features: ['interactor', 'cast'],
+})
 
 export const app = new Frog()
 
@@ -61,7 +65,17 @@ app.frame('/', neynarMiddleware, (c) => {
 ```
 
 :::tip[Tip]
-If the middleware sets variable types, then their types will automatically be inferred onto `c.var` when using route-level middleware.
+You can also include more than one middleware on a route!
+
+```tsx
+app.frame(
+  '/', 
+  neynarMiddleware,
+  fooMiddleware,
+  barMiddleware,
+  c => { /* ... */ }
+)
+```
 :::
 
 ## Built-in Middlewares
@@ -74,45 +88,40 @@ Frog comes with a built-in middleware for [Neynar](https://neynar.com) which all
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import { type NeynarVariables, neynar } from 'frog/middlewares'
+import { neynar } from 'frog/middlewares'
 
-export const app = new Frog<{ 
-  Variables: NeynarVariables 
-// @log:   ↑ 1. Inject variables to get type inference on context (`c.var`).
-}>()
-
-// @log:     ↓ 2. Inject `neynar` middleware onto the app.
-app.use(
-  neynar({
-    apiKey: 'NEYNAR_FROG_FM',
-    features: ['interactor', 'cast'],
-  }),
-)
-
-app.frame('/', (c) => {
-// @log:   ↓ 3. Use `c.var` to access Neynar variables!
-  const { displayName, followerCount } = c.var.interactor || {}
-  console.log('cast: ', c.var.cast)
-  console.log('interactor: ', c.var.interactor)
-  //                                ^?
-  return c.res({
-    image: (
-      <div
-        style={{
-          alignItems: 'center',
-          color: 'white',
-          display: 'flex',
-          justifyContent: 'center',
-          fontSize: 48,
-          height: '100%',
-          width: '100%',
-        }}
-      >
-        Greetings {displayName}, you have {followerCount} followers.
-      </div>
-    ),
+export const app = new Frog()
+// @log:    ↓ 1. Inject `neynar` middleware onto the app.
+  .use(
+    neynar({
+      apiKey: 'NEYNAR_FROG_FM',
+      features: ['interactor', 'cast'],
+    }),
+  )
+  .frame('/', (c) => {
+// @log:             ↓ 2. Use `c.var` to access Neynar variables!
+    const { displayName, followerCount } = c.var.interactor || {}
+    console.log('cast: ', c.var.cast)
+    console.log('interactor: ', c.var.interactor)
+    //                                ^?
+    return c.res({
+      image: (
+        <div
+          style={{
+            alignItems: 'center',
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'center',
+            fontSize: 48,
+            height: '100%',
+            width: '100%',
+          }}
+        >
+          Greetings {displayName}, you have {followerCount} followers.
+        </div>
+      ),
+    })
   })
-})
 ```
 
 :::warning

@@ -10,17 +10,15 @@ import lz from 'lz-string'
 import { default as p } from 'path-browserify'
 
 import { routes as devRoutes } from './dev/routes.js'
-import type { TransactionContext } from './types/context.js'
 import type { Env } from './types/env.js'
 import type { FrameImageAspectRatio, FrameResponse } from './types/frame.js'
 import type { Hub } from './types/hub.js'
-import type { HandlerResponse } from './types/response.js'
 import type {
   FrameHandler,
   HandlerInterface,
   MiddlewareHandlerInterface,
+  TransactionHandler,
 } from './types/routes.js'
-import type { TransactionResponse } from './types/transaction.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
@@ -272,9 +270,7 @@ export class Frog<
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
-    this.frame = this.frame.bind(this)
 
-    // this.use = this.hono.use.bind(this.hono)
     if (initialState) this._initialState = initialState
   }
 
@@ -550,21 +546,23 @@ export class Frog<
     if (!frog.secret) frog.secret = this.secret
     if (!frog.verify) frog.verify = this.verify
 
-    return this.hono.route(path, frog.hono)
+    this.hono.route(path, frog.hono)
+
+    return this
   }
 
-  transaction<path extends string>(
-    this: Frog<env, schema, basePath, _state>,
-    path: path,
-    handler: (
-      context: TransactionContext<env, path, _state>,
-    ) => HandlerResponse<TransactionResponse>,
-    options: RouteOptions = {},
-  ) {
+  transaction: HandlerInterface<env, 'transaction', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      TransactionHandler<env>
+    >(...parameters)
+
     const { verify = this.verify } = options
 
-    this.hono.post(parsePath(path), async (c) => {
-      const { context } = getTransactionContext<env, path, _state>({
+    this.hono.post(parsePath(path), ...middlewares, async (c) => {
+      const { context } = getTransactionContext<env, string, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -578,11 +576,12 @@ export class Frog<
       if (response instanceof Response) return response
       return c.json(response.data)
     })
+
+    return this
   }
 
   use: MiddlewareHandlerInterface<env, schema, basePath> = (...args: any[]) => {
     this.hono.use(...args)
-    // TODO: check
     return this as any
   }
 }

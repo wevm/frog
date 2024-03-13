@@ -13,15 +13,7 @@
   "exports": {
     ".": {
       "types": "./_lib/index.d.ts",
-      "bun": "./_lib/index.js",
-      "edge": "./_lib/edge/index.js",
-      "edge-light": "./_lib/edge/index.js",
-      "worker": "./_lib/edge/index.js",
       "default": "./_lib/index.js"
-    },
-    "./edge": {
-      "types": "./_lib/edge/index.d.ts",
-      "default": "./_lib/edge/index.js"
     },
     "./hubs": {
       "types": "./_lib/hubs/index.d.ts",
@@ -83,10 +75,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

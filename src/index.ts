@@ -12,8 +12,8 @@ export { TextInput, type TextInputProps } from './components/TextInput.js'
 export type {
   FrogConstructorParameters,
   RouteOptions,
-} from './frog-base.js'
-export { Frog } from './frog-base.js'
+} from './frog.js'
+export { Frog } from './frog.js'
 
 export {
   type FrameMetadata,

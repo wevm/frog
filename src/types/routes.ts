@@ -6,7 +6,7 @@ import type {
   RemoveBlankRecord,
   UnionToIntersection,
 } from 'hono/utils/types'
-import type { Frog, RouteOptions } from '../frog-base.js'
+import type { Frog, RouteOptions } from '../frog.js'
 import type { Context, FrameContext, TransactionContext } from './context.js'
 import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'

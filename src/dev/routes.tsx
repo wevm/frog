@@ -14,7 +14,7 @@ import { type CookieOptions } from 'hono/utils/cookie'
 import { validator } from 'hono/validator'
 import { mnemonicToAccount } from 'viem/accounts'
 
-import { type Frog } from '../frog-base.js'
+import { type Frog } from '../frog.js'
 import type { Env } from '../types/env.js'
 import { verify } from '../utils/jws.js'
 import { parsePath } from '../utils/parsePath.js'

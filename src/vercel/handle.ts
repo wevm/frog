@@ -1,7 +1,7 @@
 import type { Schema } from 'hono'
 import { handle as handle_hono } from 'hono/vercel'
 
-import type { Frog } from '../frog-base.js'
+import type { Frog } from '../frog.js'
 import type { Env } from '../types/env.js'
 
 export function handle<
