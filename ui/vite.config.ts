@@ -8,6 +8,7 @@ export default defineConfig({
     copyPublicDir: false,
     emptyOutDir: true,
     rollupOptions: {
+      input: ['src/main.tsx'],
       output: {
         assetFileNames: 'assets/[name].[ext]',
         chunkFileNames: 'assets/[name].js',

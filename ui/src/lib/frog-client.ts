@@ -5,17 +5,30 @@ import { HMRPayload } from 'vite/types/hmrPayload.js'
 import { client } from './api'
 import { store } from './store'
 
-console.debug('[frog] connecting...')
+declare const __FROG_CLIENT__: string | undefined
 
-const importMetaUrl = new URL(import.meta.url)
+export function initFrogClient() {
+  const enabled = (() => {
+    try {
+      return typeof __FROG_CLIENT__ === 'boolean' && __FROG_CLIENT__ === true
+    } catch {
+      return false
+    }
+  })()
+  if (!enabled) return
 
-const socketProtocol = importMetaUrl.protocol === 'https:' ? 'wss' : 'ws'
-const socketHost = `${importMetaUrl.hostname}:${importMetaUrl.port}/`
+  console.debug('[frog] connecting...')
 
-try {
-  setupWebSocket(socketProtocol, socketHost)
-} catch (error) {
-  console.error(`[frog] failed to connect to websocket (${error}). `)
+  const importMetaUrl = new URL(import.meta.url)
+
+  const socketProtocol = importMetaUrl.protocol === 'https:' ? 'wss' : 'ws'
+  const socketHost = `${importMetaUrl.hostname}:${importMetaUrl.port}/`
+
+  try {
+    setupWebSocket(socketProtocol, socketHost)
+  } catch (error) {
+    console.error(`[frog] failed to connect to websocket (${error}). `)
+  }
 }
 
 function setupWebSocket(

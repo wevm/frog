@@ -16,7 +16,7 @@ export type DevtoolsOptions = Pretty<
   Pretty<ApiRoutesOptions> & {
     assetsPath?: string
     /**
-     * The base path for the devtools instance.
+     * The base path for the devtools instance off the Frog instances `basePath`.
      *
      * @default '/dev'
      */
@@ -44,7 +44,7 @@ export function devtools<
   basePath extends string,
   ///
   state = env['State'],
->(frog: FrogBase<env, schema, basePath, state>, options: DevtoolsOptions) {
+>(frog: FrogBase<env, schema, basePath, state>, options: DevtoolsOptions = {}) {
   const {
     appFid,
     appMnemonic,
@@ -59,12 +59,6 @@ export function devtools<
   if (assetsPath) publicPath = assetsPath === '/' ? '' : assetsPath
   else if (serveStatic) publicPath = `.${basePath}`
   else publicPath = frog.assetsPath === '/' ? '' : frog.assetsPath
-
-  // TODO:
-  // - vercel-build output to public dir (works with `publicPath`)
-  // - rewrite `@hono/vite-dev-server` (`@vite/client` to frames, `frog-client` to devtools)
-  // - route to /:path/dev
-  // - middleware?
 
   app
     .get('/', (c) => {
@@ -83,16 +77,19 @@ export function devtools<
               <script type="module">
                 {html`globalThis.__FROG_BASE_URL__ = '${c.req.url}'`}
               </script>
+              <script type="module">
+                {html`globalThis.__FROG_CLIENT__ = false`}
+              </script>
 
               <script
                 type="module"
                 crossorigin=""
-                src={`${publicPath}/index.js`}
+                src={`${publicPath}/main.js`}
               />
               <link
                 rel="stylesheet"
                 crossorigin=""
-                href={`${publicPath}/assets/index.css`}
+                href={`${publicPath}/assets/main.css`}
               />
             </head>
             <body>

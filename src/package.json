@@ -51,6 +51,10 @@
       "types": "./_lib/next/index.d.ts",
       "default": "./_lib/next/index.js"
     },
+    "./node": {
+      "types": "./_lib/node/index.d.ts",
+      "default": "./_lib/node/index.js"
+    },
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
