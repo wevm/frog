@@ -60,6 +60,9 @@ export function devtools<
   else if (serveStatic) publicPath = `.${basePath}`
   else publicPath = frog.assetsPath === '/' ? '' : frog.assetsPath
 
+  const rootBasePath = frog.basePath === '/' ? '' : frog.basePath
+  const devBasePath = `${rootBasePath}${basePath}`
+
   app
     .get('/', (c) => {
       return c.html(
@@ -77,9 +80,6 @@ export function devtools<
               <script type="module">
                 {html`globalThis.__FROG_BASE_URL__ = '${c.req.url}'`}
               </script>
-              <script type="module">
-                {html`globalThis.__FROG_CLIENT__ = false`}
-              </script>
 
               <script
                 type="module"
@@ -90,6 +90,12 @@ export function devtools<
                 rel="stylesheet"
                 crossorigin=""
                 href={`${publicPath}/assets/main.css`}
+              />
+
+              <link
+                rel="alternate icon"
+                type="image/png"
+                href={`${publicPath}/assets/icon.png`}
               />
             </head>
             <body>
@@ -118,12 +124,11 @@ export function devtools<
           resolve(dirname(fileURLToPath(import.meta.url)), '../ui'),
         ),
         rewriteRequestPath(path) {
-          const rootBasePath = frog.basePath === '/' ? '' : frog.basePath
-          const devBasePath = `${rootBasePath}${basePath}`
           return path.replace(devBasePath, '')
         },
       }),
     )
 
   frog.hono.route(basePath, app)
+  frog.dev = devBasePath
 }

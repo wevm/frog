@@ -4,14 +4,12 @@ import { useStore } from 'zustand'
 import { client } from './lib/api'
 import { store } from './lib/store'
 
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
 
 export function App() {
   const [count, setCount] = useState(0)
-  const bears = useStore(store, (state) => state.bears)
   const frames = useStore(store, (state) => state.frames)
+  const refreshCount = useStore(store, (state) => state.refreshCount)
 
   useEffect(() => {
     client.frames
@@ -27,33 +25,27 @@ export function App() {
   }, [])
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)} type="button">
-          count is {count}
+        <button onClick={() => setCount((count) => count - 1)} type="button">
+          -
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        {count}
+        <button onClick={() => setCount((count) => count + 1)} type="button">
+          +
+        </button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
 
-      <div>bears: {bears}</div>
+      <div>
+        frames
+        <ul>
+          {frames.map((frame) => (
+            <li key={frame}>{frame} </li>
+          ))}
+        </ul>
+      </div>
 
-      {frames.map((frame) => (
-        <span key={frame}>{frame} </span>
-      ))}
-    </>
+      <div>refreshCount: {refreshCount}</div>
+    </div>
   )
 }

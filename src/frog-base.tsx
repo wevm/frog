@@ -194,6 +194,7 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
+  dev: string | undefined
   headers: FrogConstructorParameters['headers'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
@@ -251,6 +252,9 @@ export class FrogBase<
     this.post = this.hono.post.bind(this.hono)
 
     if (initialState) this._initialState = initialState
+
+    // this is set `true` by `devtools` middleware
+    this.dev = undefined
   }
 
   frame: HandlerInterface<env, 'frame', schema, basePath> = (

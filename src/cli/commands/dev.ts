@@ -1,11 +1,12 @@
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import devServer, { defaultOptions } from '@hono/vite-dev-server'
 import pc from 'picocolors'
 import { createLogger, createServer } from 'vite'
 
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
+import { defaultOptions, devServer } from '../vite/dev.js'
+import type { Frog } from '../../frog.js'
 
 type DevOptions = {
   host?: boolean
@@ -35,7 +36,6 @@ export async function dev(
         // Note: we are not relying on the default export so we can be compatible with
         // runtimes that rely on it (e.g. Vercel Serverless Functions).
         export: 'app',
-        injectClientScript: false,
       }),
     ],
     publicDir: staticDir ?? 'public',
@@ -47,10 +47,12 @@ export async function dev(
   })
 
   const module = await server.ssrLoadModule(entry_resolved)
-  const basePath = module.app?.basePath || '/'
+  const app = module.app as Frog | undefined
+  const basePath = app?.basePath || '/'
 
   await server.listen()
   server.bindCLIShortcuts()
+  const url = `http://localhost:${server.config.server.port}`
 
   const logger = createLogger()
   logger.clearScreen('info')
@@ -59,9 +61,11 @@ export async function dev(
     `  ${pc.green('[running]')} ${pc.bold('frog')}@${pc.dim(`v${version}`)}`,
   )
   logger.info('')
-  logger.info(
-    `  ${pc.green('➜')}  ${pc.bold('Local')}:   ${pc.cyan(
-      `http://localhost:${server.config.server.port}${basePath}`,
-    )}`,
-  )
+  const appUrl = `${url}${basePath}`
+  logger.info(`  ${pc.green('➜')}  ${pc.bold('Local')}:   ${pc.cyan(appUrl)}`)
+
+  if (app?.dev) {
+    const devUrl = `${url}${app.dev}`
+    logger.info(`  ${pc.green('➜')}  ${pc.bold('Inspect')}: ${pc.cyan(devUrl)}`)
+  }
 }

@@ -1,11 +1,11 @@
 import { createStore } from 'zustand/vanilla'
 
 type State = {
-  bears: number
+  refreshCount: number
   frames: string[]
 }
 
 export const store = createStore<State>(() => ({
-  bears: 0,
+  refreshCount: 0,
   frames: [],
 }))

@@ -2,15 +2,18 @@
 // https://github.com/vitejs/vite/blob/main/packages/vite/src/client/client.ts
 import { HMRPayload } from 'vite/types/hmrPayload.js'
 
-import { client } from './api'
-import { store } from './store'
+import { client } from './lib/api'
+import { store } from './lib/store'
 
-declare const __FROG_CLIENT__: string | undefined
+declare const __FROG_CLIENT_ENABLED__: string | undefined
 
 export function initFrogClient() {
   const enabled = (() => {
     try {
-      return typeof __FROG_CLIENT__ === 'boolean' && __FROG_CLIENT__ === true
+      return (
+        typeof __FROG_CLIENT_ENABLED__ === 'boolean' &&
+        __FROG_CLIENT_ENABLED__ === true
+      )
     } catch {
       return false
     }
