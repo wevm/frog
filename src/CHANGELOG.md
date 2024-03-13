@@ -1,5 +1,11 @@
 # frog
 
+## 0.5.9
+
+### Patch Changes
+
+- [`1f379f4`](https://github.com/wevm/frog/commit/1f379f417560362dbe1878e85f88bb84a9b0072b) Thanks [@jxom](https://github.com/jxom)! - Added `origin` property to `Frog` instance.
+
 ## 0.5.8
 
 ### Patch Changes
