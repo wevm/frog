@@ -1,5 +1,13 @@
 # frog
 
+## 0.6.2
+
+### Patch Changes
+
+- [`9e27725`](https://github.com/wevm/frog/commit/9e277258c869ca949faad6f99320188793d83b0e) Thanks [@jxom](https://github.com/jxom)! - Exported `loadGoogleFont` utility for fetching font buffers.
+
+- [`615deaf`](https://github.com/wevm/frog/commit/615deaf2b02d1279c83aadd888aec413f1980852) Thanks [@jxom](https://github.com/jxom)! - Fixed missing `origin`.
+
 ## 0.6.1
 
 ### Patch Changes
