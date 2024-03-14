@@ -198,8 +198,8 @@ importers:
         specifier: ^4
         version: 4.0.4
       hono-og:
-        specifier: 0.0.25
-        version: 0.0.25(hono@4.0.4)
+        specifier: 0.0.26
+        version: 0.0.26(hono@4.0.4)
       jose:
         specifier: ^5.2.2
         version: 5.2.2
@@ -6053,8 +6053,8 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /hono-og@0.0.25(hono@4.0.4):
-    resolution: {integrity: sha512-HInHIU7oTP68C12l+RyCAq/0W801gAC1zd68dzxHBF/IRKmyXT9RH0ibDfCXru6dnQZEBdr2Um/M637MfycwiA==}
+  /hono-og@0.0.26(hono@4.0.4):
+    resolution: {integrity: sha512-YUaLj+T06fWpykgPoeMbxnRMuEA+L83p5+PcBzlM2P/Rj889wnapvVDtT//81iJhRVLCkdjEkAHfcZaJ67cI8w==}
     peerDependencies:
       hono: '>=3'
     dependencies:
