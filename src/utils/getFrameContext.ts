@@ -36,7 +36,7 @@ export function getFrameContext<
 >(
   parameters: GetFrameContextParameters<env, path, input, _state>,
 ): GetFrameContextReturnType<env, path, input, _state> {
-  const { context } = parameters
+  const { context, origin } = parameters
   const { env, frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
