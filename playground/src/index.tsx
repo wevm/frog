@@ -1,6 +1,7 @@
 import { Button, Frog, TextInput } from 'frog'
 import * as hubs from 'frog/hubs'
 
+import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
 import { app as routingApp } from './routing.js'
@@ -219,6 +220,7 @@ export const app = new Frog({
       ],
     })
   })
+  .route('/fonts', fontsApp)
   .route('/middleware', middlewareApp)
   .route('/neynar', neynarApp)
   .route('/routing', routingApp)
