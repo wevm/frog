@@ -72,7 +72,7 @@
     "dom-parser": "^1.1.5",
     "fast-glob": "3.3.2",
     "fs-extra": "^11.2.0",
-    "hono-og": "0.0.24",
+    "hono-og": "0.0.25",
     "jose": "^5.2.2",
     "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",
@@ -83,10 +83,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
