@@ -1,5 +1,11 @@
 # frog
 
+## 0.6.3
+
+### Patch Changes
+
+- [`189d5cb`](https://github.com/wevm/frog/commit/189d5cb6d53c0eb16285ff2d5687e6063793f8eb) Thanks [@jxom](https://github.com/jxom)! - Added support for dynamic google fonts.
+
 ## 0.6.2
 
 ### Patch Changes
