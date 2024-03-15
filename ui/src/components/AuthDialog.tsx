@@ -4,6 +4,8 @@ import { useRef } from 'react'
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { QRCode } from './QRCode.js'
+import { useScrollLock } from '../hooks/useScrollLock.js'
+import { createPortal } from 'react-dom'
 
 type AuthDialogProps = {
   close: () => void
@@ -21,18 +23,25 @@ type AuthDialogProps = {
 export function AuthDialog(props: AuthDialogProps) {
   const { close, data, open, reset, timedOut } = props
 
+  const { lock, unlock } = useScrollLock({ widthReflow: false })
   const ref = useRef<HTMLDivElement>(null)
   useFocusTrap({
     active: open,
     clickOutsideDeactivates: true,
-    onDeactivate: close,
+    onActivate() {
+      lock()
+    },
+    onDeactivate() {
+      unlock()
+      close()
+    },
     ref,
   })
   const { copied, copy } = useCopyToClipboard({ value: data?.url })
 
   if (!open) return <></>
 
-  return (
+  return createPortal(
     <div
       className="flex items-center justify-center p-6"
       style={{
@@ -123,6 +132,7 @@ export function AuthDialog(props: AuthDialogProps) {
           {copied ? 'Copied!' : 'Copy to Clipboard'}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
