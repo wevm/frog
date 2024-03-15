@@ -113,6 +113,10 @@ export function devtools<
         user,
       } satisfies Bootstrap)
 
+      const title = initialData
+        ? `frame: ${new URL(initialData.url).pathname}`
+        : 'frog'
+
       return c.html(
         <>
           {html`<!DOCTYPE html>`}
@@ -123,7 +127,7 @@ export function devtools<
                 name="viewport"
                 content="width=device-width, initial-scale=1.0"
               />
-              <title>frog</title>
+              <title>{title}</title>
 
               <script type="module">
                 {html`globalThis.__FROG_BASE_URL__ = '${baseUrl}'`}
@@ -146,7 +150,7 @@ export function devtools<
                 href={`${publicPath}/assets/icon.png`}
               />
             </head>
-            <body>
+            <body style={{ backgroundColor: '#000' }}>
               <div id="root" />
               <script
                 id="__FROG_DATA__"

@@ -245,5 +245,6 @@ export async function handleSelectNewFrame(url: string) {
   }
 
   history.replaceState(null, '', nextUrl.toString())
+  document.title = `frame: ${frameUrl.pathname}`
   store.setState((state) => ({ ...state, skipSaveStateToQueryHash: false }))
 }
