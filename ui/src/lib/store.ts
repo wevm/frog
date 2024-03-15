@@ -3,6 +3,7 @@ import { createStore } from 'zustand/vanilla'
 import { subscribeWithSelector } from 'zustand/middleware'
 
 import { Bootstrap, Data, User } from '../types/frog'
+import { deepEqual } from '../utils/deepEqual'
 
 export type State = {
   dataKey: string
@@ -20,6 +21,7 @@ export type State = {
   stack: string[]
   user: User | null | undefined
   tab: 'context' | 'meta-tags' | 'request' | 'state'
+  skipSaveStateToQueryHash: boolean
 }
 
 const initialState: State = {
@@ -38,11 +40,10 @@ const initialState: State = {
   stack: [],
   user: undefined,
   tab: 'request',
+  skipSaveStateToQueryHash: false,
 } satisfies State
 
 export const store = createStore(subscribeWithSelector(() => initialState))
-
-const hashKey = 'state'
 
 export function hydrateStore(bootstrap: Bootstrap) {
   const { data, frameUrls, user } = bootstrap
@@ -78,9 +79,10 @@ export function hydrateStore(bootstrap: Bootstrap) {
   watchState()
 }
 
+export const hashKey = 'state'
+
 function restoreState() {
   try {
-    console.debug('[frog] restoring state...')
     const state = location.hash.replace(`#${hashKey}/`, '').trim()
     let restored = lz.decompressFromEncodedURIComponent(state)
     // Fallback incase there is an extra level of decoding:
@@ -91,6 +93,7 @@ function restoreState() {
     const parsed = JSON.parse(restored ?? 'null')
     if (!parsed) return undefined
 
+    console.debug('[frog] restoring state...')
     const logIndex =
       parsed.logIndex === (parsed.logs?.length ?? 0) - 1 ? -1 : parsed.logIndex
     console.debug('[frog] restored state.')
@@ -114,8 +117,13 @@ function watchState() {
       tab: state.tab,
     }),
     (slice) => {
+      if (store.getState().skipSaveStateToQueryHash) return
+
       const compressed = lz.compressToEncodedURIComponent(JSON.stringify(slice))
       window.history.replaceState(null, '', `#${hashKey}/${compressed}`)
+    },
+    {
+      equalityFn: deepEqual,
     },
   )
 }

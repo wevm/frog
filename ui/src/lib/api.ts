@@ -1,9 +1,8 @@
 import { hc } from 'hono/client'
 
-declare const __FROG_BASE_URL__: string
-const apiUrl = `${__FROG_BASE_URL__}/api`
+import { baseUrl } from '../constants.js'
 
 type Route = import('../../../src/dev/api.js').ApiRoutes
-export const client = hc<Route>(apiUrl)
+export const client = hc<Route>(`${baseUrl}/api`)
 
 export type Client = typeof client

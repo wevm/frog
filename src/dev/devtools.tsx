@@ -77,13 +77,23 @@ export function devtools<
   const app = new Hono()
   app
     .get('/', async (c) => {
-      const url = new URL(c.req.url)
+      const { origin } = new URL(c.req.url)
+      const baseUrl = `${origin}${devBasePath}`
 
       let frameUrls: string[] = []
       let initialData: Bootstrap['data'] = undefined
       if (routes.length) {
-        frameUrls = getFrameUrls(url.origin, routes)
-        initialData = (await getInitialData(frameUrls[0])) as Bootstrap['data']
+        frameUrls = getFrameUrls(origin, routes)
+
+        let frameUrl = frameUrls[0]
+        const url = c.req.query('url')
+        if (url) {
+          const tmpUrl = `${origin}${url}`
+          if (url.startsWith('/')) frameUrl = tmpUrl
+          else if (frameUrls.includes(url)) frameUrl = url
+        }
+
+        initialData = (await getInitialData(frameUrl)) as Bootstrap['data']
       }
 
       let user: User | undefined = undefined
@@ -116,7 +126,7 @@ export function devtools<
               <title>frog</title>
 
               <script type="module">
-                {html`globalThis.__FROG_BASE_URL__ = '${c.req.url}'`}
+                {html`globalThis.__FROG_BASE_URL__ = '${baseUrl}'`}
               </script>
 
               <script

@@ -13,18 +13,16 @@ type UseScrollLockReturnType = {
   unlock: () => void
 }
 
-type OriginalStyle = {
-  overflow: CSSStyleDeclaration['overflow']
-  paddingRight: CSSStyleDeclaration['paddingRight']
-}
-
 export function useScrollLock(
   parameters: UseScrollLockParameters = {},
 ): UseScrollLockReturnType {
   const { autoLock = true, lockTarget, widthReflow = true } = parameters
   const [isLocked, setIsLocked] = useState(false)
   const target = useRef<HTMLElement | null>(null)
-  const originalStyle = useRef<OriginalStyle | null>(null)
+  const originalStyle = useRef<{
+    overflow: CSSStyleDeclaration['overflow']
+    paddingRight: CSSStyleDeclaration['paddingRight']
+  } | null>(null)
 
   const lock = () => {
     if (target.current) {

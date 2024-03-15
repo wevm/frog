@@ -2,6 +2,7 @@ import { type MouseEvent } from 'react'
 import { Data } from '../types/frog.js'
 import { client } from '../lib/api.js'
 import { store } from '../lib/store.js'
+import { baseUrl } from '../constants.js'
 
 export async function handlePost(button: {
   index: number
@@ -172,6 +173,8 @@ export async function handleForward() {
 }
 
 export async function handleReload(event: MouseEvent) {
+  store.setState((state) => ({ ...state, skipSaveStateToQueryHash: true }))
+
   const { dataKey, dataMap, logs } = store.getState()
   const data = dataMap[dataKey]
   if (!data) return
@@ -208,11 +211,16 @@ export async function handleReload(event: MouseEvent) {
     logs: [...state.logs, id],
     logIndex: -1,
   }))
+
+  store.setState((state) => ({ ...state, skipSaveStateToQueryHash: false }))
 }
 
 export async function handleSelectNewFrame(url: string) {
+  store.setState((state) => ({ ...state, skipSaveStateToQueryHash: true }))
+
+  const encodedUrl = encodeURIComponent(url)
   const json = await client.frames[':url']
-    .$get({ param: { url: encodeURIComponent(url) } })
+    .$get({ param: { url: encodedUrl } })
     .then((response) => response.json())
 
   const id = json.id
@@ -227,4 +235,15 @@ export async function handleSelectNewFrame(url: string) {
     stackIndex: 0,
     tab: 'request',
   }))
+
+  const frameUrl = new URL(url)
+  const nextUrl = new URL(baseUrl)
+  if (frameUrl.pathname !== '/') {
+    const params = new URLSearchParams(nextUrl.search)
+    params.set('url', frameUrl.pathname)
+    nextUrl.search = params.toString()
+  }
+
+  history.replaceState(null, '', nextUrl.toString())
+  store.setState((state) => ({ ...state, skipSaveStateToQueryHash: false }))
 }
