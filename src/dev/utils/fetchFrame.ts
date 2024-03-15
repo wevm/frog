@@ -80,27 +80,34 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
   const messageBytes = Buffer.from(message.toBinary()).toString('hex')
 
   const t0 = performance.now()
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: defaultHeaders,
-    body: JSON.stringify({
-      untrustedData: {
-        buttonIndex,
-        castId,
-        fid,
-        inputText: inputText ? inputText : undefined,
-        messageHash: `0x${bytesToHex(message.hash)}`,
-        network,
-        state,
-        timestamp: message.data?.timestamp,
-        url,
-      },
-      trustedData: {
-        messageBytes,
-      },
-    }),
-  })
+  let response: Response | undefined
+  let error: Error | undefined
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify({
+        untrustedData: {
+          buttonIndex,
+          castId,
+          fid,
+          inputText: inputText ? inputText : undefined,
+          messageHash: `0x${bytesToHex(message.hash)}`,
+          network,
+          state,
+          timestamp: message.data?.timestamp,
+          url,
+        },
+        trustedData: {
+          messageBytes,
+        },
+      }),
+    })
+  } catch (err) {
+    error = err as Error
+  }
+
   const t1 = performance.now()
   const speed = t1 - t0
-  return Object.assign(response, { speed })
+  return { error, response, speed }
 }

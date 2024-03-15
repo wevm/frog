@@ -181,9 +181,8 @@ export async function handleReload(event: MouseEvent) {
 
   // reset to initial state
   if (event.shiftKey) {
-    const url = encodeURIComponent(data.url)
     const json = await client.frames[':url']
-      .$get({ param: { url } })
+      .$get({ param: { url: encodeURIComponent(data.url) } })
       .then((response) => response.json())
     const id = json.id
     store.setState((state) => ({
@@ -197,7 +196,10 @@ export async function handleReload(event: MouseEvent) {
       stackIndex: 0,
       tab: 'request',
     }))
-    history.replaceState(null, '', location.pathname)
+
+    updateFrameQueryParam(json.url)
+
+    store.setState((state) => ({ ...state, skipSaveStateToQueryHash: false }))
     return
   }
 
@@ -236,6 +238,12 @@ export async function handleSelectNewFrame(url: string) {
     tab: 'request',
   }))
 
+  updateFrameQueryParam(url)
+
+  store.setState((state) => ({ ...state, skipSaveStateToQueryHash: false }))
+}
+
+function updateFrameQueryParam(url: string) {
   const frameUrl = new URL(url)
   const nextUrl = new URL(baseUrl)
   if (frameUrl.pathname !== '/') {
@@ -246,5 +254,4 @@ export async function handleSelectNewFrame(url: string) {
 
   history.replaceState(null, '', nextUrl.toString())
   document.title = `frame: ${frameUrl.pathname}`
-  store.setState((state) => ({ ...state, skipSaveStateToQueryHash: false }))
 }

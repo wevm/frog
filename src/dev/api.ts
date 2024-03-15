@@ -95,11 +95,12 @@ export function apiRoutes(options: Options) {
       const json = c.req.valid('json')
       const fid = json.fid ?? c.var.fid ?? defaultFid
       const body = { ...json, fid }
-      const response = await fetchFrame({
+      const { response, speed } = await fetchFrame({
         body,
         privateKey: c.var.keypair?.privateKey,
         url,
       })
+      if (!response) throw new Error('Failed to fetch frame')
 
       const cloned = response.clone()
       const text = await response.text()
@@ -122,7 +123,7 @@ export function apiRoutes(options: Options) {
         metrics: {
           htmlSize: sizes[0],
           imageSize: sizes[1],
-          speed: response.speed,
+          speed: speed,
         },
         response: {
           success: true,
@@ -140,7 +141,7 @@ export function apiRoutes(options: Options) {
       const fid = json.fid ?? c.var.fid ?? defaultFid
       const body = { ...json, fid }
 
-      const response = await fetchFrame({
+      const { error, response, speed } = await fetchFrame({
         body,
         privateKey: c.var.keypair?.privateKey,
         url,
@@ -153,9 +154,9 @@ export function apiRoutes(options: Options) {
         method: 'post',
         body,
         metrics: {
-          speed: response.speed,
+          speed,
         },
-        response: response.redirected
+        response: response?.redirected
           ? {
               success: true,
               location: response.url,
@@ -165,10 +166,11 @@ export function apiRoutes(options: Options) {
             }
           : {
               success: false,
-              // TODO: Handle redirect error
-              error: 'Something went wrong',
-              status: response.status,
-              statusText: response.statusText,
+              error: error?.cause
+                ? `${error.cause}`.replace('Error: ', '')
+                : error?.message,
+              status: response?.status ?? 500,
+              statusText: response?.statusText ?? 'Internal Server Error',
             },
         url,
       } as const)
