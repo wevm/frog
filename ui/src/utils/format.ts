@@ -18,6 +18,7 @@ export function formatTime(time: number) {
 export function formatUrl(url: string) {
   const urlObj = new URL(url)
   urlObj.search = ''
+  urlObj.hash = ''
   const urlString = urlObj.toString().replace(/https?:\/\//, '')
   return urlString.endsWith('/') ? urlString.slice(0, -1) : urlString
 }

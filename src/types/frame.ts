@@ -1,6 +1,20 @@
 import { type ImageResponseOptions } from 'hono-og'
 import type { TypedResponse } from './response.js'
 
+export type Font = {
+  name: string
+  weight?: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
+  style?: 'normal' | 'italic'
+  lang?: string
+} & (
+  | { data: ArrayBuffer | Buffer; source?: 'buffer' | undefined }
+  | { source: 'google' }
+)
+
+export type ImageOptions = Omit<ImageResponseOptions, 'fonts'> & {
+  fonts: Font[]
+}
+
 export type FrameResponse = {
   /**
    * Path of the next frame.
@@ -86,7 +100,7 @@ export type FrameResponse = {
    * @example
    * { width: 1200, height: 630 }
    */
-  imageOptions?: Omit<ImageResponseOptions, 'fonts'> | undefined
+  imageOptions?: Omit<ImageOptions, 'fonts'> | undefined
   /**
    * Path or URI to the OG image.
    *

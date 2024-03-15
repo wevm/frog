@@ -1,5 +1,6 @@
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons'
 import { Data, Frame } from '../types/frog'
+import { formatFileSize } from '../utils/format'
 
 type DataProps = {
   data: Data
@@ -10,11 +11,12 @@ export function Data(props: DataProps) {
   const { data, frame } = props
 
   const imageSize = 'imageSize' in data.metrics ? data.metrics.imageSize : null
+  const imageType = frame.image.startsWith('data') ? 'dataUri' : 'http'
   const limits = {
     postUrl: 256,
     inputText: 32,
     state: 4_096,
-    image: 256,
+    image: imageType === 'dataUri' ? 256 : 10_485_760,
   }
   const postUrlTooLong = frame.postUrl.length > limits.postUrl
   const inputTextTooLong = frame.input?.text
@@ -45,9 +47,9 @@ export function Data(props: DataProps) {
       property: 'fc:frame:image',
       value: frame.imageUrl,
       status: imageTooLarge ? 'invalid' : 'valid',
-      message: `Image is ${((imageSize ?? 1024) / 1024).toFixed(
-        2,
-      )} kilobytes and must be ${limits.image.toLocaleString()} kilobytes or less.`,
+      message: `Image is ${formatFileSize(
+        imageSize ?? 1024,
+      )} and must be ${formatFileSize(limits.image)} or less.`,
     },
     {
       property: 'fc:frame:aspect_ratio',

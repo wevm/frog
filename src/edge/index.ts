@@ -1,4 +1,5 @@
 export { parseEther } from 'viem'
+export { loadGoogleFont, type LoadGoogleFontParameters } from 'hono-og'
 
 export { Button } from '../components/Button.js'
 export { TextInput } from '../components/TextInput.js'

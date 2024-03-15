@@ -1,6 +1,6 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
-import { ImageResponse, type ImageResponseOptions } from 'hono-og'
+import { ImageResponse } from 'hono-og'
 import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
 import type { Schema } from 'hono/types'
@@ -10,7 +10,11 @@ import lz from 'lz-string'
 import { default as p } from 'path-browserify'
 
 import type { Env } from './types/env.js'
-import type { FrameImageAspectRatio, FrameResponse } from './types/frame.js'
+import type {
+  FrameImageAspectRatio,
+  FrameResponse,
+  ImageOptions,
+} from './types/frame.js'
 import type { Hub } from './types/hub.js'
 import type {
   FrameHandler,
@@ -25,6 +29,7 @@ import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
+import { parseFonts } from './utils/parseFonts.js'
 import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
@@ -87,10 +92,7 @@ export type FrogConstructorParameters<
    *   return { fonts: [{ name: 'Inter', data: fontData, style: 'normal'}] }
    * }
    */
-  imageOptions?:
-    | ImageResponseOptions
-    | (() => Promise<ImageResponseOptions>)
-    | undefined
+  imageOptions?: ImageOptions | (() => Promise<ImageOptions>) | undefined
   /**
    * Default image aspect ratio.
    *
@@ -142,9 +144,7 @@ export type FrogConstructorParameters<
 }
 
 export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
-  fonts?:
-    | ImageResponseOptions['fonts']
-    | (() => Promise<ImageResponseOptions['fonts']>)
+  fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
 }
 
 /**
@@ -205,10 +205,7 @@ export class FrogBase<
   /** Image aspect ratio. */
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
-  imageOptions:
-    | ImageResponseOptions
-    | (() => Promise<ImageResponseOptions>)
-    | undefined
+  imageOptions: ImageOptions | (() => Promise<ImageOptions>) | undefined
   origin: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
@@ -472,7 +469,7 @@ export class FrogBase<
       const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
       return new ImageResponse(image_, {
         ...imageOptions,
-        fonts,
+        fonts: await parseFonts(fonts),
         headers: imageOptions?.headers ?? headers,
       })
     })

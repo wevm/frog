@@ -1,5 +1,31 @@
 # frog
 
+## 0.6.4
+
+### Patch Changes
+
+- [`e453a04`](https://github.com/wevm/frog/commit/e453a045c861bf319adb5b52159185c12fe95cee) Thanks [@jxom](https://github.com/jxom)! - Updated hono-og
+
+## 0.6.3
+
+### Patch Changes
+
+- [`189d5cb`](https://github.com/wevm/frog/commit/189d5cb6d53c0eb16285ff2d5687e6063793f8eb) Thanks [@jxom](https://github.com/jxom)! - Added support for dynamic google fonts.
+
+## 0.6.2
+
+### Patch Changes
+
+- [`9e27725`](https://github.com/wevm/frog/commit/9e277258c869ca949faad6f99320188793d83b0e) Thanks [@jxom](https://github.com/jxom)! - Exported `loadGoogleFont` utility for fetching font buffers.
+
+- [`615deaf`](https://github.com/wevm/frog/commit/615deaf2b02d1279c83aadd888aec413f1980852) Thanks [@jxom](https://github.com/jxom)! - Fixed missing `origin`.
+
+## 0.6.1
+
+### Patch Changes
+
+- [`aa1496e`](https://github.com/wevm/frog/commit/aa1496e3c582d41af95fa3fe746bdc18fc55d603) Thanks [@jxom](https://github.com/jxom)! - Fixed JSX composition bug.
+
 ## 0.6.0
 
 ### Minor Changes

@@ -4,6 +4,7 @@ import { HMRPayload } from 'vite/types/hmrPayload.js'
 
 import { client } from './lib/api'
 import { store } from './lib/store'
+import { performAction } from './utils/actions'
 
 declare const __FROG_CLIENT_ENABLED__: string | undefined
 
@@ -64,13 +65,43 @@ function setupWebSocket(
         )
         break
       }
+      // refresh on update
       case 'update':
       case 'full-reload': {
-        client.frames
-          .$get()
-          .then((res) => res.json())
-          .then((routes) => store.setState((state) => ({ ...state, routes })))
-          .catch((err) => console.error('error fetching frames', err))
+        const { dataKey, dataMap, logs, logIndex, stack, stackIndex } =
+          store.getState()
+        const data = dataMap[dataKey]
+        const previousData = dataMap[logs.at(-1) ?? dataKey]
+        const endOfStack = stackIndex === stack.length - 1
+        const endOfLogs = logIndex === -1 || logIndex === logs.length - 1
+
+        try {
+          const [frameUrls, json] = await Promise.all([
+            client.frames.$get().then((res) => res.json()),
+            // only update data if end of stack and logs
+            endOfStack && endOfLogs && data && previousData
+              ? performAction(data, previousData)
+              : undefined,
+          ])
+          store.setState((state) => {
+            if (!json)
+              return {
+                ...state,
+                frameUrls,
+              }
+
+            const id = json.id
+            return {
+              ...state,
+              dataKey: id,
+              dataMap: { ...state.dataMap, [id]: json },
+              frameUrls,
+              logs: state.logs.slice(0, state.logs.length - 1).concat(id),
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
         break
       }
       default:

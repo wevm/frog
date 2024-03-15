@@ -172,14 +172,31 @@ export async function handleForward() {
 }
 
 export async function handleReload(event: MouseEvent) {
-  if (event.shiftKey) {
-    // TODO: Reset
-    return
-  }
-
   const { dataKey, dataMap, logs } = store.getState()
   const data = dataMap[dataKey]
   if (!data) return
+
+  // reset to initial state
+  if (event.shiftKey) {
+    const url = encodeURIComponent(data.url)
+    const json = await client.frames[':url']
+      .$get({ param: { url } })
+      .then((response) => response.json())
+    const id = json.id
+    store.setState((state) => ({
+      ...state,
+      dataKey: id,
+      dataMap: { ...state.dataMap, [id]: json },
+      inputText: '',
+      logs: [id],
+      logIndex: -1,
+      stack: [id],
+      stackIndex: 0,
+      tab: 'request',
+    }))
+    history.replaceState(null, '', location.pathname)
+    return
+  }
 
   const json = await performAction(data, dataMap[logs.at(-1) ?? dataKey])
   const id = json.id

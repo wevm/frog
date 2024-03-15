@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 
 import { App } from './App.tsx'
 import { initFrogClient } from './frog-client.ts'
-import { State, store } from './lib/store.ts'
+import { hydrateStore } from './lib/store.ts'
 import { Bootstrap } from './types/frog.ts'
 
 import '@fontsource-variable/inter'
@@ -14,33 +14,7 @@ import './index.css'
 {
   const element = document.getElementById('__FROG_DATA__')
   const bootstrap = JSON.parse(element!.textContent!) as Bootstrap
-
-  const { data, frameUrls, user } = bootstrap
-  let hydrated: Partial<State> = {
-    frameUrls,
-    user,
-  }
-  if (data)
-    hydrated = {
-      ...hydrated,
-      dataKey: data.id,
-      dataMap: { [data.id]: data },
-      logs: [data.id],
-      stack: [data.id],
-      frameUrls,
-      user,
-    }
-
-  store.setState((state) => ({
-    ...state,
-    ...hydrated,
-    overrides: user
-      ? {
-          ...state.overrides,
-          userFid: user.userFid,
-        }
-      : state.overrides,
-  }))
+  hydrateStore(bootstrap)
   element?.remove()
 }
 

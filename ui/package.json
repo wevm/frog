@@ -13,12 +13,12 @@
     "clsx": "^2.1.0",
     "focus-trap": "^7.5.4",
     "hono": "^4",
+    "lz-string": "^1.5.0",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "shiki": "^1.1.7",
     "typescript": "^5.2.2",
-    "unocss": "^0.58.5",
     "vite": "^5.1.6",
     "zustand": "^4.5.2"
   }
