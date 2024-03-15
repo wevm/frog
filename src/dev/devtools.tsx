@@ -13,9 +13,13 @@ import {
   apiRoutes,
   getInitialData,
   type ApiRoutesOptions,
-  getFrameRoutes,
+  getFrameUrls,
+  type User,
+  type Bootstrap,
 } from './api.js'
 import type { Pretty } from '../types/utils.js'
+import { getCookie } from 'hono/cookie'
+import { getUserDataByFid } from './utils/warpcast.js'
 
 export type DevtoolsOptions = Pretty<
   Pretty<ApiRoutesOptions> & {
@@ -59,7 +63,9 @@ export function devtools<
     serveStaticOptions = { manifest: '' },
   } = options ?? {}
 
-  const app = new Hono()
+  const routes = inspectRoutes(frog.hono)
+  const hubApiUrl = frog.hub?.apiUrl || frog.hubApiUrl
+
   let publicPath = ''
   if (assetsPath) publicPath = assetsPath === '/' ? '' : assetsPath
   else if (serveStatic) publicPath = `.${basePath}`
@@ -68,19 +74,34 @@ export function devtools<
   const rootBasePath = frog.basePath === '/' ? '' : frog.basePath
   const devBasePath = `${rootBasePath}${basePath}`
 
-  const routes = inspectRoutes(frog.hono)
-
+  const app = new Hono()
   app
     .get('/', async (c) => {
       const url = new URL(c.req.url)
 
-      let initialData = {}
-      let frameRoutes: string[] = []
+      let frameUrls: string[] = []
+      let initialData: Bootstrap['data'] = undefined
       if (routes.length) {
-        const frameUrl = `${url.origin}${routes[0].path}`
-        initialData = await getInitialData(frameUrl)
-        frameRoutes = getFrameRoutes(routes)
+        frameUrls = getFrameUrls(url.origin, routes)
+        initialData = (await getInitialData(frameUrls[0])) as Bootstrap['data']
       }
+
+      let user: User | undefined = undefined
+      const cookie = getCookie(c, 'user')
+      if (cookie)
+        try {
+          const parsed = JSON.parse(cookie)
+          if (parsed && hubApiUrl) {
+            const data = await getUserDataByFid(hubApiUrl, parsed.userFid)
+            user = { state: 'completed', ...parsed, ...data }
+          }
+        } catch {}
+
+      const bootstrap = JSON.stringify({
+        data: initialData,
+        frameUrls,
+        user,
+      } satisfies Bootstrap)
 
       return c.html(
         <>
@@ -122,10 +143,7 @@ export function devtools<
                 type="application/json"
                 // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
                 dangerouslySetInnerHTML={{
-                  __html: JSON.stringify({
-                    data: initialData,
-                    routes: frameRoutes,
-                  }),
+                  __html: bootstrap,
                 }}
               />
             </body>
@@ -138,7 +156,9 @@ export function devtools<
       apiRoutes({
         appFid,
         appMnemonic,
+        hubApiUrl,
         routes,
+        secret: frog.secret,
       }),
     )
 

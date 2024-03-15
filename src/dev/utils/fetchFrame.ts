@@ -11,6 +11,7 @@ import {
   MessageType,
   SignatureScheme,
 } from '../../protobufs/generated/message_pb.js'
+import { defaultHeaders } from '../constants.js'
 
 export type FetchFrameParameters = {
   body: {
@@ -22,14 +23,14 @@ export type FetchFrameParameters = {
     fid: number
     inputText: string | undefined
     state: string | undefined
-    url: string
   }
   privateKey: string | undefined
+  url: string
 }
 
 export async function fetchFrame(parameters: FetchFrameParameters) {
-  const { body, privateKey } = parameters
-  const { buttonIndex, castId, fid, inputText, state, url } = body
+  const { body, privateKey, url } = parameters
+  const { buttonIndex, castId, fid, inputText, state } = body
 
   const network = FarcasterNetwork.MAINNET
   const epoch = 1_609_459_200_000 // January 1, 2021 UTC
@@ -78,29 +79,28 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
   })
   const messageBytes = Buffer.from(message.toBinary()).toString('hex')
 
-  try {
-    performance.mark('start')
-    return await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({
-        untrustedData: {
-          buttonIndex,
-          castId,
-          fid,
-          inputText: inputText ? inputText : undefined,
-          messageHash: `0x${bytesToHex(message.hash)}`,
-          network,
-          state,
-          timestamp: message.data?.timestamp,
-          url,
-        },
-        trustedData: {
-          messageBytes,
-        },
-      }),
-    })
-  } finally {
-    // finally always called even after return or throw so we can mark the end to measure performance
-    performance.mark('end')
-  }
+  const t0 = performance.now()
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      untrustedData: {
+        buttonIndex,
+        castId,
+        fid,
+        inputText: inputText ? inputText : undefined,
+        messageHash: `0x${bytesToHex(message.hash)}`,
+        network,
+        state,
+        timestamp: message.data?.timestamp,
+        url,
+      },
+      trustedData: {
+        messageBytes,
+      },
+    }),
+  })
+  const t1 = performance.now()
+  const speed = t1 - t0
+  return Object.assign(response, { speed })
 }

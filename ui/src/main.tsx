@@ -3,38 +3,53 @@ import ReactDOM from 'react-dom/client'
 
 import { App } from './App.tsx'
 import { initFrogClient } from './frog-client.ts'
-import { store } from './lib/store.ts'
-import { Data } from './types/frog.ts'
+import { State, store } from './lib/store.ts'
+import { Bootstrap } from './types/frog.ts'
 
 import '@fontsource-variable/inter'
 import './assets/icon.png'
 import './index.css'
-import 'virtual:uno.css'
 
-const dataElement = document.getElementById('__FROG_DATA__')
-const bootstrap = JSON.parse(dataElement!.textContent!) as
-  | { data: Data; routes: string[] }
-  | undefined
+// Hydrate store from server data
+{
+  const element = document.getElementById('__FROG_DATA__')
+  const bootstrap = JSON.parse(element!.textContent!) as Bootstrap
 
-if (bootstrap) {
-  const { data, routes } = bootstrap
-  const { id: initialDataKey } = data
+  const { data, frameUrls, user } = bootstrap
+  let hydrated: Partial<State> = {
+    frameUrls,
+    user,
+  }
+  if (data)
+    hydrated = {
+      ...hydrated,
+      dataKey: data.id,
+      dataMap: { [data.id]: data },
+      logs: [data.id],
+      stack: [data.id],
+      frameUrls,
+      user,
+    }
 
   store.setState((state) => ({
     ...state,
-    dataKey: initialDataKey,
-    dataMap: { [initialDataKey]: data },
-    logs: [initialDataKey],
-    routes,
-    stack: [initialDataKey],
+    ...hydrated,
+    overrides: user
+      ? {
+          ...state.overrides,
+          userFid: user.userFid,
+        }
+      : state.overrides,
   }))
+  element?.remove()
 }
-dataElement?.remove()
 
+// Mount app
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
 )
 
+// Watch for changes in development
 initFrogClient()

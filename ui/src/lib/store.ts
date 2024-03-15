@@ -1,27 +1,41 @@
 import { createStore } from 'zustand/vanilla'
 
-import { Data } from '../types/frog'
+import { Data, User } from '../types/frog'
 
-type State = {
+export type State = {
   dataKey: string
   dataMap: Record<string, Data>
+  frameUrls: string[]
   inputText: string
   logIndex: number
   logs: string[]
-  routes: string[]
+  overrides: {
+    userFid: number
+    castFid: number
+    castHash: string
+  }
   stackIndex: number
   stack: string[]
+  user: User | undefined
+  tab: 'context' | 'meta-tags' | 'request' | 'state'
 }
 
 const initialState = {
   dataKey: '',
   dataMap: {},
+  frameUrls: [],
   inputText: '',
   logIndex: -1,
   logs: [],
-  routes: [],
+  overrides: {
+    userFid: 1,
+    castFid: 1,
+    castHash: '0x0000000000000000000000000000000000000000',
+  },
   stackIndex: 0,
   stack: [],
+  user: undefined,
+  tab: 'request',
 } satisfies State
 
 export const store = createStore<State>(() => initialState)

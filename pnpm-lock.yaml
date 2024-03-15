@@ -135,7 +135,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5)
+        version: 0.6.4(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -154,7 +154,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -176,6 +176,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.8.2
         version: 1.8.2
+      '@hono/valibot-validator':
+        specifier: ^0.2.2
+        version: 0.2.2(hono@4.1.0)(valibot@0.30.0)
       '@noble/curves':
         specifier: ^1.3.0
         version: 1.3.0
@@ -215,6 +218,9 @@ importers:
       typescript:
         specifier: '>=5.0.4'
         version: 5.3.3
+      valibot:
+        specifier: ^0.30.0
+        version: 0.30.0
       viem:
         specifier: ^2.7.10
         version: 2.7.11(typescript@5.3.3)
@@ -226,7 +232,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -242,7 +248,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -258,7 +264,7 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -271,7 +277,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -305,7 +311,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -321,7 +327,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.6.1(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3)
+        version: 0.6.4(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -347,27 +353,30 @@ importers:
       '@types/react-dom':
         specifier: ^18.2.21
         version: 18.2.21
-      '@unocss/preset-attributify':
-        specifier: ^0.58.5
-        version: 0.58.5
-      '@vitejs/plugin-react':
-        specifier: ^4.2.1
-        version: 4.2.1(vite@5.1.6)
       '@vitejs/plugin-react-swc':
         specifier: ^3.5.0
         version: 3.6.0(vite@5.1.6)
+      clsx:
+        specifier: ^2.1.0
+        version: 2.1.0
       focus-trap:
         specifier: ^7.5.4
         version: 7.5.4
       hono:
         specifier: ^4.1.0
         version: 4.1.0
+      qrcode:
+        specifier: ^1.5.3
+        version: 1.5.3
       react:
         specifier: ^18.2.0
         version: 18.2.0
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      shiki:
+        specifier: ^1.1.7
+        version: 1.1.7
       typescript:
         specifier: ^5.2.2
         version: 5.4.2
@@ -648,6 +657,7 @@ packages:
     dependencies:
       '@babel/core': 7.23.9
       '@babel/helper-plugin-utils': 7.22.5
+    dev: false
 
   /@babel/plugin-transform-react-jsx-source@7.23.3(@babel/core@7.23.9):
     resolution: {integrity: sha512-91RS0MDnAWDNvGC6Wio5XYkyWI39FMFO+JK9+4AlgaTH+yWwVTsw7/sn6LK0lH7c5F+TFkpv/3LfCJ1Ydwof/g==}
@@ -657,6 +667,7 @@ packages:
     dependencies:
       '@babel/core': 7.23.9
       '@babel/helper-plugin-utils': 7.22.5
+    dev: false
 
   /@babel/plugin-transform-typescript@7.23.6(@babel/core@7.23.9):
     resolution: {integrity: sha512-6cBG5mBvUu4VUD04OHKnYzbuHNP8huDsD3EDqqpIpsswTDoqHCjLoHb6+QgsV1WsT2nipRqCPgxD3LXnEO7XfA==}
@@ -1904,6 +1915,16 @@ packages:
   /@hono/node-server@1.8.2:
     resolution: {integrity: sha512-h8l2TBLCPHZBUrrkosZ6L5CpBLj6zdESyF4B+zngiCDF7aZFQJ0alVbLx7jn8PCVi9EyoFf8a4hOZFi1tD95EA==}
     engines: {node: '>=18.14.1'}
+    dev: false
+
+  /@hono/valibot-validator@0.2.2(hono@4.1.0)(valibot@0.30.0):
+    resolution: {integrity: sha512-1IfIi4JDztOeL3ciVbDoN5uJS9nSRfJv2az8VIn/m7CcVca2uF48Hw7v5ZShO/ESTP2SxtT8ozMZkQE1hi+kiw==}
+    peerDependencies:
+      hono: ^4.1.0
+      valibot: ^0.13.1
+    dependencies:
+      hono: 4.1.0
+      valibot: 0.30.0
     dev: false
 
   /@hono/vite-dev-server@0.7.0(hono@4.1.0):
@@ -3240,6 +3261,10 @@ packages:
     resolution: {integrity: sha512-kt9hhvrWTm0EPtRDIsoAZnSsFlIDBVBBI5CQewpA/NZCPin+MOKRXg+JiWc4y+8fZ/v0HzfDhu/UC+OTZGMt7A==}
     dev: false
 
+  /@shikijs/core@1.1.7:
+    resolution: {integrity: sha512-gTYLUIuD1UbZp/11qozD3fWpUTuMqPSf3svDMMrL0UmlGU7D9dPw/V1FonwAorCUJBltaaESxq90jrSjQyGixg==}
+    dev: true
+
   /@shikijs/rehype@1.1.6:
     resolution: {integrity: sha512-Tk7PKoSUKDdOffmZgbCAh7FjI5/g56iU5AcecPRJ/8RoVqyx9UxJGB6N9my49PI8X6LV1M3IUHFjcuVYEppsrA==}
     dependencies:
@@ -3457,22 +3482,26 @@ packages:
       '@types/babel__generator': 7.6.8
       '@types/babel__template': 7.4.4
       '@types/babel__traverse': 7.20.5
+    dev: false
 
   /@types/babel__generator@7.6.8:
     resolution: {integrity: sha512-ASsj+tpEDsEiFr1arWrlN6V3mdfjRMZt6LtK/Vp/kreFLnr5QH5+DhvD5nINYZXzwJvXeGq+05iUXcAzVrqWtw==}
     dependencies:
       '@babel/types': 7.23.9
+    dev: false
 
   /@types/babel__template@7.4.4:
     resolution: {integrity: sha512-h/NUaSyG5EyxBIp8YRxo4RMe2/qQgvyowRwVMzhYhBCONbW8PUsg4lkFMrhgZhUe5z3L3MiLDuvyJ/CaPa2A8A==}
     dependencies:
       '@babel/parser': 7.23.9
       '@babel/types': 7.23.9
+    dev: false
 
   /@types/babel__traverse@7.20.5:
     resolution: {integrity: sha512-WXCyOcRtH37HAUkpXhUduaxdm82b4GSlyTqajXviN4EfiuPgNYR109xMCKvpl6zPIpua0DGlMEDCq+g8EdoheQ==}
     dependencies:
       '@babel/types': 7.23.9
+    dev: false
 
   /@types/bun@1.0.7:
     resolution: {integrity: sha512-zaPoQi+uBaqy7BwAh6HQ5dSt6H95XeejCSGEukXHYO32xIPdzPXJjNzmCJ64TWCpM4+R7WyPMdCnkZyETAZfuw==}
@@ -4288,22 +4317,6 @@ packages:
       - supports-color
     dev: false
 
-  /@vitejs/plugin-react@4.2.1(vite@5.1.6):
-    resolution: {integrity: sha512-oojO9IDc4nCUUi8qIR11KoQm0XFFLIwsRBwHRR4d/88IWghn1y6ckz/bJ8GHDCsYEJee8mDzqtJxh15/cisJNQ==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    peerDependencies:
-      vite: ^4.2.0 || ^5.0.0
-    dependencies:
-      '@babel/core': 7.23.9
-      '@babel/plugin-transform-react-jsx-self': 7.23.3(@babel/core@7.23.9)
-      '@babel/plugin-transform-react-jsx-source': 7.23.3(@babel/core@7.23.9)
-      '@types/babel__core': 7.20.5
-      react-refresh: 0.14.0
-      vite: 5.1.6(@types/node@20.11.19)
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
   /@vitest/coverage-v8@1.3.0(vitest@1.3.0):
     resolution: {integrity: sha512-e5Y5uK5NNoQMQaNitGQQjo9FoA5ZNcu7Bn6pH+dxUf48u6po1cX38kFBYUHZ9GNVkF4JLbncE0WeWwTw+nLrxg==}
     peerDependencies:
@@ -5011,7 +5024,6 @@ packages:
   /clsx@2.1.0:
     resolution: {integrity: sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==}
     engines: {node: '>=6'}
-    dev: false
 
   /code-block-writer@10.1.1:
     resolution: {integrity: sha512-67ueh2IRGst/51p0n6FvPrnRjAGHY5F8xdjkgrYE7DDzpJe6qA07RYQ9VcoUeo5ATOjSOiWpSL3SWBRRbempMw==}
@@ -5386,7 +5398,6 @@ packages:
 
   /dijkstrajs@1.0.3:
     resolution: {integrity: sha512-qiSlmBq9+BCdCA/L46dw8Uy93mloxsPSbwnm5yrKn2vMPiy8KyAskTF6zuV/j5BMsmOGZDPs7KjU+mjb670kfA==}
-    dev: false
 
   /dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
@@ -5470,7 +5481,6 @@ packages:
 
   /encode-utf8@1.0.3:
     resolution: {integrity: sha512-ucAnuBEhUK4boH2HjVYG5Q2mQyPorvv0u/ocS+zhdw0S8AlHYY+GOFhP1Gio5z4icpP2ivFSvhtFjQi8+T9ppw==}
-    dev: false
 
   /encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
@@ -6157,8 +6167,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /frog@0.6.1(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5):
-    resolution: {integrity: sha512-9UUhXAzKN28MWmGx/PCJvXAO4WPwbqno3eXwXMtrS5Jlrm54MN/61iHGQKRHV6oXj3i1cLUA0lI8WWkP4t+Z5g==}
+  /frog@0.6.4(@types/node@14.18.33)(hono@4.1.0)(typescript@4.9.5):
+    resolution: {integrity: sha512-gQs1zDvD9GTZ88Qoiib2PK6g8FygI11mELtRQzvUbOcObbUeI+2IRVGrtfr31TIFcZtYFf4cDz5VCsftDGH6PQ==}
     hasBin: true
     peerDependencies:
       hono: ^4.1.0
@@ -6178,7 +6188,7 @@ packages:
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       hono: 4.1.0
-      hono-og: 0.0.24(hono@4.1.0)
+      hono-og: 0.0.26(hono@4.1.0)
       jose: 5.2.2
       lz-string: 1.5.0
       path-browserify: 1.0.1
@@ -6200,8 +6210,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.6.1(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-9UUhXAzKN28MWmGx/PCJvXAO4WPwbqno3eXwXMtrS5Jlrm54MN/61iHGQKRHV6oXj3i1cLUA0lI8WWkP4t+Z5g==}
+  /frog@0.6.4(@types/node@14.18.33)(hono@4.1.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-gQs1zDvD9GTZ88Qoiib2PK6g8FygI11mELtRQzvUbOcObbUeI+2IRVGrtfr31TIFcZtYFf4cDz5VCsftDGH6PQ==}
     hasBin: true
     peerDependencies:
       hono: ^4.1.0
@@ -6221,7 +6231,7 @@ packages:
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       hono: 4.1.0
-      hono-og: 0.0.24(hono@4.1.0)
+      hono-og: 0.0.26(hono@4.1.0)
       jose: 5.2.2
       lz-string: 1.5.0
       path-browserify: 1.0.1
@@ -6243,8 +6253,8 @@ packages:
       - zod
     dev: false
 
-  /frog@0.6.1(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-9UUhXAzKN28MWmGx/PCJvXAO4WPwbqno3eXwXMtrS5Jlrm54MN/61iHGQKRHV6oXj3i1cLUA0lI8WWkP4t+Z5g==}
+  /frog@0.6.4(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-gQs1zDvD9GTZ88Qoiib2PK6g8FygI11mELtRQzvUbOcObbUeI+2IRVGrtfr31TIFcZtYFf4cDz5VCsftDGH6PQ==}
     hasBin: true
     peerDependencies:
       hono: ^4.1.0
@@ -6264,7 +6274,7 @@ packages:
       fast-glob: 3.3.2
       fs-extra: 11.2.0
       hono: 4.1.0
-      hono-og: 0.0.24(hono@4.1.0)
+      hono-og: 0.0.26(hono@4.1.0)
       jose: 5.2.2
       lz-string: 1.5.0
       path-browserify: 1.0.1
@@ -6728,6 +6738,16 @@ packages:
 
   /hono-og@0.0.24(hono@4.1.0):
     resolution: {integrity: sha512-V+npyPvqlfuJ3A7UEfCjs7ZdZ9380KsYPQ+Y1dmQ0+NKkrpeTQbDQELptVkbOJH7Pi+m+RQLRLyqOzbSKyOZ9Q==}
+    peerDependencies:
+      hono: ^4.1.0
+    dependencies:
+      '@vercel/og': 0.6.2
+      hono: 4.1.0
+      workers-og: 0.0.23
+    dev: false
+
+  /hono-og@0.0.26(hono@4.1.0):
+    resolution: {integrity: sha512-YUaLj+T06fWpykgPoeMbxnRMuEA+L83p5+PcBzlM2P/Rj889wnapvVDtT//81iJhRVLCkdjEkAHfcZaJ67cI8w==}
     peerDependencies:
       hono: ^4.1.0
     dependencies:
@@ -8679,7 +8699,6 @@ packages:
   /pngjs@5.0.0:
     resolution: {integrity: sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==}
     engines: {node: '>=10.13.0'}
-    dev: false
 
   /possible-typed-array-names@1.0.0:
     resolution: {integrity: sha512-d7Uw+eZoloe0EHDIYoe+bQ5WXnGMOpmiZFTuMWCwpjzzkL2nTjcKiAk4hh8TjnGye2TwWOk3UXucZ+3rbmBa8Q==}
@@ -8840,7 +8859,6 @@ packages:
       encode-utf8: 1.0.3
       pngjs: 5.0.0
       yargs: 15.4.1
-    dev: false
 
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -8914,6 +8932,7 @@ packages:
   /react-refresh@0.14.0:
     resolution: {integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==}
     engines: {node: '>=0.10.0'}
+    dev: false
 
   /react-remove-scroll-bar@2.3.5(@types/react@18.2.57)(react@18.2.0):
     resolution: {integrity: sha512-3cqjOqg6s0XbOjWvmasmqHch+RLxIEk2r/70rzGXuz3iIGQsQheEQyqYCBb5EECoD01Vo2SIbDqW4paLeLTASw==}
@@ -9500,6 +9519,12 @@ packages:
     dependencies:
       '@shikijs/core': 1.1.6
     dev: false
+
+  /shiki@1.1.7:
+    resolution: {integrity: sha512-9kUTMjZtcPH3i7vHunA6EraTPpPOITYTdA5uMrvsJRexktqP0s7P3s9HVK80b4pP42FRVe03D7fT3NmJv2yYhw==}
+    dependencies:
+      '@shikijs/core': 1.1.7
+    dev: true
 
   /side-channel@1.0.5:
     resolution: {integrity: sha512-QcgiIWV4WV7qWExbN5llt6frQB/lBven9pqliLXfGPB+K9ZYXxDozp0wLkHS24kWCm+6YXH/f0HhnObZnZOBnQ==}
@@ -10461,6 +10486,10 @@ packages:
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
     dev: true
+
+  /valibot@0.30.0:
+    resolution: {integrity: sha512-5POBdbSkM+3nvJ6ZlyQHsggisfRtyT4tVTo1EIIShs6qCdXJnyWU5TJ68vr8iTg5zpOLjXLRiBqNx+9zwZz/rA==}
+    dev: false
 
   /validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}

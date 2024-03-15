@@ -1,7 +1,5 @@
 import { defineConfig } from 'vite'
-import React from '@vitejs/plugin-react'
-import UnoCSS from 'unocss/vite'
-import { presetAttributify, presetUno, transformerAttributifyJsx } from 'unocss'
+import React from '@vitejs/plugin-react-swc'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,11 +17,5 @@ export default defineConfig({
     },
     target: 'esnext',
   },
-  plugins: [
-    UnoCSS({
-      presets: [presetUno(), presetAttributify()],
-      transformers: [transformerAttributifyJsx()],
-    }),
-    React(),
-  ],
+  plugins: [React()],
 })
