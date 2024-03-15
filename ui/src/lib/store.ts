@@ -16,7 +16,7 @@ export type State = {
   }
   stackIndex: number
   stack: string[]
-  user: User | undefined
+  user: User | null | undefined
   tab: 'context' | 'meta-tags' | 'request' | 'state'
 }
 

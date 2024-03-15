@@ -126,6 +126,7 @@ export function apiRoutes(options: Options) {
         },
         response: {
           success: true,
+          error: undefined,
           status: response.status,
           statusText: response.statusText,
         },
@@ -139,8 +140,6 @@ export function apiRoutes(options: Options) {
       const fid = json.fid ?? c.var.fid ?? defaultFid
       const body = { ...json, fid }
 
-      // TODO: Handle redirect error
-      const error: string | undefined = undefined
       const response = await fetchFrame({
         body,
         privateKey: c.var.keypair?.privateKey,
@@ -160,12 +159,14 @@ export function apiRoutes(options: Options) {
           ? {
               success: true,
               location: response.url,
+              error: undefined,
               status: 302,
               statusText: 'Found',
             }
           : {
               success: false,
-              error,
+              // TODO: Handle redirect error
+              error: 'Something went wrong',
               status: response.status,
               statusText: response.statusText,
             },
@@ -297,6 +298,7 @@ export async function getInitialData(frameUrl: string) {
     },
     response: {
       success: true,
+      error: undefined,
       status: response.status,
       statusText: response.statusText,
     },

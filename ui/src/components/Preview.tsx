@@ -7,8 +7,7 @@ import { Frame } from '../types/frog.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
 import { WarpIcon } from './Icons.js'
-import { client } from '../lib/api.js'
-import { handlePost } from '../utils/actions.js'
+import { handlePost, handlePostRedirect } from '../utils/actions.js'
 
 type PreviewProps = {
   frame: Frame
@@ -50,7 +49,7 @@ export function Preview(props: PreviewProps) {
                     case 'mint':
                       return <ButtonMint {...button} target={button.target} />
                     case 'post':
-                      return <ButtonPost {...button} onClick={handlePost} />
+                      return <ButtonPost {...button} />
                     case 'post_redirect':
                       return <ButtonPostRedirect {...button} />
                     case 'tx':
@@ -178,14 +177,13 @@ function ButtonPost(props: {
   index: number
   target?: string | undefined
   title: string
-  onClick: (button: { index: number; target: string | undefined }) => void
 }) {
-  const { index, target, title, onClick } = props
+  const { index, target, title } = props
   return (
     <button
       className={buttonClass}
       type="button"
-      onClick={() => onClick({ index, target })}
+      onClick={() => handlePost({ index, target })}
     >
       <span className={innerButtonClass}>{title}</span>
     </button>
@@ -193,17 +191,27 @@ function ButtonPost(props: {
 }
 
 function ButtonPostRedirect(props: {
+  index: number
   target?: string | undefined
   title: string
 }) {
-  const { title } = props
+  const { index, target, title } = props
 
   const [open, setOpen] = useState(false)
-  const [url, _setUrl] = useState()
+  const [url, setUrl] = useState<string | undefined>()
 
   return (
     <div>
-      <button className={buttonClass} type="button">
+      <button
+        className={buttonClass}
+        type="button"
+        onClick={async () => {
+          const location = await handlePostRedirect({ index, target })
+          if (!location) return
+          setUrl(location)
+          setOpen(true)
+        }}
+      >
         <span className={innerButtonClass}>{title}</span>
         <ExternalLinkIcon
           className="text-gray-900"

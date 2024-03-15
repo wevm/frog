@@ -232,6 +232,14 @@ function UserButton(props: UserButtonProps) {
             <button
               type="button"
               className="bg-transparent display-block font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
+              onClick={() =>
+                client.auth.logout
+                  .$post()
+                  .then((response) => response.json())
+                  .finally(() =>
+                    store.setState((state) => ({ ...state, user: null })),
+                  )
+              }
             >
               Log Out
             </button>
@@ -246,7 +254,6 @@ type AddressBarProps = { frameUrls: readonly string[]; url: string }
 
 function AddressBar(props: AddressBarProps) {
   const { frameUrls, url } = props
-  console.log('frameUrls', frameUrls, url)
 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)

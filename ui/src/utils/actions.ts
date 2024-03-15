@@ -49,6 +49,63 @@ export async function handlePost(button: {
   })
 }
 
+export async function handlePostRedirect(button: {
+  index: number
+  target: string | undefined
+}) {
+  const { index, target } = button
+  const { dataKey, dataMap, inputText, logs, overrides, user } =
+    store.getState()
+  const frame = dataMap[dataKey].frame
+
+  const json = await client.frames[':url'].redirect
+    .$post({
+      param: { url: encodeURIComponent(target ?? frame.postUrl) },
+      json: {
+        buttonIndex: index,
+        castId: {
+          fid: overrides.castFid,
+          hash: overrides.castHash,
+        },
+        fid:
+          overrides.userFid !== user?.userFid
+            ? overrides.userFid
+            : user.userFid,
+        inputText,
+        state: frame.state,
+      },
+    })
+    .then((response) => response.json())
+
+  const id = json.id
+  const previousData = dataMap[logs.at(-1) ?? dataKey]
+  store.setState((state) => {
+    const nextStackIndex = state.stackIndex + 1
+    return {
+      ...state,
+      dataKey: id,
+      dataMap: {
+        ...state.dataMap,
+        [id]: {
+          ...json,
+          context: previousData.context,
+          frame: previousData.frame,
+        },
+      },
+      inputText: '',
+      logIndex: -1,
+      logs: [...state.logs, id],
+      stack:
+        nextStackIndex < state.stack.length
+          ? [...state.stack.slice(0, nextStackIndex), id]
+          : [...state.stack, id],
+      stackIndex: nextStackIndex,
+    }
+  })
+
+  return json.response.location
+}
+
 export async function performAction(data: Data, previousData: Data) {
   const url = encodeURIComponent(data.url)
 
