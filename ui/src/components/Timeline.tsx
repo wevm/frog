@@ -1,5 +1,3 @@
-import { FormEventHandler, useCallback, useRef, useState } from 'react'
-import clsx from 'clsx'
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -8,13 +6,15 @@ import {
   Pencil2Icon,
   ResetIcon,
 } from '@radix-ui/react-icons'
+import clsx from 'clsx'
+import { FormEventHandler, useCallback, useRef, useState } from 'react'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import { formatSpeed, formatTime } from '../utils/format.js'
-import { Data } from '../types/frog.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
+import { Data } from '../types/frog.js'
 import { performAction } from '../utils/actions.js'
+import { formatSpeed, formatTime } from '../utils/format.js'
 
 const buttonClass =
   'border rounded-sm bg-background-200 p-1.5 text-gray-700 hover:bg-gray-100'

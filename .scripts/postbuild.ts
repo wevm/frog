@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import glob from 'fast-glob'
-import { copy, rename, move } from 'fs-extra'
+import { copy, move, rename } from 'fs-extra'
 
 await copyDist()
 await rewriteHonoJsx()

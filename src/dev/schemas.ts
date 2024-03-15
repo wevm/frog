@@ -1,13 +1,13 @@
 import {
   integer,
+  maxValue,
+  minValue,
   number,
   object,
-  minValue,
-  maxValue,
-  string,
-  union,
-  undefined_,
   optional,
+  string,
+  undefined_,
+  union,
 } from 'valibot'
 
 import { defaultCastId } from './constants.js'

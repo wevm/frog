@@ -1,4 +1,5 @@
 import { dirname, extname, normalize, relative, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import glob from 'fast-glob'
 import {
   copySync,
@@ -6,7 +7,6 @@ import {
   pathExistsSync,
   writeJsonSync,
 } from 'fs-extra/esm'
-import { fileURLToPath } from 'node:url'
 
 export async function build() {
   const files = await glob('./api/**/*.{js,jsx,ts,tsx}')

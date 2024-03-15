@@ -1,7 +1,7 @@
-import { Button, Frog, TextInput } from 'frog'
-import * as hubs from 'frog/hubs'
-import { devtools } from 'frog/dev'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
+import * as hubs from 'frog/hubs'
 
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'

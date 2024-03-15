@@ -1,5 +1,5 @@
 import { type Options, createFocusTrap } from 'focus-trap'
-import { useEffect, type RefObject } from 'react'
+import { type RefObject, useEffect } from 'react'
 
 import { Pretty } from '../types/utils'
 

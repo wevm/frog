@@ -1,13 +1,13 @@
-import { useRef, useState } from 'react'
 import { ExternalLinkIcon, LightningBoltIcon } from '@radix-ui/react-icons'
 import clsx from 'clsx'
+import { useRef, useState } from 'react'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import { Frame } from '../types/frog.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
-import { WarpIcon } from './Icons.js'
+import { Frame } from '../types/frog.js'
 import { handlePost, handlePostRedirect } from '../utils/actions.js'
+import { WarpIcon } from './Icons.js'
 
 type PreviewProps = {
   frame: Frame

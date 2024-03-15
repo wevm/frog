@@ -1,11 +1,11 @@
-import { useData, useFrame, useStore } from './hooks/useStore'
-import { Preview } from './components/Preview'
-import { Metrics } from './components/Metrics'
-import { QuickLinks } from './components/QuickLinks'
 import { Data } from './components/Data'
+import { Metrics } from './components/Metrics'
 import { Navigator } from './components/Navigator'
+import { Preview } from './components/Preview'
+import { QuickLinks } from './components/QuickLinks'
 import { Tabs } from './components/Tabs'
 import { Timeline } from './components/Timeline'
+import { useData, useFrame, useStore } from './hooks/useStore'
 
 export function App() {
   const data = useData()

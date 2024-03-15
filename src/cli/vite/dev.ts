@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import { getRequestListener } from '@hono/node-server'
-import type { Plugin as VitePlugin, ViteDevServer, Connect } from 'vite'
+import type { Connect, Plugin as VitePlugin, ViteDevServer } from 'vite'
 
 export type DevServerOptions = {
   entry?: string

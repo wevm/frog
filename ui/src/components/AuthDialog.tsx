@@ -1,11 +1,11 @@
 import { Cross1Icon } from '@radix-ui/react-icons'
 import { useRef } from 'react'
 
+import { createPortal } from 'react-dom'
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import { QRCode } from './QRCode.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
-import { createPortal } from 'react-dom'
+import { QRCode } from './QRCode.js'
 
 type AuthDialogProps = {
   close: () => void

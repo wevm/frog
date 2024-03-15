@@ -3,10 +3,10 @@ import { join, resolve } from 'node:path'
 import pc from 'picocolors'
 import { createLogger, createServer } from 'vite'
 
+import type { Frog } from '../../frog.js'
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
 import { defaultOptions, devServer } from '../vite/dev.js'
-import type { Frog } from '../../frog.js'
 
 type DevOptions = {
   host?: boolean

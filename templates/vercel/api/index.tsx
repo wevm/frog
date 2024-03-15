@@ -1,7 +1,7 @@
 import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
 // import { neynar } from 'frog/hubs'
 import { handle } from 'frog/vercel'
-import { devtools } from 'frog/dev'
 
 // Uncomment to use Edge Runtime.
 // export const config = {

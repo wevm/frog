@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -7,21 +6,22 @@ import {
   PersonIcon,
   ReloadIcon,
 } from '@radix-ui/react-icons'
+import { useEffect, useRef, useState } from 'react'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
-import { formatUrl } from '../utils/format.js'
-import { AuthDialog } from './AuthDialog.js'
-import { FarcasterIcon } from './Icons.js'
-import { User } from '../types/frog.js'
 import { useStore } from '../hooks/useStore.js'
+import { client } from '../lib/api.js'
+import { store } from '../lib/store.js'
+import { User } from '../types/frog.js'
 import {
   handleBack,
   handleForward,
   handleReload,
   handleSelectNewFrame,
 } from '../utils/actions.js'
-import { client } from '../lib/api.js'
-import { store } from '../lib/store.js'
+import { formatUrl } from '../utils/format.js'
+import { AuthDialog } from './AuthDialog.js'
+import { FarcasterIcon } from './Icons.js'
 
 type NavigatorProps = { frameUrls: string[]; url: string }
 
