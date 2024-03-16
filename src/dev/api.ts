@@ -2,6 +2,7 @@ import { vValidator as validator } from '@hono/valibot-validator'
 import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { Hono } from 'hono'
+import { HTTPException } from 'hono/http-exception'
 import type { InferResponseType, hc } from 'hono/client'
 import {
   deleteCookie,
@@ -278,6 +279,14 @@ export async function getInitialData(frameUrl: string) {
 
   const cloned = response.clone()
   const text = await response.text()
+
+  // Vercel requires authentication by default for preview deployments
+  if (text.includes('Authentication Required') && text.includes('vercel'))
+    throw new HTTPException(401, {
+      message:
+        'Vercel Authentication blocked Frog Devtools\nLearn more: https://vercel.com/docs/security/deployment-protection',
+    })
+
   const metadata = htmlToMetadata(text)
   const { context, frame } = metadata
 
