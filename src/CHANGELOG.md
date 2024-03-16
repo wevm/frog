@@ -1,5 +1,11 @@
 # frog
 
+## 0.6.5
+
+### Patch Changes
+
+- [#155](https://github.com/wevm/frog/pull/155) [`9fc365b`](https://github.com/wevm/frog/commit/9fc365b8a94f24b9f8b285bcdce411cf6b3acd17) Thanks [@christopherwxyz](https://github.com/christopherwxyz)! - Added support for Base Sepolia transactions
+
 ## 0.6.4
 
 ### Patch Changes
