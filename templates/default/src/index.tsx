@@ -60,4 +60,4 @@ app.frame('/', (c) => {
   })
 })
 
-devtools(app)
+devtools(app, { serveStatic })

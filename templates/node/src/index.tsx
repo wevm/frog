@@ -64,7 +64,7 @@ app.frame('/', (c) => {
 const port = 3000
 console.log(`Server is running on port ${port}`)
 
-devtools(app)
+devtools(app, { serveStatic })
 
 serve({
   fetch: app.fetch,
