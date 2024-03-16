@@ -2,7 +2,6 @@ import { vValidator as validator } from '@hono/valibot-validator'
 import { bytesToHex } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { Hono } from 'hono'
-import { HTTPException } from 'hono/http-exception'
 import type { InferResponseType, hc } from 'hono/client'
 import {
   deleteCookie,
@@ -11,6 +10,7 @@ import {
   setCookie,
   setSignedCookie,
 } from 'hono/cookie'
+import { HTTPException } from 'hono/http-exception'
 
 import {
   defaultCookieOptions,
