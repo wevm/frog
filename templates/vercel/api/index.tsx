@@ -65,7 +65,14 @@ app.frame('/', (c) => {
   })
 })
 
-devtools(app)
+if (import.meta.env?.MODE === 'development') {
+  // when using `frog dev`
+  const { serveStatic } = await import('frog/node')
+  devtools(app, { serveStatic })
+} else {
+  // when deployed to Vercel
+  devtools(app, { assetsPath: '/' })
+}
 
 export const GET = handle(app)
 export const POST = handle(app)

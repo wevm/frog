@@ -57,13 +57,17 @@ app.frame('/', (c) => {
   })
 })
 
-devtools(app)
-
 if (typeof Bun !== 'undefined') {
-  app.use('/*', (await import('hono/bun')).serveStatic({ root: './public' }))
+  const { serveStatic } = await import('hono/bun')
+  app.use('/*', serveStatic({ root: './public' }))
+  devtools(app, { serveStatic })
   Bun.serve({
     fetch: app.fetch,
     port: 3000,
   })
   console.log('Server is running on port 3000')
+} else {
+  // when using `frog dev`
+  const { serveStatic } = await import('frog/node')
+  devtools(app, { serveStatic })
 }

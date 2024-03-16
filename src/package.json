@@ -19,6 +19,9 @@
       "worker": "./_lib/edge/index.js",
       "default": "./_lib/index.js"
     },
+    "./client": {
+      "types": "./types/client.d.ts"
+    },
     "./dev": {
       "types": "./_lib/dev/index.d.ts",
       "default": "./_lib/dev/index.js"
@@ -91,10 +94,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
