@@ -56,6 +56,7 @@
     },
     "./node": {
       "types": "./_lib/node/index.d.ts",
+      "worker": "./_lib/node/noop.js",
       "default": "./_lib/node/index.js"
     },
     "./vercel": {
