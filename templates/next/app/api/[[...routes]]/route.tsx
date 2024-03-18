@@ -2,9 +2,9 @@
 
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
-import { serveStatic } from 'frog/node'
 // import { neynar } from 'frog/hubs'
 import { handle } from 'frog/next'
+import { serveStatic } from 'frog/node'
 
 const app = new Frog({
   assetsPath: '/',

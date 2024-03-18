@@ -17,8 +17,8 @@ import {
   getFrameUrls,
   getInitialData,
 } from './api.js'
-import { getUserDataByFid } from './utils/warpcast.js'
 import { isCloudflareWorkers } from './utils/env.js'
+import { getUserDataByFid } from './utils/warpcast.js'
 
 export type DevtoolsOptions = Pretty<
   Pretty<ApiRoutesOptions> & {
