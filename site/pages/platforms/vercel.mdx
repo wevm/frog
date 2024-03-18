@@ -135,6 +135,7 @@ Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way t
 import { Button, Frog } from 'frog'
 import { handle } from 'frog/vercel'
 import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 export const app = new Frog({ 
   basePath: '/api',
@@ -145,12 +146,8 @@ app.frame('/', (c) => {
 })
 
 // @log: Devtools should be called after all frames are defined.
-if (import.meta.env?.MODE === 'development') { // [!code focus]
-  const { serveStatic } = await import('frog/node') // [!code focus]
-  devtools(app, { serveStatic }) // [!code focus]
-} else { // [!code focus]
-  devtools(app, { assetsPath: '/.frog' }) // [!code focus]
-} // [!code focus]
+if (import.meta.env?.MODE === 'development') devtools(app, { serveStatic })
+else devtools(app, { assetsPath: '/.frog' })
 
 export const GET = handle(app)
 export const POST = handle(app)

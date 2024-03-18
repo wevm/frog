@@ -16,7 +16,7 @@ Check out the [Devtools Guide](/concepts/devtools) for more information on featu
 // ---cut---
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev' // [!code focus]
-import { serveStatic } from 'frog/node' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 export const app = new Frog() 
 
@@ -110,7 +110,7 @@ The base path for the devtools instance off the Frog instance's `bathPath`.
 // ---cut---
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
-import { serveStatic } from 'frog/node'
+import { serveStatic } from 'frog/serve-static'
 
 export const app = new Frog() 
 
@@ -133,7 +133,7 @@ Platform-dependent function to serve devtools' static files.
 ```tsx twoslash [Node.js]
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
-import { serveStatic } from 'frog/node' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 export const app = new Frog() 
 
@@ -174,10 +174,6 @@ devtools(app, {
 
 :::tip
 The devtools static files are located at `frog/_lib/ui` if you need to copy them into your public directory (e.g. for Cloudflare Workers). This is automatically handled for [Vercel Serverless projects](/platforms/vercel) by `frog vercel-build`.
-:::
-
-:::tip
-The `frog/node` entrypoint exports `serveStatic` from `'@hono/node-server/serve-static'`. You are welcome to install and use this package directly if you prefer.
 :::
 
 ### serveStaticOptions

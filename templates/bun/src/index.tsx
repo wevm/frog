@@ -1,5 +1,6 @@
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/serve-static'
 
 // import { neynar } from 'frog/hubs'
 
@@ -58,17 +59,13 @@ app.frame('/', (c) => {
   })
 })
 
-if (typeof Bun !== 'undefined') {
-  const { serveStatic } = await import('hono/bun')
-  app.use('/*', serveStatic({ root: './public' }))
-  devtools(app, { serveStatic })
+app.use('/*', serveStatic({ root: './public' }))
+devtools(app, { serveStatic })
 
+if (typeof Bun !== 'undefined') {
   Bun.serve({
     fetch: app.fetch,
     port: 3000,
   })
   console.log('Server is running on port 3000')
-} else {
-  const { serveStatic } = await import('frog/node')
-  devtools(app, { serveStatic })
 }

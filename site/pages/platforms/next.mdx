@@ -131,7 +131,7 @@ Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way t
 import { Button, Frog } from 'frog'
 import { handle } from 'frog/next'
 import { devtools } from 'frog/dev' // [!code focus]
-import { serveStatic } from 'frog/node' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',

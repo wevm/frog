@@ -1,5 +1,0 @@
-{
-  "type": "module",
-  "types": "../_lib/node/index.d.ts",
-  "module": "../_lib/node/index.js"
-}

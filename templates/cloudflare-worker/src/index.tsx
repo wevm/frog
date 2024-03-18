@@ -1,5 +1,6 @@
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/serve-static'
 // import { neynar } from 'frog/hubs'
 
 export const app = new Frog({
@@ -59,13 +60,11 @@ app.frame('/', (c) => {
 
 const isCloudflareWorker = typeof caches !== 'undefined'
 if (isCloudflareWorker) {
-  const { serveStatic } = await import('hono/cloudflare-workers')
   const manifest = await import('__STATIC_CONTENT_MANIFEST')
   const serveStaticOptions = { manifest, root: './' }
   app.use('/*', serveStatic(serveStaticOptions))
   devtools(app, { assetsPath: '/frog', serveStatic, serveStaticOptions })
 } else {
-  const { serveStatic } = await import('frog/node')
   devtools(app, { serveStatic })
 }
 

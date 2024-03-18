@@ -2,6 +2,7 @@ import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 // import { neynar } from 'frog/hubs'
 import { handle } from 'frog/vercel'
+import { serveStatic } from 'frog/serve-static'
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -65,12 +66,8 @@ app.frame('/', (c) => {
   })
 })
 
-if (import.meta.env?.MODE === 'development') {
-  const { serveStatic } = await import('frog/node')
-  devtools(app, { serveStatic })
-} else {
-  devtools(app, { assetsPath: '/.frog' })
-}
+if (import.meta.env?.MODE === 'development') devtools(app, { serveStatic })
+else devtools(app, { assetsPath: '/.frog' })
 
 export const GET = handle(app)
 export const POST = handle(app)

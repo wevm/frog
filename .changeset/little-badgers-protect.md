@@ -14,7 +14,7 @@ In most cases, configuring the devtools should only take a few minutes. All you 
 // Node.js Frog App
 import { Frog } from 'frog'
 + import { devtools } from 'frog/dev'
-+ import { serveStatic } from 'frog/node'
++ import { serveStatic } from 'frog/serve-static'
 
 export const app = new Frog({
 +  dev: {
@@ -32,7 +32,7 @@ app.frame('/', (c) => { ... })
 ```diff
 import { Frog } from 'frog'
 + import { devtools } from 'frog/dev'
-+ import { serveStatic } from 'frog/node'
++ import { serveStatic } from 'frog/serve-static'
 
 export const app = new Frog() 
 

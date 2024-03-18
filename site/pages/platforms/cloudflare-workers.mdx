@@ -121,6 +121,7 @@ Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way t
 // ---cut---
 import { Button, Frog } from 'frog'
 import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 export const app = new Frog()
 
@@ -131,7 +132,6 @@ app.frame('/', (c) => {
 // @log: Devtools should be called after all frames are defined.
 const isCloudflareWorker = typeof caches !== 'undefined' // [!code focus]
 if (isCloudflareWorker) { // [!code focus]
-  const { serveStatic } = await import('hono/cloudflare-workers') // [!code focus]
   devtools(app, { // [!code focus]
     serveStatic, // [!code focus]
     serveStaticOptions: { // [!code focus]
@@ -141,7 +141,6 @@ if (isCloudflareWorker) { // [!code focus]
     }, // [!code focus]
   }) // [!code focus]
 } else { // [!code focus]
-  const { serveStatic } = await import('frog/node') // [!code focus]
   devtools(app, { serveStatic }) // [!code focus]
 } // [!code focus]
 

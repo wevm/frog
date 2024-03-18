@@ -37,7 +37,7 @@ export type DevtoolsOptions<serveStatic extends ServeStatic = ServeStatic> =
        * Platform-dependent function to serve devtools' static files.
        *
        * @example
-       * import { serveStatic } from 'frog/node'
+       * import { serveStatic } from 'frog/serve-static'
        * import { serveStatic } from 'hono/bun'
        * import { serveStatic } from 'hono/cloudflare-workers'
        * import { serveStatic } from '@hono/node-server/serve-static'
