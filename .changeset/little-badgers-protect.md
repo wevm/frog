@@ -8,7 +8,7 @@ Previously, the devtools loaded client-side JS via the JSDelivr secure CDN. Now 
 
 As a result, to use the devtools, you need to explicitly configure them for your app. This isn't as convenient as them being automatically injected before, but it enables offline support and a future standalone devtools for use with non-Frog frames.
 
-In most cases, configuring the devtools should only take a few minutes. All you need to do is import the `devtools` helper, import a `serveStatic` adapter, and call the `devtools` helper after your frames are set up. For example:
+In most cases, configuring the devtools should only take a few minutes. All you need to do is import the `devtools` helper, import/use a `serveStatic` adapter or `assetsPath`, and call the `devtools` helper after your frames are set up. For example:
 
 ```diff
 // Node.js Frog App
@@ -101,5 +101,5 @@ export const app = new Frog()
 
 app.frame('/', (c) => { ... })
 
-+ devtools(app, { assetsPath: '/' }) 
++ devtools(app, { assetsPath: '/.frog' }) 
 ```

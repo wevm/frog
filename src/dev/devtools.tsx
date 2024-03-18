@@ -67,6 +67,8 @@ if (!isCloudflareWorkers()) {
   )
 }
 
+const uiDistDir = '.frog'
+
 /**
  * Built-in devtools with live preview, hot reload, time-travel debugging, and more.
  *
@@ -100,7 +102,9 @@ export function devtools<
   let publicPath = ''
   if (assetsPath) publicPath = assetsPath === '/' ? '' : assetsPath
   else if (serveStatic) publicPath = `.${basePath}`
-  else publicPath = frog.assetsPath === '/' ? '' : frog.assetsPath
+  else if (frog.assetsPath)
+    publicPath = frog.assetsPath === '/' ? '' : frog.assetsPath
+  else publicPath = `/${uiDistDir}`
 
   const rootBasePath = frog.basePath === '/' ? '' : frog.basePath
   const devBasePath = `${rootBasePath}${basePath}`
@@ -210,7 +214,9 @@ export function devtools<
       '/*',
       serveStatic({
         manifest: '',
-        rewriteRequestPath: (path) => path.replace(devBasePath, ''),
+        rewriteRequestPath(path) {
+          return path.replace(devBasePath, uiDistDir)
+        },
         root,
         ...serveStaticOptions,
       }),

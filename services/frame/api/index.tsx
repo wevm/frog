@@ -1,5 +1,5 @@
-// import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog } from 'frog'
+import { devtools } from 'frog/dev'
 import { handle } from 'frog/vercel'
 
 type State = {
@@ -18,13 +18,6 @@ export const app = new Frog<{ State: State }>({
     featureIndex: 0,
   },
 })
-
-// app.use(
-//   '/*',
-//   serveStatic({
-//     root: './public',
-//   }),
-// )
 
 app.frame('/', (c) => {
   return c.res({
@@ -80,6 +73,13 @@ app.frame('/end', (c) => {
     ],
   })
 })
+
+if (import.meta.env?.MODE === 'development') {
+  const { serveStatic } = await import('frog/node')
+  devtools(app, { serveStatic })
+} else {
+  devtools(app, { assetsPath: '/.frog' })
+}
 
 export const GET = handle(app)
 export const POST = handle(app)

@@ -11,7 +11,7 @@ export default defineConfig({
       input: 'src/main.tsx',
       output: {
         assetFileNames: 'assets/[name].[ext]',
-        dir: '../src/ui',
+        dir: '../src/ui/.frog',
         entryFileNames: '[name].js',
       },
     },

@@ -149,7 +149,7 @@ if (import.meta.env?.MODE === 'development') { // [!code focus]
   const { serveStatic } = await import('frog/node') // [!code focus]
   devtools(app, { serveStatic }) // [!code focus]
 } else { // [!code focus]
-  devtools(app, { assetsPath: '/' }) // [!code focus]
+  devtools(app, { assetsPath: '/.frog' }) // [!code focus]
 } // [!code focus]
 
 export const GET = handle(app)
