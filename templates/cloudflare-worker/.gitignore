@@ -21,4 +21,4 @@ yarn-error.log*
 *.tsbuildinfo
 
 # frog static assets
-public/.frog
+public/frog

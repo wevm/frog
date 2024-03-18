@@ -135,6 +135,7 @@ if (isCloudflareWorker) { // [!code focus]
   devtools(app, { // [!code focus]
     serveStatic, // [!code focus]
     serveStaticOptions: { // [!code focus]
+      assetsPath: '/frog', // [!code focus]
       manifest: await import('__STATIC_CONTENT_MANIFEST'), // [!code focus]
       root: './', // [!code focus]
     }, // [!code focus]
@@ -157,7 +158,7 @@ Then we will add a Wrangler scripts to our `package.json`:
     "dev": "frog dev", // [!code focus]
     "wrangler:dev": "wrangler dev src/index.tsx",  // [!code focus]
     "wrangler:deploy": "wrangler deploy --minify src/index.tsx", // [!code focus]
-    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/ ./public", // [!code focus]
+    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/.frog ./public/frog" // [!code focus]
   },
   "dependencies": {
     "hono": "latest",

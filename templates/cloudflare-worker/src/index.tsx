@@ -63,7 +63,7 @@ if (isCloudflareWorker) {
   const manifest = await import('__STATIC_CONTENT_MANIFEST')
   const serveStaticOptions = { manifest, root: './' }
   app.use('/*', serveStatic(serveStaticOptions))
-  devtools(app, { serveStatic, serveStaticOptions })
+  devtools(app, { assetsPath: '/frog', serveStatic, serveStaticOptions })
 } else {
   const { serveStatic } = await import('frog/node')
   devtools(app, { serveStatic })

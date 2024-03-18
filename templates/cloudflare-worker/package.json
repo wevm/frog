@@ -6,7 +6,7 @@
     "dev": "frog dev",
     "wrangler:dev": "wrangler dev src/index.tsx",
     "wrangler:deploy": "wrangler deploy --minify src/index.tsx",
-    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/ ./public"
+    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/.frog ./public/frog"
   },
   "dependencies": {
     "frog": "latest",
