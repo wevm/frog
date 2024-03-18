@@ -67,7 +67,6 @@ if (typeof Bun !== 'undefined') {
   })
   console.log('Server is running on port 3000')
 } else {
-  // when using `frog dev`
   const { serveStatic } = await import('frog/node')
   devtools(app, { serveStatic })
 }

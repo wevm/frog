@@ -1,5 +1,3 @@
-import { dirname, relative, resolve } from 'path'
-import { fileURLToPath } from 'url'
 import type { serveStatic as n_serveStatic } from '@hono/node-server/serve-static'
 import { Hono, type Schema } from 'hono'
 import type { serveStatic as b_serveStatic } from 'hono/bun'
@@ -20,6 +18,7 @@ import {
   getInitialData,
 } from './api.js'
 import { getUserDataByFid } from './utils/warpcast.js'
+import { isCloudflareWorkers } from './utils/env.js'
 
 export type DevtoolsOptions = Pretty<
   Pretty<ApiRoutesOptions> & {
@@ -32,12 +31,7 @@ export type DevtoolsOptions = Pretty<
     basePath?: string | undefined
     serveStatic?: ServeStatic | undefined
     serveStaticOptions?:
-      | Pretty<
-          Omit<
-            Pretty<NonNullable<Parameters<typeof c_serveStatic>[0]>>,
-            'rewriteRequestPath' | 'root'
-          >
-        >
+      | Pretty<NonNullable<Parameters<typeof c_serveStatic>[0]>>
       | undefined
   }
 >
@@ -46,6 +40,16 @@ type ServeStatic =
   | typeof n_serveStatic
   | typeof c_serveStatic
   | typeof b_serveStatic
+
+let root: string | undefined
+if (!isCloudflareWorkers()) {
+  const { dirname, relative, resolve } = await import('node:path')
+  const { fileURLToPath } = await import('node:url')
+  root = relative(
+    './',
+    resolve(dirname(fileURLToPath(import.meta.url)), '../ui'),
+  )
+}
 
 export function devtools<
   env extends Env,
@@ -156,9 +160,7 @@ export function devtools<
                 id="__FROG_DATA__"
                 type="application/json"
                 // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-                dangerouslySetInnerHTML={{
-                  __html: bootstrap,
-                }}
+                dangerouslySetInnerHTML={{ __html: bootstrap }}
               />
             </body>
           </html>
@@ -180,14 +182,9 @@ export function devtools<
     app.get(
       '/*',
       serveStatic({
+        rewriteRequestPath: (path) => path.replace(devBasePath, ''),
+        root,
         ...serveStaticOptions,
-        root: relative(
-          './',
-          resolve(dirname(fileURLToPath(import.meta.url)), '../ui'),
-        ),
-        rewriteRequestPath(path) {
-          return path.replace(devBasePath, '')
-        },
       }),
     )
 

@@ -57,19 +57,16 @@ app.frame('/', (c) => {
   })
 })
 
-if (import.meta.env.MODE === 'development') {
-  // when using `frog dev`
-  const { serveStatic } = await import('frog/node')
-  devtools(app, { serveStatic })
-} else {
-  // when deployed to Cloudflare
+const isCloudflareWorker = typeof caches !== 'undefined'
+if (isCloudflareWorker) {
   const { serveStatic } = await import('hono/cloudflare-workers')
-  const serveStaticOptions = {
-    manifest: await import('__STATIC_CONTENT_MANIFEST'),
-    root: './',
-  }
+  const manifest = await import('__STATIC_CONTENT_MANIFEST')
+  const serveStaticOptions = { manifest, root: './' }
   app.use('/*', serveStatic(serveStaticOptions))
   devtools(app, { serveStatic, serveStaticOptions })
+} else {
+  const { serveStatic } = await import('frog/node')
+  devtools(app, { serveStatic })
 }
 
 export default app
