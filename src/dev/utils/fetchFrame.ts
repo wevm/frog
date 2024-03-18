@@ -1,6 +1,7 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { blake3 } from '@noble/hashes/blake3'
+import { toBytes } from '@noble/hashes/utils'
 
 import {
   FarcasterNetwork,
@@ -48,11 +49,11 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     buttonIndex,
     castId: {
       fid: BigInt(castId.fid),
-      hash: Buffer.from(hexToBytes(castId.hash.slice(2))),
+      hash: hexToBytes(castId.hash.slice(2)),
     },
-    inputText: inputText ? Buffer.from(inputText) : undefined,
-    state: state ? Buffer.from(state) : undefined,
-    url: Buffer.from(url),
+    inputText: inputText ? toBytes(inputText) : undefined,
+    state: state ? toBytes(state) : undefined,
+    url: toBytes(url),
     // TODO: Add transactionId
   })
 
@@ -77,7 +78,7 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     signatureScheme: SignatureScheme.ED25519,
     signer: ed25519.getPublicKey(privateKeyBytes),
   })
-  const messageBytes = Buffer.from(message.toBinary()).toString('hex')
+  const messageBytes = bytesToHex(message.toBinary())
 
   const t0 = performance.now()
   let response: Response | undefined
