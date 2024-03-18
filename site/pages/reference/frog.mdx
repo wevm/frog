@@ -55,26 +55,6 @@ const app = new Frog({
 })
 ```
 
-### dev
-
-- **Type:** `{ enabled?: boolean; appFid?: string; appMnemonic?: string; }`
-- **Default:** `{ enabled: true }`
-
-Options for built-in devtools.
-
-```tsx twoslash
-// @noErrors
-import { Frog } from 'frog'
-
-const app = new Frog({
-  dev: { // [!code focus]
-    enabled: true, // [!code focus]
-    appId: 'abc123', // [!code focus]
-    appMnemonic: 'apples bananas carrots ...' // [!code focus]
-  } // [!code focus]
-})
-```
-
 ### headers
 
 - **Type:** `Record<string, string>`
@@ -258,12 +238,6 @@ The base path for the server instance.
 - **Type:** `string`
 
 URL to redirect to when the user is coming to the page via a browser.
-
-### dev
-
-- **Type:** `{ enabled?: boolean, appFid?: string; appMnemonic?: string; secret?: string; }`
-
-Options for built-in devtools.
 
 ### frame
 

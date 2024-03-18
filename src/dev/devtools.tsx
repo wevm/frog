@@ -20,21 +20,37 @@ import {
 import { isCloudflareWorkers } from './utils/env.js'
 import { getUserDataByFid } from './utils/warpcast.js'
 
-export type DevtoolsOptions = Pretty<
-  Pretty<ApiRoutesOptions> & {
-    assetsPath?: string
-    /**
-     * The base path for the devtools instance off the Frog instances `basePath`.
-     *
-     * @default '/dev'
-     */
-    basePath?: string | undefined
-    serveStatic?: ServeStatic | undefined
-    serveStaticOptions?:
-      | Pretty<NonNullable<Parameters<typeof c_serveStatic>[0]>>
-      | undefined
-  }
->
+export type DevtoolsOptions<serveStatic extends ServeStatic = ServeStatic> =
+  Pretty<
+    Pretty<ApiRoutesOptions> & {
+      /**
+       * The base path for devtools assets.
+       */
+      assetsPath?: string
+      /**
+       * The base path for the devtools instance off the Frog instances `basePath`.
+       *
+       * @default '/dev'
+       */
+      basePath?: string | undefined
+      /**
+       * Platform-dependent function to serve devtools' static files.
+       *
+       * @example
+       * import { serveStatic } from 'frog/node'
+       * import { serveStatic } from 'hono/bun'
+       * import { serveStatic } from 'hono/cloudflare-workers'
+       * import { serveStatic } from '@hono/node-server/serve-static'
+       */
+      serveStatic?: ServeStatic | undefined
+      /**
+       * Parameters to pass to the {@link serveStatic} function.
+       */
+      serveStaticOptions?:
+        | Pretty<NonNullable<Parameters<serveStatic>[0]>>
+        | undefined
+    }
+  >
 
 type ServeStatic =
   | typeof n_serveStatic
@@ -55,9 +71,13 @@ export function devtools<
   env extends Env,
   schema extends Schema,
   basePath extends string,
+  serveStatic extends ServeStatic,
   ///
   state = env['State'],
->(frog: FrogBase<env, schema, basePath, state>, options?: DevtoolsOptions) {
+>(
+  frog: FrogBase<env, schema, basePath, state>,
+  options?: DevtoolsOptions<serveStatic>,
+) {
   const {
     appFid,
     appMnemonic,
@@ -182,6 +202,7 @@ export function devtools<
     app.get(
       '/*',
       serveStatic({
+        manifest: '',
         rewriteRequestPath: (path) => path.replace(devBasePath, ''),
         root,
         ...serveStaticOptions,

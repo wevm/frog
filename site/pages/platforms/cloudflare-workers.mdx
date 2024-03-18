@@ -111,6 +111,42 @@ app.frame('/', (c) => {
 export default app // [!code focus]
 ```
 
+### Setup Devtools
+
+Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way the devtools can automatically discover all your frames.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { devtools } from 'frog/dev' // [!code focus]
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  ...
+})
+
+// @log: Devtools should be called after all frames are defined.
+const isCloudflareWorker = typeof caches !== 'undefined' // [!code focus]
+if (isCloudflareWorker) { // [!code focus]
+  const { serveStatic } = await import('hono/cloudflare-workers') // [!code focus]
+  devtools(app, { // [!code focus]
+    serveStatic, // [!code focus]
+    serveStaticOptions: { // [!code focus]
+      manifest: await import('__STATIC_CONTENT_MANIFEST'), // [!code focus]
+      root: './', // [!code focus]
+    }, // [!code focus]
+  }) // [!code focus]
+} else { // [!code focus]
+  const { serveStatic } = await import('frog/node') // [!code focus]
+  devtools(app, { serveStatic }) // [!code focus]
+} // [!code focus]
+
+export default app
+```
+
 ### Add Scripts to `package.json`
 
 Then we will add a Wrangler scripts to our `package.json`:
@@ -120,7 +156,8 @@ Then we will add a Wrangler scripts to our `package.json`:
   "scripts": {
     "dev": "frog dev", // [!code focus]
     "wrangler:dev": "wrangler dev src/index.tsx",  // [!code focus]
-    "wrangler:deploy": "wrangler deploy --minify src/index.tsx" // [!code focus]
+    "wrangler:deploy": "wrangler deploy --minify src/index.tsx", // [!code focus]
+    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/ ./public", // [!code focus]
   },
   "dependencies": {
     "hono": "latest",

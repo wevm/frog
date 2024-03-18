@@ -1,0 +1,202 @@
+# devtools [Built-in devtools with live preview, hot reload, time-travel debugging, and more.]
+
+## Import
+
+```tsx twoslash
+import { devtools } from 'frog/dev'
+```
+
+## Usage
+
+Check out the [Devtools Guide](/concepts/devtools) for more information on features and how the devtools work.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'frog/node' // [!code focus]
+
+export const app = new Frog() 
+
+app.frame('/', (c) => { ... })
+
+devtools(app, { serveStatic }) // [!code focus]
+```
+
+## Parameters
+
+### appFid
+
+- **Type:** `number | undefined`
+
+Custom Farcaster application FID for the devtools instance.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+
+export const app = new Frog() 
+
+app.frame('/', (c) => { ... })
+
+devtools(app, {
+  appFid: 123, // [!code focus]
+})
+```
+
+### appMnemonic
+
+- **Type:** `string | undefined`
+
+Custom Farcaster application mnemonic for the devtools instance.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+
+export const app = new Frog() 
+
+app.frame('/', (c) => { ... })
+
+devtools(app, {
+  appMnemonic: 'foo bar baz ...', // [!code focus]
+})
+```
+
+### assetsPath
+
+- **Type:** `string | undefined`
+
+The base path for devtools' assets.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+
+export const app = new Frog() 
+
+app.frame('/', (c) => { ... })
+
+devtools(app, {
+  assetsPath: '/', // [!code focus]
+})
+```
+
+### basePath
+
+- **Type:** `string`
+- **Default:** `'/dev'`
+
+The base path for the devtools instance off the Frog instance's `bathPath`.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/node'
+
+export const app = new Frog() 
+
+app.frame('/', (c) => { ... })
+
+devtools(app, {
+  basePath: '/debug', // devtools available at `http://localhost:5173/debug` // [!code focus]
+  serveStatic,
+})
+```
+
+### serveStatic
+
+- **Type:** `ServeStaticFunction | undefined`
+
+Platform-dependent function to serve devtools' static files.
+
+:::code-group
+
+```tsx twoslash [Node.js]
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/node' // [!code focus]
+
+export const app = new Frog() 
+
+devtools(app, {
+  serveStatic, // [!code focus]
+}) 
+```
+
+```tsx twoslash [Bun]
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'hono/bun' // [!code focus]
+
+export const app = new Frog() 
+
+devtools(app, {
+  serveStatic, // [!code focus]
+}) 
+```
+
+```tsx twoslash [Cloudlare Workers]
+// @noErrors
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'hono/cloudflare-workers' // [!code focus]
+
+export const app = new Frog() 
+
+devtools(app, {
+  serveStatic, // [!code focus]
+  serveStaticOptions: {
+    manifest: await import('__STATIC_CONTENT_MANIFEST'),
+    root: './',
+  },
+})
+```
+:::
+
+:::tip
+The devtools static files are located at `frog/_lib/ui` if you need to copy them into your public directory (e.g. for Cloudflare Workers). This is automatically handled for [Vercel Serverless projects](/platforms/vercel) by `frog vercel-build`.
+:::
+
+:::tip
+The `frog/node` entrypoint exports `serveStatic` from `'@hono/node-server/serve-static'`. You are welcome to install and use this package directly if you prefer.
+:::
+
+### serveStaticOptions
+
+- **Type:** Inferred
+- **Default**: `{ root: '<resolved path to frog/_lib/ui>', rewriteRequestPath: (path) => path.replace(devBasePath, '') }`
+
+Parameters to pass to the [`serveStatic`](#servestatic) function.
+
+```tsx twoslash [Cloudlare Workers]
+// @noErrors
+import { Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'hono/cloudflare-workers'
+
+export const app = new Frog() 
+
+devtools(app, {
+  serveStatic, 
+  serveStaticOptions: { // [!code focus]
+    manifest: await import('__STATIC_CONTENT_MANIFEST'), // [!code focus]
+    root: './', // [!code focus]
+  }, // [!code focus]
+})
+```
+

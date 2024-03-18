@@ -2,7 +2,7 @@
 
 When developing Frames, it's useful to get feedback in real-time. Shortening the dev loop helps you iterate on your Frames and launch them faster.
 
-Every Frame built with Frog includes built-in devtools that include a live preview of your frame, time-travel debugging, request information, validation, and more to help with development.
+Frog includes built-in devtools that include a live preview of your frame, time-travel debugging, request information, validation, and more to help with development.
 
 <video controls style={{ borderRadius: '0.25rem'}}>
   <source src="/devtools.mp4" type="video/mp4" />
@@ -11,17 +11,31 @@ Your browser does not support the video tag.
 
 ## Getting Started
 
-Once you've [set up your Frog project](/getting-started), you can start the devtools by running:
+Once you've [set up your Frog project](/getting-started), you can attach the devtools to your frames by adding the `devtools` function to your app. No need to install anything else or clone a separate repo!
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'frog/node' // [!code focus]
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => { ... })
+
+devtools(app, { serveStatic }) // [!code focus]
+```
+
+Next, you can start a dev server for your frames by running the following command:
 
 ```bash
 frog dev
 ```
 
-Every Frame you create with Frog will automatically attach the devtools at the `/:frame/dev` path. No need to install anything else or clone a separate repo!
+This will start a dev server at [`http://localhost:5173`](http://localhost:5173). Then you can head to the `/dev` route ([`http://localhost:5173/dev`](http://localhost:5173/dev)) to see a live preview (with live reloading) of your frames.
 
-For example, if you have a Frame location at `/ribbit` (e.g. `app.frame('/ribbit', ...){:ts}`), then you can access the devtools at `/ribbit/dev`. Don't worry if you forget this, the Frame itself has a link to the devtools in the middle of the page.
-
-To learn more about `frog dev` checkout the [`dev` command docs](/commands/dev#-p---proxy). In addition to customizing the entrypoint, host, and port, you can also spin up a proxy server, which is very convenient for testing your Frame out with the [Warpcast Frame Validator](https://warpcast.com/~/developers/frames).
+To learn more about `frog dev` checkout the [`dev` command docs](/commands/dev).
 
 ## Features
 

@@ -247,9 +247,12 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
     devDependencies:
+      '@cloudflare/workers-types':
+        specifier: latest
+        version: 4.20240314.0
       wrangler:
         specifier: latest
-        version: 3.29.0
+        version: 3.29.0(@cloudflare/workers-types@4.20240314.0)
 
   templates/default:
     dependencies:
@@ -1093,6 +1096,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@cloudflare/workers-types@4.20240314.0:
+    resolution: {integrity: sha512-eg2dK/tYSiFvQu3sexjB32WEGi3GEmY6pLRF4nrV9Rwi2F2965o6f6604jQY8whhrmNdEoWErSjhuuUld6xgKQ==}
+    dev: true
 
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -10227,7 +10234,7 @@ packages:
       yoga-wasm-web: 0.3.3
     dev: false
 
-  /wrangler@3.29.0:
+  /wrangler@3.29.0(@cloudflare/workers-types@4.20240314.0):
     resolution: {integrity: sha512-VXUUltM0/fxCF20Z3tH39zpnykDJNPH2lMWI5wA0VmRpuKG0Gffjj5lU2vJaI/PfUCo3q4JErxWcgLezBGnFyA==}
     engines: {node: '>=16.17.0'}
     hasBin: true
@@ -10238,6 +10245,7 @@ packages:
         optional: true
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.1
+      '@cloudflare/workers-types': 4.20240314.0
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5

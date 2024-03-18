@@ -5,13 +5,15 @@
   "scripts": {
     "dev": "frog dev",
     "wrangler:dev": "wrangler dev src/index.tsx",
-    "wrangler:deploy": "wrangler deploy --minify src/index.tsx"
+    "wrangler:deploy": "wrangler deploy --minify src/index.tsx",
+    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/ ./public"
   },
   "dependencies": {
     "frog": "latest",
     "hono": "^4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "latest",
     "wrangler": "latest"
   }
 }
