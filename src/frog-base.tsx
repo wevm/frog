@@ -57,6 +57,21 @@ export type FrogConstructorParameters<
    */
   basePath?: basePath | string | undefined
   /**
+   * @deprecated Use `devtools` from `'frog/dev'` instead.
+   *
+   * Options for built-in devtools.
+   */
+  dev?:
+    | {
+        /** @deprecated */
+        enabled?: boolean | undefined
+        /** @deprecated */
+        appFid?: number | undefined
+        /** @deprecated */
+        appMnemonic?: string | undefined
+      }
+    | undefined
+  /**
    * HTTP response headers.
    */
   headers?: Record<string, string> | undefined
@@ -194,7 +209,7 @@ export class FrogBase<
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
-  dev: string | undefined
+  dev: FrogConstructorParameters['dev'] | undefined
   headers: FrogConstructorParameters['headers'] | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
@@ -215,10 +230,13 @@ export class FrogBase<
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
+  _dev: string | undefined
+
   constructor({
     assetsPath,
     basePath,
     browserLocation,
+    dev,
     headers,
     honoOptions,
     hubApiUrl,
@@ -250,8 +268,8 @@ export class FrogBase<
 
     if (initialState) this._initialState = initialState
 
-    // this is set `true` by `devtools` middleware
-    this.dev = undefined
+    if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
+    this._dev = undefined // this is set `true` by `devtools` helper
   }
 
   frame: HandlerInterface<env, 'frame', schema, basePath> = (
@@ -486,6 +504,7 @@ export class FrogBase<
     if (frog.basePath === '/')
       frog.basePath = parsePath(this.basePath) + parsePath(path)
     if (!frog.browserLocation) frog.browserLocation = this.browserLocation
+    if (!frog.dev) frog.dev = this.dev
     if (!frog.headers) frog.headers = this.headers
     if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
     if (!frog.hub) frog.hub = this.hub

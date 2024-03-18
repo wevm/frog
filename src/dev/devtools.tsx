@@ -67,6 +67,11 @@ if (!isCloudflareWorkers()) {
   )
 }
 
+/**
+ * Built-in devtools with live preview, hot reload, time-travel debugging, and more.
+ *
+ * @see https://frog.fm/dev/devtools
+ */
 export function devtools<
   env extends Env,
   schema extends Schema,
@@ -78,9 +83,11 @@ export function devtools<
   frog: FrogBase<env, schema, basePath, state>,
   options?: DevtoolsOptions<serveStatic>,
 ) {
+  if (!(frog.dev?.enabled ?? true)) return
+
   const {
-    appFid,
-    appMnemonic,
+    appFid = frog.dev?.appFid,
+    appMnemonic = frog.dev?.appMnemonic,
     assetsPath,
     basePath = '/dev',
     serveStatic,
@@ -210,5 +217,5 @@ export function devtools<
     )
 
   frog.hono.route(basePath, app)
-  frog.dev = devBasePath
+  frog._dev = devBasePath
 }

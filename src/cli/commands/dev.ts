@@ -64,8 +64,8 @@ export async function dev(
   const appUrl = `${url}${basePath}`
   logger.info(`  ${pc.green('➜')}  ${pc.bold('Local')}:   ${pc.cyan(appUrl)}`)
 
-  if (app?.dev) {
-    const devUrl = `${url}${app.dev}`
+  if (app?._dev) {
+    const devUrl = `${url}${app._dev}`
     logger.info(`  ${pc.green('➜')}  ${pc.bold('Inspect')}: ${pc.cyan(devUrl)}`)
   }
 }

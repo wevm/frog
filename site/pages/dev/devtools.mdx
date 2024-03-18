@@ -25,6 +25,10 @@ app.frame('/', (c) => { ... })
 devtools(app, { serveStatic }) // [!code focus]
 ```
 
+:::tip
+It's important that `devtools` is called after you set up your frames/routes so it can automatically "discover" all of your frames.
+:::
+
 ## Parameters
 
 ### appFid
