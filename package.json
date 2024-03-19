@@ -2,6 +2,7 @@
   "scripts": {
     "dev": "pnpm dev:ui & pnpm dev:playground",
     "dev:playground": "pnpm --filter playground dev",
+    "dev:cli": "node --import tsx src/cli/index.ts",
     "dev:create-frog": "bun create-frog/bin.ts",
     "dev:ui": "pnpm --filter ui build --watch",
     "build": "pnpm clean && pnpm protobufs:generate && pnpm build:frog && pnpm build:ui && pnpm build:create-frog && bun .scripts/postbuild.ts",
