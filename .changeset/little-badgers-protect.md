@@ -46,7 +46,7 @@ app.frame('/', (c) => { ... })
 ```diff
 import { Frog } from 'frog'
 + import { devtools } from 'frog/dev'
-+ import { serveStatic } from 'hono/bun'
++ import { serveStatic } from 'frog/serve-static'
 
 const app = new Frog() 
 
@@ -62,7 +62,7 @@ Add `serveStatic` and attach `manifest` and `root`.
 ```diff
 import { Frog } from 'frog'
 + import { devtools } from 'frog/dev'
-+ import { serveStatic } from 'hono/cloudflare-workers'
++ import { serveStatic } from 'frog/serve-static'
 
 const app = new Frog() 
 
@@ -71,6 +71,7 @@ app.frame('/', (c) => { ... })
 + devtools(app, {
 +  serveStatic,
 +  serveStaticOptions: {
++    assetsPath: '/frog',
 +    manifest: await import('__STATIC_CONTENT_MANIFEST'),
 +    root: './',
 +  },
@@ -82,7 +83,7 @@ You also will want to add the following script to your `package.json` to copy ov
 ```diff
 {
   "scripts": {
-+    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/ ./public"
++    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/.frog ./public/frog"
   }
 }
 ```
