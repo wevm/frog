@@ -1,4 +1,6 @@
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
 
 import { app as fontsApp } from './fonts.js'
@@ -9,7 +11,6 @@ import { app as todoApp } from './todos.js'
 import { app as transactionApp } from './transaction.js'
 
 export const app = new Frog({
-  browserLocation: '/:path/dev',
   hub: hubs.frog(),
   verify: 'silent',
 })
@@ -226,3 +227,5 @@ export const app = new Frog({
   .route('/routing', routingApp)
   .route('/transaction', transactionApp)
   .route('/todos', todoApp)
+
+devtools(app, { serveStatic })

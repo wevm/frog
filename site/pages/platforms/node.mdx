@@ -108,6 +108,35 @@ serve({ // [!code focus]
 console.log(`Server is running on port ${port}`) // [!code focus]
 ```
 
+### Setup Devtools
+
+Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way the devtools can automatically discover all your frames.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static' // [!code focus]
+import { Button, Frog } from 'frog'
+import { devtools } from 'frog/dev' // [!code focus]
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  ...
+})
+
+devtools(app, { serveStatic }) // [!code focus]
+// @log: ^ Devtools should be called after all frames are defined.
+
+serve({ // [!code focus]
+  fetch: app.fetch, // [!code focus]
+  port: 3000, // [!code focus]
+}) // [!code focus]
+console.log(`Server is running on port ${port}`) // [!code focus]
+```
+
 ### Add Scripts to `package.json`
 
 Then we will add a `serve` script to serve our Node server.

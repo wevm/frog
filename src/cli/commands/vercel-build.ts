@@ -1,4 +1,5 @@
-import { extname, normalize, resolve } from 'node:path'
+import { dirname, extname, normalize, relative, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import glob from 'fast-glob'
 import {
   copySync,
@@ -23,6 +24,13 @@ export async function build() {
   ensureDirSync('./.vercel/output/static')
   if (pathExistsSync('./public'))
     copySync('./public', './.vercel/output/static')
+
+  const uiDir = relative(
+    './',
+    resolve(dirname(fileURLToPath(import.meta.url)), '../../ui'),
+  )
+  copySync(uiDir, './.vercel/output/static')
+
   writeJsonSync('./.vercel/output/config.json', {
     version: 3,
     routes: [

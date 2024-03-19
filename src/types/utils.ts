@@ -2,6 +2,8 @@ import type { ResolvedRegister } from 'viem'
 
 export type Pretty<type> = { [key in keyof type]: type[key] } & unknown
 
+export type UnionPretty<type> = type extends object ? Pretty<type> : type
+
 export type Widen<type> =
   | ([unknown] extends [type] ? unknown : never)
   | (type extends Function ? type : never)

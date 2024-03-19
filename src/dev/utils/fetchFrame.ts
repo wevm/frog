@@ -1,6 +1,7 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 import { blake3 } from '@noble/hashes/blake3'
+import { toBytes } from '@noble/hashes/utils'
 
 import {
   FarcasterNetwork,
@@ -11,6 +12,7 @@ import {
   MessageType,
   SignatureScheme,
 } from '../../protobufs/generated/message_pb.js'
+import { defaultHeaders } from '../constants.js'
 
 export type FetchFrameParameters = {
   body: {
@@ -22,14 +24,14 @@ export type FetchFrameParameters = {
     fid: number
     inputText: string | undefined
     state: string | undefined
-    url: string
   }
   privateKey: string | undefined
+  url: string
 }
 
 export async function fetchFrame(parameters: FetchFrameParameters) {
-  const { body, privateKey } = parameters
-  const { buttonIndex, castId, fid, inputText, state, url } = body
+  const { body, privateKey, url } = parameters
+  const { buttonIndex, castId, fid, inputText, state } = body
 
   const network = FarcasterNetwork.MAINNET
   const epoch = 1_609_459_200_000 // January 1, 2021 UTC
@@ -47,11 +49,11 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     buttonIndex,
     castId: {
       fid: BigInt(castId.fid),
-      hash: Buffer.from(hexToBytes(castId.hash.slice(2))),
+      hash: hexToBytes(castId.hash.slice(2)),
     },
-    inputText: inputText ? Buffer.from(inputText) : undefined,
-    state: state ? Buffer.from(state) : undefined,
-    url: Buffer.from(url),
+    inputText: inputText ? toBytes(inputText) : undefined,
+    state: state ? toBytes(state) : undefined,
+    url: toBytes(url),
     // TODO: Add transactionId
   })
 
@@ -76,12 +78,15 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     signatureScheme: SignatureScheme.ED25519,
     signer: ed25519.getPublicKey(privateKeyBytes),
   })
-  const messageBytes = Buffer.from(message.toBinary()).toString('hex')
+  const messageBytes = bytesToHex(message.toBinary())
 
+  const t0 = performance.now()
+  let response: Response | undefined
+  let error: Error | undefined
   try {
-    performance.mark('start')
-    return await fetch(url, {
+    response = await fetch(url, {
       method: 'POST',
+      headers: defaultHeaders,
       body: JSON.stringify({
         untrustedData: {
           buttonIndex,
@@ -99,8 +104,11 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
         },
       }),
     })
-  } finally {
-    // finally always called even after return or throw so we can mark the end to measure performance
-    performance.mark('end')
+  } catch (err) {
+    error = err as Error
   }
+
+  const t1 = performance.now()
+  const speed = t1 - t0
+  return { error, response, speed }
 }

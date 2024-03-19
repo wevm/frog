@@ -47,7 +47,9 @@ export function htmlToMetadata(html: string) {
   const buttons = parseButtons(metadata)
 
   return {
-    context: deserializeJson<FrameContext>(properties['frog:context']),
+    context: deserializeJson<FrameContext | undefined>(
+      properties['frog:context'],
+    ),
     frame: {
       buttons,
       image: properties['og:image'],

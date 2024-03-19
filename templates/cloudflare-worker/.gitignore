@@ -19,3 +19,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# frog static assets
+public/frog

@@ -1,6 +1,5 @@
 import { type Schema } from 'hono'
 
-import { routes as devRoutes } from './dev/routes.js'
 import { FrogBase, type FrogConstructorParameters } from './frog-base.js'
 import type { Env } from './types/env.js'
 
@@ -48,7 +47,6 @@ export class Frog<
 
     this.frame = (path: string, ...args: any[]) => {
       ;(frame as any)(path, ...args)
-      if (this.dev?.enabled ?? true) devRoutes(this, path)
       return this
     }
   }

@@ -1,9 +1,14 @@
 import { resolve } from 'node:path'
 import glob from 'fast-glob'
-import { copy, rename } from 'fs-extra'
+import { copy, move, rename } from 'fs-extra'
 
+await copyDist()
 await rewriteHonoJsx()
 await prepareTemplates()
+
+async function copyDist() {
+  await move('./src/ui', './src/_lib/ui')
+}
 
 async function rewriteHonoJsx() {
   const files = await glob('./src/_lib/**/*.js')
