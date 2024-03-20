@@ -7,7 +7,7 @@ await rewriteHonoJsx()
 await prepareTemplates()
 
 async function copyDist() {
-  await move('./src/ui', './src/_lib/ui')
+  await move('./src/ui/.frog', './src/_lib/ui/.frog')
 }
 
 async function rewriteHonoJsx() {
