@@ -1,13 +1,13 @@
 import clsx from 'clsx'
 
 import { CheckIcon, CopyIcon } from '@radix-ui/react-icons'
+import { useEffect } from 'react'
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
 import { Data, Frame } from '../types/frog.js'
 import { formatFileSize, formatSpeed } from '../utils/format.js'
 import { CodeToHtml } from './CodeToHtml.js'
-import { useEffect } from 'react'
 
 type TabsProps = {
   data: Data
