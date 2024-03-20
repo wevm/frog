@@ -6,6 +6,7 @@ import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
 import { QRCode } from './QRCode.js'
+import { FarcasterIcon } from './Icons.js'
 
 type AuthDialogProps = {
   close: () => void
@@ -86,7 +87,7 @@ export function AuthDialog(props: AuthDialogProps) {
         <div className="relative">
           {data?.url ? (
             <div style={timedOut ? { opacity: '0.1' } : undefined}>
-              <QRCode url={data.url} />
+              <QRCode icon={<FarcasterIcon />} url={data.url} />
             </div>
           ) : (
             <div

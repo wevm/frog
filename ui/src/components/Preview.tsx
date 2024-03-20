@@ -8,6 +8,7 @@ import { store } from '../lib/store.js'
 import { Frame } from '../types/frog.js'
 import { handlePost, handlePostRedirect } from '../utils/actions.js'
 import { WarpIcon } from './Icons.js'
+import { TransactionDialog } from './TransactionDialog.js'
 
 type PreviewProps = {
   frame: Frame
@@ -48,9 +49,9 @@ export function Preview(props: PreviewProps) {
                 {frame.buttons.map((button) => {
                   switch (button.type) {
                     case 'link':
-                      return <ButtonLink {...button} target={button.target} />
+                      return <ButtonLink {...button} />
                     case 'mint':
-                      return <ButtonMint {...button} target={button.target} />
+                      return <ButtonMint {...button} />
                     case 'post':
                       return <ButtonPost {...button} />
                     case 'post_redirect':
@@ -228,14 +229,34 @@ function ButtonPostRedirect(props: {
 }
 
 function ButtonTransaction(props: {
+  index: number
+  target?: string | undefined
   title: string
 }) {
-  const { title } = props
+  const { index, target, title } = props
+
+  const [open, setOpen] = useState(false)
+
   return (
-    <button className={buttonClass} type="button">
-      <span className={innerButtonClass}>{title}</span>
-      <LightningBoltIcon />
-    </button>
+    <>
+      <button
+        className={buttonClass}
+        type="button"
+        onClick={() => setOpen(true)}
+      >
+        <span className={innerButtonClass}>{title}</span>
+        <LightningBoltIcon
+          className="text-gray-900"
+          style={{ marginTop: '2px' }}
+        />
+      </button>
+
+      <TransactionDialog
+        close={() => setOpen(false)}
+        data={{ index, target }}
+        open={open}
+      />
+    </>
   )
 }
 

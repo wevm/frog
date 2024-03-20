@@ -4,29 +4,35 @@ import { client } from '../lib/api.js'
 import { store } from '../lib/store.js'
 import { Data } from '../types/frog.js'
 
+function getBody() {
+  const { dataKey, dataMap, inputText, overrides, user } = store.getState()
+  const frame = dataMap[dataKey].frame
+  return {
+    castId: {
+      fid: overrides.castFid,
+      hash: overrides.castHash,
+    },
+    fid: overrides.userFid !== user?.userFid ? overrides.userFid : user.userFid,
+    fromAddress: undefined,
+    inputText,
+    state: frame.state,
+  } as const
+}
+
 export async function handlePost(button: {
   index: number
   target: string | undefined
 }) {
   const { index, target } = button
-  const { dataKey, dataMap, inputText, overrides, user } = store.getState()
+  const { dataKey, dataMap } = store.getState()
   const frame = dataMap[dataKey].frame
 
   const json = await client.frames[':url'].action
     .$post({
       param: { url: encodeURIComponent(target ?? frame.postUrl) },
       json: {
+        ...getBody(),
         buttonIndex: index,
-        castId: {
-          fid: overrides.castFid,
-          hash: overrides.castHash,
-        },
-        fid:
-          overrides.userFid !== user?.userFid
-            ? overrides.userFid
-            : user.userFid,
-        inputText,
-        state: frame.state,
       },
     })
     .then((response) => response.json())
@@ -55,25 +61,15 @@ export async function handlePostRedirect(button: {
   target: string | undefined
 }) {
   const { index, target } = button
-  const { dataKey, dataMap, inputText, logs, overrides, user } =
-    store.getState()
+  const { dataKey, dataMap, logs } = store.getState()
   const frame = dataMap[dataKey].frame
 
   const json = await client.frames[':url'].redirect
     .$post({
       param: { url: encodeURIComponent(target ?? frame.postUrl) },
       json: {
+        ...getBody(),
         buttonIndex: index,
-        castId: {
-          fid: overrides.castFid,
-          hash: overrides.castHash,
-        },
-        fid:
-          overrides.userFid !== user?.userFid
-            ? overrides.userFid
-            : user.userFid,
-        inputText,
-        state: frame.state,
       },
     })
     .then((response) => response.json())
@@ -107,6 +103,55 @@ export async function handlePostRedirect(button: {
   return json.response.location
 }
 
+export async function handleTransaction(button: {
+  fromAddress: string | undefined
+  index: number
+  target: string | undefined
+}) {
+  const { fromAddress, index, target } = button
+  const { dataKey, dataMap, logs } = store.getState()
+  const frame = dataMap[dataKey].frame
+
+  const json = await client.frames[':url'].tx
+    .$post({
+      param: { url: encodeURIComponent(target ?? frame.postUrl) },
+      json: {
+        ...getBody(),
+        fromAddress,
+        buttonIndex: index,
+      },
+    })
+    .then((response) => response.json())
+
+  const id = json.id
+  const previousData = dataMap[logs.at(-1) ?? dataKey]
+  store.setState((state) => {
+    const nextStackIndex = state.stackIndex + 1
+    return {
+      ...state,
+      dataKey: id,
+      dataMap: {
+        ...state.dataMap,
+        [id]: {
+          ...json,
+          context: previousData.context,
+          frame: previousData.frame,
+        },
+      },
+      inputText: '',
+      logIndex: -1,
+      logs: [...state.logs, id],
+      stack:
+        nextStackIndex < state.stack.length
+          ? [...state.stack.slice(0, nextStackIndex), id]
+          : [...state.stack, id],
+      stackIndex: nextStackIndex,
+    }
+  })
+
+  return json.response.data
+}
+
 export async function performAction(data: Data, previousData: Data) {
   const url = encodeURIComponent(data.url)
 
@@ -121,6 +166,14 @@ export async function performAction(data: Data, previousData: Data) {
         .then((response) => response.json())
     case 'redirect':
       return await client.frames[':url'].redirect
+        .$post({ param: { url }, json: data.body })
+        .then((response) => response.json())
+        .then((json) => {
+          const { context, frame } = previousData
+          return { context, frame, ...json }
+        })
+    case 'tx':
+      return await client.frames[':url'].tx
         .$post({ param: { url }, json: data.body })
         .then((response) => response.json())
         .then((json) => {

@@ -31,6 +31,7 @@ import {
   getUserDataByFid,
   postSignedKeyRequest,
 } from './utils/warpcast.js'
+import type { TransactionResponse } from '../types/transaction.js'
 
 export type ApiRoutesOptions = {
   /** Custom app fid to auth with. */
@@ -174,6 +175,42 @@ export function apiRoutes(
         url,
       } as const)
     })
+    .post('/frames/:url/tx', validator('json', postSchema), async (c) => {
+      const url = decodeURIComponent(c.req.param('url'))
+
+      const json = c.req.valid('json')
+      const fid = json.fid ?? c.var.fid ?? defaultFid
+      const body = { ...json, fid }
+
+      const { response, speed } = await fetchFrame({
+        body,
+        privateKey: c.var.keypair?.privateKey,
+        url,
+      })
+      // TODO: Handle errors
+      if (!response) throw new Error('Failed to fetch frame')
+
+      const data = (await response.json()) as TransactionResponse
+
+      return c.json({
+        id: uid(),
+        timestamp: Date.now(),
+        type: 'tx',
+        method: 'post',
+        body,
+        metrics: {
+          speed,
+        },
+        response: {
+          success: true,
+          data,
+          error: undefined,
+          status: response.status,
+          statusText: response.statusText,
+        },
+        url,
+      } as const)
+    })
     .get('/auth/code', async (c) => {
       // 1. Create keypair
       const privateKeyBytes = ed25519.utils.randomPrivateKey()
@@ -248,10 +285,13 @@ export type Data =
   | InferResponseType<Client['frames'][':url']['$get']>
   | InferResponseType<Client['frames'][':url']['action']['$post']>
   | (InferResponseType<Client['frames'][':url']['redirect']['$post']> &
-      Pick<
-        InferResponseType<Client['frames'][':url']['$get']>,
-        'context' | 'frame'
-      >)
+      BaseData)
+  | (InferResponseType<Client['frames'][':url']['tx']['$post']> & BaseData)
+
+type BaseData = Pick<
+  InferResponseType<Client['frames'][':url']['$get']>,
+  'context' | 'frame'
+>
 
 export type Bootstrap = {
   data: Data | undefined

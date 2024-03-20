@@ -4,8 +4,27 @@ export const app = new Frog()
   .frame('/', (c) => {
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
-          Example
+        <div
+          style={{
+            backgroundColor: 'black',
+            display: 'flex',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          <div
+            style={{
+              color: 'white',
+              fontSize: 60,
+              fontStyle: 'normal',
+              letterSpacing: '-0.025em',
+              lineHeight: 1.4,
+              padding: '50px 50px',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            Transaction Playground
+          </div>
         </div>
       ),
       intents: [

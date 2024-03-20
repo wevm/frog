@@ -22,6 +22,7 @@ export type FetchFrameParameters = {
       hash: string
     }
     fid: number
+    fromAddress: string | undefined
     inputText: string | undefined
     state: string | undefined
   }
@@ -31,7 +32,7 @@ export type FetchFrameParameters = {
 
 export async function fetchFrame(parameters: FetchFrameParameters) {
   const { body, privateKey, url } = parameters
-  const { buttonIndex, castId, fid, inputText, state } = body
+  const { buttonIndex, castId, fid, fromAddress, inputText, state } = body
 
   const network = FarcasterNetwork.MAINNET
   const epoch = 1_609_459_200_000 // January 1, 2021 UTC
@@ -46,6 +47,7 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     throw new Error('Invalid network')
 
   const frameActionBody = new FrameActionBody({
+    address: fromAddress ? hexToBytes(fromAddress.slice(2)) : undefined,
     buttonIndex,
     castId: {
       fid: BigInt(castId.fid),

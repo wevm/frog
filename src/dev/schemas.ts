@@ -23,6 +23,7 @@ export const postSchema = object({
     defaultCastId,
   ),
   fid: number([integer(), minValue(1)]),
+  fromAddress: union([undefined_(), string()]),
   inputText: union([undefined_(), string()]),
   state: union([undefined_(), string()]),
 })

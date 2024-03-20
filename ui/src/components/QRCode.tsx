@@ -1,12 +1,12 @@
 import { create } from 'qrcode'
-import { FarcasterIcon } from './Icons'
 
 export type QRCodeProps = {
+  icon: React.ReactNode
   url: string
 }
 
 export function QRCode(props: QRCodeProps) {
-  const { url } = props
+  const { icon, url } = props
 
   // 1. Create QR code
   const arr = Array.prototype.slice.call(
@@ -115,7 +115,7 @@ export function QRCode(props: QRCodeProps) {
               width: `${logoSize - logoMargin}px`,
             }}
           >
-            <FarcasterIcon />
+            {icon}
           </div>
         </div>
 
