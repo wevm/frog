@@ -14,6 +14,7 @@ import type { inspectRoutes } from 'hono/dev'
 import { HTTPException } from 'hono/http-exception'
 
 import type { Hub } from '../types/hub.js'
+import type { TransactionResponse } from '../types/transaction.js'
 import {
   defaultCookieOptions,
   defaultFid,
@@ -31,7 +32,6 @@ import {
   getUserDataByFid,
   postSignedKeyRequest,
 } from './utils/warpcast.js'
-import type { TransactionResponse } from '../types/transaction.js'
 
 export type ApiRoutesOptions = {
   /** Custom app fid to auth with. */
