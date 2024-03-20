@@ -2,9 +2,9 @@ import type { serveStatic as n_serveStatic } from '@hono/node-server/serve-stati
 import { Hono, type Schema } from 'hono'
 import type { serveStatic as b_serveStatic } from 'hono/bun'
 import type { serveStatic as c_serveStatic } from 'hono/cloudflare-workers'
+import { getCookie } from 'hono/cookie'
 import { inspectRoutes } from 'hono/dev'
 import { html } from 'hono/html'
-import { getCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
 
 import type { FrogBase } from '../frog-base.js'

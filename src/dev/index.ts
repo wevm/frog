@@ -1,12 +1,12 @@
 import { type Schema } from 'hono'
 
-import {
-  devtools as devtools_base,
-  type DevtoolsOptions,
-  type ServeStatic,
-} from './devtools.js'
 import type { FrogBase } from '../frog-base.js'
 import type { Env } from '../types/env.js'
+import {
+  type DevtoolsOptions,
+  type ServeStatic,
+  devtools as devtools_base,
+} from './devtools.js'
 import { getUiRoot } from './utils/getUiRoot.js'
 
 const root = await getUiRoot()
