@@ -74,12 +74,7 @@ app.frame('/end', (c) => {
   })
 })
 
-if (import.meta.env?.MODE === 'development') {
-  const { serveStatic } = await import('frog/serve-static')
-  devtools(app, { serveStatic })
-} else {
-  devtools(app, { assetsPath: '/.frog' })
-}
+devtools(app, { assetsPath: '/.frog' })
 
 export const GET = handle(app)
 export const POST = handle(app)
