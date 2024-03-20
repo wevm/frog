@@ -1,5 +1,11 @@
 # create-frog
 
+## 0.1.5
+
+### Patch Changes
+
+- [`ddb810b`](https://github.com/wevm/frog/commit/ddb810b13a724053c022029db90b32d5fb9aba24) Thanks [@tmm](https://github.com/tmm)! - Bumped dependencies
+
 ## 0.1.4
 
 ### Patch Changes
