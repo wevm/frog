@@ -458,7 +458,7 @@ type MetaTagsContentProps = {
   htmlTags: readonly string[] | undefined
   image: string
   imageUrl: string
-  postUrl: string
+  postUrl: string | undefined
   state: string | undefined
 }
 
@@ -471,9 +471,9 @@ function MetaTagsContent(props: MetaTagsContentProps) {
       let text = tag
       if (text.includes('_frog_fc:frame:image'))
         text = text.replace('_frog_fc:frame:image', imageUrl)
-      else if (text.includes('_frog_fc:frame:post_url'))
+      else if (postUrl && text.includes('_frog_fc:frame:post_url'))
         text = text.replace('_frog_fc:frame:post_url', postUrl)
-      else if (text.includes('_frog_fc:frame:state') && state)
+      else if (state && text.includes('_frog_fc:frame:state'))
         text = text.replace('_frog_fc:frame:state', state)
       else if (text.includes('_frog_og:image'))
         text = text.replace('_frog_og:image', image)

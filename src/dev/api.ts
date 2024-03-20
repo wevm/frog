@@ -10,9 +10,9 @@ import {
   setCookie,
   setSignedCookie,
 } from 'hono/cookie'
+import type { inspectRoutes } from 'hono/dev'
 import { HTTPException } from 'hono/http-exception'
 
-import type { inspectRoutes } from 'hono/dev'
 import type { Hub } from '../types/hub.js'
 import {
   defaultCookieOptions,

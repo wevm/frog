@@ -1,9 +1,9 @@
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons'
-import { Data, Frame } from '../types/frog'
+import { Data as DataType, Frame } from '../types/frog'
 import { formatFileSize } from '../utils/format'
 
 type DataProps = {
-  data: Data
+  data: DataType
   frame: Frame
 }
 
@@ -18,7 +18,7 @@ export function Data(props: DataProps) {
     state: 4_096,
     image: imageType === 'dataUri' ? 256 : 10_485_760,
   }
-  const postUrlTooLong = frame.postUrl.length > limits.postUrl
+  const postUrlTooLong = (frame.postUrl?.length ?? 0) > limits.postUrl
   const inputTextTooLong = frame.input?.text
     ? frame.input.text.length > limits.inputText
     : false
@@ -56,14 +56,18 @@ export function Data(props: DataProps) {
       value: frame.imageAspectRatio,
       status: 'valid',
     },
-    {
-      property: 'fc:frame:post_url',
-      value: frame.postUrl,
-      status: postUrlTooLong ? 'invalid' : 'valid',
-      message: `Post URL is ${
-        frame.postUrl.length
-      } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
-    },
+    ...(frame.postUrl
+      ? [
+          {
+            property: 'fc:frame:post_url',
+            value: frame.postUrl,
+            status: postUrlTooLong ? 'invalid' : 'valid',
+            message: `Post URL is ${
+              frame.postUrl.length ?? 0
+            } bytes and must be ${limits.postUrl.toLocaleString()} bytes or less.`,
+          },
+        ]
+      : []),
     ...(hasState
       ? [
           {

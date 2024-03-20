@@ -22,7 +22,7 @@
     "preconstruct": "bun .scripts/preconstruct.ts",
     "protobufs:generate": "pnpm --filter protobufs generate",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && pnpm run --r --parallel typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
