@@ -1,4 +1,6 @@
+import { Cross1Icon } from '@radix-ui/react-icons'
 import { QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { useRef } from 'react'
 import {
   WagmiProvider,
   useAccount,
@@ -6,15 +8,13 @@ import {
   useDisconnect,
   useSendTransaction,
 } from 'wagmi'
-import { Cross1Icon } from '@radix-ui/react-icons'
-import { useRef } from 'react'
 
 import { createPortal } from 'react-dom'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
 import { config, queryClient } from '../lib/wagmi.js'
-import { Spinner } from './Spinner.js'
 import { handleTransaction } from '../utils/actions.js'
+import { Spinner } from './Spinner.js'
 
 type TransactionDialogProps = {
   close: () => void

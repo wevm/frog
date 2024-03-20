@@ -5,8 +5,8 @@ import { createPortal } from 'react-dom'
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
-import { QRCode } from './QRCode.js'
 import { FarcasterIcon } from './Icons.js'
+import { QRCode } from './QRCode.js'
 
 type AuthDialogProps = {
   close: () => void
