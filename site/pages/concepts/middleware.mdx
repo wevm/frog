@@ -172,8 +172,10 @@ The [Allow List Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk/
 
 To use this middleware, you must first install the [Airstack Frames SDK](https://www.npmjs.com/package/@airstack/frames).
 
-```ts
-import { allowList } from "@airstack/frames";
+```tsx
+import { allowList, TokenBlockchain } from "@airstack/frames"
+
+const app = new Frog()
 
 const allowListMiddleware = allowList({
   allowListCriteria: {
@@ -187,7 +189,7 @@ const allowListMiddleware = allowList({
   },
 });
 
-app.user('/', allowListMiddleware);
+app.use('/', allowListMiddleware)
 ```
 
 ### Airstack Onchain Data Middleware
@@ -196,52 +198,30 @@ The [Onchain Data Middleware](https://github.com/Airstack-xyz/airstack-frames-sd
 
 To use this middleware, you must first install the [Airstack Frames SDK](https://www.npmjs.com/package/@airstack/frames).
 
-```ts
-import { onchainData, TokenBlockchain } from "@airstack/frames";
+```tsx
+import { onchainData, TokenBlockchain } from "@airstack/frames"
+
+const app = new Frog()
 
 const onchainDataMiddleware = onchainData({
+  env: "dev",
   features: {
     userDetails: {},
     erc20Mints: {
       chains: [TokenBlockchain.Polygon],
       limit: 1,
     },
-    nftMints: {
-      chains: [TokenBlockchain.Base],
-      limit: 1,
-    },
-    erc20Balances: {
-      chains: [TokenBlockchain.Polygon],
-      limit: 1,
-    },
-    nftBalances: {
-      chains: [TokenBlockchain.Base],
-      limit: 1,
-    },
-    poaps: {
-      limit: 1,
-    },
-    followers: {
-      limit: 1,
-    },
-    followings: {
-      limit: 1,
-    },
-    channels: {
-      limit: 1,
-    }
   },
-  env: "dev",
 });
 
-app.user('/', onchainDataMiddleware);
+app.use('/', onchainDataMiddleware)
 ```
 
 ### Pinata FDK Analytics Middleware
 
 The [Frog Analytics Plugin](https://docs.pinata.cloud/farcaster/fdk#frog-analytics-plug-in) allows you to hook into Pinata Frame analytics.
 
-```ts
+```tsx
 import { PinataFDK } from 'pinata-fdk'
 
 const app = new Frog()
