@@ -35,6 +35,7 @@ export function StartForm() {
         onSubmit={handleSubmit}
       >
         <input
+          autoComplete="off"
           name="url"
           ref={inputRef}
           className="bg-transparent font-sans text-gray-1000 text pl-4 pr-2 w-full h-full"
