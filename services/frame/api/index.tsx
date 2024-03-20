@@ -1,5 +1,6 @@
 import { Button, Frog } from 'frog'
 import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/serve-static'
 import { handle } from 'frog/vercel'
 
 type State = {
@@ -76,11 +77,7 @@ app.frame('/end', (c) => {
 
 // @ts-ignore
 const isEdgeFunction = typeof EdgeRuntime !== 'undefined'
-if (isEdgeFunction) devtools(app, { assetsPath: '/.frog' })
-else {
-  const { serveStatic } = await import('frog/serve-static')
-  devtools(app, { serveStatic })
-}
+devtools(app, isEdgeFunction ? { assetsPath: '/.frog' } : { serveStatic })
 
 export const GET = handle(app)
 export const POST = handle(app)
