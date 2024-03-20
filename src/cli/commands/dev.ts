@@ -93,8 +93,10 @@ export async function dev(path: string | undefined, options: DevOptions = {}) {
     dev: [],
   }
   if ('version' in app && app.version === version) {
-    const basePath = app.basePath === '/' ? '' : app.basePath
-    devBasePath = app._dev ? app._dev.replace(/^\//, '') : undefined
+    const leadingSlashRegex = /^\//
+    const basePath =
+      app.basePath === '/' ? '' : app.basePath.replace(leadingSlashRegex, '')
+    devBasePath = app._dev ? app._dev.replace(leadingSlashRegex, '') : undefined
     resolvedUrls = {
       local: (server.resolvedUrls?.local ?? []).map(
         (url) => `${url}${basePath}`,
