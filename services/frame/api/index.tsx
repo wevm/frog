@@ -74,7 +74,13 @@ app.frame('/end', (c) => {
   })
 })
 
-devtools(app, { assetsPath: '/.frog' })
+// @ts-ignore
+const isEdgeFunction = typeof EdgeRuntime !== 'undefined'
+if (isEdgeFunction) devtools(app, { assetsPath: '/.frog' })
+else {
+  const { serveStatic } = await import('frog/serve-static')
+  devtools(app, { serveStatic })
+}
 
 export const GET = handle(app)
 export const POST = handle(app)

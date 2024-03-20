@@ -4,9 +4,9 @@ import type { serveStatic as b_serveStatic } from 'hono/bun'
 import type { serveStatic as c_serveStatic } from 'hono/cloudflare-workers'
 import { inspectRoutes } from 'hono/dev'
 import { html } from 'hono/html'
-
 import { getCookie } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
+
 import type { FrogBase } from '../frog-base.js'
 import type { Env } from '../types/env.js'
 import type { Hub } from '../types/hub.js'
@@ -21,17 +21,16 @@ import {
   getInitialData,
 } from './api.js'
 import { uiDistDir } from './constants.js'
-import { isCloudflareWorkers } from './utils/env.js'
 import { getUserDataByFid } from './utils/warpcast.js'
+
+export type ServeStatic =
+  | typeof n_serveStatic
+  | typeof c_serveStatic
+  | typeof b_serveStatic
 
 export type DevtoolsOptions<serveStatic extends ServeStatic = ServeStatic> =
   RoutesOptions<serveStatic>
 
-/**
- * Built-in devtools with live preview, hot reload, time-travel debugging, and more.
- *
- * @see https://frog.fm/dev/devtools
- */
 export function devtools<
   env extends Env,
   schema extends Schema,
@@ -41,7 +40,9 @@ export function devtools<
   state = env['State'],
 >(
   frog: FrogBase<env, schema, basePath, state>,
-  options?: DevtoolsOptions<serveStatic>,
+  options?:
+    | (DevtoolsOptions<serveStatic> & { root?: string | undefined })
+    | undefined,
 ) {
   if (!(frog.dev?.enabled ?? true)) return
 
@@ -50,6 +51,7 @@ export function devtools<
     appMnemonic = frog.dev?.appMnemonic,
     assetsPath,
     basePath = '/dev',
+    root,
     serveStatic,
     serveStaticOptions,
   } = options ?? {}
@@ -70,6 +72,7 @@ export function devtools<
     basePath: devBasePath,
     hub: frog.hub || (frog.hubApiUrl ? { apiUrl: frog.hubApiUrl } : undefined),
     publicPath,
+    root,
     routes: inspectRoutes(frog.hono),
     secret: frog.secret,
     serveStatic,
@@ -109,26 +112,12 @@ type RoutesOptions<serveStatic extends ServeStatic = ServeStatic> = Pretty<
   }
 >
 
-type ServeStatic =
-  | typeof n_serveStatic
-  | typeof c_serveStatic
-  | typeof b_serveStatic
-
-let root: string | undefined
-if (!isCloudflareWorkers()) {
-  const { dirname, relative, resolve } = await import('node:path')
-  const { fileURLToPath } = await import('node:url')
-  root = relative(
-    './',
-    resolve(dirname(fileURLToPath(import.meta.url)), '../ui'),
-  )
-}
-
 export function routes(
   options: RoutesOptions & {
     basePath: string
     hub: Hub | undefined
     publicPath: string
+    root: string | undefined
     routes: RouteData[]
     secret: string | undefined
   },
@@ -139,6 +128,7 @@ export function routes(
     basePath,
     hub,
     publicPath,
+    root,
     routes,
     secret,
     serveStatic,

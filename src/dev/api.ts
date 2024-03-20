@@ -11,8 +11,8 @@ import {
   setSignedCookie,
 } from 'hono/cookie'
 import { HTTPException } from 'hono/http-exception'
-
 import type { inspectRoutes } from 'hono/dev'
+
 import type { Hub } from '../types/hub.js'
 import {
   defaultCookieOptions,
