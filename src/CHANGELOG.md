@@ -1,5 +1,13 @@
 # frog
 
+## 0.7.1
+
+### Patch Changes
+
+- [#167](https://github.com/wevm/frog/pull/167) [`8fc49f5`](https://github.com/wevm/frog/commit/8fc49f5be89f074c31233adbbb2ade829ca7f41c) Thanks [@tmm](https://github.com/tmm)! - Fixed devtools edge deployment
+
+- [#167](https://github.com/wevm/frog/pull/167) [`8fc49f5`](https://github.com/wevm/frog/commit/8fc49f5be89f074c31233adbbb2ade829ca7f41c) Thanks [@tmm](https://github.com/tmm)! - Fixed optional frame `post_url` handling
+
 ## 0.7.0
 
 ### Minor Changes
