@@ -8,13 +8,13 @@ export function Metrics() {
     {
       icon: <StopwatchIcon className="text-gray-600" />,
       name: 'speed',
-      value: formatSpeed(data.metrics.speed),
+      value: data ? formatSpeed(data.metrics.speed) : '-',
     },
     {
       icon: <FileTextIcon className="text-gray-600" />,
       name: 'frame size',
       value:
-        'htmlSize' in data.metrics
+        data && 'htmlSize' in data.metrics
           ? formatFileSize(data.metrics.htmlSize)
           : '-',
     },
@@ -22,7 +22,7 @@ export function Metrics() {
       icon: <ImageIcon className="text-gray-600" />,
       name: 'image size',
       value:
-        'imageSize' in data.metrics
+        data && 'imageSize' in data.metrics
           ? formatFileSize(data.metrics.imageSize)
           : '-',
     },

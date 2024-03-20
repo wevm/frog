@@ -13,8 +13,8 @@ export type RequestBody = {
 }
 
 export type Frame = {
-  buttons?: readonly FrameButton[] | undefined
-  debug?:
+  buttons: readonly FrameButton[] | undefined
+  debug:
     | {
         htmlTags: readonly string[]
       }
@@ -22,8 +22,8 @@ export type Frame = {
   imageAspectRatio: FrameImageAspectRatio
   image: string
   imageUrl: string
-  input?: { text: string } | undefined
-  postUrl: string
+  input: { text: string } | undefined
+  postUrl: string | undefined
   state: string
   title: string
   version: FrameVersion
