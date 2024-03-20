@@ -55,7 +55,6 @@ test('default', () => {
             "<meta property="frog:context" content="%7B%22cycle%22%3A%22main%22%2C%22env%22%3A%7B%7D%2C%22initialPath%22%3A%22%2Fapi%22%2C%22status%22%3A%22initial%22%2C%22url%22%3A%22https%3A%2F%2Fv-frame-dcjhinvvg-zoo.vercel.app%2Fapi%22%2C%22var%22%3A%7B%7D%2C%22verified%22%3Afalse%7D"/>",
             "<meta property="frog:version" content="0.5.5-tmm-hono-jsx.20240309T190523"/>",
           ],
-          "state": undefined,
         },
         "image": "https://v-frame-dcjhinvvg-zoo.vercel.app/api/image?image=N4IglgzgohDGCGAHApgExALgC4CcCuyANCFvAOaYipgBuIxiOA9ohJqBFgJ4A2y7IeDzBkAdgEksyALZsMIWMlFSc9EACN4sANZlmeUennqeW7Ws069TA6gDKYAF795ARgAM7gKQACD97VqCERTLkoAMz4ADzVI5CiAETAcZFgsMCZRSlgmHjxpLOI4qIB1HCRKUSYAd3LENQALZBEGrEp-LzUAKzxOMHCuAGFMqWVspRU1KSisAEFhMXHlZFViarBULAb2z06AXz3iWAawHlQUrIwAbVBIGAQUI1wCYlIKeWo6BmZWAU5eFygHI8JiqeTVE5SWIjBzOTAANncRRh3D4lVB0iEaj4WBUdkQWjAoneIAAtO4AHTuABMAFYZNiicgABLNMitTCuCkAFmImJwZCJABUWJgAMxIkAE1DUYmUdx%252BanuRAxNaQ5D4rQuKUpUm1CoHI4nM4XTBXEAlZA8HLSZAAQhAAF09s6gA",
         "imageAspectRatio": "1.91:1",
