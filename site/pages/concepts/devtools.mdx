@@ -83,26 +83,30 @@ For each Frame request, Frog breaks down metrics related to your Frame, includin
 
 ## Standalone Mode
 
-The Frog Devtools work best when used with Frog Frames, but you can also use the devtools with non-Frog Frames. First, install:
+The Frog Devtools work best when used with Frog Frames, but you can also use the devtools with non-Frog Frames. There are two methods: [global install](#global-install) and [executable](#executable).
+
+The global installation method is recommended as it works offline without an Internet connection.
+
+### Global Install
+
+First, install `frog` globally with your package manager:
 
 :::code-group
-
 ```bash [npm]
-npm init frog
+npm i -g frog
 ```
 
 ```bash [pnpm]
-pnpm create frog
+pnpm add -g frog
 ```
 
 ```bash [yarn]
-yarn create frog
+yarn global add frog
 ```
 
 ```bash [bun]
-bunx create-frog
+bun install -g frog
 ```
-
 :::
 
 Then, run the `frog` command to start the dev server:
@@ -117,6 +121,24 @@ Then, run the `frog` command to start the dev server:
 ```
 
 A local dev server will start, where you can test your frames. For more information on command options, check out the [`frog` command docs](/commands/dev).
+
+### Executable
+
+You can execute directly via `npx`, `pnpx`, or `bunx`:
+
+:::code-group
+```bash [npx]
+npx frog
+```
+
+```bash [pnpx]
+npx frog
+```
+
+```bash [bunx]
+bunx frog
+```
+:::
 
 ## Feedback
 
