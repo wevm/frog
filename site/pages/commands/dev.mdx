@@ -2,6 +2,8 @@
 
 Start development server at entrypoint.
 
+If an entrypoint is not provided, Frog looks for an entrypoint at `(src|api)/index.{js,jsx,ts,tsx}`. If no entrypoint is found, the devtools will start in [standalone mode](#--ui).
+
 ## Usage
 
 ```bash
@@ -41,3 +43,14 @@ Port used by the server. Defaults to `5173`.
 ```bash
 frog dev --port 3001
 ```
+
+#### --ui
+
+`boolean`
+
+Runs standalone devtools.
+
+```bash
+frog dev --ui
+```
+

@@ -99,6 +99,8 @@ bun i frog hono
 /** @jsxImportSource hono/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/serve-static'
 
 export const app = new Frog()
 
@@ -121,6 +123,8 @@ app.frame('/', (c) => {
     ]
   })
 })
+
+devtools(app, { serveStatic })
 ```
 
 ### Add Scripts to `package.json`

@@ -231,6 +231,7 @@ export class FrogBase<
   verify: FrogConstructorParameters['verify'] = true
 
   _dev: string | undefined
+  version = version
 
   constructor({
     assetsPath,

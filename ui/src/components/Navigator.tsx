@@ -1,4 +1,5 @@
 import {
+  ArrowRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExternalLinkIcon,
@@ -6,7 +7,14 @@ import {
   PersonIcon,
   ReloadIcon,
 } from '@radix-ui/react-icons'
-import { useEffect, useRef, useState } from 'react'
+import {
+  FormEventHandler,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useStore } from '../hooks/useStore.js'
@@ -256,45 +264,104 @@ function AddressBar(props: AddressBarProps) {
   const { frameUrls, url } = props
 
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   useFocusTrap({
     active: open,
     clickOutsideDeactivates: true,
     onDeactivate() {
       setOpen(false)
     },
-    ref,
+    ref: containerRef,
   })
 
+  const inputRef = useRef<HTMLInputElement>(null)
+  useLayoutEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
+    async (event) => {
+      event.preventDefault()
+      const data = new FormData(event.currentTarget)
+      const nextUrl = data.get('url') as string
+      try {
+        if (nextUrl !== url) await handleSelectNewFrame(nextUrl)
+        setOpen(false)
+      } catch (error) {
+        // TODO: Handle error
+      }
+    },
+    [url],
+  )
+
   return (
-    <div className="relative grid h-full" style={{ flex: '1' }}>
-      <button
-        type="button"
-        className="bg-background-100 border rounded-md w-full h-full relative overflow-hidden"
-        style={{
-          paddingLeft: '1.75rem',
-          paddingRight: '1.75rem',
-        }}
-        onClick={() => setOpen(true)}
-      >
-        <GlobeIcon
-          className="flex items-center h-full text-gray-700 absolute"
-          style={{ left: '0.5rem' }}
-        />
+    <div
+      className="relative grid h-full"
+      style={{ flex: '1' }}
+      ref={containerRef}
+    >
+      {open ? (
+        <form
+          className="bg-background-100 border flex rounded-md w-full h-full overflow-hidden"
+          onSubmit={handleSubmit}
+          style={{ paddingLeft: '0.5rem' }}
+        >
+          <GlobeIcon
+            className="flex items-center h-full text-gray-700"
+            style={{ minWidth: '15px' }}
+          />
 
-        <div className="overflow-hidden whitespace-nowrap text-ellipsis h-full">
-          <span
-            className="font-sans text-gray-1000"
-            style={{ lineHeight: '1.9rem', fontSize: '13px' }}
+          <input
+            defaultValue={url}
+            name="url"
+            ref={inputRef}
+            className="bg-transparent font-sans text-gray-1000 px-2 w-full"
+            data-1p-ignore
+            placeholder="Enter address"
+            required
+            style={{
+              boxShadow: 'none',
+              lineHeight: '1.9rem',
+              fontSize: '13px',
+            }}
+            type="url"
+          />
+          <button
+            type="submit"
+            className="bg-background-100 flex items-center justify-center text-gray-700 px-2 hover:bg-gray-100"
           >
-            {formatUrl(url)}
-          </span>
-        </div>
-      </button>
+            <span className="sr-only">Go</span>
+            <ArrowRightIcon />
+          </button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          className="bg-background-100 border rounded-md w-full h-full relative overflow-hidden"
+          style={{
+            paddingLeft: '1.75rem',
+            paddingRight: '1.75rem',
+          }}
+          onClick={() => setOpen(true)}
+        >
+          <GlobeIcon
+            className="flex items-center h-full text-gray-700 absolute"
+            style={{ left: '0.5rem' }}
+          />
 
-      {open && (
+          <div className="overflow-hidden whitespace-nowrap text-ellipsis h-full">
+            <span
+              className="font-sans text-gray-1000"
+              style={{ lineHeight: '1.9rem', fontSize: '13px' }}
+            >
+              {formatUrl(url)}
+            </span>
+          </div>
+        </button>
+      )}
+
+      {open && Boolean(frameUrls.length) && (
         <div
-          ref={ref}
           className="border bg-background-100 rounded-lg w-full overflow-hidden py-1 absolute"
           style={{
             marginTop: '4px',

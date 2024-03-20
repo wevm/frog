@@ -6,68 +6,26 @@ import { inspectRoutes } from 'hono/dev'
 import { html } from 'hono/html'
 
 import { getCookie } from 'hono/cookie'
+import { HTTPException } from 'hono/http-exception'
 import type { FrogBase } from '../frog-base.js'
 import type { Env } from '../types/env.js'
+import type { Hub } from '../types/hub.js'
 import type { Pretty } from '../types/utils.js'
 import {
   type ApiRoutesOptions,
   type Bootstrap,
+  type RouteData,
   type User,
   apiRoutes,
   getFrameUrls,
   getInitialData,
 } from './api.js'
+import { uiDistDir } from './constants.js'
 import { isCloudflareWorkers } from './utils/env.js'
 import { getUserDataByFid } from './utils/warpcast.js'
 
 export type DevtoolsOptions<serveStatic extends ServeStatic = ServeStatic> =
-  Pretty<
-    Pretty<ApiRoutesOptions> & {
-      /**
-       * The base path for devtools assets.
-       */
-      assetsPath?: string
-      /**
-       * The base path for the devtools instance off the Frog instances `basePath`.
-       *
-       * @default '/dev'
-       */
-      basePath?: string | undefined
-      /**
-       * Platform-dependent function to serve devtools' static files.
-       *
-       * @example
-       * import { serveStatic } from 'frog/serve-static'
-       * import { serveStatic } from 'hono/bun'
-       * import { serveStatic } from 'hono/cloudflare-workers'
-       * import { serveStatic } from '@hono/node-server/serve-static'
-       */
-      serveStatic?: ServeStatic | undefined
-      /**
-       * Parameters to pass to the {@link serveStatic} function.
-       */
-      serveStaticOptions?:
-        | Pretty<NonNullable<Parameters<serveStatic>[0]>>
-        | undefined
-    }
-  >
-
-type ServeStatic =
-  | typeof n_serveStatic
-  | typeof c_serveStatic
-  | typeof b_serveStatic
-
-let root: string | undefined
-if (!isCloudflareWorkers()) {
-  const { dirname, relative, resolve } = await import('node:path')
-  const { fileURLToPath } = await import('node:url')
-  root = relative(
-    './',
-    resolve(dirname(fileURLToPath(import.meta.url)), '../ui'),
-  )
-}
-
-const uiDistDir = '.frog'
+  RoutesOptions<serveStatic>
 
 /**
  * Built-in devtools with live preview, hot reload, time-travel debugging, and more.
@@ -93,11 +51,8 @@ export function devtools<
     assetsPath,
     basePath = '/dev',
     serveStatic,
-    serveStaticOptions = { manifest: '' },
+    serveStaticOptions,
   } = options ?? {}
-
-  const routes = inspectRoutes(frog.hono)
-  const hubApiUrl = frog.hub?.apiUrl || frog.hubApiUrl
 
   let publicPath = ''
   if (assetsPath) publicPath = assetsPath === '/' ? '' : assetsPath
@@ -109,26 +64,115 @@ export function devtools<
   const rootBasePath = frog.basePath === '/' ? '' : frog.basePath
   const devBasePath = `${rootBasePath}${basePath}`
 
+  const app = routes({
+    appFid,
+    appMnemonic,
+    basePath: devBasePath,
+    hub: frog.hub || (frog.hubApiUrl ? { apiUrl: frog.hubApiUrl } : undefined),
+    publicPath,
+    routes: inspectRoutes(frog.hono),
+    secret: frog.secret,
+    serveStatic,
+    serveStaticOptions,
+  })
+
+  frog.hono.route(basePath, app)
+  frog._dev = devBasePath
+}
+
+type RoutesOptions<serveStatic extends ServeStatic = ServeStatic> = Pretty<
+  Pretty<ApiRoutesOptions> & {
+    /**
+     * The base path for devtools assets.
+     */
+    assetsPath?: string
+    /**
+     * The base path for the devtools instance off the Frog instances `basePath`.
+     *
+     * @default '/dev'
+     */
+    basePath?: string | undefined
+    /**
+     * Platform-dependent function to serve devtools' static files.
+     *
+     * @example
+     * import { serveStatic } from 'frog/serve-static'
+     * import { serveStatic } from 'hono/bun'
+     * import { serveStatic } from 'hono/cloudflare-workers'
+     * import { serveStatic } from '@hono/node-server/serve-static'
+     */
+    serveStatic?: serveStatic | ServeStatic | undefined
+    /**
+     * Parameters to pass to the {@link serveStatic} function.
+     */
+    serveStaticOptions?: Parameters<serveStatic>[0] | undefined
+  }
+>
+
+type ServeStatic =
+  | typeof n_serveStatic
+  | typeof c_serveStatic
+  | typeof b_serveStatic
+
+let root: string | undefined
+if (!isCloudflareWorkers()) {
+  const { dirname, relative, resolve } = await import('node:path')
+  const { fileURLToPath } = await import('node:url')
+  root = relative(
+    './',
+    resolve(dirname(fileURLToPath(import.meta.url)), '../ui'),
+  )
+}
+
+export function routes(
+  options: RoutesOptions & {
+    basePath: string
+    hub: Hub | undefined
+    publicPath: string
+    routes: RouteData[]
+    secret: string | undefined
+  },
+) {
+  const {
+    appFid,
+    appMnemonic,
+    basePath,
+    hub,
+    publicPath,
+    routes,
+    secret,
+    serveStatic,
+    serveStaticOptions,
+  } = options
+
   const app = new Hono()
+  const assetsPath = publicPath.endsWith('/')
+    ? publicPath.replace(/\/$/, '')
+    : publicPath
+
   app
     .get('/', async (c) => {
       const { origin } = new URL(c.req.url)
-      const baseUrl = `${origin}${devBasePath}`
+      const baseUrl = `${origin}${basePath}`
 
       let frameUrls: string[] = []
       let initialData: Bootstrap['data'] = undefined
-      if (routes.length) {
+      const url = c.req.query('url')
+      if (url || routes.length) {
         frameUrls = getFrameUrls(origin, routes)
 
         let frameUrl = frameUrls[0]
-        const url = c.req.query('url')
         if (url) {
           const tmpUrl = `${origin}${url}`
           if (url.startsWith('/')) frameUrl = tmpUrl
-          else if (frameUrls.includes(url)) frameUrl = url
+          else frameUrl = url
         }
 
-        initialData = (await getInitialData(frameUrl)) as Bootstrap['data']
+        try {
+          initialData = (await getInitialData(frameUrl)) as Bootstrap['data']
+        } catch (error) {
+          if (error instanceof HTTPException) throw error
+        }
       }
 
       let user: User | undefined = undefined
@@ -136,8 +180,8 @@ export function devtools<
       if (cookie)
         try {
           const parsed = JSON.parse(cookie)
-          if (parsed && hubApiUrl) {
-            const data = await getUserDataByFid(hubApiUrl, parsed.userFid)
+          if (parsed && hub) {
+            const data = await getUserDataByFid(hub, parsed.userFid)
             user = { state: 'completed', ...parsed, ...data }
           }
         } catch {}
@@ -150,7 +194,7 @@ export function devtools<
 
       const title = initialData
         ? `frame: ${new URL(initialData.url).pathname}`
-        : 'frog'
+        : 'Frog Devtools'
 
       return c.html(
         <>
@@ -171,18 +215,18 @@ export function devtools<
               <script
                 type="module"
                 crossorigin=""
-                src={`${publicPath}/main.js`}
+                src={`${assetsPath}/main.js`}
               />
               <link
                 rel="stylesheet"
                 crossorigin=""
-                href={`${publicPath}/assets/main.css`}
+                href={`${assetsPath}/assets/main.css`}
               />
 
               <link
                 rel="alternate icon"
                 type="image/png"
-                href={`${publicPath}/assets/icon.png`}
+                href={`${assetsPath}/assets/icon.png`}
               />
             </head>
             <body style={{ backgroundColor: '#000' }}>
@@ -203,9 +247,9 @@ export function devtools<
       apiRoutes({
         appFid,
         appMnemonic,
-        hubApiUrl,
+        hub,
         routes,
-        secret: frog.secret,
+        secret,
       }),
     )
 
@@ -215,13 +259,12 @@ export function devtools<
       serveStatic({
         manifest: '',
         rewriteRequestPath(path) {
-          return path.replace(devBasePath, uiDistDir)
+          return path.replace(basePath, uiDistDir)
         },
         root,
         ...serveStaticOptions,
       }),
     )
 
-  frog.hono.route(basePath, app)
-  frog._dev = devBasePath
+  return app
 }

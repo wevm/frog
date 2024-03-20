@@ -248,7 +248,8 @@ function updateFrameQueryParam(url: string) {
   const nextUrl = new URL(baseUrl)
   if (frameUrl.pathname !== '/') {
     const params = new URLSearchParams(nextUrl.search)
-    params.set('url', frameUrl.pathname)
+    const frameUrls = store.getState().frameUrls
+    params.set('url', frameUrls.includes(url) ? frameUrl.pathname : url)
     nextUrl.search = params.toString()
   }
 

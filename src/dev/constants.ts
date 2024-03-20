@@ -16,3 +16,5 @@ export const defaultCookieOptions = {
   sameSite: 'Strict',
   secure: true,
 } as CookieOptions
+
+export const uiDistDir = '.frog'

@@ -16,7 +16,7 @@ type UseScrollLockReturnType = {
 export function useScrollLock(
   parameters: UseScrollLockParameters = {},
 ): UseScrollLockReturnType {
-  const { autoLock = true, lockTarget, widthReflow = true } = parameters
+  const { autoLock = false, lockTarget, widthReflow = true } = parameters
   const [isLocked, setIsLocked] = useState(false)
   const target = useRef<HTMLElement | null>(null)
   const originalStyle = useRef<{

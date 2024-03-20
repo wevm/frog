@@ -3,6 +3,7 @@ import { Metrics } from './components/Metrics'
 import { Navigator } from './components/Navigator'
 import { Preview } from './components/Preview'
 import { QuickLinks } from './components/QuickLinks'
+import { StartForm } from './components/StartForm'
 import { Tabs } from './components/Tabs'
 import { Timeline } from './components/Timeline'
 import { useData, useFrame, useStore } from './hooks/useStore'
@@ -11,15 +12,24 @@ export function App() {
   const data = useData()
   const frame = useFrame()
   const frameUrls = useStore((state) => state.frameUrls)
+
+  if (!data || !frame)
+    return (
+      <div
+        className="flex flex-col items-center gap-4 md:gap-6 p-4 pt-32 mx-auto"
+        style={{ maxWidth: '40rem' }}
+      >
+        <StartForm />
+      </div>
+    )
+
   const url = data.url
 
   return (
     <div
-      className="flex flex-col container md:grid md:container gap-4 md:gap-6"
+      className="flex flex-col container md:grid md:container gap-4 md:gap-6 mx-auto"
       style={{
         maxWidth: '1512px',
-        marginLeft: 'auto',
-        marginRight: 'auto',
       }}
     >
       <aside
