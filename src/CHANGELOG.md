@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.2
+
+### Patch Changes
+
+- [`6598c53`](https://github.com/wevm/frog/commit/6598c5364fcdf3f89fcca05b0d89aafc16fa1f7a) Thanks [@tmm](https://github.com/tmm)! - Fixed dev command printed URL formatting
+
 ## 0.7.1
 
 ### Patch Changes
