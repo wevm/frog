@@ -1,15 +1,15 @@
-import type { Hono } from 'hono'
 import { existsSync } from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { dirname, relative, join, resolve } from 'node:path'
+import type { Hono } from 'hono'
 import pc from 'picocolors'
 import { createLogger, createServer } from 'vite'
 
 import type { Frog } from '../../frog.js'
 import { version } from '../../version.js'
 import { findEntrypoint } from '../utils/findEntrypoint.js'
+import { type ServerUrls, printServerUrls } from '../utils/logger.js'
 import { devServer } from '../vite/dev.js'
-import { printServerUrls, type ServerUrls } from '../utils/logger.js'
 
 type DevOptions = {
   host?: boolean | undefined

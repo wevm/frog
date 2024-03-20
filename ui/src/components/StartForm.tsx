@@ -1,10 +1,10 @@
+import { ArrowRightIcon } from '@radix-ui/react-icons'
 import {
   type FormEventHandler,
   useCallback,
   useLayoutEffect,
   useRef,
 } from 'react'
-import { ArrowRightIcon } from '@radix-ui/react-icons'
 
 import { handleSelectNewFrame } from '../utils/actions'
 

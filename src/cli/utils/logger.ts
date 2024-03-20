@@ -1,6 +1,6 @@
+import colors from 'picocolors'
 // Forked from https://github.com/vitejs/vite/blob/1a3b1d73d7babdab6a52a5fb1ef193fd63666877/packages/vite/src/node/logger.ts#L161
 import type { Logger, ResolvedServerUrls } from 'vite'
-import colors from 'picocolors'
 
 export type ServerUrls = ResolvedServerUrls & { dev: string[] }
 
