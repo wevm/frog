@@ -81,6 +81,43 @@ Lastly, the dev panel is where you can see information for the current Frame, li
 
 For each Frame request, Frog breaks down metrics related to your Frame, including request speed, Frame document size, and Frame image size. These are important metrics to pay attention to when developing Frames as they affect how users experience your Frames.
 
+## Standalone Mode
+
+The Frog Devtools work best when used with Frog Frames, but you can also use the devtools with non-Frog Frames. First, install:
+
+:::code-group
+
+```bash [npm]
+npm init frog
+```
+
+```bash [pnpm]
+pnpm create frog
+```
+
+```bash [yarn]
+yarn create frog
+```
+
+```bash [bun]
+bunx create-frog
+```
+
+:::
+
+Then, run the `frog` command to start the dev server:
+
+```bash
+❯ frog
+
+[running] frog@v0.7.5
+
+➜  Local:   http://localhost:5173/
+➜  Network: use --host to expose
+```
+
+A local dev server will start, where you can test your frames. For more information on command options, check out the [`frog` command docs](/commands/dev).
+
 ## Feedback
 
 Your experience using Frog's Devtools is important! Please let us know if you have any feedback or issues when using the devtools by creating a [new discussion thread](https://github.com/wevm/frog/discussions) on Frog's GitHub repository.
