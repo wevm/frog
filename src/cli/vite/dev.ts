@@ -15,7 +15,9 @@ export type DevServerOptions = {
 
 export const defaultOptions = {
   entry: './src/index.ts',
-  export: 'default',
+  // Note: we are not relying on the default export so we can be compatible with
+  // runtimes that rely on it (e.g. Vercel Serverless Functions).
+  export: 'app',
   injectClientScript: true,
   exclude: [
     /.*\.css$/,
@@ -26,6 +28,8 @@ export const defaultOptions = {
     /^\/favicon\.ico$/,
     /^\/static\/.+/,
     /^\/node_modules\/.*/,
+    ///
+    /.+\.(gif|jpe?g|tiff?|png|webp|bmp|woff|eot|woff2|ttf|otf|ico|txt)$/,
   ],
   ignoreWatching: [/\.wrangler/],
   plugins: [],

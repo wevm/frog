@@ -39,7 +39,10 @@ export function Preview(props: PreviewProps) {
                 className={clsx([
                   'grid',
                   'gap-2.5',
-                  `grid-cols-${buttonCount}`,
+                  buttonCount === 1 && 'grid-cols-1',
+                  buttonCount === 2 && 'grid-cols-2',
+                  buttonCount === 3 && 'grid-cols-3',
+                  buttonCount === 4 && 'grid-cols-4',
                 ])}
               >
                 {frame.buttons.map((button) => {

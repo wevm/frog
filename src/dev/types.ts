@@ -17,7 +17,6 @@ export type Frame = {
   debug?:
     | {
         htmlTags: readonly string[]
-        state?: string | undefined
       }
     | undefined
   imageAspectRatio: FrameImageAspectRatio

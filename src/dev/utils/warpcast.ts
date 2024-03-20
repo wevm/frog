@@ -1,5 +1,7 @@
 import { mnemonicToAccount } from 'viem/accounts'
 
+import type { Hub } from '../../types/hub.js'
+
 export async function getSignedKeyRequest(data: {
   appFid: number | undefined
   appMnemonic: string | undefined
@@ -121,9 +123,17 @@ type SignedKeyRequest = {
     }
 )
 
-export async function getUserDataByFid(baseUrl: string, userFid: number) {
+export async function getUserDataByFid(hub: Hub, userFid: number) {
   const response = (await fetch(
-    `${baseUrl}/v1/userDataByFid?fid=${userFid}`,
+    `${hub.apiUrl}/v1/userDataByFid?fid=${userFid}`,
+    {
+      ...hub.fetchOptions,
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...hub.fetchOptions?.headers,
+      },
+    },
   ).then((response) => response.json())) as {
     messages: {
       data: {

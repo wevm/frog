@@ -4,7 +4,7 @@ import getWasm from 'shiki/wasm'
 
 type CodeToHtmlProps = {
   code: string
-  lang: 'json' | 'html'
+  lang: 'json' | 'html' | 'txt'
 }
 
 const cache: Record<string, string> = {}
@@ -29,6 +29,9 @@ export function CodeToHtml(props: CodeToHtmlProps) {
   )
 
   useEffect(() => {
+    if (lang === 'txt')
+      return setCodeHtml(`<pre class="text-gray-700">${code}</pre>`)
+
     const key = `${lang}_${code}`
     if (cache[key]) setCodeHtml(cache[key])
     else {

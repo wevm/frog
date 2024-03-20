@@ -29,6 +29,8 @@ import {
   getUserDataByFid,
   postSignedKeyRequest,
 } from './utils/warpcast.js'
+import type { inspectRoutes } from 'hono/dev'
+import type { Hub } from '../types/hub.js'
 
 export type ApiRoutesOptions = {
   /** Custom app fid to auth with. */
@@ -37,17 +39,7 @@ export type ApiRoutesOptions = {
   appMnemonic?: string | undefined
 }
 
-type Options = ApiRoutesOptions & {
-  hubApiUrl?: string | undefined
-  routes: Route[]
-  secret?: string | undefined
-}
-
-type Route = {
-  path: string
-  method: string
-  isMiddleware: boolean
-}
+export type RouteData = ReturnType<typeof inspectRoutes>[number]
 
 export type User = {
   displayName?: string | undefined
@@ -58,8 +50,14 @@ export type User = {
   username?: string | undefined
 }
 
-export function apiRoutes(options: Options) {
-  const { appFid, appMnemonic, hubApiUrl, routes, secret } = options
+export function apiRoutes(
+  options: ApiRoutesOptions & {
+    hub: Hub | undefined
+    routes: RouteData[]
+    secret: string | undefined
+  },
+) {
+  const { appFid, appMnemonic, hub, routes, secret } = options
 
   return new Hono<{
     Variables: {
@@ -219,8 +217,8 @@ export function apiRoutes(options: Options) {
 
       if (state === 'completed') {
         let user: User = { state, token, userFid: userFid as number }
-        if (hubApiUrl && userFid) {
-          const data = await getUserDataByFid(hubApiUrl, userFid)
+        if (hub && userFid) {
+          const data = await getUserDataByFid(hub, userFid)
           user = { ...user, ...data }
         }
 
@@ -261,7 +259,7 @@ export type Bootstrap = {
   user: User | undefined
 }
 
-export function getFrameUrls(origin: string, routes: Route[]) {
+export function getFrameUrls(origin: string, routes: RouteData[]) {
   const frameUrls: string[] = []
   for (const route of routes) {
     if (route.isMiddleware) continue

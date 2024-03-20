@@ -17,7 +17,7 @@ import { performAction } from '../utils/actions.js'
 import { formatSpeed, formatTime } from '../utils/format.js'
 
 const buttonClass =
-  'border rounded-sm bg-background-200 p-1.5 text-gray-700 hover:bg-gray-100'
+  'border rounded bg-background-200 p-1.5 text-gray-700 hover:bg-gray-100'
 
 export function Timeline() {
   const { dataMap, logs, logsCount, logIndex } = useStore(
@@ -57,7 +57,7 @@ export function Timeline() {
 
       <div className="bg-background-100 px-2 py-2 flex justify-between border rounded-b-md border-t-0">
         <div className="flex gap-1.5">
-          <div className="flex border rounded-sm bg-background-200 text-gray-700 divide-x">
+          <div className="flex border rounded bg-background-200 text-gray-700 divide-x">
             <button
               aria-label="previous log"
               className="bg-transparent p-1.5 hover:bg-gray-100 rounded-l-sm"
@@ -179,7 +179,7 @@ function Row(props: RowProps) {
     >
       <div className="flex flex-row items-center justify-between w-full">
         <div className="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
-          <div className="flex items-center border px-1 py-0.5 leading-4 rounded-sm text-gray-900 uppercase">
+          <div className="flex items-center border px-1 py-0.5 leading-4 rounded text-gray-900 uppercase">
             {log.method}
           </div>
 
@@ -191,7 +191,7 @@ function Row(props: RowProps) {
               'px-1',
               'py-0.5',
               'leading-4',
-              'rounded-sm',
+              'rounded',
               'uppercase',
               ...(log.response.success
                 ? ['border-green-100', 'text-green-900']
@@ -353,7 +353,7 @@ function UserForm(props: UserFormProps) {
               {editFid ? (
                 <button
                   aria-label="Edit User FID"
-                  className="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+                  className="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded"
                   type="button"
                   style={{ right: '0.25rem' }}
                   onClick={() => {
@@ -366,7 +366,7 @@ function UserForm(props: UserFormProps) {
               ) : (
                 <button
                   aria-label="Restore User FID"
-                  className="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded-sm"
+                  className="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded"
                   type="button"
                   style={{ right: '0.25rem' }}
                   onClick={() => {

@@ -21,11 +21,13 @@ export function htmlToMetadata(html: string) {
   const htmlTags = []
   const properties = {} as Record<FrameMetadata[number]['property'], string>
   for (const node of nodes) {
-    const property = node.getAttribute(
-      'property',
-    ) as FrameMetadata[number]['property']
+    const property = (node.getAttribute('property') ??
+      node.getAttribute('name')) as
+      | FrameMetadata[number]['property']
+      | undefined
     const content = node.getAttribute('content')
 
+    if (!property) continue
     if (!property.match(metaTagPropertyRegex)) continue
     metadata.push({ property, content })
     properties[property] = content
@@ -47,9 +49,9 @@ export function htmlToMetadata(html: string) {
   const buttons = parseButtons(metadata)
 
   return {
-    context: deserializeJson<FrameContext | undefined>(
-      properties['frog:context'],
-    ),
+    context: properties['frog:context']
+      ? deserializeJson<FrameContext>(properties['frog:context'])
+      : undefined,
     frame: {
       buttons,
       image: properties['og:image'],
@@ -67,7 +69,6 @@ export function htmlToMetadata(html: string) {
 
       debug: {
         htmlTags,
-        state: undefined,
       },
     } satisfies Frame,
     properties: metadata,

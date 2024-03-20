@@ -7,6 +7,7 @@ import { store } from '../lib/store.js'
 import { Data, Frame } from '../types/frog.js'
 import { formatFileSize, formatSpeed } from '../utils/format.js'
 import { CodeToHtml } from './CodeToHtml.js'
+import { useEffect } from 'react'
 
 type TabsProps = {
   data: Data
@@ -26,15 +27,30 @@ function setTab(tab: ReturnType<(typeof store)['getState']>['tab']) {
   store.setState((state) => ({ ...state, tab }))
 }
 
+function unwrapState(state: string): object | string | undefined {
+  try {
+    const parsed = JSON.parse(decodeURIComponent(state))
+    if (parsed.previousState) return parsed.previousState
+    return parsed
+  } catch {
+    return state
+  }
+}
+
 export function Tabs(props: TabsProps) {
   const { data, frame, url } = props
 
-  const currentState =
-    data.context?.status === 'initial' && data.context?.previousState
-      ? data.context?.previousState
-      : frame.debug?.state
+  const context = data.context
+  let currentState: object | string | undefined
+  if (context?.status === 'initial' && context?.previousState)
+    currentState = context.previousState
+  else if (frame.state) currentState = unwrapState(frame.state)
+
   const previousState = useStore((state) => {
-    const previousKey = state.stack[state.stackIndex - 1]
+    const previousKey =
+      state.logIndex !== -1
+        ? state.logs[state.logIndex - 1]
+        : state.stack[state.stackIndex - 1]
     if (!previousKey) return
 
     const previousData = state.dataMap[previousKey]
@@ -42,10 +58,15 @@ export function Tabs(props: TabsProps) {
     if (previousContext?.status === 'initial' && previousContext.previousState)
       return previousContext.previousState
 
-    return previousData.frame.debug?.state
+    return unwrapState(previousData.frame.state)
   })
 
   const tab = useStore((state) => state.tab)
+
+  useEffect(() => {
+    if (tab === 'context' && !context) setTab('request')
+    if (tab === 'state' && !currentState) setTab('request')
+  }, [context, currentState, tab])
 
   return (
     <div className="border rounded-md bg-background-100">
@@ -90,7 +111,7 @@ export function Tabs(props: TabsProps) {
           </button>
         </li>
 
-        {data.context && (
+        {context && (
           <li role="presentation">
             <button
               role="tab"
@@ -192,7 +213,7 @@ export function Tabs(props: TabsProps) {
         <RequestContent data={data} url={url} />
       </section>
 
-      {data.context && (
+      {context && (
         <section
           id="context-section"
           role="tabpanel"
@@ -206,7 +227,6 @@ export function Tabs(props: TabsProps) {
           <CodeToHtml
             code={(() => {
               // sort context keys since they can be out of order
-              const context = data.context
               const sortedKeys = Object.keys(context).sort()
               const result: Record<string, unknown> = {}
               for (const key of sortedKeys) {
@@ -219,37 +239,48 @@ export function Tabs(props: TabsProps) {
         </section>
       )}
 
-      <section
-        id="state-section"
-        role="tabpanel"
-        aria-labelledby="state"
-        style={{
-          fontSize: '0.8125rem',
-          display: tab === 'state' ? 'block' : 'none',
-        }}
-      >
-        <div className="scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0">
-          <div className="flex flex-col lg:w-1/2 p-4 gap-2 scrollbars">
-            <div className="font-medium text-xs text-gray-700 uppercase">
-              Current
+      {currentState && (
+        <section
+          id="state-section"
+          role="tabpanel"
+          aria-labelledby="state"
+          style={{
+            fontSize: '0.8125rem',
+            display: tab === 'state' ? 'block' : 'none',
+          }}
+        >
+          <div className="scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0">
+            <div className="flex flex-col lg:w-1/2 p-4 gap-2 scrollbars">
+              <div className="font-medium text-xs text-gray-700 uppercase">
+                Current
+              </div>
+              {/* TODO: Handle non-JSON state from non-Frog frames */}
+              <CodeToHtml
+                code={
+                  typeof currentState === 'object'
+                    ? JSON.stringify(currentState, null, 2)
+                    : currentState ?? ''
+                }
+                lang={typeof currentState === 'object' ? 'json' : 'txt'}
+              />
             </div>
-            <CodeToHtml
-              code={JSON.stringify(currentState ?? {}, null, 2)}
-              lang="json"
-            />
-          </div>
 
-          <div className="flex flex-col lg:w-1/2 p-4 gap-2 scrollbars">
-            <div className="font-medium text-xs text-gray-700 uppercase">
-              Previous
+            <div className="flex flex-col lg:w-1/2 p-4 gap-2 scrollbars">
+              <div className="font-medium text-xs text-gray-700 uppercase">
+                Previous
+              </div>
+              <CodeToHtml
+                code={
+                  typeof previousState === 'object'
+                    ? JSON.stringify(previousState, null, 2)
+                    : previousState ?? '-'
+                }
+                lang={typeof previousState === 'object' ? 'json' : 'txt'}
+              />
             </div>
-            <CodeToHtml
-              code={JSON.stringify(previousState ?? {}, null, 2)}
-              lang="json"
-            />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section
         id="meta-tags-section"
@@ -293,7 +324,7 @@ function RequestContent(props: RequestContentProps) {
       <div className="flex flex-col px-4 py-2 lg:w-1/2 divide-y">
         <div className={rowClass}>
           <div className={labelClass}>Method</div>
-          <div className="flex items-center border px-1 py-0.5 leading-4 rounded-sm text-gray-900 font-mono uppercase">
+          <div className="flex items-center border px-1 py-0.5 leading-4 rounded text-gray-900 font-mono uppercase">
             {data.method}
           </div>
         </div>
@@ -360,7 +391,7 @@ function RequestContent(props: RequestContentProps) {
                 'px-1',
                 'py-0.5',
                 'leading-4',
-                'rounded-sm',
+                'rounded',
                 'uppercase',
                 data.response.success ? 'border-green-100' : 'border-red-100',
               ])}
@@ -460,7 +491,7 @@ function MetaTagsContent(props: MetaTagsContentProps) {
         style={{ right: '0.5rem', top: '0.5rem' }}
       >
         <button
-          className="text-gray-600 bg-transparent p-1.5 rounded-sm hover:bg-gray-100"
+          className="text-gray-600 bg-transparent p-1.5 rounded hover:bg-gray-100"
           aria-label={copied ? 'copied' : 'copy to clipboard'}
           type="button"
           onClick={copy}

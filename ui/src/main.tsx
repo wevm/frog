@@ -10,8 +10,8 @@ import '@fontsource-variable/inter'
 import './assets/icon.png'
 import './index.css'
 
-// Hydrate store from server data
 {
+  // Hydrate store from server data
   const element = document.getElementById('__FROG_DATA__')
   const bootstrap = JSON.parse(element!.textContent!) as Bootstrap
   hydrateStore(bootstrap)
