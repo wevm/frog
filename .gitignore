@@ -8,6 +8,6 @@ coverage
 create-frog/templates
 node_modules
 site/dist
-src/ui
+src/ui/.frog
 tsconfig.*.tsbuildinfo
 tsconfig.tsbuildinfo
