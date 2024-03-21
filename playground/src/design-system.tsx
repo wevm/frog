@@ -1,7 +1,7 @@
 import { Frog } from 'frog'
 import { createSystem } from 'frog/ui'
 
-const { Box, Cover, tokens } = createSystem({
+const { Box, Cover, VStack, tokens } = createSystem({
   fonts: {
     default: [
       {
@@ -36,14 +36,14 @@ export const app = new Frog({
           padding="64px"
           gap="32px"
         >
-          <Box gap="8px">
+          <VStack gap="8px">
             <Box fontSize="64px" fontWeight="700" width="100%">
               FrogUI 🐸
             </Box>
             <Box color="text/secondary" fontSize="40px">
               Build consistent frame experiences
             </Box>
-          </Box>
+          </VStack>
         </Cover>
       </Cover>
     ),
