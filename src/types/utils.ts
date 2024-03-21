@@ -1,14 +1,14 @@
 import type { ResolvedRegister } from 'viem'
 
-export type DeepAssign<T, U> = U extends object
-  ? T extends object
-    ? Omit<T, keyof U> & {
-        [key in keyof U]: T extends { [k in key]: any }
-          ? DeepAssign<T[key], U[key]>
-          : U[key]
-      }
-    : U
-  : U
+export type Assign<T, U> = Assign_<T, U> & U
+type Assign_<T, U> = {
+  [K in keyof T as K extends keyof U
+    ? // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+      U[K] extends void
+      ? never
+      : K
+    : K]: K extends keyof U ? U[K] : T[K]
+}
 
 export type Pretty<type> = { [key in keyof type]: type[key] } & unknown
 
