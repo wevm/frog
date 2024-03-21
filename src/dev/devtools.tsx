@@ -219,7 +219,7 @@ export function routes(
                 href={`${assetsPath}/assets/icon.png`}
               />
             </head>
-            <body style={{ backgroundColor: '#000' }}>
+            <body>
               <div id="root" />
               <script
                 id="__FROG_DATA__"
