@@ -22,6 +22,7 @@ import type {
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
+import type { Tokens } from './ui/tokens.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
@@ -149,6 +150,10 @@ export type FrogConstructorParameters<
    */
   secret?: string | undefined
   /**
+   * UI Tokens.
+   */
+  tokens?: Tokens | undefined
+  /**
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
    * - When `true`, the frame will go through verification and throw an error if it fails.
@@ -224,12 +229,15 @@ export class FrogBase<
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
   imageOptions: ImageOptions | (() => Promise<ImageOptions>) | undefined
+  /** Origin URL of the server instance. */
   origin: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
+  /** UI Tokens. */
+  tokens: Tokens | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
@@ -250,6 +258,7 @@ export class FrogBase<
     initialState,
     origin,
     secret,
+    tokens,
     verify,
   }: FrogConstructorParameters<env, basePath, _state> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
@@ -262,6 +271,7 @@ export class FrogBase<
     if (imageOptions) this.imageOptions = imageOptions
     if (origin) this.origin = origin
     if (secret) this.secret = secret
+    if (tokens) this.tokens = tokens
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
@@ -305,6 +315,7 @@ export class FrogBase<
         })()
 
         const fonts = await (async () => {
+          if (this.tokens?.fonts) return Object.values(this.tokens.fonts).flat()
           if (typeof options?.fonts === 'function') return await options.fonts()
           if (options?.fonts) return options.fonts
           return defaultImageOptions?.fonts
@@ -414,7 +425,7 @@ export class FrogBase<
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
           const encodedImage = lz.compressToEncodedURIComponent(
-            JSON.stringify(await parseImage(image, { assetsUrl })),
+            JSON.stringify(await parseImage(await image, { assetsUrl })),
           )
           const imageParams = toSearchParams({
             image: encodedImage,
@@ -528,6 +539,7 @@ export class FrogBase<
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
     if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
+    if (!frog.tokens) frog.tokens = this.tokens
     if (!frog.verify) frog.verify = this.verify
 
     this.hono.route(path, frog.hono)

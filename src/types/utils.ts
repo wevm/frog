@@ -1,5 +1,15 @@
 import type { ResolvedRegister } from 'viem'
 
+export type DeepAssign<T, U> = U extends object
+  ? T extends object
+    ? Omit<T, keyof U> & {
+        [key in keyof U]: T extends { [k in key]: any }
+          ? DeepAssign<T[key], U[key]>
+          : U[key]
+      }
+    : U
+  : U
+
 export type Pretty<type> = { [key in keyof type]: type[key] } & unknown
 
 export type UnionPretty<type> = type extends object ? Pretty<type> : type
