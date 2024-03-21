@@ -19,6 +19,7 @@ export function Box({ __context, children, style, ...rest }: BoxProps) {
     ? colors[rest.backgroundColor]
     : undefined
   const color = colors[rest.color ?? 'text']
+
   return (
     <div
       __context={__context}

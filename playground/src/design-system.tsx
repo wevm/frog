@@ -1,8 +1,7 @@
 import { Frog } from 'frog'
-import { colors, createSystem } from 'frog/ui'
+import { createSystem } from 'frog/ui'
 
 const { Box, Cover, tokens } = createSystem({
-  colors: colors.dark,
   fonts: {
     default: [
       {
