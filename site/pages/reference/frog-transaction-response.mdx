@@ -317,10 +317,10 @@ export const app = new Frog()
 app.transaction('/mint', (c) => {
   return c.contract({ 
     abi, 
-    attribution: false, // [!code focus]
     chainId: 'eip155:10', 
     functionName: 'mint', 
     to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+    attribution: false, // [!code focus]
   }) 
 })
 ```
