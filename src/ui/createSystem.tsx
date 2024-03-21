@@ -1,4 +1,4 @@
-import type { DeepAssign } from '../types/utils.js'
+import type { Assign } from '../types/utils.js'
 import { Box, type BoxProps } from './Box.js'
 import { Cover, type CoverProps } from './Cover.js'
 import { VStack, type VStackProps } from './VStack.js'
@@ -9,11 +9,10 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
 ) {
   const mergedTokens = {
     ...defaultTokens,
-    colors: { ...defaultTokens.colors, ...tokens?.colors },
     ...tokens,
   }
 
-  type MergedTokens = DeepAssign<DefaultTokens, tokens>
+  type MergedTokens = Assign<DefaultTokens, tokens>
 
   function createComponent<props>(Component: (...args: any[]) => JSX.Element) {
     return (props: props) => (

@@ -3,22 +3,41 @@ import type { Child } from 'hono/jsx'
 
 import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 
-export type BoxProps<tokens extends Tokens = DefaultTokens> = Properties & {
+type TokenValue<property extends keyof Properties, token> =
+  | token
+  | { custom: Properties[property] }
+
+export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
+  Properties,
+  'backgroundColor' | 'color' | 'fontFamily'
+> & {
   __context?: { tokens?: Tokens | undefined }
-  backgroundColor?: keyof tokens['colors']
-  color?: keyof tokens['colors']
+  backgroundColor?: TokenValue<'backgroundColor', keyof tokens['colors']>
+  color?: TokenValue<'color', keyof tokens['colors']>
   children?: Child
-  fontFamily?: keyof tokens['fonts']
+  fontFamily?: TokenValue<'fontFamily', keyof tokens['fonts']>
   style?: Properties
 }
 
 export function Box({ __context, children, style, ...rest }: BoxProps) {
-  const { colors } = __context?.tokens ?? (defaultTokens as any)
+  const { colors, fonts } = (__context?.tokens ?? defaultTokens) as Tokens
 
-  const backgroundColor = rest.backgroundColor
-    ? colors[rest.backgroundColor]
-    : undefined
-  const color = colors[rest.color ?? 'text']
+  const backgroundColor = (() => {
+    if (!rest.backgroundColor) return undefined
+    if (typeof rest.backgroundColor === 'object')
+      return rest.backgroundColor.custom
+    return colors?.[rest.backgroundColor]
+  })()
+  const color = (() => {
+    if (!rest.color) return colors?.text
+    if (typeof rest.color === 'object') return rest.color.custom
+    return colors?.[rest.color]
+  })()
+  const fontFamily = (() => {
+    if (!rest.fontFamily) return fonts?.default[0].name
+    if (typeof rest.fontFamily === 'object') return rest.fontFamily.custom
+    return fonts?.[rest.fontFamily][0].name
+  })()
 
   return (
     <div
@@ -29,6 +48,7 @@ export function Box({ __context, children, style, ...rest }: BoxProps) {
         color,
         display: 'flex',
         flexDirection: 'column',
+        fontFamily,
         ...style,
       }}
     >
