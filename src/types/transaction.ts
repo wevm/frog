@@ -25,7 +25,7 @@ export type TransactionParameters = {
   /** A CAIP-2 Chain ID to identify the transaction network. */
   chainId: `${ChainNamespace}:${ChainIdEip155}`
   /** Optionally omit the client calldata attribution suffix */
-  attribution?: boolean
+  attribution?: boolean | undefined
 } & EthSendTransactionSchema<bigint>
 
 export type TransactionResponse = Pick<TransactionParameters, 'chainId' | 'attribution'> &
@@ -48,7 +48,7 @@ export type EthSendTransactionParameters<quantity = string> = {
   /** Value to send with transaction (in wei). */
   value?: quantity
   /** Optionally omit the client calldata attribution suffix */
-  attribution?: boolean
+  attribution?: boolean | undefined
 }
 
 export type TransactionResponseFn<parameters> = (
@@ -84,7 +84,7 @@ export type ContractTransactionParameters<
   /** Contract function arguments. */
   args?: (abi extends Abi ? UnionWiden<args> : never) | allArgs | undefined
   /** Optionally omit the client calldata attribution suffix */
-  attribution?: boolean
+  attribution?: boolean | undefined
   /** Contract function name to invoke. */
   functionName:
     | allFunctionNames // show all options

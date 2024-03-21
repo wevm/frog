@@ -2,4 +2,4 @@
 "frog": minor
 ---
 
-Add `attribution` parameter to transactions
+Added `attribution` parameter to transaction response
