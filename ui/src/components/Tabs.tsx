@@ -68,7 +68,7 @@ export function Tabs(props: TabsProps) {
     if (tab === 'context' && !context) setTab('request')
     if (tab === 'state' && !currentState) setTab('request')
     if (tab === 'tx' && !transactionData) setTab('request')
-  }, [context, currentState, tab])
+  }, [context, currentState, tab, transactionData])
 
   return (
     <div className="border rounded-md bg-background-100">
