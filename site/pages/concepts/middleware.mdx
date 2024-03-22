@@ -136,8 +136,9 @@ It is recommended to use your own API Key in production. [See more](https://neyn
 You can write your own Frog middleware. This is great if you want to share common logic across or frames or if you are developing a SDK for Frog users to hook into their frames.
 
 ```tsx twoslash
-import { Frog } from 'frog'
 // @noErrors
+import { Frog } from 'frog'
+
 export const app = new Frog()
 
 // Custom logger // [!code focus]
@@ -164,8 +165,9 @@ app.frame('/foo/bar', (c) => {/* ... */})
 You can also write a custom middleware to add additional params to Frog's TransactionResponse (mimics [`Transaction Specs API`](https://warpcast.notion.site/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#8235c261091e4499b417e71dd1753e05)).
 
 ```tsx twoslash
-import { Frog } from 'frog'
 // @noErrors
+import { Frog } from 'frog'
+
 export const app = new Frog()
 
 app.transaction( // [!code focus]
@@ -191,8 +193,9 @@ You can write a custom middleware to modify the response to add extra [open-fram
 > Since the Frames Spec is still new (launched on 1/26/24) and hasn't hit a stable v1 yet (current vNext), we don't want to introduce additional standards to Frog that might conflict with or diverge from what the Farcaster team and community has planned. In addition, the vast majority of Frame usage at the moment is via Warpcast (and Farcaster) so we want to make sure Frog serves that main audience first.
 
 ```tsx twoslash
-import { Frog } from 'frog'
 // @noErrors
+import { Frog } from 'frog'
+
 export const app = new Frog()
 
 app.use(async (c, next) => { // [!code focus]
