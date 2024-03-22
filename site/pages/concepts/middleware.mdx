@@ -138,6 +138,7 @@ You can write your own Frog middleware. This is great if you want to share commo
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
+ 
 export const app = new Frog()
 
 // Custom logger // [!code focus]
@@ -166,6 +167,7 @@ You can also write a custom middleware to add additional params to Frog's Transa
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
+ 
 export const app = new Frog()
 
 app.transaction( // [!code focus]
@@ -193,6 +195,7 @@ You can write a custom middleware to modify the response to add extra [open-fram
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
+ 
 export const app = new Frog()
 
 app.use(async (c, next) => { // [!code focus]
