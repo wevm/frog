@@ -136,9 +136,8 @@ It is recommended to use your own API Key in production. [See more](https://neyn
 You can write your own Frog middleware. This is great if you want to share common logic across or frames or if you are developing a SDK for Frog users to hook into their frames.
 
 ```tsx twoslash
-// @noErrors
 import { Frog } from 'frog'
- 
+// @noErrors
 export const app = new Frog()
 
 // Custom logger // [!code focus]
@@ -159,6 +158,59 @@ app.frame('/foo', (c) => {/* ... */})
 
 app.frame('/foo/bar', (c) => {/* ... */})
 ```
+
+### Example: TransactionResponse
+
+You can also write a custom middleware to add additional params to Frog's TransactionResponse (mimics [`Transaction Specs API`](https://warpcast.notion.site/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#8235c261091e4499b417e71dd1753e05)).
+
+```tsx twoslash
+import { Frog } from 'frog'
+// @noErrors
+export const app = new Frog()
+
+app.transaction( // [!code focus]
+  '/mint', // [!code focus]
+  async (c, next) => { // [!code focus]
+    await next(); // [!code focus]
+    const txParams = await c.res.json(); // [!code focus]
+    txParams.attribution = false; // [!code focus]
+    c.res = new Response(JSON.stringify(txParams), { // [!code focus]
+      headers: { // [!code focus]
+        'Content-Type': 'application/json', // [!code focus]
+      }, // [!code focus]
+    }); // [!code focus]
+  }, // [!code focus]
+  (c) => {/* ... */} // [!code focus]
+); // [!code focus]
+```
+
+### Example: Modifying the FrameResponse
+
+You can write a custom middleware to modify the response to add extra [open-frames metadata](https://github.com/open-frames/standard) to fit your needs.
+
+> Since the Frames Spec is still new (launched on 1/26/24) and hasn't hit a stable v1 yet (current vNext), we don't want to introduce additional standards to Frog that might conflict with or diverge from what the Farcaster team and community has planned. In addition, the vast majority of Frame usage at the moment is via Warpcast (and Farcaster) so we want to make sure Frog serves that main audience first.
+
+```tsx twoslash
+import { Frog } from 'frog'
+// @noErrors
+export const app = new Frog()
+
+app.use(async (c, next) => { // [!code focus]
+  await next(); // [!code focus]
+  const isFrame = c.res.headers.get('content-type')?.includes('html'); // [!code focus]
+  if (isFrame) { // [!code focus]
+    let html = await c.res.text(); // [!code focus]
+    const metaTag = '<meta property="of:accepts:xmtp" content="2024-02-01" />'; // [!code focus]
+    html = html.replace(/(<head>)/i, `$1${metaTag}`); // [!code focus]
+    c.res = new Response(html, { // [!code focus]
+      headers: { // [!code focus]
+        'content-type': 'text/html', // [!code focus]
+      }, // [!code focus]
+    }); // [!code focus]
+  } // [!code focus]
+}); // [!code focus]
+```
+
 
 ## Community Middleware
 

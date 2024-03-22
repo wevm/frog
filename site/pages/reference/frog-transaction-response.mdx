@@ -8,6 +8,8 @@ There are three types of responses:
 - [Contract Transaction (`c.contract`)](#contract-transaction-ccontract): Convinience method to **invoke a contract function** (with inferred types & automatic encoding).
 - [Raw Transaction (`c.res`)](#raw-transaction-cres): Low-level method to **send raw transaction** (mimics the [Transaction Spec API](https://warpcast.notion.site/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4)).
 
+If you want to pass additional parameters to the `TransactionResponse`, refer to the [example of transaction middleware](/concepts/middleware#example-transactionresponse).
+
 ```tsx twoslash
 // @noErrors
 import { Frog, parseEther } from 'frog'
@@ -376,3 +378,4 @@ app.transaction('/raw-send', (c) => {
   }) 
 })
 ```
+import { request } from "http"
