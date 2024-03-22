@@ -424,6 +424,7 @@ export class FrogBase<
                 property="fc:frame:image:aspect_ratio"
                 content={imageAspectRatio}
               />
+              <meta property="of:accepts:xmtp" content="2024-02-01" />
               <meta property="fc:frame:image" content={imageUrl} />
               <meta property="og:image" content={ogImageUrl ?? imageUrl} />
               <meta property="og:title" content={title} />
