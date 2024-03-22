@@ -302,7 +302,7 @@ export class FrogBase<
         origin,
       })
 
-      if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
+      if (context.url.endsWith('/')) return c.redirect(context.url.slice(0, -1))
 
       const response = await handler(context)
       if (response instanceof Response) return response
