@@ -20,7 +20,7 @@ export type State = {
   stackIndex: number
   stack: string[]
   user: User | null | undefined
-  tab: 'context' | 'meta-tags' | 'request' | 'state'
+  tab: 'context' | 'meta-tags' | 'request' | 'state' | 'tx'
   skipSaveStateToQueryHash: boolean
 }
 

@@ -26,4 +26,6 @@ export const postSchema = object({
   fromAddress: union([undefined_(), string()]),
   inputText: union([undefined_(), string()]),
   state: union([undefined_(), string()]),
-})
+  transactionId: union([undefined_(), string()]),
+  sourceFrameId: string(),
+} as const)

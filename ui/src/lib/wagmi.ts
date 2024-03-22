@@ -14,3 +14,9 @@ export const config = createConfig({
 })
 
 export const queryClient = new QueryClient()
+
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config
+  }
+}

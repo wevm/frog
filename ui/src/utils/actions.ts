@@ -16,14 +16,16 @@ function getBody() {
     fromAddress: undefined,
     inputText,
     state: frame.state,
+    transactionId: undefined,
   } as const
 }
 
 export async function handlePost(button: {
   index: number
   target: string | undefined
+  transactionId?: string | undefined
 }) {
-  const { index, target } = button
+  const { index, target, transactionId } = button
   const { dataKey, dataMap } = store.getState()
   const frame = dataMap[dataKey].frame
 
@@ -33,6 +35,8 @@ export async function handlePost(button: {
       json: {
         ...getBody(),
         buttonIndex: index,
+        transactionId,
+        sourceFrameId: dataKey,
       },
     })
     .then((response) => response.json())
@@ -61,7 +65,7 @@ export async function handlePostRedirect(button: {
   target: string | undefined
 }) {
   const { index, target } = button
-  const { dataKey, dataMap, logs } = store.getState()
+  const { dataKey, dataMap } = store.getState()
   const frame = dataMap[dataKey].frame
 
   const json = await client.frames[':url'].redirect
@@ -70,12 +74,13 @@ export async function handlePostRedirect(button: {
       json: {
         ...getBody(),
         buttonIndex: index,
+        sourceFrameId: dataKey,
       },
     })
     .then((response) => response.json())
 
   const id = json.id
-  const previousData = dataMap[logs.at(-1) ?? dataKey]
+  const previousData = dataMap[dataKey]
   store.setState((state) => {
     const nextStackIndex = state.stackIndex + 1
     return {
@@ -109,7 +114,7 @@ export async function handleTransaction(button: {
   target: string | undefined
 }) {
   const { fromAddress, index, target } = button
-  const { dataKey, dataMap, logs } = store.getState()
+  const { dataKey, dataMap } = store.getState()
   const frame = dataMap[dataKey].frame
 
   const json = await client.frames[':url'].tx
@@ -119,12 +124,13 @@ export async function handleTransaction(button: {
         ...getBody(),
         fromAddress,
         buttonIndex: index,
+        sourceFrameId: dataKey,
       },
     })
     .then((response) => response.json())
 
   const id = json.id
-  const previousData = dataMap[logs.at(-1) ?? dataKey]
+  const previousData = dataMap[dataKey]
   store.setState((state) => {
     const nextStackIndex = state.stackIndex + 1
     return {

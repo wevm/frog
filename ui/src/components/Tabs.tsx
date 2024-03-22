@@ -12,7 +12,6 @@ import { CodeToHtml } from './CodeToHtml.js'
 type TabsProps = {
   data: Data
   frame: Frame
-  url: string
 }
 
 const indicatorStyle = {
@@ -38,7 +37,7 @@ function unwrapState(state: string): object | string | undefined {
 }
 
 export function Tabs(props: TabsProps) {
-  const { data, frame, url } = props
+  const { data, frame } = props
 
   const context = data.context
   let currentState: object | string | undefined
@@ -61,11 +60,14 @@ export function Tabs(props: TabsProps) {
     return unwrapState(previousData.frame.state)
   })
 
+  const transactionData = data.type === 'tx' ? data.response.data : undefined
+
   const tab = useStore((state) => state.tab)
 
   useEffect(() => {
     if (tab === 'context' && !context) setTab('request')
     if (tab === 'state' && !currentState) setTab('request')
+    if (tab === 'tx' && !transactionData) setTab('request')
   }, [context, currentState, tab])
 
   return (
@@ -110,6 +112,36 @@ export function Tabs(props: TabsProps) {
             />
           </button>
         </li>
+
+        {transactionData && (
+          <li role="presentation">
+            <button
+              role="tab"
+              type="button"
+              id="request"
+              onClick={() => setTab('tx')}
+              aria-selected={tab === 'tx'}
+              className={clsx([
+                'bg-transparent',
+                'relative',
+                'py-3',
+                'border-gray-1000',
+                'px-3',
+                tab === 'tx' ? 'text-gray-1000' : 'text-gray-700',
+              ])}
+            >
+              Transaction
+              <div
+                aria-hidden="true"
+                className="absolute bg-gray-1000"
+                style={{
+                  ...indicatorStyle,
+                  ...(tab === 'tx' ? { display: 'block' } : {}),
+                }}
+              />
+            </button>
+          </li>
+        )}
 
         {context && (
           <li role="presentation">
@@ -204,14 +236,29 @@ export function Tabs(props: TabsProps) {
         id="request-section"
         role="tabpanel"
         aria-labelledby="request"
-        className="scrollbars flex flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
+        className="scrollbars flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
         style={{
           fontSize: '0.8125rem',
           display: tab === 'request' ? 'flex' : 'none',
         }}
       >
-        <RequestContent data={data} url={url} />
+        <RequestContent data={data} />
       </section>
+
+      {transactionData && (
+        <section
+          id="transaction-section"
+          role="tabpanel"
+          aria-labelledby="transaction"
+          className="scrollbars flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
+          style={{
+            fontSize: '0.8125rem',
+            display: tab === 'tx' ? 'flex' : 'none',
+          }}
+        >
+          <pre className="p-4">{JSON.stringify(transactionData, null, 2)}</pre>
+        </section>
+      )}
 
       {context && (
         <section
@@ -306,13 +353,13 @@ export function Tabs(props: TabsProps) {
 
 type RequestContentProps = {
   data: Data
-  url: string
 }
 
 function RequestContent(props: RequestContentProps) {
-  const { data, url } = props
+  const { data } = props
 
   const body = 'body' in data ? data.body : null
+  const url = new URL(data.url)
 
   const rowClass = 'flex flex-row py-3 justify-between'
   const labelClass = 'text-gray-700 font-medium min-w-36'
@@ -338,14 +385,14 @@ function RequestContent(props: RequestContentProps) {
 
         <div className={rowClass}>
           <div className={labelClass}>Host</div>
-          <div className={valueClass} title={new URL(url).host}>
-            {new URL(url).host}
+          <div className={valueClass} title={url.host}>
+            {url.host}
           </div>
         </div>
 
         <div className={rowClass}>
           <div className={labelClass}>Request Path</div>
-          <div className={valueClass}>{new URL(url).pathname}</div>
+          <div className={valueClass}>{url.pathname}</div>
         </div>
 
         {body && (

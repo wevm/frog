@@ -1,20 +1,23 @@
+import { createPortal } from 'react-dom'
 import { Cross1Icon } from '@radix-ui/react-icons'
-import { QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useCallback, useRef } from 'react'
 import {
-  WagmiProvider,
   useAccount,
   useConnect,
   useDisconnect,
   useSendTransaction,
+  useSwitchChain,
 } from 'wagmi'
+import { waitForTransactionReceipt } from 'wagmi/actions'
+import { toast } from 'sonner'
 
-import { createPortal } from 'react-dom'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
-import { config, queryClient } from '../lib/wagmi.js'
-import { handleTransaction } from '../utils/actions.js'
+import { handlePost, handleTransaction } from '../utils/actions.js'
 import { Spinner } from './Spinner.js'
+import { parseChainId } from '../utils/parseChainId.js'
+import { config } from '../lib/wagmi.js'
 
 type TransactionDialogProps = {
   close: () => void
@@ -46,55 +49,56 @@ export function TransactionDialog(props: TransactionDialogProps) {
   if (!open) return <></>
 
   return createPortal(
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <div
-          className="flex items-center justify-center p-6"
+    <div
+      className="flex items-center justify-center p-6"
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        inset: '0',
+        isolation: 'isolate',
+        position: 'fixed',
+        zIndex: 9999,
+      }}
+    >
+      <div
+        className="bg-background-100 relative flex flex-col gap-4 p-6 border-gray-alpha-100 border min-w-[330px]"
+        style={{ borderRadius: '1.5rem' }}
+        ref={ref}
+      >
+        <button
+          type="button"
+          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100"
           style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            inset: '0',
-            isolation: 'isolate',
-            position: 'fixed',
-            zIndex: 9999,
+            height: '2rem',
+            width: '2rem',
+            top: '1.25rem',
+            right: '1rem',
           }}
+          onClick={close}
         >
-          <div
-            className="bg-background-100 relative flex flex-col gap-4 scrollbars p-6 border-gray-alpha-100 border min-w-[330px]"
-            style={{ borderRadius: '1.5rem' }}
-            ref={ref}
-          >
-            <button
-              type="button"
-              className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100"
-              style={{
-                height: '2rem',
-                width: '2rem',
-                top: '1.25rem',
-                right: '1rem',
-              }}
-              onClick={close}
-            >
-              <span className="sr-only">Close</span>
-              <Cross1Icon />
-            </button>
+          <span className="sr-only">Close</span>
+          <Cross1Icon />
+        </button>
 
-            <Content data={data} />
-          </div>
-        </div>
-      </QueryClientProvider>
-    </WagmiProvider>,
+        <Content data={data} close={close} />
+      </div>
+    </div>,
     document.body,
   )
 }
 
 function Content(props: {
+  close: () => void
   data: TransactionDialogProps['data']
 }) {
-  const { data } = props
+  const { data, close } = props
 
-  const { address } = useAccount()
+  const { address, chainId, status } = useAccount()
 
-  if (!address)
+  if (
+    status === 'disconnected' ||
+    status === 'connecting' ||
+    status === 'reconnecting'
+  )
     return (
       <>
         <h1 className="text-base font-bold text-gray-1000 text-center">
@@ -118,7 +122,7 @@ function Content(props: {
         Preview
       </h1>
 
-      <Review address={address} data={data} />
+      <Review address={address} chainId={chainId} data={data} close={close} />
     </>
   )
 }
@@ -151,21 +155,89 @@ function ConnectWallet() {
 
 function Review(props: {
   address: `0x${string}`
+  chainId: number
+  close: () => void
   data: TransactionDialogProps['data']
 }) {
   const {
     address: fromAddress,
+    chainId,
     data: { index, target },
+    close,
   } = props
-  const { disconnect } = useDisconnect()
-  const { sendTransaction } = useSendTransaction()
 
-  const { data } = useQuery({
+  const { data: transactionData } = useQuery({
     queryKey: ['tx', { fromAddress, index, target }] as const,
-    async queryFn(options) {
+    queryFn(options) {
       return handleTransaction(options.queryKey[1])
     },
   })
+
+  const { disconnect } = useDisconnect()
+  const { switchChainAsync } = useSwitchChain()
+  const { sendTransaction, reset } = useSendTransaction({
+    mutation: {
+      onMutate(variables) {
+        const chain = config.chains.find(
+          (chain) => chain.id === variables.chainId,
+        )!
+        return { chain }
+      },
+      async onSuccess(data, _variables, context) {
+        close()
+        // TOOD: Post url for button
+        await handlePost({ index, target: undefined, transactionId: data })
+
+        try {
+          const action = {
+            label: 'View',
+            onClick() {
+              const blockExplorer = context.chain.blockExplorers.default
+              const blockExplorerUrl = `${blockExplorer.url}/tx/${data}`
+              window.open(blockExplorerUrl, '_blank')
+            },
+          }
+          const toastId = toast.loading('Transaction Pending', { action })
+          const transactionReceipt = await waitForTransactionReceipt(config, {
+            chainId: context.chain.id,
+            hash: data,
+            onReplaced(replacement) {
+              console.log(replacement)
+            },
+          })
+          toast.success('Transaction Confirmed', { action, id: toastId })
+          console.log(transactionReceipt)
+          // TODO: Add transaction receipt to tabs
+        } catch (error) {
+          // TODO: Decode errors using `params.abi`
+        }
+      },
+    },
+  })
+
+  const handleSend = useCallback(async () => {
+    reset()
+
+    if (!transactionData) return
+
+    const { method, params } = transactionData
+    if (method !== 'eth_sendTransaction') return
+
+    const { namespace, reference } = parseChainId(transactionData.chainId)
+    if (!namespace || !reference) return
+
+    try {
+      if (chainId !== reference) await switchChainAsync({ chainId: reference })
+      sendTransaction({
+        chainId: reference,
+        to: params.to,
+        data: params.data,
+        value: params.value ? BigInt(params.value) : undefined,
+      })
+    } catch (error) {
+      // TODO: Error handling
+    }
+  }, [chainId, transactionData, reset, sendTransaction, switchChainAsync])
 
   return (
     <>
@@ -178,19 +250,13 @@ function Review(props: {
         </button>
       </div>
 
-      <pre className="text-xs">{JSON.stringify(data, null, 2)}</pre>
+      <pre className="text-xs">{JSON.stringify(transactionData, null, 2)}</pre>
 
       <button
         type="button"
         className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1 text-center relative flex items-center justify-center"
-        onClick={() => {
-          if (!data) return
-          sendTransaction({
-            to: data.params.to,
-            data: data.params.data,
-            value: data.params.value ? BigInt(data.params.value) : undefined,
-          })
-        }}
+        disabled={!transactionData}
+        onClick={handleSend}
       >
         Continue in wallet
       </button>

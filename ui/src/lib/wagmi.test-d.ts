@@ -1,6 +1,6 @@
 import { expectTypeOf, test } from 'vitest'
 
-import type { ChainIdEip155 } from '../../../src/types/transaction'
+import { ChainIdEip155 } from '../types/frog'
 import { config } from './wagmi'
 
 type ChainId = (typeof config.chains)[number]['id']

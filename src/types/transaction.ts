@@ -5,6 +5,7 @@ import type {
   GetValue,
   Hex,
 } from 'viem'
+
 import type { TypedResponse } from './response.js'
 import type { UnionWiden, Widen } from './utils.js'
 

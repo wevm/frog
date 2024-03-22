@@ -17,6 +17,16 @@ export function useFrame(): Data['frame'] | undefined {
   return useStore((state) => state.dataMap[state.dataKey]?.frame)
 }
 
+export function useFrameUrl(): string | undefined {
+  return useStore((state) => {
+    const data = state.dataMap[state.dataKey]
+    if (!data) return
+    if (data.type === 'action' || data.type === 'initial') return data.url
+    const previousData = state.dataMap[data.sourceFrameId]
+    return previousData.url
+  })
+}
+
 type ExtractState<store> = store extends {
   getState: () => infer state
 }

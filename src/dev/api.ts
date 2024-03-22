@@ -172,6 +172,7 @@ export function apiRoutes(
               status: response?.status ?? 500,
               statusText: response?.statusText ?? 'Internal Server Error',
             },
+        sourceFrameId: json.sourceFrameId,
         url,
       } as const)
     })
@@ -208,6 +209,7 @@ export function apiRoutes(
           status: response.status,
           statusText: response.statusText,
         },
+        sourceFrameId: json.sourceFrameId,
         url,
       } as const)
     })
