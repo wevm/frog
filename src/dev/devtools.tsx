@@ -218,8 +218,19 @@ export function routes(
                 type="image/png"
                 href={`${assetsPath}/assets/icon.png`}
               />
+
+              {/* Prevent background flash */}
+              <style id="__SSR_STYLE__">
+                {html`
+                  @media (prefers-color-scheme: dark) {
+                    html {
+                      background-color: #000;
+                    }
+                  }
+                `}
+              </style>
             </head>
-            <body style={{ backgroundColor: '#000' }}>
+            <body>
               <div id="root" />
               <script
                 id="__FROG_DATA__"

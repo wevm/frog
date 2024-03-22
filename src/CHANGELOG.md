@@ -1,5 +1,17 @@
 # frog
 
+## 0.7.4
+
+### Patch Changes
+
+- [`8323000`](https://github.com/wevm/frog/commit/8323000abd4a6e7b57f95314c37736000f6e896d) Thanks [@tmm](https://github.com/tmm)! - Added devtools style tweaks.
+
+## 0.7.3
+
+### Patch Changes
+
+- [#173](https://github.com/wevm/frog/pull/173) [`fd33c56`](https://github.com/wevm/frog/commit/fd33c5644cfb42fe463c08379dadd64ac364d62b) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed dark background set on devtools which resulted in bad UI for browsers with ligh-mode scheme preference.
+
 ## 0.7.2
 
 ### Patch Changes

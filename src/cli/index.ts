@@ -33,4 +33,8 @@ cli
 cli.help()
 cli.version(version)
 
+try {
+  process.title = 'node (frog)'
+} catch {}
+
 cli.parse()
