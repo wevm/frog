@@ -6,7 +6,7 @@ import { QuickLinks } from './components/QuickLinks'
 import { StartForm } from './components/StartForm'
 import { Tabs } from './components/Tabs'
 import { Timeline } from './components/Timeline'
-import { useData, useFrame, useStore, useFrameUrl } from './hooks/useStore'
+import { useData, useFrame, useFrameUrl, useStore } from './hooks/useStore'
 
 export function App() {
   const data = useData()

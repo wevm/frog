@@ -1,7 +1,8 @@
-import { createPortal } from 'react-dom'
 import { Cross1Icon } from '@radix-ui/react-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { toast } from 'sonner'
 import {
   useAccount,
   useConnect,
@@ -10,14 +11,13 @@ import {
   useSwitchChain,
 } from 'wagmi'
 import { waitForTransactionReceipt } from 'wagmi/actions'
-import { toast } from 'sonner'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
-import { handlePost, handleTransaction } from '../utils/actions.js'
-import { Spinner } from './Spinner.js'
-import { parseChainId } from '../utils/parseChainId.js'
 import { config } from '../lib/wagmi.js'
+import { handlePost, handleTransaction } from '../utils/actions.js'
+import { parseChainId } from '../utils/parseChainId.js'
+import { Spinner } from './Spinner.js'
 
 type TransactionDialogProps = {
   close: () => void
