@@ -5,6 +5,7 @@ import type { Env } from '../types/env.js'
 import type { Hub } from '../types/hub.js'
 import { deserializeJson } from './deserializeJson.js'
 import { fromQuery } from './fromQuery.js'
+import { getRequestUrl } from './getRequestUrl.js'
 import * as jws from './jws.js'
 import { verifyFrame } from './verifyFrame.js'
 
@@ -48,6 +49,8 @@ export async function requestBodyToContext<
       return {} as any
     })()
 
+  const url = getRequestUrl(c.req)
+
   const trustedFrameData = await (async () => {
     if (verify === false) return null
     if (!trustedData) return null
@@ -57,7 +60,7 @@ export async function requestBodyToContext<
         hub,
         frameUrl: untrustedData.url,
         trustedData,
-        url: c.req.url,
+        url: url.href,
       })
       return { ...frameData, state: frameData.state || untrustedData.state }
     } catch (err) {
@@ -68,13 +71,13 @@ export async function requestBodyToContext<
 
   return {
     env: c.env,
-    initialPath: initialPath ? initialPath : new URL(c.req.url).pathname,
+    initialPath: initialPath ? initialPath : url.pathname,
     previousState,
     previousButtonValues,
     frameData: trustedFrameData || untrustedData,
     req: c.req,
     status: c.req.method === 'POST' ? 'response' : 'initial',
-    url: c.req.url,
+    url: url.href,
     var: c.var,
     verified: Boolean(trustedFrameData),
   }
