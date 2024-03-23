@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.5
+
+### Patch Changes
+
+- [`a670972`](https://github.com/wevm/frog/commit/a6709727d229695517c1bd291e0369e0439572ff) Thanks [@jxom](https://github.com/jxom)! - Fixed issue where protocol via a reverse proxy would register as `http`.
+
 ## 0.7.4
 
 ### Patch Changes
