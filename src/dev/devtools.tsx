@@ -11,6 +11,7 @@ import type { FrogBase } from '../frog-base.js'
 import type { Env } from '../types/env.js'
 import type { Hub } from '../types/hub.js'
 import type { Pretty } from '../types/utils.js'
+import { getRequestUrl } from '../utils/getRequestUrl.js'
 import {
   type ApiRoutesOptions,
   type Bootstrap,
@@ -142,7 +143,7 @@ export function routes(
 
   app
     .get('/', async (c) => {
-      const { origin } = new URL(c.req.url)
+      const { origin } = getRequestUrl(c.req)
       const baseUrl = `${origin}${basePath}`
 
       let frameUrls: string[] = []
