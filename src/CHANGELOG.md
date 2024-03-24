@@ -1,5 +1,12 @@
 # frog
 
+## 0.7.7
+
+### Patch Changes
+
+- [#184](https://github.com/wevm/frog/pull/184) [`378ab0f`](https://github.com/wevm/frog/commit/378ab0fe03f7593e3ba89ad5768fb7fe0268d5d5) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed optional path parameter parsing that resulted in making the path parameter to be required.
+  Fixed the `/image` route to be prioritized over optional parameter (`/:param?`).
+
 ## 0.7.6
 
 ### Patch Changes
