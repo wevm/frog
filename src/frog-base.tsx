@@ -25,6 +25,7 @@ import type {
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
@@ -285,8 +286,9 @@ export class FrogBase<
     const { verify = this.verify } = options
 
     // Frame Route (implements GET & POST).
+
     this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
-      const url = new URL(c.req.url)
+      const url = getRequestUrl(c.req)
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)
       const baseUrl = origin + parsePath(this.basePath)
@@ -303,7 +305,7 @@ export class FrogBase<
         origin,
       })
 
-      if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
+      if (context.url !== parsePath(url.href)) return c.redirect(context.url)
 
       const response = await handler(context)
       if (response instanceof Response) return response
