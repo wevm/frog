@@ -2,10 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { App } from './App.tsx'
+import { Providers } from './components/Providers.tsx'
 import { initFrogClient } from './frog-client.ts'
 import { hydrateStore } from './lib/store.ts'
 import { Bootstrap } from './types/frog.ts'
-import { Providers } from './components/Providers.tsx'
 
 import '@fontsource-variable/inter'
 import './assets/icon.png'
