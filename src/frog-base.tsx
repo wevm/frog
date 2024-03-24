@@ -25,12 +25,14 @@ import type {
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getImagePaths } from './utils/getImagePaths.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseFonts } from './utils/parseFonts.js'
+import { parseHonoPath } from './utils/parseHonoPath.js'
 import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
@@ -284,8 +286,39 @@ export class FrogBase<
 
     const { verify = this.verify } = options
 
+    // OG Image Route
+    const imagePaths = getImagePaths(parseHonoPath(path))
+    for (const imagePath of imagePaths) {
+      this.hono.get(imagePath, async (c) => {
+        const defaultImageOptions = await (async () => {
+          if (typeof this.imageOptions === 'function')
+            return await this.imageOptions()
+          return this.imageOptions
+        })()
+
+        const fonts = await (async () => {
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return defaultImageOptions?.fonts
+        })()
+
+        const {
+          headers = this.headers,
+          image,
+          imageOptions = defaultImageOptions,
+        } = fromQuery<any>(c.req.query())
+        const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
+        return new ImageResponse(image_, {
+          ...imageOptions,
+          fonts: await parseFonts(fonts),
+          headers: imageOptions?.headers ?? headers,
+        })
+      })
+    }
+
     // Frame Route (implements GET & POST).
-    this.hono.use(parsePath(path), ...middlewares, async (c) => {
+
+    this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
       const url = getRequestUrl(c.req)
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)
@@ -467,33 +500,6 @@ export class FrogBase<
       )
     })
 
-    // OG Image Route
-    this.hono.get(`${parsePath(path)}/image`, async (c) => {
-      const defaultImageOptions = await (async () => {
-        if (typeof this.imageOptions === 'function')
-          return await this.imageOptions()
-        return this.imageOptions
-      })()
-
-      const fonts = await (async () => {
-        if (typeof options?.fonts === 'function') return await options.fonts()
-        if (options?.fonts) return options.fonts
-        return defaultImageOptions?.fonts
-      })()
-
-      const {
-        headers = this.headers,
-        image,
-        imageOptions = defaultImageOptions,
-      } = fromQuery<any>(c.req.query())
-      const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
-      return new ImageResponse(image_, {
-        ...imageOptions,
-        fonts: await parseFonts(fonts),
-        headers: imageOptions?.headers ?? headers,
-      })
-    })
-
     return this
   }
 
@@ -530,7 +536,7 @@ export class FrogBase<
 
     const { verify = this.verify } = options
 
-    this.hono.post(parsePath(path), ...middlewares, async (c) => {
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
