@@ -32,6 +32,7 @@ import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseFonts } from './utils/parseFonts.js'
 import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
+import { parseHonoPath } from './utils/parseHonoPath.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
@@ -284,7 +285,7 @@ export class FrogBase<
     const { verify = this.verify } = options
 
     // Frame Route (implements GET & POST).
-    this.hono.use(parsePath(path), ...middlewares, async (c) => {
+    this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
       const url = new URL(c.req.url)
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)
@@ -467,7 +468,7 @@ export class FrogBase<
     })
 
     // OG Image Route
-    this.hono.get(`${parsePath(path)}/image`, async (c) => {
+    this.hono.get(`${parseHonoPath(path)}/image`, async (c) => {
       const defaultImageOptions = await (async () => {
         if (typeof this.imageOptions === 'function')
           return await this.imageOptions()
@@ -529,7 +530,7 @@ export class FrogBase<
 
     const { verify = this.verify } = options
 
-    this.hono.post(parsePath(path), ...middlewares, async (c) => {
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
