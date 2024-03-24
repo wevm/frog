@@ -1,7 +1,7 @@
-import clsx from 'clsx'
-import { useTransactionReceipt } from 'wagmi'
 import { CheckIcon, CopyIcon } from '@radix-ui/react-icons'
+import clsx from 'clsx'
 import { useEffect } from 'react'
+import { useTransactionReceipt } from 'wagmi'
 
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useStore } from '../hooks/useStore.js'
