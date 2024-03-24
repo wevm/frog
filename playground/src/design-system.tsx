@@ -30,7 +30,7 @@ export const app = new Frog({
     image: (
       <Cover backgroundColor="background" padding="48px">
         <Cover
-          backgroundColor="background/elevated"
+          backgroundColor="background200"
           borderRadius="16px"
           justifyContent="center"
           padding="64px"
@@ -40,7 +40,7 @@ export const app = new Frog({
             <Box fontSize="64px" fontWeight="700" width="100%">
               FrogUI 🐸
             </Box>
-            <Box color="text/secondary" fontSize="40px">
+            <Box color="text200" fontSize="40px">
               Build consistent frame experiences
             </Box>
           </VStack>
