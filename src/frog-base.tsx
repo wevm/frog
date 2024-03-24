@@ -25,7 +25,7 @@ import type {
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
-import { getImagePaths } from './utils/getImatePaths.js'
+import { getImagePaths } from './utils/getImagePaths.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
