@@ -27,6 +27,10 @@ export function useFrameUrl(): string | undefined {
   })
 }
 
+export function useNotification() {
+  return useStore((state) => state.notification)
+}
+
 type ExtractState<store> = store extends {
   getState: () => infer state
 }

@@ -60,10 +60,8 @@ export function AuthDialog(props: AuthDialogProps) {
       >
         <button
           type="button"
-          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100"
+          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100 size-8"
           style={{
-            height: '2rem',
-            width: '2rem',
             top: '1.25rem',
             right: '1rem',
           }}

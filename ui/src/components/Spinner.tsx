@@ -1,11 +1,20 @@
+import { clsx } from 'clsx'
+
 type SpinnerProps = {
   accessibilityLabel?: string
+  size?: 'small' | 'medium'
 }
 
 export function Spinner(props: SpinnerProps) {
-  const { accessibilityLabel } = props
+  const { accessibilityLabel, size = 'medium' } = props
   return (
-    <div className="animate-spin h-6 w-6 stroke-2 stroke-gray-900">
+    <div
+      className={clsx([
+        'animate-spin stroke-2 stroke-gray-900',
+        size === 'small' && 'size-4',
+        size === 'medium' && 'size-6',
+      ])}
+    >
       {accessibilityLabel && (
         <div className="sr-only">{accessibilityLabel}</div>
       )}

@@ -387,7 +387,7 @@ pre {
 .hover\:bg-gray-100:hover { background-color: var(--gray-100) !important; }
 .hover\:bg-red-300:hover { background-color: var(--red-300) !important; }
 
-.h-timeline { height: 533px }
+.h-timeline { height: 521px }
 .container {
   padding-top: 1rem;
   padding-bottom: 1rem;
@@ -430,4 +430,28 @@ pre {
 @media (prefers-color-scheme: light) {
   .dark { fill: black; }
   .light { fill: white; }
+}
+
+.loading-dots_loading span {
+  animation-name:loading-dots_blink;
+  animation-duration:1.4s;
+  animation-iteration-count:infinite;
+  animation-fill-mode:both;
+}
+.loading-dots_loading span:nth-of-type(2) {
+  animation-delay:.2s
+}
+.loading-dots_loading span:nth-of-type(3) {
+  animation-delay:.4s
+}
+@keyframes loading-dots_blink {
+  0% {
+    opacity:.2
+  }
+  20% {
+    opacity:1
+  }
+  to {
+    opacity:.2
+  }
 }

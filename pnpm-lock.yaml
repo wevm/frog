@@ -392,9 +392,6 @@ importers:
       shiki:
         specifier: ^1.1.7
         version: 1.1.7
-      sonner:
-        specifier: ^1.4.41
-        version: 1.4.41(react-dom@18.2.0)(react@18.2.0)
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.1
@@ -11100,16 +11097,6 @@ packages:
     resolution: {integrity: sha512-kuonw1YOYYNOve5iHdSahXPOK49GqwA+LZhI6Wz/l0rP57iKyXXIHaRagOBHAPmGwJC6od2Z9zgvZ5loSgMlVg==}
     dependencies:
       atomic-sleep: 1.0.0
-    dev: true
-
-  /sonner@1.4.41(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-uG511ggnnsw6gcn/X+YKkWPo5ep9il9wYi3QJxHsYe7yTZ4+cOd1wuodOUmOpFuXL+/RE3R04LczdNCDygTDgQ==}
-    peerDependencies:
-      react: ^18.0.0
-      react-dom: ^18.0.0
-    dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
     dev: true
 
   /source-map-js@1.0.2:

@@ -1,7 +1,8 @@
 import clsx from 'clsx'
-
+import { useTransactionReceipt } from 'wagmi'
 import { CheckIcon, CopyIcon } from '@radix-ui/react-icons'
 import { useEffect } from 'react'
+
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
@@ -30,6 +31,7 @@ function unwrapState(state: string): object | string | undefined {
   try {
     const parsed = JSON.parse(decodeURIComponent(state))
     if (parsed.previousState) return parsed.previousState
+    if (parsed.initialPath) return undefined // if it doesn't have `previousState`, but has `initialPath`, it's a frog frame without state
     return parsed
   } catch {
     return state
@@ -60,15 +62,33 @@ export function Tabs(props: TabsProps) {
     return unwrapState(previousData.frame.state)
   })
 
-  const transactionData = data.type === 'tx' ? data.response.data : undefined
+  const transactionId = context?.frameData?.transactionId
+  const { data: transactionReceipt } = useTransactionReceipt({
+    hash: transactionId,
+    query: {
+      select(data) {
+        return {
+          ...data,
+          stringified: JSON.stringify(
+            data,
+            (_key, value) => {
+              if (typeof value === 'bigint') return Number(value)
+              return value
+            },
+            2,
+          ),
+        }
+      },
+    },
+  })
 
   const tab = useStore((state) => state.tab)
 
   useEffect(() => {
     if (tab === 'context' && !context) setTab('request')
     if (tab === 'state' && !currentState) setTab('request')
-    if (tab === 'tx' && !transactionData) setTab('request')
-  }, [context, currentState, tab, transactionData])
+    if (tab === 'tx' && !transactionReceipt) setTab('request')
+  }, [context, currentState, tab, transactionReceipt])
 
   return (
     <div className="border rounded-md bg-background-100">
@@ -112,36 +132,6 @@ export function Tabs(props: TabsProps) {
             />
           </button>
         </li>
-
-        {transactionData && (
-          <li role="presentation">
-            <button
-              role="tab"
-              type="button"
-              id="request"
-              onClick={() => setTab('tx')}
-              aria-selected={tab === 'tx'}
-              className={clsx([
-                'bg-transparent',
-                'relative',
-                'py-3',
-                'border-gray-1000',
-                'px-3',
-                tab === 'tx' ? 'text-gray-1000' : 'text-gray-700',
-              ])}
-            >
-              Transaction
-              <div
-                aria-hidden="true"
-                className="absolute bg-gray-1000"
-                style={{
-                  ...indicatorStyle,
-                  ...(tab === 'tx' ? { display: 'block' } : {}),
-                }}
-              />
-            </button>
-          </li>
-        )}
 
         {context && (
           <li role="presentation">
@@ -203,6 +193,36 @@ export function Tabs(props: TabsProps) {
           </li>
         )}
 
+        {transactionReceipt && (
+          <li role="presentation">
+            <button
+              role="tab"
+              type="button"
+              id="request"
+              onClick={() => setTab('tx')}
+              aria-selected={tab === 'tx'}
+              className={clsx([
+                'bg-transparent',
+                'relative',
+                'py-3',
+                'border-gray-1000',
+                'px-3',
+                tab === 'tx' ? 'text-gray-1000' : 'text-gray-700',
+              ])}
+            >
+              Transaction Receipt
+              <div
+                aria-hidden="true"
+                className="absolute bg-gray-1000"
+                style={{
+                  ...indicatorStyle,
+                  ...(tab === 'tx' ? { display: 'block' } : {}),
+                }}
+              />
+            </button>
+          </li>
+        )}
+
         <li role="presentation">
           <button
             role="tab"
@@ -245,18 +265,18 @@ export function Tabs(props: TabsProps) {
         <RequestContent data={data} />
       </section>
 
-      {transactionData && (
+      {transactionReceipt && (
         <section
           id="transaction-section"
           role="tabpanel"
           aria-labelledby="transaction"
-          className="scrollbars flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
+          className="p-4 scrollbars"
           style={{
             fontSize: '0.8125rem',
             display: tab === 'tx' ? 'flex' : 'none',
           }}
         >
-          <pre className="p-4">{JSON.stringify(transactionData, null, 2)}</pre>
+          <CodeToHtml code={transactionReceipt.stringified} lang="json" />
         </section>
       )}
 
@@ -360,6 +380,8 @@ function RequestContent(props: RequestContentProps) {
 
   const body = 'body' in data ? data.body : null
   const url = new URL(data.url)
+
+  const transactionData = data.type === 'tx' ? data.response.data : undefined
 
   const rowClass = 'flex flex-row py-3 justify-between'
   const labelClass = 'text-gray-700 font-medium min-w-36'
@@ -487,6 +509,13 @@ function RequestContent(props: RequestContentProps) {
             <div className={valueClass} title={data.response.location}>
               {data.response.location}
             </div>
+          </div>
+        )}
+
+        {transactionData && (
+          <div className={rowClass}>
+            <div className={labelClass}>Transaction Method</div>
+            <div className={valueClass}>{transactionData.method}</div>
           </div>
         )}
 

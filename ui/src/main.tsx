@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Toaster } from 'sonner'
 
 import { App } from './App.tsx'
 import { initFrogClient } from './frog-client.ts'
@@ -26,16 +25,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Providers>
       <App />
     </Providers>
-    <Toaster
-      toastOptions={{
-        classNames: {
-          toast: 'bg-background-100 border-gray-100',
-          title: 'text-gray-1000',
-          description: 'text-gray-700',
-          icon: 'text-gray-700',
-        },
-      }}
-    />
   </React.StrictMode>,
 )
 

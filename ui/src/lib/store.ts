@@ -12,6 +12,12 @@ export type State = {
   inputText: string
   logIndex: number
   logs: string[]
+  notification: {
+    type: 'loading' | 'error' | 'success'
+    title: string
+    dismissable?: boolean | undefined
+    action?: { label: string; onClick: () => void } | undefined
+  } | null
   overrides: {
     userFid: number
     castFid: number
@@ -31,6 +37,7 @@ const initialState: State = {
   inputText: '',
   logIndex: -1,
   logs: [],
+  notification: null,
   overrides: {
     userFid: 1,
     castFid: 1,
@@ -43,7 +50,9 @@ const initialState: State = {
   skipSaveStateToQueryHash: false,
 } satisfies State
 
-export const store = createStore(subscribeWithSelector(() => initialState))
+export const store = createStore(
+  subscribeWithSelector<State>(() => initialState),
+)
 
 export function hydrateStore(bootstrap: Bootstrap) {
   const { data, frameUrls, user } = bootstrap
