@@ -26,6 +26,7 @@ import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
+import { getImagePaths } from './utils/getImatePaths.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
@@ -285,6 +286,36 @@ export class FrogBase<
 
     const { verify = this.verify } = options
 
+    // OG Image Route
+    const imagePaths = getImagePaths(parseHonoPath(path))
+    for (const imagePath of imagePaths) {
+      this.hono.get(imagePath, async (c) => {
+        const defaultImageOptions = await (async () => {
+          if (typeof this.imageOptions === 'function')
+            return await this.imageOptions()
+          return this.imageOptions
+        })()
+
+        const fonts = await (async () => {
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return defaultImageOptions?.fonts
+        })()
+
+        const {
+          headers = this.headers,
+          image,
+          imageOptions = defaultImageOptions,
+        } = fromQuery<any>(c.req.query())
+        const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
+        return new ImageResponse(image_, {
+          ...imageOptions,
+          fonts: await parseFonts(fonts),
+          headers: imageOptions?.headers ?? headers,
+        })
+      })
+    }
+
     // Frame Route (implements GET & POST).
 
     this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
@@ -467,33 +498,6 @@ export class FrogBase<
           </html>
         </>,
       )
-    })
-
-    // OG Image Route
-    this.hono.get(`${parseHonoPath(path)}/image`, async (c) => {
-      const defaultImageOptions = await (async () => {
-        if (typeof this.imageOptions === 'function')
-          return await this.imageOptions()
-        return this.imageOptions
-      })()
-
-      const fonts = await (async () => {
-        if (typeof options?.fonts === 'function') return await options.fonts()
-        if (options?.fonts) return options.fonts
-        return defaultImageOptions?.fonts
-      })()
-
-      const {
-        headers = this.headers,
-        image,
-        imageOptions = defaultImageOptions,
-      } = fromQuery<any>(c.req.query())
-      const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
-      return new ImageResponse(image_, {
-        ...imageOptions,
-        fonts: await parseFonts(fonts),
-        headers: imageOptions?.headers ?? headers,
-      })
     })
 
     return this
