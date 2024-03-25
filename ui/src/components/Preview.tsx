@@ -16,6 +16,7 @@ import {
   useSwitchChain,
 } from 'wagmi'
 import { waitForTransactionReceipt } from 'wagmi/actions'
+import { formatEther } from 'viem'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useNotification, useStore } from '../hooks/useStore.js'
@@ -33,7 +34,6 @@ import { WarpIcon } from './icons.js'
 import { LoadingDots } from './LoadingDots.js'
 import { Spinner } from './Spinner.js'
 import { Toast } from './Toast.js'
-import { formatEther } from 'viem'
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { QRCode } from './QRCode.js'
 
