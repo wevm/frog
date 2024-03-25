@@ -8,6 +8,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { clsx } from 'clsx'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { formatEther } from 'viem'
 import {
   useAccount,
   useConnect,
@@ -16,8 +17,8 @@ import {
   useSwitchChain,
 } from 'wagmi'
 import { waitForTransactionReceipt } from 'wagmi/actions'
-import { formatEther } from 'viem'
 
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useNotification, useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
@@ -29,13 +30,12 @@ import {
   handleTransaction,
 } from '../utils/actions.js'
 import { parseChainId } from '../utils/parseChainId.js'
-import { CoinbaseWalletIcon, WalletConnectIcon } from './logos.js'
-import { WarpIcon } from './icons.js'
 import { LoadingDots } from './LoadingDots.js'
+import { QRCode } from './QRCode.js'
 import { Spinner } from './Spinner.js'
 import { Toast } from './Toast.js'
-import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
-import { QRCode } from './QRCode.js'
+import { WarpIcon } from './icons.js'
+import { CoinbaseWalletIcon, WalletConnectIcon } from './logos.js'
 
 type PreviewProps = {
   frame: Frame
