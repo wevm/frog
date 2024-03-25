@@ -92,7 +92,10 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
   try {
     response = await fetch(url, {
       method: 'POST',
-      headers: defaultHeaders,
+      headers: {
+        ...defaultHeaders,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         untrustedData: {
           address: fromAddress,
