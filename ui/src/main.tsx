@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { App } from './App.tsx'
+import { Providers } from './components/Providers.tsx'
 import { initFrogClient } from './frog-client.ts'
 import { hydrateStore } from './lib/store.ts'
 import { Bootstrap } from './types/frog.ts'
@@ -21,7 +22,9 @@ import './index.css'
 // Mount app
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <Providers>
+      <App />
+    </Providers>
   </React.StrictMode>,
 )
 

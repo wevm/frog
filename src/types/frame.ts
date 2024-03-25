@@ -1,4 +1,5 @@
 import { type ImageResponseOptions } from 'hono-og'
+import type { Hash } from 'viem'
 import type { TypedResponse } from './response.js'
 
 export type Font = {
@@ -140,7 +141,7 @@ export type FrameData = {
   network: number
   state?: string | undefined
   timestamp: number
-  transactionId?: string | undefined
+  transactionId?: Hash | undefined
   url: string
 }
 

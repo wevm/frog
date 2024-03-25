@@ -22,8 +22,10 @@ export type FetchFrameParameters = {
       hash: string
     }
     fid: number
+    fromAddress: string | undefined
     inputText: string | undefined
     state: string | undefined
+    transactionId: string | undefined
   }
   privateKey: string | undefined
   url: string
@@ -31,7 +33,8 @@ export type FetchFrameParameters = {
 
 export async function fetchFrame(parameters: FetchFrameParameters) {
   const { body, privateKey, url } = parameters
-  const { buttonIndex, castId, fid, inputText, state } = body
+  const { buttonIndex, castId, fid, fromAddress, state, transactionId } = body
+  const inputText = body.inputText ? body.inputText : undefined
 
   const network = FarcasterNetwork.MAINNET
   const epoch = 1_609_459_200_000 // January 1, 2021 UTC
@@ -46,6 +49,7 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     throw new Error('Invalid network')
 
   const frameActionBody = new FrameActionBody({
+    address: fromAddress ? hexToBytes(fromAddress.slice(2)) : undefined,
     buttonIndex,
     castId: {
       fid: BigInt(castId.fid),
@@ -54,7 +58,9 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     inputText: inputText ? toBytes(inputText) : undefined,
     state: state ? toBytes(state) : undefined,
     url: toBytes(url),
-    // TODO: Add transactionId
+    transactionId: transactionId
+      ? hexToBytes(transactionId.slice(2))
+      : undefined,
   })
 
   const messageData = new MessageData({
@@ -89,13 +95,16 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
       headers: defaultHeaders,
       body: JSON.stringify({
         untrustedData: {
+          address: fromAddress,
           buttonIndex,
           castId,
           fid,
-          inputText: inputText ? inputText : undefined,
+          inputText,
+          state,
+          transactionId,
+
           messageHash: `0x${bytesToHex(message.hash)}`,
           network,
-          state,
           timestamp: message.data?.timestamp,
           url,
         },

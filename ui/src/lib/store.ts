@@ -12,6 +12,12 @@ export type State = {
   inputText: string
   logIndex: number
   logs: string[]
+  notification: {
+    type: 'loading' | 'error' | 'success'
+    title: string
+    dismissable?: boolean | undefined
+    action?: { label: string; onClick: () => void } | undefined
+  } | null
   overrides: {
     userFid: number
     castFid: number
@@ -20,7 +26,8 @@ export type State = {
   stackIndex: number
   stack: string[]
   user: User | null | undefined
-  tab: 'context' | 'meta-tags' | 'request' | 'state'
+  tab: 'context' | 'meta-tags' | 'request' | 'state' | 'tx'
+  transactionMap: Record<`0x${string}`, { chainId: number }>
   skipSaveStateToQueryHash: boolean
 }
 
@@ -31,6 +38,7 @@ const initialState: State = {
   inputText: '',
   logIndex: -1,
   logs: [],
+  notification: null,
   overrides: {
     userFid: 1,
     castFid: 1,
@@ -40,10 +48,13 @@ const initialState: State = {
   stack: [],
   user: undefined,
   tab: 'request',
+  transactionMap: {},
   skipSaveStateToQueryHash: false,
 } satisfies State
 
-export const store = createStore(subscribeWithSelector(() => initialState))
+export const store = createStore(
+  subscribeWithSelector<State>(() => initialState),
+)
 
 export function hydrateStore(bootstrap: Bootstrap) {
   const { data, frameUrls, user } = bootstrap
@@ -115,6 +126,7 @@ function watchState() {
       stack: state.stack,
       stackIndex: state.stackIndex,
       tab: state.tab,
+      transactionMap: state.transactionMap,
     }),
     (slice) => {
       if (store.getState().skipSaveStateToQueryHash) return

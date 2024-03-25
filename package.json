@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "pnpm dev:ui & pnpm dev:playground",
+    "dev": "pnpm dev:playground",
     "dev:playground": "pnpm --filter playground dev",
     "dev:cli": "node --import tsx src/cli/index.ts",
     "dev:create-frog": "bun create-frog/bin.ts",
@@ -47,7 +47,8 @@
   "packageManager": "pnpm@8.15.3",
   "pnpm": {
     "overrides": {
-      "hono": "^4.1.0"
+      "hono": "4.1.0",
+      "typescript": "5.3.3"
     }
   }
 }
