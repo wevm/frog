@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.11
+
+### Patch Changes
+
+- [`b8d7dcc`](https://github.com/wevm/frog/commit/b8d7dcc6ce1c8237a630a684c458c7cfadbefb13) Thanks [@tmm](https://github.com/tmm)! - Fixed devtools non-Frog frame parsing.
+
 ## 0.7.10
 
 ### Patch Changes
