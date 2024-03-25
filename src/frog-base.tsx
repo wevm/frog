@@ -367,7 +367,7 @@ export class FrogBase<
         headers = this.headers,
         imageAspectRatio = this.imageAspectRatio,
         image,
-        imageOptions,
+        imageOptions: imageOptions_ = this.imageOptions,
         intents,
         ogImage,
         title = 'Frog Frame',
@@ -422,10 +422,38 @@ export class FrogBase<
         previousState,
       })
 
+      const imageOptions = await (async () => {
+        if (typeof imageOptions_ === 'function') return await imageOptions_()
+        return imageOptions_
+      })()
+
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
           const encodedImage = lz.compressToEncodedURIComponent(
-            JSON.stringify(await parseImage(await image, { assetsUrl })),
+            JSON.stringify(
+              await parseImage(
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    width: '100%',
+                  }}
+                >
+                  {await image}
+                </div>,
+                {
+                  assetsUrl,
+                  tokens: {
+                    ...this.tokens,
+                    frame: {
+                      height: imageOptions?.height!,
+                      width: imageOptions?.width!,
+                    },
+                  },
+                },
+              ),
+            ),
           )
           const imageParams = toSearchParams({
             image: encodedImage,

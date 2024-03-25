@@ -3,6 +3,16 @@ import type { Font } from '../types/frame.js'
 export type Tokens = {
   colors?: Record<string, string> | undefined
   fonts?: Record<string, Font[]> | undefined
+  frame?:
+    | {
+        height?: undefined
+        width?: undefined
+      }
+    | {
+        height: number
+        width: number
+      }
+  units?: Record<string, number | '100%'> | undefined
 }
 
 export const colors = {
@@ -204,9 +214,57 @@ export const colors = {
     pink900: '#c31562',
     pink1000: '#450522',
   },
-} as const
+} as const satisfies Record<string, Tokens['colors']>
+
+export const units = {
+  '0': 0,
+  '1': 0.0015625,
+  '2': 0.003125,
+  '3': 0.0046875,
+  '4': 0.00625,
+  '6': 0.009375,
+  '8': 0.0125,
+  '10': 0.015625,
+  '12': 0.01875,
+  '14': 0.021875,
+  '16': 0.025,
+  '18': 0.028125,
+  '20': 0.03125,
+  '22': 0.034375,
+  '24': 0.0375,
+  '26': 0.040625,
+  '28': 0.04375,
+  '30': 0.046875,
+  '32': 0.05,
+  '34': 0.053125,
+  '36': 0.05625,
+  '38': 0.059375,
+  '40': 0.0625,
+  '42': 0.065625,
+  '44': 0.06875,
+  '46': 0.071875,
+  '48': 0.075,
+  '52': 0.08125,
+  '56': 0.0875,
+  '60': 0.09375,
+  '64': 0.1,
+  '72': 0.1125,
+  '80': 0.125,
+  '96': 0.15,
+  '128': 0.2,
+  '160': 0.25,
+  '192': 0.3,
+  '224': 0.35,
+  '256': 0.4,
+  '100%': '100%',
+} as const satisfies Tokens['units']
 
 export const defaultTokens = {
   colors: colors.dark,
+  frame: {
+    height: 1200,
+    width: 630,
+  },
+  units,
 } as const satisfies Tokens
 export type DefaultTokens = typeof defaultTokens
