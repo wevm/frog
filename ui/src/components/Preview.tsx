@@ -157,6 +157,7 @@ function Input(props: InputProps) {
       aria-label={placeholder}
       autoComplete="off"
       className="bg-background-200 rounded-md border px-3 py-2.5 text-sm leading-snug w-full"
+      data-1p-ignore
       name="inputText"
       placeholder={placeholder}
       type="text"
