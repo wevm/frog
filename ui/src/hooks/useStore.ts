@@ -22,8 +22,7 @@ export function useFrameUrl(): string | undefined {
     const data = state.dataMap[state.dataKey]
     if (!data) return
     if (data.type === 'action' || data.type === 'initial') return data.url
-    const previousData = state.dataMap[data.sourceFrameId]
-    return previousData.url
+    return state.dataMap[data.sourceFrameId].url
   })
 }
 

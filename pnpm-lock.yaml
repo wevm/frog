@@ -135,7 +135,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -154,7 +154,7 @@ importers:
         version: 18.2.57
       frog:
         specifier: latest
-        version: link:../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       react:
         specifier: latest
         version: 18.2.0
@@ -226,7 +226,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -242,7 +242,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -261,7 +261,7 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -274,7 +274,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -311,7 +311,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -327,7 +327,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: link:../../src
+        version: 0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
       hono:
         specifier: ^4.1.0
         version: 4.1.0
@@ -350,9 +350,15 @@ importers:
       '@radix-ui/react-icons':
         specifier: ^1.3.0
         version: 1.3.0(react@18.2.0)
+      '@tanstack/query-sync-storage-persister':
+        specifier: ^5.28.6
+        version: 5.28.6
       '@tanstack/react-query':
         specifier: ^5.28.4
         version: 5.28.4(react@18.2.0)
+      '@tanstack/react-query-persist-client':
+        specifier: ^5.28.6
+        version: 5.28.6(@tanstack/react-query@5.28.4)(react@18.2.0)
       '@types/react':
         specifier: ^18.2.64
         version: 18.2.65
@@ -3925,6 +3931,34 @@ packages:
     resolution: {integrity: sha512-uQZqOFqLWUvXNIQZ63XdKzg22NtHzgCBUfDmjDHi3BoF+nUYeBNvMi/xFPtFrMhqRzG2Ir4mYaGsWZzmiEjXpA==}
     dev: true
 
+  /@tanstack/query-core@5.28.6:
+    resolution: {integrity: sha512-hnhotV+DnQtvtR3jPvbQMPNMW4KEK0J4k7c609zJ8muiNknm+yoDyMHmxTWM5ZnlZpsz0zOxYFr+mzRJNHWJsA==}
+    dev: true
+
+  /@tanstack/query-persist-client-core@5.28.6:
+    resolution: {integrity: sha512-qvVXDbjnCIBaxAgoLUuiDEAw8yZL70bpnoxzR+ERa4CSSKAvdYeKO3jJiE7sBYre+IkgzRwnjqn+HASyzYWlXg==}
+    dependencies:
+      '@tanstack/query-core': 5.28.6
+    dev: true
+
+  /@tanstack/query-sync-storage-persister@5.28.6:
+    resolution: {integrity: sha512-+RZIVKwabJlW7drj02ASa7JgmbFyTsVUa5cRiiUvOltFUHnEON8Yd+ZBBF7KU/egJJWCMJ/CkNm8wnfw0/yJzw==}
+    dependencies:
+      '@tanstack/query-core': 5.28.6
+      '@tanstack/query-persist-client-core': 5.28.6
+    dev: true
+
+  /@tanstack/react-query-persist-client@5.28.6(@tanstack/react-query@5.28.4)(react@18.2.0):
+    resolution: {integrity: sha512-e3nVS1Sv33fupj0etvZdr7rwbmTtSwctOkCmPU25xnjN2f0aIGWCVHFMvbfoh9CKHZs3+4VswhRAwbOlvVN9bg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.28.6
+      react: ^18.0.0
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.28.6
+      '@tanstack/react-query': 5.28.4(react@18.2.0)
+      react: 18.2.0
+    dev: true
+
   /@tanstack/react-query@5.28.4(react@18.2.0):
     resolution: {integrity: sha512-BErcoB/QQG6YwLSUKnaGxF+lSc270RH2w3kMBpG0i4YzDCsFs2pdxPX1WVknQvFk9bNgukMb158hc2Zb4SdwSA==}
     peerDependencies:
@@ -7235,6 +7269,48 @@ packages:
   /fresh@0.5.2:
     resolution: {integrity: sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=}
     engines: {node: '>= 0.6'}
+    dev: false
+
+  /frog@0.7.7(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-vKiOP4Ih3qdpSCIixSV30w/KfHcH2dETQDSC6hJ3ot6Y8T9oiZKve39iVP5j2bB/LpPm0RkXo5EAfdcDFhFo6w==}
+    hasBin: true
+    peerDependencies:
+      hono: ^4.1.0
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@bufbuild/protobuf': 1.7.2
+      '@hono/node-server': 1.8.2
+      '@hono/valibot-validator': 0.2.2(hono@4.1.0)(valibot@0.30.0)
+      '@noble/curves': 1.3.0
+      '@noble/hashes': 1.3.3
+      cac: 6.7.14
+      detect-browser: 5.3.0
+      dom-parser: 1.1.5
+      fast-glob: 3.3.2
+      fs-extra: 11.2.0
+      hono: 4.1.0
+      hono-og: 0.0.26(hono@4.1.0)
+      jose: 5.2.2
+      lz-string: 1.5.0
+      path-browserify: 1.0.1
+      typescript: 5.3.3
+      valibot: 0.30.0
+      viem: 2.7.11(typescript@5.3.3)
+      vite: 5.1.6(@types/node@20.11.19)
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - terser
+      - utf-8-validate
+      - zod
     dev: false
 
   /fs-extra@11.1.0:

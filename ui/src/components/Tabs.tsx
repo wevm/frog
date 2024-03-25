@@ -1,14 +1,19 @@
 import clsx from 'clsx'
 import { useTransactionReceipt } from 'wagmi'
-import { CheckIcon, CopyIcon } from '@radix-ui/react-icons'
-import { useEffect } from 'react'
+import { CheckIcon, CopyIcon, ExternalLinkIcon } from '@radix-ui/react-icons'
+import { useEffect, useMemo } from 'react'
+import { decodeFunctionData, formatEther, parseEther, type Hash } from 'viem'
 
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
-import { Data, Frame } from '../types/frog.js'
+import { Data, Frame, TransactionResponse } from '../types/frog.js'
 import { formatFileSize, formatSpeed } from '../utils/format.js'
 import { CodeToHtml } from './CodeToHtml.js'
+import { parseChainId } from '../utils/parseChainId.js'
+import { config } from '../lib/wagmi.js'
+import { FormattedAbiItem } from './FormattedAbiItem.js'
+import { LoadingDots } from './LoadingDots.js'
 
 type TabsProps = {
   data: Data
@@ -38,6 +43,11 @@ function unwrapState(state: string): object | string | undefined {
   }
 }
 
+function bigIntReplacer(_key: string, value: unknown) {
+  if (typeof value === 'bigint') return Number(value)
+  return value
+}
+
 export function Tabs(props: TabsProps) {
   const { data, frame } = props
 
@@ -62,33 +72,17 @@ export function Tabs(props: TabsProps) {
     return unwrapState(previousData.frame.state)
   })
 
+  const transactionData = data.type === 'tx' ? data.response.data : undefined
   const transactionId = context?.frameData?.transactionId
-  const { data: transactionReceipt } = useTransactionReceipt({
-    hash: transactionId,
-    query: {
-      select(data) {
-        return {
-          ...data,
-          stringified: JSON.stringify(
-            data,
-            (_key, value) => {
-              if (typeof value === 'bigint') return Number(value)
-              return value
-            },
-            2,
-          ),
-        }
-      },
-    },
-  })
+  const hasTransaction = Boolean(transactionData || transactionId)
 
   const tab = useStore((state) => state.tab)
 
   useEffect(() => {
     if (tab === 'context' && !context) setTab('request')
     if (tab === 'state' && !currentState) setTab('request')
-    if (tab === 'tx' && !transactionReceipt) setTab('request')
-  }, [context, currentState, tab, transactionReceipt])
+    if (tab === 'tx' && !hasTransaction) setTab('request')
+  }, [context, currentState, tab, hasTransaction])
 
   return (
     <div className="border rounded-md bg-background-100">
@@ -193,7 +187,7 @@ export function Tabs(props: TabsProps) {
           </li>
         )}
 
-        {transactionReceipt && (
+        {hasTransaction && (
           <li role="presentation">
             <button
               role="tab"
@@ -210,7 +204,7 @@ export function Tabs(props: TabsProps) {
                 tab === 'tx' ? 'text-gray-1000' : 'text-gray-700',
               ])}
             >
-              Transaction Receipt
+              {transactionData ? 'Transaction Request' : 'Transaction Receipt'}
               <div
                 aria-hidden="true"
                 className="absolute bg-gray-1000"
@@ -265,18 +259,22 @@ export function Tabs(props: TabsProps) {
         <RequestContent data={data} />
       </section>
 
-      {transactionReceipt && (
+      {hasTransaction && (
         <section
           id="transaction-section"
           role="tabpanel"
           aria-labelledby="transaction"
-          className="p-4 scrollbars"
+          className="flex-col lg:flex-row divide-y lg:divide-x lg:divide-y-0"
           style={{
             fontSize: '0.8125rem',
             display: tab === 'tx' ? 'flex' : 'none',
           }}
         >
-          <CodeToHtml code={transactionReceipt.stringified} lang="json" />
+          {transactionId ? (
+            <TransactionReceiptContent hash={transactionId} />
+          ) : (
+            <TransactionContent data={transactionData!} />
+          )}
         </section>
       )}
 
@@ -371,22 +369,178 @@ export function Tabs(props: TabsProps) {
   )
 }
 
-type RequestContentProps = {
-  data: Data
+const rowClass = 'flex flex-row py-3 justify-between'
+const labelClass = 'text-gray-700 font-medium min-w-36'
+const valueClass =
+  'text-gray-1000 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis'
+
+function TransactionReceiptContent(props: {
+  hash: Hash
+}) {
+  const { hash: transactionId } = props
+
+  const { data: transactionReceipt } = useTransactionReceipt({
+    hash: transactionId,
+    query: {
+      select(data) {
+        return {
+          ...data,
+          stringified: JSON.stringify(data, bigIntReplacer, 2),
+        }
+      },
+    },
+  })
+
+  const chainId = useStore(
+    (state) => state.transactionMap[transactionId].chainId,
+  )
+  const chain = useMemo(() => {
+    if (!chainId) return
+    return config.chains.find((chain) => chain.id === chainId)
+  }, [chainId])
+  const blockExplorer = chain?.blockExplorers?.default
+
+  return (
+    <div className="p-4">
+      {blockExplorer && (
+        <a
+          href={`${blockExplorer?.url}/tx/${transactionId}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="font-medium text-gray-700 items-center inline-block mb-2 w-fit"
+        >
+          <span>View on {blockExplorer.name}</span>
+        </a>
+      )}
+
+      {transactionReceipt ? (
+        <div className="scrollbars">
+          <CodeToHtml code={transactionReceipt?.stringified} lang="json" />
+        </div>
+      ) : (
+        <div>
+          <LoadingDots />
+        </div>
+      )}
+    </div>
+  )
 }
 
-function RequestContent(props: RequestContentProps) {
+function TransactionContent(props: {
+  data: TransactionResponse
+}) {
+  const { data } = props
+
+  const abiFunction = useMemo(() => {
+    const filtered = data.params.abi?.find((item) => item.type === 'function')
+    if (filtered?.type === 'function') return filtered
+  }, [data.params.abi])
+  const functionData = useMemo(() => {
+    const { abi } = data.params
+    if (!abi) return
+    if (!data.params.data) return
+    return decodeFunctionData({ abi, data: data.params.data })
+  }, [data.params])
+
+  const chain = useMemo(() => {
+    if (!data) return
+    const { reference } = parseChainId(data.chainId)
+    return config.chains.find((chain) => chain.id === reference)
+  }, [data])
+  const blockExplorer = chain?.blockExplorers?.default
+
+  return (
+    <>
+      <div className="flex flex-col px-4 py-2 lg:w-1/2 divide-y">
+        <div className={rowClass}>
+          <div className={labelClass}>Method</div>
+          <div className={valueClass}>{data.method}</div>
+        </div>
+
+        <div className={rowClass}>
+          <div className={labelClass}>Chain</div>
+          <div className={valueClass}>
+            {chain?.name ? chain?.name : data.chainId}
+          </div>
+        </div>
+
+        <div className={rowClass}>
+          <div className={labelClass}>
+            {abiFunction ? 'Contract Address' : 'To'}
+          </div>
+          <div
+            className={clsx([valueClass, 'flex', 'gap-1', 'items-center'])}
+            title={data.params.to}
+          >
+            <span>
+              {data.params.to.slice(0, 4)}...{data.params.to.slice(-4)}
+            </span>
+            {blockExplorer && (
+              <a
+                href={`${blockExplorer?.url}/address/${data.params.to}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-gray-700"
+              >
+                <span className="sr-only">Open in block explorer</span>
+                <ExternalLinkIcon />
+              </a>
+            )}
+          </div>
+        </div>
+
+        {abiFunction && (
+          <div className={rowClass}>
+            <div className={labelClass}>Contract Function</div>
+            <div className={valueClass}>{abiFunction.name}</div>
+          </div>
+        )}
+
+        {data.params.value && (
+          <div className={rowClass}>
+            <div className={labelClass}>Value</div>
+            <div className={valueClass}>
+              {data.method.includes('eth') && (
+                <span className="text-gray-700 select-none mr-1">Ξ</span>
+              )}
+              {formatEther(parseEther(data.params.value, 'gwei'))}
+            </div>
+          </div>
+        )}
+
+        {abiFunction && (
+          <div className="flex flex-col gap-2 py-3">
+            <div className={labelClass}>Contract Function Data</div>
+
+            <FormattedAbiItem abiItem={abiFunction} showType={false} />
+            {/* TODO: Switch to Rivet-style decoded data */}
+            {functionData?.args && (
+              <div className="scrollbars">
+                <CodeToHtml
+                  code={JSON.stringify(functionData.args, bigIntReplacer, 2)}
+                  lang="json"
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col p-4 lg:w-1/2 scrollbars">
+        <CodeToHtml code={JSON.stringify(data, null, 2)} lang="json" />
+      </div>
+    </>
+  )
+}
+
+function RequestContent(props: {
+  data: Data
+}) {
   const { data } = props
 
   const body = 'body' in data ? data.body : null
   const url = new URL(data.url)
 
   const transactionData = data.type === 'tx' ? data.response.data : undefined
-
-  const rowClass = 'flex flex-row py-3 justify-between'
-  const labelClass = 'text-gray-700 font-medium min-w-36'
-  const valueClass =
-    'text-gray-1000 font-mono text-right whitespace-nowrap overflow-hidden text-ellipsis'
 
   return (
     <>
@@ -421,7 +575,7 @@ function RequestContent(props: RequestContentProps) {
           <>
             <div className={rowClass}>
               <div className={labelClass}>User FID</div>
-              <div className={valueClass}>#{body.fid}</div>
+              <div className={valueClass}>{body.fid}</div>
             </div>
 
             {body.inputText && (
@@ -506,8 +660,32 @@ function RequestContent(props: RequestContentProps) {
         {'location' in data.response && (
           <div className={rowClass}>
             <div className={labelClass}>Location</div>
-            <div className={valueClass} title={data.response.location}>
-              {data.response.location}
+            <div
+              className={clsx([
+                valueClass,
+                'flex',
+                'gap-0.5',
+                'items-center',
+                'justify-end',
+              ])}
+              title={data.response.location}
+            >
+              <div
+                className="text-ellipsis inline-block md:max-w-[80%]"
+                style={{ overflow: 'clip' }}
+              >
+                {data.response.location}
+              </div>
+
+              <a
+                href={data.response.location}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-gray-700 inline-block"
+              >
+                <span className="sr-only">Open in link</span>
+                <ExternalLinkIcon />
+              </a>
             </div>
           </div>
         )}

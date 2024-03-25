@@ -54,6 +54,7 @@ export const app = new Frog({ verify: 'silent' })
       chainId: 'eip155:84532',
       functionName: 'mint',
       to: '0xFBA3912Ca04dd458c843e2EE08967fC04f3579c2',
+      args: [123n],
     })
   })
   // Send Transaction (params)

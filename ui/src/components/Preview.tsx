@@ -32,6 +32,7 @@ import { Spinner } from './Spinner.js'
 import { parseChainId } from '../utils/parseChainId.js'
 import { LoadingDots } from './LoadingDots.js'
 import { Toast } from './Toast.js'
+import { formatEther, parseEther } from 'viem'
 
 type PreviewProps = {
   frame: Frame
@@ -404,7 +405,7 @@ function TransactionDialog(props: TransactionDialogProps) {
 }
 
 function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
-  const { data, domain, close } = props
+  const { data, close } = props
   const { index, target } = data
 
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false)
@@ -473,14 +474,21 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             title: 'Transaction Pending',
             action,
           },
+          transactionMap: {
+            ...state.transactionMap,
+            [data]: { chainId: context.id },
+          },
         }))
 
         // TOOD: Post url for button
-        await handlePost({ index, target: undefined, transactionId: data })
+        await handlePost({
+          index,
+          target: undefined,
+          transactionId: data,
+        })
 
         try {
-          // TODO: Insert into query cache
-          const transactionReceipt = await waitForTransactionReceipt(config, {
+          await waitForTransactionReceipt(config, {
             chainId: context.id,
             hash: data,
             onReplaced(replacement) {
@@ -542,6 +550,14 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     switchChainAsync,
   ])
 
+  const abiFunction = useMemo(() => {
+    if (!transactionData) return
+    const filtered = transactionData.params.abi?.find(
+      (item) => item.type === 'function',
+    )
+    if (filtered?.type === 'function') return filtered
+  }, [transactionData])
+
   if (status === 'connected' && !isSwitchingAccount) {
     if (transactionDataError)
       return (
@@ -567,6 +583,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
         </>
       )
 
+    const blockExplorer = transactionChain?.blockExplorers?.default
+
     return (
       <>
         <h1 className="font-semibold text-base text-gray-1000">
@@ -577,29 +595,11 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           Review the following transaction before confirming in your wallet.
         </p>
 
-        <div className="border divide-y rounded-lg mb-4">
+        <div className="border divide-y rounded-lg mb-4 text-xs">
           <div className="flex justify-between py-2 px-3">
-            <div className="text-sm text-gray-700 font-medium">Domain</div>
-            <div className="text-sm text-gray-1000">{domain}</div>
-          </div>
-
-          <div className="flex justify-between py-2 px-3">
-            <div className="text-sm text-gray-700 font-medium">Chain</div>
-            {isTransactionDataLoading ? (
-              <div className="self-center">
-                <LoadingDots />
-              </div>
-            ) : (
-              <div className="text-sm text-gray-1000">
-                {transactionChain?.name}
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between py-2 px-3">
-            <div className="text-sm text-gray-700 font-medium">Address</div>
+            <div className="text-gray-700 font-medium">Address</div>
             <div className="flex gap-1">
-              <div title={address} className="text-sm text-gray-1000">
+              <div title={address} className="text-gray-1000">
                 {address.slice(0, 4)}…{address.slice(-4)}
               </div>
               <button
@@ -612,6 +612,67 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               </button>
             </div>
           </div>
+
+          {/* <div className="flex justify-between py-2 px-3"> */}
+          {/*   <div className="text-gray-700 font-medium">Domain</div> */}
+          {/*   <div className="text-gray-1000">{domain}</div> */}
+          {/* </div> */}
+
+          <div className="flex justify-between py-2 px-3">
+            <div className="text-gray-700 font-medium">Chain</div>
+            {isTransactionDataLoading ? (
+              <div className="self-center">
+                <LoadingDots />
+              </div>
+            ) : (
+              <div className="text-gray-1000">{transactionChain?.name}</div>
+            )}
+          </div>
+
+          <div className="flex justify-between py-2 px-3">
+            <div className="text-gray-700 font-medium">
+              {abiFunction ? 'Contract' : 'To'}
+            </div>
+            {isTransactionDataLoading ? (
+              <div className="self-center">
+                <LoadingDots />
+              </div>
+            ) : (
+              <div className="flex gap-1">
+                <div
+                  title={transactionData?.params.to}
+                  className="text-gray-1000"
+                >
+                  {transactionData?.params.to.slice(0, 4)}...
+                  {transactionData?.params.to.slice(-4)}
+                </div>
+                {blockExplorer && (
+                  <a
+                    href={`${blockExplorer?.url}/address/${transactionData?.params.to}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-gray-700"
+                  >
+                    <span className="sr-only">Open in block explorer</span>
+                    <ExternalLinkIcon />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          {abiFunction && (
+            <div className="flex justify-between py-2 px-3">
+              <div className="text-gray-700 font-medium">Function</div>
+              {isTransactionDataLoading ? (
+                <div className="self-center">
+                  <LoadingDots />
+                </div>
+              ) : (
+                <div className="text-gray-1000">{abiFunction.name}</div>
+              )}
+            </div>
+          )}
         </div>
 
         <button
@@ -632,6 +693,12 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
                 <Spinner />
               </div>
             </>
+          ) : transactionData?.params.value ? (
+            <div>
+              Send{' '}
+              {formatEther(parseEther(transactionData.params.value, 'gwei'))}{' '}
+              ETH
+            </div>
           ) : (
             'Send Transaction'
           )}

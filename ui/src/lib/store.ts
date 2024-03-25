@@ -27,6 +27,7 @@ export type State = {
   stack: string[]
   user: User | null | undefined
   tab: 'context' | 'meta-tags' | 'request' | 'state' | 'tx'
+  transactionMap: Record<`0x${string}`, { chainId: number }>
   skipSaveStateToQueryHash: boolean
 }
 
@@ -47,6 +48,7 @@ const initialState: State = {
   stack: [],
   user: undefined,
   tab: 'request',
+  transactionMap: {},
   skipSaveStateToQueryHash: false,
 } satisfies State
 
@@ -124,6 +126,7 @@ function watchState() {
       stack: state.stack,
       stackIndex: state.stackIndex,
       tab: state.tab,
+      transactionMap: state.transactionMap,
     }),
     (slice) => {
       if (store.getState().skipSaveStateToQueryHash) return

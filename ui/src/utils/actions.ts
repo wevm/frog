@@ -47,7 +47,10 @@ export async function handlePost(button: {
     return {
       ...state,
       dataKey: id,
-      dataMap: { ...state.dataMap, [id]: json },
+      dataMap: {
+        ...state.dataMap,
+        [id]: json,
+      },
       inputText: '',
       logIndex: -1,
       logs: [...state.logs, id],
@@ -66,7 +69,13 @@ export async function handlePostRedirect(button: {
 }) {
   const { index, target } = button
   const { dataKey, dataMap } = store.getState()
-  const frame = dataMap[dataKey].frame
+
+  const data = dataMap[dataKey]
+  const frame = data.frame
+  const sourceFrameId =
+    data.type === 'action' || data.type === 'initial'
+      ? dataKey
+      : data.sourceFrameId
 
   const json = await client.frames[':url'].redirect
     .$post({
@@ -74,13 +83,12 @@ export async function handlePostRedirect(button: {
       json: {
         ...getBody(),
         buttonIndex: index,
-        sourceFrameId: dataKey,
+        sourceFrameId,
       },
     })
     .then((response) => response.json())
 
   const id = json.id
-  const previousData = dataMap[dataKey]
   store.setState((state) => {
     const nextStackIndex = state.stackIndex + 1
     return {
@@ -90,8 +98,8 @@ export async function handlePostRedirect(button: {
         ...state.dataMap,
         [id]: {
           ...json,
-          context: previousData.context,
-          frame: previousData.frame,
+          context: data.context,
+          frame: data.frame,
         },
       },
       inputText: '',
@@ -115,7 +123,13 @@ export async function handleTransaction(button: {
 }) {
   const { fromAddress, index, target } = button
   const { dataKey, dataMap } = store.getState()
-  const frame = dataMap[dataKey].frame
+
+  const data = dataMap[dataKey]
+  const frame = data.frame
+  const sourceFrameId =
+    data.type === 'action' || data.type === 'initial'
+      ? dataKey
+      : data.sourceFrameId
 
   const json = await client.frames[':url'].tx
     .$post({
@@ -124,13 +138,12 @@ export async function handleTransaction(button: {
         ...getBody(),
         fromAddress,
         buttonIndex: index,
-        sourceFrameId: dataKey,
+        sourceFrameId,
       },
     })
     .then((response) => response.json())
 
   const id = json.id
-  const previousData = dataMap[dataKey]
   store.setState((state) => {
     const nextStackIndex = state.stackIndex + 1
     return {
@@ -140,8 +153,8 @@ export async function handleTransaction(button: {
         ...state.dataMap,
         [id]: {
           ...json,
-          context: previousData.context,
-          frame: previousData.frame,
+          context: data.context,
+          frame: data.frame,
         },
       },
       inputText: '',
@@ -240,8 +253,12 @@ export async function handleReload(event: MouseEvent) {
 
   // reset to initial state
   if (event.shiftKey) {
+    const url =
+      data.type === 'action' || data.type === 'initial'
+        ? data.url
+        : dataMap[data.sourceFrameId].url
     const json = await client.frames[':url']
-      .$get({ param: { url: encodeURIComponent(data.url) } })
+      .$get({ param: { url: encodeURIComponent(url) } })
       .then((response) => response.json())
     const id = json.id
     store.setState((state) => ({

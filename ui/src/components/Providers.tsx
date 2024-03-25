@@ -1,15 +1,26 @@
-import { QueryClientProvider } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { PropsWithChildren } from 'react'
-import { WagmiProvider } from 'wagmi'
+import { WagmiProvider, deserialize, serialize } from 'wagmi'
 
 import { config, queryClient } from '../lib/wagmi'
+
+const persister = createSyncStoragePersister({
+  key: 'frog.cache',
+  serialize,
+  storage: window.localStorage,
+  deserialize,
+})
 
 export function Providers(props: PropsWithChildren) {
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister }}
+      >
         {props.children}
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </WagmiProvider>
   )
 }
