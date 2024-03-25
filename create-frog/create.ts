@@ -28,12 +28,12 @@ function templateNameToDefaultPort(name: string): number {
 function templateNameToDefaultFrogPath(name: string): string {
   switch (name) {
     case 'next':
+    case 'vercel':
       return '/api'
     case 'bun':
     case 'node':
     case 'cloudflare-worker':
     case 'default':
-    case 'vercel':
       return '/dev'
     default:
       throw new Error('Unknown template name')
