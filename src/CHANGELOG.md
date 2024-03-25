@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.10
+
+### Patch Changes
+
+- [#125](https://github.com/wevm/frog/pull/125) [`7e4feb3`](https://github.com/wevm/frog/commit/7e4feb33a46fbd010b9ad6e00f67fe441c5a0284) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `isFrameRequest` util function to detect if request is for a frame from Warpcast.
+
 ## 0.7.9
 
 ### Patch Changes
