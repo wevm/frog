@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.8
+
+### Patch Changes
+
+- [#170](https://github.com/wevm/frog/pull/170) [`30b7979`](https://github.com/wevm/frog/commit/30b7979eb8468fd40c3575e034b6e67c6ae05546) Thanks [@tmm](https://github.com/tmm)! - Added transaction support to devtools.
+
 ## 0.7.7
 
 ### Patch Changes
