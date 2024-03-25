@@ -62,7 +62,7 @@ export function htmlToMetadata(html: string) {
       input: properties['fc:frame:input:text']
         ? { text: properties['fc:frame:input:text'] }
         : undefined,
-      postUrl: properties['fc:frame:post_url'],
+      postUrl: properties['fc:frame:post_url'] as string | undefined,
       state: properties['fc:frame:state'],
       title: properties['og:title'],
       version: (properties['fc:frame'] as FrameVersion) ?? 'vNext',

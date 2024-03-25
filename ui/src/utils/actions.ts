@@ -29,9 +29,10 @@ export async function handlePost(button: {
   const { dataKey, dataMap } = store.getState()
   const frame = dataMap[dataKey].frame
 
+  const url = target ?? frame.postUrl ?? dataMap[dataKey].url
   const json = await client.frames[':url'].action
     .$post({
-      param: { url: encodeURIComponent(target ?? frame.postUrl) },
+      param: { url: encodeURIComponent(url) },
       json: {
         ...getBody(),
         buttonIndex: index,
@@ -77,9 +78,10 @@ export async function handlePostRedirect(button: {
       ? dataKey
       : data.sourceFrameId
 
+  const url = target ?? frame.postUrl ?? dataMap[sourceFrameId].url
   const json = await client.frames[':url'].redirect
     .$post({
-      param: { url: encodeURIComponent(target ?? frame.postUrl) },
+      param: { url: encodeURIComponent(url) },
       json: {
         ...getBody(),
         buttonIndex: index,
@@ -131,9 +133,10 @@ export async function handleTransaction(button: {
       ? dataKey
       : data.sourceFrameId
 
+  const url = target ?? frame.postUrl ?? dataMap[sourceFrameId].url
   const json = await client.frames[':url'].tx
     .$post({
-      param: { url: encodeURIComponent(target ?? frame.postUrl) },
+      param: { url: encodeURIComponent(url) },
       json: {
         ...getBody(),
         fromAddress,
