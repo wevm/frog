@@ -66,7 +66,8 @@ export function getTransactionContext<
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
       contract(parameters) {
-        const { abi, chainId, functionName, to, args, value } = parameters
+        const { abi, chainId, functionName, to, args, attribution, value } =
+          parameters
 
         const abiItem = getAbiItem({
           abi: abi,
@@ -81,6 +82,7 @@ export function getTransactionContext<
 
         return this.send({
           abi: [abiItem, ...abiErrorItems],
+          attribution,
           chainId,
           data: encodeFunctionData({
             abi,
@@ -99,9 +101,10 @@ export function getTransactionContext<
       previousState,
       req,
       res(parameters) {
-        const { chainId, method, params } = parameters
+        const { attribution, chainId, method, params } = parameters
         const { abi, data, to, value } = params
         const response: TransactionResponse = {
+          attribution,
           chainId,
           method,
           params: {
@@ -115,6 +118,7 @@ export function getTransactionContext<
       },
       send(parameters) {
         return this.res({
+          attribution: parameters.attribution ?? false,
           chainId: parameters.chainId,
           method: 'eth_sendTransaction',
           params: parameters,
