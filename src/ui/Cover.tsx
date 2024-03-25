@@ -9,7 +9,7 @@ export type CoverProps<tokens extends Tokens = DefaultTokens> =
 
 export function Cover({ children, ...rest }: CoverProps) {
   return (
-    <Box height="100%" width="100%" {...rest}>
+    <Box flexGrow="1" {...rest}>
       {children}
     </Box>
   )
