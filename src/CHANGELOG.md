@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.12
+
+### Patch Changes
+
+- [`75dc0e8`](https://github.com/wevm/frog/commit/75dc0e8d279ad42e7a01dabe952ecc4c8e7ce822) Thanks [@tmm](https://github.com/tmm)! - Handled invalid transaction data
+
 ## 0.7.11
 
 ### Patch Changes
