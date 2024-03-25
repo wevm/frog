@@ -439,7 +439,11 @@ function TransactionContent(props: {
     const { abi } = data.params
     if (!abi) return
     if (!data.params.data) return
-    return decodeFunctionData({ abi, data: data.params.data })
+    try {
+      return decodeFunctionData({ abi, data: data.params.data })
+    } catch {
+      return
+    }
   }, [data.params])
 
   const chain = useMemo(() => {
