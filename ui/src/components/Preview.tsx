@@ -17,6 +17,7 @@ import {
 } from 'wagmi'
 import { waitForTransactionReceipt } from 'wagmi/actions'
 
+import { formatEther, parseEther } from 'viem'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useNotification, useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
@@ -32,7 +33,6 @@ import { WarpIcon } from './Icons.js'
 import { LoadingDots } from './LoadingDots.js'
 import { Spinner } from './Spinner.js'
 import { Toast } from './Toast.js'
-import { formatEther, parseEther } from 'viem'
 
 type PreviewProps = {
   frame: Frame
