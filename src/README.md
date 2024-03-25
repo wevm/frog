@@ -45,7 +45,7 @@
 
 Check out the following places for more Frog-related content:
 
-- Follow [@awkweb](https://warpcast.com/awkweb), [@jxom](https://warpcast.com/jxom), and [@wevm_dev](https://warpcast.com/wevm_dev) on Warpcast for project updates
+- Follow [@awkweb](https://warpcast.com/awkweb), [@jxom](https://warpcast.com/jxom), and [@wevm](https://warpcast.com/wevm) on Warpcast for project updates
 - Join the [discussions on GitHub](https://github.com/wevm/frog/discussions)
 
 ## Support

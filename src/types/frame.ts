@@ -1,5 +1,20 @@
 import { type ImageResponseOptions } from 'hono-og'
+import type { Hash } from 'viem'
 import type { TypedResponse } from './response.js'
+
+export type Font = {
+  name: string
+  weight?: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
+  style?: 'normal' | 'italic'
+  lang?: string
+} & (
+  | { data: ArrayBuffer | Buffer; source?: 'buffer' | undefined }
+  | { source: 'google' }
+)
+
+export type ImageOptions = Omit<ImageResponseOptions, 'fonts'> & {
+  fonts?: Font[] | undefined
+}
 
 export type FrameResponse = {
   /**
@@ -86,7 +101,13 @@ export type FrameResponse = {
    * @example
    * { width: 1200, height: 630 }
    */
-  imageOptions?: Omit<ImageResponseOptions, 'fonts'> | undefined
+  imageOptions?: Omit<ImageOptions, 'fonts'> | undefined
+  /**
+   * Path or URI to the OG image.
+   *
+   * @default The `image` property.
+   */
+  ogImage?: string | undefined
   /**
    * A set of intents (ie. buttons, text inputs, etc) to render for the frame
    * (beneath the OG image).
@@ -111,6 +132,7 @@ export type FrameResponseFn = (
 ) => TypedResponse<FrameResponse>
 
 export type FrameData = {
+  address?: string | undefined
   buttonIndex?: 1 | 2 | 3 | 4 | undefined
   castId: { fid: number; hash: string }
   fid: number
@@ -119,7 +141,7 @@ export type FrameData = {
   network: number
   state?: string | undefined
   timestamp: number
-  transactionId?: string | undefined
+  transactionId?: Hash | undefined
   url: string
 }
 

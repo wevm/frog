@@ -14,7 +14,9 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    "types": ["frog/client"]
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.mtsx"]
 }

@@ -380,6 +380,10 @@ export default defineConfig({
       ],
     },
     {
+      text: 'Dev Reference',
+      items: [{ text: 'devtools', link: '/dev/devtools' }],
+    },
+    {
       text: 'CLI Reference',
       items: [
         {

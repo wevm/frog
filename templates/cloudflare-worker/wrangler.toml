@@ -1,5 +1,6 @@
 name = "frog-template"
 compatibility_date = "2023-12-01"
+compatibility_flags = [ "nodejs_compat" ]
 
 [site]
 bucket = "./public"

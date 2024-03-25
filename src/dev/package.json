@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../_lib/dev/index.d.ts",
+  "module": "../_lib/dev/index.js"
+}

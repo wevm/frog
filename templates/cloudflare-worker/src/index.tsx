@@ -1,6 +1,7 @@
 import { Button, Frog, TextInput } from 'frog'
+import { devtools } from 'frog/dev'
+import { serveStatic } from 'frog/serve-static'
 // import { neynar } from 'frog/hubs'
-import { serveStatic } from 'hono/cloudflare-workers'
 
 export const app = new Frog({
   // Supply a Hub to enable frame verification.
@@ -57,13 +58,14 @@ app.frame('/', (c) => {
   })
 })
 
-if (import.meta.env?.MODE !== 'development')
-  app.use(
-    '/*',
-    serveStatic({
-      root: './',
-      manifest: await import('__STATIC_CONTENT_MANIFEST'),
-    }),
-  )
+const isCloudflareWorker = typeof caches !== 'undefined'
+if (isCloudflareWorker) {
+  const manifest = await import('__STATIC_CONTENT_MANIFEST')
+  const serveStaticOptions = { manifest, root: './' }
+  app.use('/*', serveStatic(serveStaticOptions))
+  devtools(app, { assetsPath: '/frog', serveStatic, serveStaticOptions })
+} else {
+  devtools(app, { serveStatic })
+}
 
 export default app

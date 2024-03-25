@@ -220,7 +220,23 @@ app.frame('/', (c) => {
 
 ## Dev Server & Devtools
 
-To get a live preview of our frames, we can spin up a local dev server using the `frog dev` command:
+To get a live preview of our frames, we can attach the Frog Devtools to our app.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => { ... })
+
+devtools(app, { serveStatic }) // [!code focus]
+```
+
+Then, spin up a local dev server using the `frog dev` command:
 
 ```bash
 frog dev
@@ -228,7 +244,7 @@ frog dev
 
 This will start a dev server at [`http://localhost:5173`](http://localhost:5173).
 
-Then you can head to the `/dev` route on one of your routes ([`http://localhost:5173/dev`](http://localhost:5173/dev)) to see a live preview (with live reloading) of your frame.
+Then you can head to the `/dev` route ([`http://localhost:5173/dev`](http://localhost:5173/dev)) to see a live preview (with live reloading) of your frame.
 
 ![Frog Devtools](/devtools.png)
 

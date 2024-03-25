@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../_lib/serve-static/index.d.ts",
+  "module": "../_lib/serve-static/index.js"
+}

@@ -1,30 +1,38 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
-import { ImageResponse, type ImageResponseOptions } from 'hono-og'
-import { type HonoOptions } from 'hono/hono-base'
+import { ImageResponse } from 'hono-og'
+import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import { type Schema } from 'hono/types'
+import type { Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
-import type { FrameContext, TransactionContext } from './types/context.js'
 import type { Env } from './types/env.js'
-import {
-  type FrameImageAspectRatio,
-  type FrameResponse,
+import type {
+  FrameImageAspectRatio,
+  FrameResponse,
+  ImageOptions,
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
-import type { HandlerResponse } from './types/response.js'
-import type { TransactionResponse } from './types/transaction.js'
-import { type Pretty } from './types/utils.js'
+import type {
+  FrameHandler,
+  HandlerInterface,
+  MiddlewareHandlerInterface,
+  TransactionHandler,
+} from './types/routes.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getImagePaths } from './utils/getImagePaths.js'
+import { getRequestUrl } from './utils/getRequestUrl.js'
+import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
+import { parseFonts } from './utils/parseFonts.js'
+import { parseHonoPath } from './utils/parseHonoPath.js'
 import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
@@ -52,19 +60,17 @@ export type FrogConstructorParameters<
    */
   basePath?: basePath | string | undefined
   /**
+   * @deprecated Use `devtools` from `'frog/dev'` instead.
+   *
    * Options for built-in devtools.
    */
   dev?:
     | {
-        /**
-         * Enables built-in devtools
-         *
-         * @default true
-         */
+        /** @deprecated */
         enabled?: boolean | undefined
-        /** Custom app fid to auth with. */
+        /** @deprecated */
         appFid?: number | undefined
-        /** Custom app mnemonic to auth with. */
+        /** @deprecated */
         appMnemonic?: string | undefined
       }
     | undefined
@@ -104,10 +110,7 @@ export type FrogConstructorParameters<
    *   return { fonts: [{ name: 'Inter', data: fontData, style: 'normal'}] }
    * }
    */
-  imageOptions?:
-    | ImageResponseOptions
-    | (() => Promise<ImageResponseOptions>)
-    | undefined
+  imageOptions?: ImageOptions | (() => Promise<ImageOptions>) | undefined
   /**
    * Default image aspect ratio.
    *
@@ -126,6 +129,12 @@ export type FrogConstructorParameters<
    * ```
    */
   initialState?: _state | undefined
+  /**
+   * Origin URL of the server instance.
+   *
+   * @link https://developer.mozilla.org/en-US/docs/Web/API/URL/origin
+   */
+  origin?: string | undefined
   /**
    * Key used to sign secret data.
    *
@@ -153,16 +162,14 @@ export type FrogConstructorParameters<
 }
 
 export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
-  fonts?:
-    | ImageResponseOptions['fonts']
-    | (() => Promise<ImageResponseOptions['fonts']>)
+  fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
 }
 
 /**
  * A Frog instance.
  *
  * @param parameters - {@link FrogConstructorParameters}
- * @returns instance. {@link FrogBase}
+ * @returns instance. {@link Frog}
  *
  * @example
  * ```
@@ -188,6 +195,7 @@ export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
  * })
  * ```
  */
+
 export class FrogBase<
   env extends Env = Env,
   schema extends Schema = {},
@@ -198,7 +206,6 @@ export class FrogBase<
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
   _initialState: env['State'] = undefined as env['State']
-
   /** Path for assets. */
   assetsPath: string
   /** Base path of the server instance. */
@@ -216,18 +223,18 @@ export class FrogBase<
   /** Image aspect ratio. */
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
-  imageOptions:
-    | ImageResponseOptions
-    | (() => Promise<ImageResponseOptions>)
-    | undefined
+  imageOptions: ImageOptions | (() => Promise<ImageOptions>) | undefined
+  origin: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
-  use: Hono<env, schema, basePath>['use']
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
+
+  _dev: string | undefined
+  version = version
 
   constructor({
     assetsPath,
@@ -241,6 +248,7 @@ export class FrogBase<
     imageAspectRatio,
     imageOptions,
     initialState,
+    origin,
     secret,
     verify,
   }: FrogConstructorParameters<env, basePath, _state> = {}) {
@@ -248,11 +256,11 @@ export class FrogBase<
     if (basePath) this.hono = this.hono.basePath(basePath)
     if (browserLocation) this.browserLocation = browserLocation
     if (headers) this.headers = headers
-    if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     if (hubApiUrl) this.hubApiUrl = hubApiUrl
     if (hub) this.hub = hub
     if (imageAspectRatio) this.imageAspectRatio = imageAspectRatio
     if (imageOptions) this.imageOptions = imageOptions
+    if (origin) this.origin = origin
     if (secret) this.secret = secret
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -261,27 +269,62 @@ export class FrogBase<
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
-    this.use = this.hono.use.bind(this.hono)
 
     if (initialState) this._initialState = initialState
+
+    if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
+    this._dev = undefined // this is set `true` by `devtools` helper
   }
 
-  frame<path extends string>(
-    path: path,
-    handler: (
-      context: Pretty<FrameContext<env, path>>,
-    ) => HandlerResponse<FrameResponse>,
-    options: RouteOptions = {},
-  ) {
+  frame: HandlerInterface<env, 'frame', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      FrameHandler<env>
+    >(...parameters)
+
     const { verify = this.verify } = options
 
-    // Frame Route (implements GET & POST).
-    this.hono.use(parsePath(path), async (c) => {
-      const url = new URL(c.req.url)
-      const assetsUrl = url.origin + parsePath(this.assetsPath)
-      const baseUrl = url.origin + parsePath(this.basePath)
+    // OG Image Route
+    const imagePaths = getImagePaths(parseHonoPath(path))
+    for (const imagePath of imagePaths) {
+      this.hono.get(imagePath, async (c) => {
+        const defaultImageOptions = await (async () => {
+          if (typeof this.imageOptions === 'function')
+            return await this.imageOptions()
+          return this.imageOptions
+        })()
 
-      const { context, getState } = getFrameContext<env, path>({
+        const fonts = await (async () => {
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return defaultImageOptions?.fonts
+        })()
+
+        const {
+          headers = this.headers,
+          image,
+          imageOptions = defaultImageOptions,
+        } = fromQuery<any>(c.req.query())
+        const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
+        return new ImageResponse(image_, {
+          ...imageOptions,
+          fonts: await parseFonts(fonts),
+          headers: imageOptions?.headers ?? headers,
+        })
+      })
+    }
+
+    // Frame Route (implements GET & POST).
+
+    this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
+      const url = getRequestUrl(c.req)
+      const origin = this.origin ?? url.origin
+      const assetsUrl = origin + parsePath(this.assetsPath)
+      const baseUrl = origin + parsePath(this.basePath)
+
+      const { context, getState } = getFrameContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -290,9 +333,10 @@ export class FrogBase<
           verify,
         }),
         initialState: this._initialState,
+        origin,
       })
 
-      if (context.url !== parsePath(c.req.url)) return c.redirect(context.url)
+      if (context.url !== parsePath(url.href)) return c.redirect(context.url)
 
       const response = await handler(context)
       if (response instanceof Response) return response
@@ -305,6 +349,7 @@ export class FrogBase<
         image,
         imageOptions,
         intents,
+        ogImage,
         title = 'Frog Frame',
       } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
@@ -328,7 +373,7 @@ export class FrogBase<
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
-            : `${url.origin + p.resolve(this.basePath, browserLocation_)}`,
+            : `${origin + p.resolve(this.basePath, browserLocation_)}`,
           302,
         )
 
@@ -375,8 +420,14 @@ export class FrogBase<
           })
           return `${parsePath(context.url)}/image?${imageParams}`
         }
-        if (image.startsWith('http')) return image
+        if (image.startsWith('http') || image.startsWith('data')) return image
         return `${assetsUrl + parsePath(image)}`
+      })()
+
+      const ogImageUrl = (() => {
+        if (!ogImage) return undefined
+        if (ogImage.startsWith('http')) return ogImage
+        return baseUrl + parsePath(ogImage)
       })()
 
       const postUrl = (() => {
@@ -397,50 +448,6 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      const isDevEnabled =
-        // check if devtools are enabled on constructor.
-        (this.dev?.enabled ?? true) &&
-        // check if route has `/dev` path.
-        this.hono.routes.some((r) => {
-          const currentFullPath =
-            (this.basePath === '/' ? '' : this.basePath) + parsePath(path)
-          if (!r.path.startsWith(currentFullPath)) return false
-          if (!r.path.includes('/dev')) return false
-          return true
-        })
-
-      // The devtools needs a serialized context.
-      const serializedContext = serializeJson({
-        ...context,
-        // note: unserializable entities are undefined.
-        env: context.env
-          ? Object.assign(context.env, {
-              incoming: undefined,
-              outgoing: undefined,
-            })
-          : undefined,
-        req: undefined,
-        state: getState(),
-      })
-
-      const body = isDevEnabled ? (
-        <body
-          style={{
-            alignItems: 'center',
-            display: 'flex',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            overflow: 'hidden',
-          }}
-        >
-          <a style={{ textDecoration: 'none' }} href={`${context.url}/dev`}>
-            open 𝒇𝒓𝒂𝒎𝒆 devtools
-          </a>
-        </body>
-      ) : (
-        <body />
-      )
-
       return c.render(
         <>
           {html`<!DOCTYPE html>`}
@@ -452,7 +459,7 @@ export class FrogBase<
                 content={imageAspectRatio}
               />
               <meta property="fc:frame:image" content={imageUrl} />
-              <meta property="og:image" content={imageUrl} />
+              <meta property="og:image" content={ogImageUrl ?? imageUrl} />
               <meta property="og:title" content={title} />
               <meta
                 property="fc:frame:post_url"
@@ -467,43 +474,33 @@ export class FrogBase<
               )}
               {parsedIntents}
 
-              {isDevEnabled && (
-                <meta property="frog:context" content={serializedContext} />
-              )}
               <meta property="frog:version" content={version} />
+              {/* The devtools needs a serialized context. */}
+              {c.req.header('x-frog-dev') !== undefined && (
+                <meta
+                  property="frog:context"
+                  content={serializeJson({
+                    ...context,
+                    // note: unserializable entities are undefined.
+                    env: context.env
+                      ? Object.assign(context.env, {
+                          incoming: undefined,
+                          outgoing: undefined,
+                        })
+                      : undefined,
+                    req: undefined,
+                    state: getState(),
+                  })}
+                />
+              )}
             </head>
-            {body}
+            <body />
           </html>
         </>,
       )
     })
 
-    // OG Image Route
-    this.hono.get(`${parsePath(path)}/image`, async (c) => {
-      const defaultImageOptions = await (async () => {
-        if (typeof this.imageOptions === 'function')
-          return await this.imageOptions()
-        return this.imageOptions
-      })()
-
-      const fonts = await (async () => {
-        if (typeof options?.fonts === 'function') return await options.fonts()
-        if (options?.fonts) return options.fonts
-        return defaultImageOptions?.fonts
-      })()
-
-      const {
-        headers = this.headers,
-        image,
-        imageOptions = defaultImageOptions,
-      } = fromQuery<any>(c.req.query())
-      const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
-      return new ImageResponse(image_, {
-        ...imageOptions,
-        fonts,
-        headers: imageOptions?.headers ?? headers,
-      })
-    })
+    return this
   }
 
   route<
@@ -520,24 +517,27 @@ export class FrogBase<
     if (!frog.hubApiUrl) frog.hubApiUrl = this.hubApiUrl
     if (!frog.hub) frog.hub = this.hub
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
+    if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
     if (!frog.verify) frog.verify = this.verify
 
-    return this.hono.route(path, frog.hono)
+    this.hono.route(path, frog.hono)
+
+    return this
   }
 
-  transaction<path extends string>(
-    this: FrogBase<env, schema, basePath, _state>,
-    path: path,
-    handler: (
-      context: TransactionContext<env, path, _state>,
-    ) => HandlerResponse<TransactionResponse>,
-    options: RouteOptions = {},
-  ) {
+  transaction: HandlerInterface<env, 'transaction', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      TransactionHandler<env>
+    >(...parameters)
+
     const { verify = this.verify } = options
 
-    this.hono.post(parsePath(path), async (c) => {
-      const { context } = getTransactionContext<env, path, _state>({
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+      const { context } = getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -551,5 +551,12 @@ export class FrogBase<
       if (response instanceof Response) return response
       return c.json(response.data)
     })
+
+    return this
+  }
+
+  use: MiddlewareHandlerInterface<env, schema, basePath> = (...args: any[]) => {
+    this.hono.use(...args)
+    return this as any
   }
 }

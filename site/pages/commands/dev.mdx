@@ -1,28 +1,40 @@
 # dev
 
-Start a development server at an optional entrypoint.
+Start development server at entrypoint.
+
+If an entrypoint is not provided, Frog looks for an entrypoint at `(src|api)/index.{js,jsx,ts,tsx}`. If no entrypoint is found, the devtools will start in [standalone mode](#--ui).
 
 ## Usage
-
-Defaults to `(src|api)/index.{tsx,jsx,ts,js}`.
 
 ```bash
 frog dev [entrypoint]
 ```
 
-## Options
+## Args
 
-### -h, --host
+### path
+
+`string`
+
+Path to Frog entrypoint. Defaults to `(src|api)/index.{js,jsx,ts,tsx}`.
+
+```bash
+frog dev src/frog.tsx
+```
+
+### options
+
+#### -h, --host
 
 `boolean`
 
-Expose host URL
+Expose host URL.
 
 ```bash
 frog dev --host
 ```
 
-### -p, --port
+#### -p, --port
 
 `number`
 
@@ -32,26 +44,13 @@ Port used by the server. Defaults to `5173`.
 frog dev --port 3001
 ```
 
-### -P, --proxy (experimental)
+#### --ui
 
-`'cloudflared' | 'ngrok'`
+`boolean`
 
-Start proxy for dev server via [Cloudflared](https://github.com/cloudflare/cloudflared) or [ngrok](https://github.com/inconshreveable/ngrok).
-
-```bash
-frog dev --proxy ngrok
-```
-
-Both options require basic setup (no longer than two minutes) and come with generious free tiers.
-
-- `'cloudflared'` - [Download the Cloudflared CLI](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/#use-trycloudflare). Cloudflared is free to use via the TryCloudflare program and does not require a Cloudflare account.
-- `'ngrok'` - Sign up for a ngrok account and add your authtoken to your environment. More info on that on the [ngrok README](https://github.com/ngrok/ngrok-javascript?tab=readme-ov-file#quickstart).
-
-Once set up correctly, the proxy URL will be logged below the local server URL. For example:
+Runs standalone devtools.
 
 ```bash
-[running] frog@v0.2.2
-
-➜  Local:   http://localhost:5173/
-➜  Proxy:   https://a01a-67-245-44-210.ngrok-free.app/  // [!code focus]
+frog dev --ui
 ```
+

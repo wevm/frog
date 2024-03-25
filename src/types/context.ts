@@ -1,4 +1,4 @@
-import type { Context as Context_hono } from 'hono'
+import type { Context as Context_hono, Input } from 'hono'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type {
@@ -12,6 +12,7 @@ import type { Pretty } from './utils.js'
 export type Context<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
 > = {
@@ -62,7 +63,7 @@ export type Context<
    *
    * @see https://hono.dev/api/context#req
    */
-  req: Context_hono<env, path>['req']
+  req: Context_hono<env, path, input>['req']
   /**
    * Status of the frame in the frame lifecycle.
    * - `initial` - The frame has not yet been interacted with.
@@ -75,7 +76,7 @@ export type Context<
    *
    * @see https://hono.dev/api/context#var
    */
-  var: Context_hono<env, path>['var']
+  var: Context_hono<env, path, input>['var']
   /**
    * Whether or not the {@link Context`frameData`} was verified by the Farcaster Hub API.
    */
@@ -89,9 +90,10 @@ export type Context<
 export type FrameContext<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, _state> & {
+> = Context<env, path, input, _state> & {
   /**
    * @deprecated As of `v0.5.0`, this property is redundant (there is now only one render cycle) and will be removed in a future version.
    *
@@ -122,9 +124,20 @@ export type FrameContext<
 export type TransactionContext<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, _state> & {
+> = Context<env, path, input, _state> & {
+  /**
+   * Address of the account that is executing a transaction (if any). Maps to:
+   * - Ethereum: 20-byte address string.
+   */
+  address: string
+  /**
+   * Data from the frame that was passed via the POST body.
+   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   */
+  frameData?: Pretty<FrameData>
   /**
    * Contract transaction request.
    *

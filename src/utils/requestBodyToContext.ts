@@ -1,10 +1,11 @@
-import { type Context as Context_hono } from 'hono'
+import { type Context as Context_hono, type Input } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
 import type { Context } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import type { Hub } from '../types/hub.js'
 import { deserializeJson } from './deserializeJson.js'
 import { fromQuery } from './fromQuery.js'
+import { getRequestUrl } from './getRequestUrl.js'
 import * as jws from './jws.js'
 import { verifyFrame } from './verifyFrame.js'
 
@@ -17,19 +18,21 @@ type RequestBodyToContextOptions = {
 type RequestBodyToContextReturnType<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, _state>
+> = Context<env, path, input, _state>
 
 export async function requestBodyToContext<
   env extends Env,
   path extends string,
+  input extends Input,
   //
   _state = env['State'],
 >(
   c: Context_hono<env, path>,
   { hub, secret, verify = true }: RequestBodyToContextOptions,
-): Promise<RequestBodyToContextReturnType<env, path, _state>> {
+): Promise<RequestBodyToContextReturnType<env, path, input, _state>> {
   const { trustedData, untrustedData } =
     (await c.req.json().catch(() => {})) || {}
   const { initialPath, previousState, previousButtonValues } =
@@ -46,6 +49,8 @@ export async function requestBodyToContext<
       return {} as any
     })()
 
+  const url = getRequestUrl(c.req)
+
   const trustedFrameData = await (async () => {
     if (verify === false) return null
     if (!trustedData) return null
@@ -55,7 +60,7 @@ export async function requestBodyToContext<
         hub,
         frameUrl: untrustedData.url,
         trustedData,
-        url: c.req.url,
+        url: url.href,
       })
       return { ...frameData, state: frameData.state || untrustedData.state }
     } catch (err) {
@@ -66,13 +71,13 @@ export async function requestBodyToContext<
 
   return {
     env: c.env,
-    initialPath: initialPath ? initialPath : new URL(c.req.url).pathname,
+    initialPath: initialPath ? initialPath : url.pathname,
     previousState,
     previousButtonValues,
     frameData: trustedFrameData || untrustedData,
     req: c.req,
     status: c.req.method === 'POST' ? 'response' : 'initial',
-    url: c.req.url,
+    url: url.href,
     var: c.var,
     verified: Boolean(trustedFrameData),
   }

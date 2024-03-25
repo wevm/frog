@@ -49,8 +49,10 @@ function parseIntent(
       const buttonProps: Record<string, unknown> = {
         ...node.props,
         action: node.props.action
-          ? parsePath(options.baseUrl + node.props.action) +
-            (options.search ? `?${options.search}` : '')
+          ? node.props.action.startsWith('http')
+            ? node.props.action
+            : parsePath(options.baseUrl + node.props.action) +
+              (options.search ? `?${options.search}` : '')
           : undefined,
         children: node.children,
         index: counter.button++,

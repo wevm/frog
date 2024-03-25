@@ -1,10 +1,14 @@
 {
   "scripts": {
-    "dev": "pnpm --filter playground dev",
+    "dev": "pnpm dev:playground",
+    "dev:playground": "pnpm --filter playground dev",
+    "dev:cli": "node --import tsx src/cli/index.ts",
     "dev:create-frog": "bun create-frog/bin.ts",
-    "build": "pnpm clean && pnpm protobufs:generate && pnpm build:frog && pnpm build:create-frog && bun .scripts/postbuild.ts",
+    "dev:ui": "pnpm --filter ui build --watch",
+    "build": "pnpm clean && pnpm protobufs:generate && pnpm build:frog && pnpm build:ui && pnpm build:create-frog && bun .scripts/postbuild.ts",
     "build:frog": "tsc --project ./tsconfig.build.json",
     "build:create-frog": "rimraf create-frog/_lib && tsc -p create-frog/tsconfig.build.json",
+    "build:ui": "pnpm --filter ui build",
     "changeset": "changeset",
     "changeset:release": "pnpm build && changeset publish",
     "changeset:version": "changeset version && pnpm install --lockfile-only && bun .scripts/postversion.ts",
@@ -18,12 +22,13 @@
     "preconstruct": "bun .scripts/preconstruct.ts",
     "protobufs:generate": "pnpm --filter protobufs generate",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && pnpm run --r --parallel typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.1",
+    "@types/bun": "^1.0.8",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20",
     "@types/path-browserify": "latest",
@@ -36,9 +41,14 @@
     "picocolors": "^1.0.0",
     "rimraf": "^5.0.5",
     "tsx": "^4.7.1",
-    "typed-htmx": "^0.2.1",
     "typescript": "^5.3.3",
     "vitest": "^1.2.2"
   },
-  "packageManager": "pnpm@8.15.3"
+  "packageManager": "pnpm@8.15.3",
+  "pnpm": {
+    "overrides": {
+      "hono": "4.1.0",
+      "typescript": "5.3.3"
+    }
+  }
 }

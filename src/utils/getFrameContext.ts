@@ -1,3 +1,4 @@
+import type { Input } from 'hono'
 import type { Context, FrameContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
@@ -6,32 +7,36 @@ import { parsePath } from './parsePath.js'
 type GetFrameContextParameters<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
 > = {
-  context: Context<env, path>
+  context: Context<env, path, input>
   initialState?: _state
+  origin: string
 }
 
 type GetFrameContextReturnType<
   env extends Env = Env,
   path extends string = string,
+  input extends Input = {},
   //
   _state = env['State'],
 > = {
-  context: FrameContext<env, path>
+  context: FrameContext<env, path, input>
   getState: () => _state
 }
 
 export function getFrameContext<
   env extends Env,
   path extends string,
+  input extends Input = {},
   //
   _state = env['State'],
 >(
-  parameters: GetFrameContextParameters<env, path, _state>,
-): GetFrameContextReturnType<env, path, _state> {
-  const { context } = parameters
+  parameters: GetFrameContextParameters<env, path, input, _state>,
+): GetFrameContextReturnType<env, path, input, _state> {
+  const { context, origin } = parameters
   const { env, frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
@@ -49,8 +54,7 @@ export function getFrameContext<
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
   const url =
-    (reset ? `${new URL(req.url).origin}${initialPath}` : undefined) ||
-    parsePath(context.url)
+    (reset ? `${origin}${initialPath}` : undefined) || parsePath(context.url)
 
   let previousState = (() => {
     if (context.status === 'initial') return parameters.initialState

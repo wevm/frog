@@ -120,6 +120,33 @@ export const GET = handle(app) // [!code focus]
 export const POST = handle(app) // [!code focus]
 ```
 
+### Setup Devtools
+
+Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way the devtools can automatically discover all your frames.
+
+```tsx twoslash [app/api/[[...routes]]/route.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { handle } from 'frog/next'
+import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'frog/serve-static' // [!code focus]
+
+const app = new Frog({ 
+  basePath: '/api',
+})
+
+app.frame('/', (c) => {
+  ...
+})
+
+devtools(app, { serveStatic }) // [!code focus]
+// @log: ^ Devtools should be called after all frames are defined.
+
+export const GET = handle(app)
+export const POST = handle(app)
+```
 
 ### Add Scripts to `package.json`
 
@@ -236,17 +263,34 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 ```
 
-:::note
-Note that if you have any suspended component within the frame co-located Next.js page, the request
-for a frame from Warpcast will fallback for streaming, and although [`generateMetadata`](https://nextjs.org/docs/app/api-reference/functions/generate-metadata#generatemetadata-function)
-makes sure `<head>` tags are [present within the first stream response](https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming#seo), Warpcast currently
-doesn't handle streams.
+::::tip
 
-The consequence of such is timing out on a frame that is co-located with suspended page.
+**Warpcast does not support streamed responses**
 
-Since Next.js engine selectively decides wether to respond in a stream or not, we can selectively not render suspended components
-with `isFrameRequest` util.
+If you use suspended components in a page, route Next.js will stream the response. Since Warpcast does not support stream responses for frames, you can use the `isFrameRequest` utility to selectively render suspended components depending on the requester.
 
+:::code-group
+```tsx twoslash [app/page.tsx]
+// @noErrors
+import { headers } from 'next/headers'
+import type { Metadata } from 'next'
+import { getFrameMetadata, isFrameRequest } from 'frog/next'
+
+import { SuspendedComponent } from './suspense-component'
+
+export default function Page() {
+  if (isFrameRequest(headers())) return null // [!code focus]
+  return <SuspendedComponent />
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const url = process.env.VERCEL_URL || 'http://localhost:3000'
+  const frameMetadata = await getFrameMetadata(`${url}/api`)
+  return {
+    other: frameMetadata,
+  }
+}
+```
 ```tsx twoslash [app/suspense-component.tsx]
 // @noErrors
 import { Suspense } from 'react'
@@ -259,29 +303,5 @@ export function SuspendedComponent() {
   )
 }
 ```
-
-```tsx twoslash [app/page.tsx]
-// @noErrors
-import { headers } from 'next/headers'
-import { getFrameMetadata, isFrameRequest } from 'frog/next'
-import type { Metadata } from 'next'
-import { SuspendedComponent } from './suspense-component'
-
-export async function generateMetadata(): Promise<Metadata> {
-  const url = process.env.VERCEL_URL || 'http://localhost:3000'
-  const frameMetadata = await getFrameMetadata(`${url}/api`)
-  return {
-    other: frameMetadata,
-  }
-}
-
-export default function Page() {
-  if (isFrameRequest(headers())) return null
-
-  return <SuspendedComponent />
-}
-```
-
 :::
-
 ::::

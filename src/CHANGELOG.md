@@ -1,5 +1,241 @@
 # frog
 
+## 0.7.9
+
+### Patch Changes
+
+- [`2903d8d`](https://github.com/wevm/frog/commit/2903d8da5d71053503de4afb51345fd23809502c) Thanks [@tmm](https://github.com/tmm)! - Fixed devtools bugs
+
+## 0.7.8
+
+### Patch Changes
+
+- [#170](https://github.com/wevm/frog/pull/170) [`30b7979`](https://github.com/wevm/frog/commit/30b7979eb8468fd40c3575e034b6e67c6ae05546) Thanks [@tmm](https://github.com/tmm)! - Added transaction support to devtools.
+
+## 0.7.7
+
+### Patch Changes
+
+- [#184](https://github.com/wevm/frog/pull/184) [`378ab0f`](https://github.com/wevm/frog/commit/378ab0fe03f7593e3ba89ad5768fb7fe0268d5d5) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed optional path parameter parsing that resulted in making the path parameter to be required.
+  Fixed the `/image` route to be prioritized over optional parameter (`/:param?`).
+
+## 0.7.6
+
+### Patch Changes
+
+- [`a670972`](https://github.com/wevm/frog/commit/a6709727d229695517c1bd291e0369e0439572ff) Thanks [@jxom](https://github.com/jxom)! - Fixed issue where protocol via a reverse proxy would register as `http`.
+
+## 0.7.4
+
+### Patch Changes
+
+- [`8323000`](https://github.com/wevm/frog/commit/8323000abd4a6e7b57f95314c37736000f6e896d) Thanks [@tmm](https://github.com/tmm)! - Added devtools style tweaks.
+
+## 0.7.3
+
+### Patch Changes
+
+- [#173](https://github.com/wevm/frog/pull/173) [`fd33c56`](https://github.com/wevm/frog/commit/fd33c5644cfb42fe463c08379dadd64ac364d62b) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed dark background set on devtools which resulted in bad UI for browsers with ligh-mode scheme preference.
+
+## 0.7.2
+
+### Patch Changes
+
+- [`6598c53`](https://github.com/wevm/frog/commit/6598c5364fcdf3f89fcca05b0d89aafc16fa1f7a) Thanks [@tmm](https://github.com/tmm)! - Fixed dev command printed URL formatting
+
+## 0.7.1
+
+### Patch Changes
+
+- [#167](https://github.com/wevm/frog/pull/167) [`8fc49f5`](https://github.com/wevm/frog/commit/8fc49f5be89f074c31233adbbb2ade829ca7f41c) Thanks [@tmm](https://github.com/tmm)! - Fixed devtools edge deployment
+
+- [#167](https://github.com/wevm/frog/pull/167) [`8fc49f5`](https://github.com/wevm/frog/commit/8fc49f5be89f074c31233adbbb2ade829ca7f41c) Thanks [@tmm](https://github.com/tmm)! - Fixed optional frame `post_url` handling
+
+## 0.7.0
+
+### Minor Changes
+
+- [#156](https://github.com/wevm/frog/pull/156) [`7691858`](https://github.com/wevm/frog/commit/76918583ec32823cfb8b709f1bcdf58b3540e30c) Thanks [@tmm](https://github.com/tmm)! - Added offline support to Frog Devtools.
+
+  Previously, the devtools loaded client-side JS via the JSDelivr secure CDN. Now the devtools have all the require client-side assets bundled into Frog's package distribution.
+
+  As a result, to use the devtools, you need to explicitly configure them for your app. This isn't as convenient as them being automatically injected before, but it enables offline support and a future standalone devtools for use with non-Frog frames.
+
+  In most cases, configuring the devtools should only take a few minutes. All you need to do is import the `devtools` helper, import/use a `serveStatic` adapter or `assetsPath`, and call the `devtools` helper after your frames are set up. For example:
+
+  ```diff
+  // Node.js Frog App
+  import { Frog } from 'frog'
+  + import { devtools } from 'frog/dev'
+  + import { serveStatic } from 'frog/serve-static'
+
+  export const app = new Frog({
+  +  dev: {
+  +    enabled: true,
+  +  },
+  })
+
+  app.frame('/', (c) => { ... })
+
+  + devtools(app, { serveStatic })
+  ```
+
+  #### Node.js/Next.js
+
+  ```diff
+  import { Frog } from 'frog'
+  + import { devtools } from 'frog/dev'
+  + import { serveStatic } from 'frog/serve-static'
+
+  export const app = new Frog()
+
+  app.frame('/', (c) => { ... })
+
+  + devtools(app, { serveStatic })
+  ```
+
+  #### Bun
+
+  ```diff
+  import { Frog } from 'frog'
+  + import { devtools } from 'frog/dev'
+  + import { serveStatic } from 'frog/serve-static'
+
+  const app = new Frog()
+
+  app.frame('/', (c) => { ... })
+
+  + devtools(app, { serveStatic })
+  ```
+
+  #### Cloudflare Workers
+
+  Add `serveStatic` and attach `manifest` and `root`.
+
+  ```diff
+  import { Frog } from 'frog'
+  + import { devtools } from 'frog/dev'
+  + import { serveStatic } from 'frog/serve-static'
+
+  const app = new Frog()
+
+  app.frame('/', (c) => { ... })
+
+  + devtools(app, {
+  +  serveStatic,
+  +  serveStaticOptions: {
+  +    assetsPath: '/frog',
+  +    manifest: await import('__STATIC_CONTENT_MANIFEST'),
+  +    root: './',
+  +  },
+  + })
+  ```
+
+  You also will want to add the following script to your `package.json` to copy over Frog Devtools' static assets to your Cloudflare Workers' bucket. For example, if your bucket uses the `'./public'` directory.
+
+  ```diff
+  {
+    "scripts": {
+  +    "wrangler:static": "cp -r ./node_modules/frog/_lib/ui/.frog ./public/frog"
+    }
+  }
+  ```
+
+  This script is best run before running `wrangler dev` and `wrangler deploy` to make sure you app has the static files for the devtools.
+
+  #### Vercel Edge/Serverless Functions
+
+  Running `frog vercel-build` will automatically copy Frog Devtools' static assets over to your functions' public directory so no need for `serveStatic` this time. Instead, you can use `assetsPath` or simply omit `devtools` second parameters
+
+  ```diff
+  import { Frog } from 'frog'
+  + import { devtools } from 'frog/dev'
+
+  export const app = new Frog()
+
+  app.frame('/', (c) => { ... })
+
+  + devtools(app, { assetsPath: '/.frog' })
+  ```
+
+- [#156](https://github.com/wevm/frog/pull/156) [`7691858`](https://github.com/wevm/frog/commit/76918583ec32823cfb8b709f1bcdf58b3540e30c) Thanks [@tmm](https://github.com/tmm)! - Removed experimental proxy flag from `frog dev` command. If you want to use a proxy, like ngrok or cloudflared, you should run it separately.
+
+### Patch Changes
+
+- [#165](https://github.com/wevm/frog/pull/165) [`ccfbe65`](https://github.com/wevm/frog/commit/ccfbe6563c865de20203be8d775d1e00228c61e6) Thanks [@tmm](https://github.com/tmm)! - Added support for standalone devtools.
+
+## 0.6.5
+
+### Patch Changes
+
+- [#155](https://github.com/wevm/frog/pull/155) [`9fc365b`](https://github.com/wevm/frog/commit/9fc365b8a94f24b9f8b285bcdce411cf6b3acd17) Thanks [@christopherwxyz](https://github.com/christopherwxyz)! - Added support for Base Sepolia transactions
+
+## 0.6.4
+
+### Patch Changes
+
+- [`e453a04`](https://github.com/wevm/frog/commit/e453a045c861bf319adb5b52159185c12fe95cee) Thanks [@jxom](https://github.com/jxom)! - Updated hono-og
+
+## 0.6.3
+
+### Patch Changes
+
+- [`189d5cb`](https://github.com/wevm/frog/commit/189d5cb6d53c0eb16285ff2d5687e6063793f8eb) Thanks [@jxom](https://github.com/jxom)! - Added support for dynamic google fonts.
+
+## 0.6.2
+
+### Patch Changes
+
+- [`9e27725`](https://github.com/wevm/frog/commit/9e277258c869ca949faad6f99320188793d83b0e) Thanks [@jxom](https://github.com/jxom)! - Exported `loadGoogleFont` utility for fetching font buffers.
+
+- [`615deaf`](https://github.com/wevm/frog/commit/615deaf2b02d1279c83aadd888aec413f1980852) Thanks [@jxom](https://github.com/jxom)! - Fixed missing `origin`.
+
+## 0.6.1
+
+### Patch Changes
+
+- [`aa1496e`](https://github.com/wevm/frog/commit/aa1496e3c582d41af95fa3fe746bdc18fc55d603) Thanks [@jxom](https://github.com/jxom)! - Fixed JSX composition bug.
+
+## 0.6.0
+
+### Minor Changes
+
+- [#140](https://github.com/wevm/frog/pull/140) [`c8d03fa`](https://github.com/wevm/frog/commit/c8d03fa4081b94f7a93431d48b9e5e221da9f1df) Thanks [@jxom](https://github.com/jxom)! - Added route-level middleware. [See more.](https://frog.fm/concepts/middleware#route-level)
+
+## 0.5.9
+
+### Patch Changes
+
+- [`1f379f4`](https://github.com/wevm/frog/commit/1f379f417560362dbe1878e85f88bb84a9b0072b) Thanks [@jxom](https://github.com/jxom)! - Added `origin` property to `Frog` instance.
+
+## 0.5.8
+
+### Patch Changes
+
+- [#138](https://github.com/wevm/frog/pull/138) [`d555b1c`](https://github.com/wevm/frog/commit/d555b1c05962ff1549f8ffa8b99a6ecc9404de24) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `address` to `FrameData`. Read more at https://warpcast.com/horsefacts.eth/0xb98e17d8.
+
+- [`a0bc957`](https://github.com/wevm/frog/commit/a0bc9572b27d67b550bc556f91996d57579380b4) Thanks [@jxom](https://github.com/jxom)! - Updated `hono-og`.
+
+## 0.5.7
+
+### Patch Changes
+
+- [`0bb6768`](https://github.com/wevm/frog/commit/0bb6768e004ba846c919383e633f683a2e08b55e) Thanks [@jxom](https://github.com/jxom)! - Added `ogImage` property to frame response.
+
+## 0.5.6
+
+### Patch Changes
+
+- [`9d77208`](https://github.com/wevm/frog/commit/9d7720896ac981f5857990a22650975598b32a3d) Thanks [@jxom](https://github.com/jxom)! - Added ability for `fonts` on route options to be an async function.
+
+- [`b6069c1`](https://github.com/wevm/frog/commit/b6069c1f942a6b45f78fbc7bd283f3b4f6069568) Thanks [@jxom](https://github.com/jxom)! - Support `data:` image URIs.
+
+- [`0c040f0`](https://github.com/wevm/frog/commit/0c040f0deedb3c65a4b98cb01e7b85dfe22577ad) Thanks [@jxom](https://github.com/jxom)! - Support external url actions on \`Button\`.
+
+- [#126](https://github.com/wevm/frog/pull/126) [`5d32a99`](https://github.com/wevm/frog/commit/5d32a990438e26de1ea99c3e71fbae922014c21d) Thanks [@tmm](https://github.com/tmm)! - Updated devtools deps
+
+- [`b6069c1`](https://github.com/wevm/frog/commit/b6069c1f942a6b45f78fbc7bd283f3b4f6069568) Thanks [@jxom](https://github.com/jxom)! - Exported `FrameIntent` type.
+
 ## 0.5.5
 
 ### Patch Changes

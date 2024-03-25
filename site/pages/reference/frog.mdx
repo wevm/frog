@@ -16,7 +16,7 @@ const app = new Frog() // [!code focus]
 
 ## Constructor Parameters
 
-### basePath 
+### basePath
 
 - **Type:** `string`
 
@@ -52,25 +52,6 @@ import { Frog } from 'frog'
 const app = new Frog({
   basePath: '/api',
   browserLocation: '/:path' // [!code focus]
-})
-```
-
-### devtools
-
-- **Type:** `{ enabled?: boolean; appFid?: string; appMnemonic?: string; }`
-- **Default:** `{ enabled: true }`
-
-Options for built-in devtools.
-
-```tsx twoslash
-// @noErrors
-import { Frog } from 'frog'
-
-const app = new Frog({
-  devtools: { // [!code focus]
-    appId: 'abc123', // [!code focus]
-    appMnemonic: 'apples bananas carrots ...' // [!code focus]
-  } // [!code focus]
 })
 ```
 
@@ -141,9 +122,9 @@ However, please note that this API Key is for development purposes only – it i
 It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
 :::
 
-### imageOptions 
+### imageOptions
 
-Image options to apply to frames. 
+Image options to apply to frames.
 
 [Read more.](https://vercel.com/docs/functions/og-image-generation/og-image-api)
 
@@ -158,7 +139,7 @@ const app = new Frog({
 })
 ```
 
-### initialState 
+### initialState
 
 Initial state for the frames.
 
@@ -175,6 +156,20 @@ const app = new Frog<{ State: State }>({
     index: 0, // [!code focus]
     todos: [] // [!code focus]
   } // [!code focus]
+})
+```
+
+### origin
+
+- **Type:** `string`
+
+Origin URL for the server instance.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  origin: 'https://sweetframe.com' // [!code focus]
 })
 ```
 
@@ -243,12 +238,6 @@ The base path for the server instance.
 - **Type:** `string`
 
 URL to redirect to when the user is coming to the page via a browser.
-
-### devtools
-
-- **Type:** `{ appFid?: string; appMnemonic?: string; secret?: string; }`
-
-Options for built-in devtools.
 
 ### frame
 

@@ -2,7 +2,6 @@ import { bytesToHex, bytesToString, hexToBytes } from 'viem'
 import { FrameActionBody, Message } from '../protobufs/generated/message_pb.js'
 import { type FrameData, type TrustedData } from '../types/frame.js'
 import type { Hub } from '../types/hub.js'
-import { parsePath } from './parsePath.js'
 
 export type VerifyFrameParameters = {
   frameUrl: string
@@ -35,7 +34,7 @@ export async function verifyFrame({
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`)
 
-  if (!parsePath(url)?.startsWith(parsePath(frameUrl)))
+  if (new URL(url).origin !== new URL(frameUrl).origin)
     throw new Error(`Invalid frame url: ${frameUrl}. Expected: ${url}.`)
 
   const message = Message.fromBinary(body)
@@ -49,6 +48,9 @@ export async function verifyFrame({
 export function messageToFrameData(message: Message): FrameData {
   const frameActionBody = message.data?.body.value as FrameActionBody
   const frameData: FrameData = {
+    address: frameActionBody.address
+      ? bytesToHex(frameActionBody.address)
+      : undefined,
     castId: {
       fid: Number(frameActionBody.castId?.fid),
       hash: bytesToHex(frameActionBody.castId?.hash!),

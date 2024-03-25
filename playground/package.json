@@ -6,6 +6,7 @@
     "dev": "node --import tsx ../src/cli/index.ts"
   },
   "dependencies": {
+    "@hono/node-server": "^1.8.2",
     "frog": "workspace:*",
     "hono": "^4"
   },

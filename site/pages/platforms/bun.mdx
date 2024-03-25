@@ -121,6 +121,34 @@ Bun.serve({ // [!code focus]
 console.log('Server is running on port 3000') // [!code focus]
 ```
 
+### Setup Devtools
+
+Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way the devtools can automatically discover all your frames.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+import { devtools } from 'frog/dev' // [!code focus]
+import { serveStatic } from 'hono/bun' // [!code focus]
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  ...
+})
+
+devtools(app, { serveStatic }) // [!code focus]
+// @log: ^ Devtools should be called after all frames are defined.
+
+Bun.serve({
+  fetch: app.fetch,
+  port: 3000,
+})
+console.log('Server is running on port 3000')
+```
+
 ### Add Scripts to `package.json`
 
 Then we will add a `serve` script to serve our Bun server.

@@ -6,3 +6,4 @@ packages:
   - 'site'
   - 'src'
   - 'templates/*'
+  - 'ui'
