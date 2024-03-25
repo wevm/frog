@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.9
+
+### Patch Changes
+
+- [`2903d8d`](https://github.com/wevm/frog/commit/2903d8da5d71053503de4afb51345fd23809502c) Thanks [@tmm](https://github.com/tmm)! - Fixed devtools bugs
+
 ## 0.7.8
 
 ### Patch Changes
