@@ -2,4 +2,4 @@
 "create-frog": patch
 ---
 
-Fixes incorrect url shown for `next` template at the completion of `create-frog`.
+Fixed incorrect url shown for `next` and `vercel` templates at the completion of `create-frog`.
