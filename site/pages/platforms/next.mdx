@@ -263,4 +263,45 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 ```
 
+::::tip
+
+**Warpcast does not support streamed responses**
+
+If you use suspended components in a page, route Next.js will stream the response. Since Warpcast does not support stream responses for frames, you can use the `isFrameRequest` utility to selectively render suspended components depending on the requester.
+
+:::code-group
+```tsx twoslash [app/page.tsx]
+// @noErrors
+import { headers } from 'next/headers'
+import type { Metadata } from 'next'
+import { getFrameMetadata, isFrameRequest } from 'frog/next'
+
+import { SuspendedComponent } from './suspense-component'
+
+export default function Page() {
+  if (isFrameRequest(headers())) return null // [!code focus]
+  return <SuspendedComponent />
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const url = process.env.VERCEL_URL || 'http://localhost:3000'
+  const frameMetadata = await getFrameMetadata(`${url}/api`)
+  return {
+    other: frameMetadata,
+  }
+}
+```
+```tsx twoslash [app/suspense-component.tsx]
+// @noErrors
+import { Suspense } from 'react'
+
+export function SuspendedComponent() {
+  return (
+    <Suspense fallback={<>Loading</>}>
+      <ComponentThrowingSuspense />
+    </Suspense>
+  )
+}
+```
+:::
 ::::

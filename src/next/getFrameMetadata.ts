@@ -5,7 +5,7 @@ import { getFrameMetadata as getFrameMetadata_ } from '../utils/getFrameMetadata
  *
  * @example
  * // app/page.tsx
- * import { getFrameMetadata } from 'frog'
+ * import { getFrameMetadata } from 'frog/next'
  * import type { Metadata } from 'next'
  *
  * export async function generateMetadata(): Promise<Metadata> {
