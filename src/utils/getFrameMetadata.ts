@@ -35,7 +35,7 @@ export async function getFrameMetadata(url: string): Promise<FrameMetadata> {
   try {
     const text = await fetch(url).then((r) => r.text())
 
-    const dom = parseFromString(text.replace('<!DOCTYPE html>', ''))
+    const dom = parseFromString(text.replace(/<!doctype html>/i, ''))
     const nodes = dom.getElementsByTagName('meta')
 
     const metaTags: FrameMetadata = []
