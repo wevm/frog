@@ -13,7 +13,7 @@ export type Font = {
 )
 
 export type ImageOptions = Omit<ImageResponseOptions, 'fonts'> & {
-  fonts: Font[]
+  fonts?: Font[] | undefined
 }
 
 export type FrameResponse = {
