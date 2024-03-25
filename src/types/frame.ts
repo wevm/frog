@@ -1,6 +1,6 @@
 import { type ImageResponseOptions } from 'hono-og'
-import type { TypedResponse } from './response.js'
 import type { Hash } from 'viem'
+import type { TypedResponse } from './response.js'
 
 export type Font = {
   name: string

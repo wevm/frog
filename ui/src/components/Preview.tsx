@@ -27,10 +27,10 @@ import {
   handlePostRedirect,
   handleTransaction,
 } from '../utils/actions.js'
-import { WarpIcon } from './Icons.js'
-import { Spinner } from './Spinner.js'
 import { parseChainId } from '../utils/parseChainId.js'
+import { WarpIcon } from './Icons.js'
 import { LoadingDots } from './LoadingDots.js'
+import { Spinner } from './Spinner.js'
 import { Toast } from './Toast.js'
 import { formatEther, parseEther } from 'viem'
 
