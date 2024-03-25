@@ -23,7 +23,7 @@ export function QRCode(props: QRCodeProps) {
   )
 
   // 2. Add corners
-  const logoMargin = 10
+  const logoMargin = 5
   const logoSize = 60
   const size = 250
 
@@ -107,10 +107,8 @@ export function QRCode(props: QRCodeProps) {
           style={{ inset: '0' }}
         >
           <div
-            className="flex items-center justify-center rounded-lg"
+            className="flex items-center justify-center rounded-lg overflow-hidden"
             style={{
-              backgroundColor: '#7866BB',
-              color: 'white',
               height: `${logoSize - logoMargin}px`,
               width: `${logoSize - logoMargin}px`,
             }}

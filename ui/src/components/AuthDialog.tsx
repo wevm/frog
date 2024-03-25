@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useScrollLock } from '../hooks/useScrollLock.js'
-import { FarcasterIcon } from './Icons.js'
+import { FarcasterIcon } from './logos.js'
 import { QRCode } from './QRCode.js'
 
 type AuthDialogProps = {
@@ -85,7 +85,14 @@ export function AuthDialog(props: AuthDialogProps) {
         <div className="relative">
           {data?.url ? (
             <div style={timedOut ? { opacity: '0.1' } : undefined}>
-              <QRCode icon={<FarcasterIcon />} url={data.url} />
+              <QRCode
+                icon={
+                  <div style={{ backgroundColor: '#7866BB' }}>
+                    <FarcasterIcon />
+                  </div>
+                }
+                url={data.url}
+              />
             </div>
           ) : (
             <div

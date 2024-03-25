@@ -1,7 +1,7 @@
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from '@radix-ui/react-icons'
 import { clsx } from 'clsx'
 import { useEffect, useMemo } from 'react'
-import { type Hash, decodeFunctionData, formatEther, parseEther } from 'viem'
+import { type Hash, decodeFunctionData, formatEther } from 'viem'
 import { useTransactionReceipt } from 'wagmi'
 
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
@@ -465,9 +465,7 @@ function TransactionContent(props: {
         </div>
 
         <div className={rowClass}>
-          <div className={labelClass}>
-            {abiFunction ? 'Contract Address' : 'To'}
-          </div>
+          <div className={labelClass}>Address (To)</div>
           <div
             className={clsx([valueClass, 'flex', 'gap-1', 'items-center'])}
             title={data.params.to}
@@ -489,13 +487,6 @@ function TransactionContent(props: {
           </div>
         </div>
 
-        {abiFunction && (
-          <div className={rowClass}>
-            <div className={labelClass}>Contract Function</div>
-            <div className={valueClass}>{abiFunction.name}</div>
-          </div>
-        )}
-
         {data.params.value && (
           <div className={rowClass}>
             <div className={labelClass}>Value</div>
@@ -503,16 +494,26 @@ function TransactionContent(props: {
               {data.method.includes('eth') && (
                 <span className="text-gray-700 select-none mr-1">Ξ</span>
               )}
-              {formatEther(parseEther(data.params.value, 'gwei'))}
+              {formatEther(BigInt(data.params.value))}
             </div>
           </div>
         )}
 
         {abiFunction && (
-          <div className="flex flex-col gap-2 py-3">
-            <div className={labelClass}>Contract Function Data</div>
+          <div className={rowClass}>
+            <div className={labelClass}>Contract Function</div>
+            <div className={valueClass}>{abiFunction.name}</div>
+          </div>
+        )}
 
-            <FormattedAbiItem abiItem={abiFunction} showType={false} />
+        {abiFunction && (
+          <div className="flex flex-col gap-2 py-3">
+            <FormattedAbiItem
+              abiItem={abiFunction}
+              showType={false}
+              showReturns={false}
+            />
+
             {/* TODO: Switch to Rivet-style decoded data */}
             {functionData?.args && (
               <div className="scrollbars">

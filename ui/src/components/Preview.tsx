@@ -28,11 +28,14 @@ import {
   handleTransaction,
 } from '../utils/actions.js'
 import { parseChainId } from '../utils/parseChainId.js'
-import { WarpIcon } from './Icons.js'
+import { CoinbaseWalletIcon, WalletConnectIcon } from './logos.js'
+import { WarpIcon } from './icons.js'
 import { LoadingDots } from './LoadingDots.js'
 import { Spinner } from './Spinner.js'
 import { Toast } from './Toast.js'
-import { formatEther, parseEther } from 'viem'
+import { formatEther } from 'viem'
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard.js'
+import { QRCode } from './QRCode.js'
 
 type PreviewProps = {
   frame: Frame
@@ -408,6 +411,9 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
   const { data, close } = props
   const { index, target } = data
 
+  const [qrUri, setQrUri] = useState<string | undefined>()
+  const { copied, copy } = useCopyToClipboard({ value: qrUri })
+
   const [isSwitchingAccount, setIsSwitchingAccount] = useState(false)
   const { address, chainId, connector: activeConnector, status } = useAccount()
   const {
@@ -415,11 +421,35 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     connectors,
     error: connectError,
     isPending: isConnectPending,
-    variables,
+    reset: connectReset,
+    variables: connectVariables,
   } = useConnect({
     mutation: {
+      onMutate(variables) {
+        const connector = variables.connector
+        if (connector && typeof connector !== 'function') {
+          if (connector.id === 'coinbaseWalletSDK')
+            connector.emitter.once('message', async (message) => {
+              if (message.type === 'connecting') {
+                const provider = (await connector.getProvider()) as
+                  | { qrUrl?: string | undefined }
+                  | undefined
+                if (provider?.qrUrl) setQrUri(provider.qrUrl)
+              }
+            })
+          if (connector.id === 'walletConnect')
+            connector.emitter.on('message', (message) => {
+              if (message.type !== 'display_uri') return
+              if (typeof message.data !== 'string') return
+              setQrUri(message.data)
+            })
+        }
+      },
       onSuccess() {
         setIsSwitchingAccount(false)
+      },
+      onSettled() {
+        setQrUri(undefined)
       },
     },
   })
@@ -450,7 +480,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     sendTransaction,
     error: sendTransactionError,
     isPending: isSendTransactionPending,
-    reset,
+    reset: resetSendTransaction,
   } = useSendTransaction({
     mutation: {
       onMutate() {
@@ -529,7 +559,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     if (method !== 'eth_sendTransaction') return
 
     try {
-      reset()
+      resetSendTransaction()
       if (chainId !== transactionChainId)
         await switchChainAsync({ chainId: transactionChainId })
       sendTransaction({
@@ -545,7 +575,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     chainId,
     transactionData,
     transactionChainId,
-    reset,
+    resetSendTransaction,
     sendTransaction,
     switchChainAsync,
   ])
@@ -591,7 +621,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           Review Transaction
         </h1>
 
-        <p className="text-sm leading-snug text-gray-900 mb-4">
+        <p className="text-sm leading-snug text-gray-900 mb-4 text-balance">
           Review the following transaction before confirming in your wallet.
         </p>
 
@@ -628,7 +658,6 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               <div className="text-gray-1000">{transactionChain?.name}</div>
             )}
           </div>
-
           <div className="flex justify-between py-2 px-3">
             <div className="text-gray-700 font-medium">
               {abiFunction ? 'Contract' : 'To'}
@@ -660,7 +689,6 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               </div>
             )}
           </div>
-
           {abiFunction && (
             <div className="flex justify-between py-2 px-3">
               <div className="text-gray-700 font-medium">Function</div>
@@ -671,6 +699,18 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               ) : (
                 <div className="text-gray-1000">{abiFunction.name}</div>
               )}
+            </div>
+          )}
+
+          {transactionData?.params.value && (
+            <div className="flex justify-between py-2 px-3">
+              <div className="text-gray-700 font-medium">Value</div>
+              <div className="text-gray-1000">
+                {transactionData.method.includes('eth') && (
+                  <span className="text-gray-700 select-none mr-1">Ξ</span>
+                )}
+                {formatEther(BigInt(transactionData.params.value))}
+              </div>
             </div>
           )}
         </div>
@@ -693,12 +733,6 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
                 <Spinner />
               </div>
             </>
-          ) : transactionData?.params.value ? (
-            <div>
-              Send{' '}
-              {formatEther(parseEther(transactionData.params.value, 'gwei'))}{' '}
-              ETH
-            </div>
           ) : (
             'Send Transaction'
           )}
@@ -715,6 +749,54 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     )
   }
 
+  if (qrUri)
+    return (
+      <>
+        <button
+          type="button"
+          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100 left-2.5 top-2.5 h-8 w-8"
+          onClick={() => {
+            connectReset()
+            setQrUri(undefined)
+          }}
+        >
+          <span className="sr-only">Back</span>
+          <ChevronLeftIcon />
+        </button>
+
+        <h1 className="font-semibold text-base text-gray-1000">
+          Scan with Phone
+        </h1>
+
+        <p className="text-sm leading-snug text-gray-900 mb-2 text-balance">
+          Scan with your phone's camera to connect your wallet.
+        </p>
+
+        <QRCode
+          url={qrUri}
+          icon={
+            qrUri.includes('walletlink') ? (
+              <div style={{ backgroundColor: '#0052FF' }}>
+                <CoinbaseWalletIcon />
+              </div>
+            ) : (
+              <div style={{ backgroundColor: '#3B99FC' }}>
+                <WalletConnectIcon />
+              </div>
+            )
+          }
+        />
+
+        <button
+          type="button"
+          className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-2 text-center relative flex items-center justify-center"
+          onClick={copy}
+        >
+          {copied ? 'Copied!' : 'Copy to Clipboard'}
+        </button>
+      </>
+    )
+
   return (
     <>
       {isSwitchingAccount && (
@@ -728,14 +810,10 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
         </button>
       )}
 
-      <h1 className="font-semibold text-base text-gray-1000">
-        {isSwitchingAccount ? 'Change Wallet' : 'Connect Wallet'}
-      </h1>
+      <h1 className="font-semibold text-base text-gray-1000">Connect Wallet</h1>
 
-      <p className="text-sm leading-snug text-gray-900 mb-4">
-        {isSwitchingAccount
-          ? 'Change your connected wallet.'
-          : 'Connect your wallet to continue with the frame transaction.'}
+      <p className="text-sm leading-snug text-gray-900 mb-4 text-balance">
+        Connect your wallet to continue with the frame transaction.
       </p>
 
       <div className="flex flex-col gap-2">
@@ -744,8 +822,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             key={connector.uid}
             onClick={async () => {
               if (activeConnector?.uid === connector.uid) {
-                setIsSwitchingAccount(false)
                 await disconnectAsync().catch(() => {})
+                setIsSwitchingAccount(false)
               }
               connect({ chainId: transactionChainId, connector })
             }}
@@ -755,8 +833,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             {connector.name}
 
             {isConnectPending &&
-              typeof variables.connector === 'object' &&
-              connector.uid === variables.connector.uid && (
+              typeof connectVariables.connector === 'object' &&
+              connector.uid === connectVariables.connector.uid && (
                 <div className="absolute right-2">
                   <Spinner />
                 </div>

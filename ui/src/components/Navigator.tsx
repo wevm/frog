@@ -29,7 +29,7 @@ import {
 } from '../utils/actions.js'
 import { formatUrl } from '../utils/format.js'
 import { AuthDialog } from './AuthDialog.js'
-import { FarcasterIcon } from './Icons.js'
+import { FarcasterIcon } from './logos.js'
 
 type NavigatorProps = { frameUrls: string[]; url: string }
 

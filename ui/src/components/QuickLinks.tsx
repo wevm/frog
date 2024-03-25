@@ -1,5 +1,6 @@
 import { GitHubLogoIcon, ReaderIcon } from '@radix-ui/react-icons'
-import { WarpIcon } from './Icons'
+
+import { WarpIcon } from './icons.js'
 
 type QuickLinksProps = {
   url: string
