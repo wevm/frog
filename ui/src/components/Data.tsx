@@ -11,7 +11,7 @@ export function Data(props: DataProps) {
   const { data, frame } = props
 
   const imageSize = 'imageSize' in data.metrics ? data.metrics.imageSize : null
-  const imageType = frame.image.startsWith('data') ? 'dataUri' : 'http'
+  const imageType = frame.image?.startsWith('data') ? 'dataUri' : 'http'
   const limits = {
     postUrl: 256,
     inputText: 32,
