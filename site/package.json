@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@types/react": "latest",
-    "frog": "latest",
+    "frog": "workspace:*",
     "react": "latest",
     "react-dom": "latest",
     "typescript": "latest",
