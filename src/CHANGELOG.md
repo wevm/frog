@@ -1,5 +1,11 @@
 # frog
 
+## 0.7.13
+
+### Patch Changes
+
+- [`dbc4b0b`](https://github.com/wevm/frog/commit/dbc4b0be5d280f97c41a5a9d931f762a5d8a7178) Thanks [@tmm](https://github.com/tmm)! - Fixed dev styles
+
 ## 0.7.12
 
 ### Patch Changes
