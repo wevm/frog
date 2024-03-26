@@ -24,7 +24,7 @@ export type ChainIdEip155 = 10 | 8453 | 84532 | 7777777
 export type TransactionParameters = {
   /** A CAIP-2 Chain ID to identify the transaction network. */
   chainId: `${ChainNamespace}:${ChainIdEip155}`
-  /** Optionally include the client calldata attribution suffix */
+  /** Includes client calldata attribution suffix */
   attribution?: boolean | undefined
 } & EthSendTransactionSchema<bigint>
 
@@ -44,7 +44,10 @@ export type EthSendTransactionSchema<quantity = string> = {
 export type EthSendTransactionParameters<quantity = string> = {
   /** Contract ABI. */
   abi?: Abi | undefined
-  /** Client calldata attribution suffix (default false) */
+  /**
+   * Client calldata attribution suffix
+   * @default false
+   */
   attribution?: boolean | undefined
   /** Transaction calldata. */
   data?: Hex | undefined
@@ -86,7 +89,7 @@ export type ContractTransactionParameters<
   abi: abi
   /** Contract function arguments. */
   args?: (abi extends Abi ? UnionWiden<args> : never) | allArgs | undefined
-  /** Optionally include the client calldata attribution suffix */
+  /** Includes client calldata attribution suffix */
   attribution?: boolean | undefined
   /** Contract function name to invoke. */
   functionName:
