@@ -2,11 +2,42 @@ import { Box, type BoxProps } from './Box.js'
 import type { DefaultTokens, Tokens } from './tokens.js'
 
 export type HStackProps<tokens extends Tokens = DefaultTokens> =
-  BoxProps<tokens>
+  BoxProps<tokens> & {
+    alignHorizontal?: 'left' | 'center' | 'right' | 'space-between'
+    alignVertical?: 'top' | 'center' | 'bottom'
+    wrap?: boolean
+  }
 
-export function HStack({ children, ...rest }: HStackProps) {
+const alignHorizontalToJustifyContent = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+  'space-between': 'space-between',
+} as const
+
+const alignVerticalToAlignItems = {
+  top: 'flex-start',
+  center: 'center',
+  bottom: 'flex-end',
+} as const
+
+export function HStack({
+  alignHorizontal = 'left',
+  alignVertical = 'top',
+  children,
+  wrap = true,
+  ...rest
+}: HStackProps) {
   return (
-    <Box display="flex" flexDirection="row" {...rest}>
+    <Box
+      alignContent={wrap ? alignVerticalToAlignItems[alignVertical] : undefined}
+      alignItems={!wrap ? alignVerticalToAlignItems[alignVertical] : undefined}
+      display="flex"
+      flexDirection="row"
+      justifyContent={alignHorizontalToJustifyContent[alignHorizontal]}
+      flexWrap={wrap ? 'wrap' : 'nowrap'}
+      {...rest}
+    >
       {children}
     </Box>
   )
