@@ -1,11 +1,15 @@
 import type { Child } from 'hono/jsx'
 
 import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
-import type { SatoriStyleProperties } from './types.js'
+import type { SatoriStyleProperties, ValueOf } from './types.js'
 
 export type TokenValue<property extends keyof SatoriStyleProperties, token> =
   | token
   | { custom: SatoriStyleProperties[property] }
+
+type NegateValues<obj extends object | undefined> = ValueOf<{
+  [key in keyof obj]: key extends `${number}` ? `-${key}` : key
+}>
 
 export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   SatoriStyleProperties,
@@ -80,19 +84,19 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   color?: TokenValue<'color', keyof tokens['colors']>
   fontFamily?: TokenValue<'fontFamily', keyof tokens['fonts']>
   fontSize?: TokenValue<'fontSize', keyof tokens['units']>
-  height?: TokenValue<'height', keyof tokens['units']>
+  height?: TokenValue<'height', keyof tokens['units'] | '100%'>
   gap?: TokenValue<'gap', keyof tokens['units']>
   left?: TokenValue<'left', keyof tokens['units']>
   lineHeight?: TokenValue<'lineHeight', keyof tokens['units']>
-  margin?: TokenValue<'margin', keyof tokens['units']>
-  marginTop?: TokenValue<'marginTop', keyof tokens['units']>
-  marginBottom?: TokenValue<'marginBottom', keyof tokens['units']>
-  marginLeft?: TokenValue<'marginLeft', keyof tokens['units']>
-  marginRight?: TokenValue<'marginRight', keyof tokens['units']>
-  maxHeight?: TokenValue<'maxHeight', keyof tokens['units']>
-  minHeight?: TokenValue<'minHeight', keyof tokens['units']>
-  maxWidth?: TokenValue<'maxWidth', keyof tokens['units']>
-  minWidth?: TokenValue<'minWidth', keyof tokens['units']>
+  margin?: TokenValue<'margin', NegateValues<tokens['units']>>
+  marginTop?: TokenValue<'marginTop', NegateValues<tokens['units']>>
+  marginBottom?: TokenValue<'marginBottom', NegateValues<tokens['units']>>
+  marginLeft?: TokenValue<'marginLeft', NegateValues<tokens['units']>>
+  marginRight?: TokenValue<'marginRight', NegateValues<tokens['units']>>
+  maxHeight?: TokenValue<'maxHeight', keyof tokens['units'] | '100%'>
+  minHeight?: TokenValue<'minHeight', keyof tokens['units'] | '100%'>
+  maxWidth?: TokenValue<'maxWidth', keyof tokens['units'] | '100%'>
+  minWidth?: TokenValue<'minWidth', keyof tokens['units'] | '100%'>
   padding?: TokenValue<'padding', keyof tokens['units']>
   paddingTop?: TokenValue<'paddingTop', keyof tokens['units']>
   paddingBottom?: TokenValue<'paddingBottom', keyof tokens['units']>
@@ -100,7 +104,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   paddingRight?: TokenValue<'paddingRight', keyof tokens['units']>
   right?: TokenValue<'right', keyof tokens['units']>
   top?: TokenValue<'top', keyof tokens['units']>
-  width?: TokenValue<'width', keyof tokens['units']>
+  width?: TokenValue<'width', keyof tokens['units'] | '100%'>
 }
 
 export function Box({ __context, children, ...rest }: BoxProps) {
@@ -255,9 +259,19 @@ function resolveUnitToken(
   baseUnit: number,
   fallback?: unknown,
 ) {
-  const unit = resolveToken(units, value, fallback)
-  if (!unit.value) return undefined
+  const normalizedValue = (() => {
+    if (typeof value === 'string' && value.startsWith('-'))
+      return value.slice(1)
+    return value
+  })()
+
+  const unit = resolveToken(units, normalizedValue, fallback)
+  if (normalizedValue === '100%' || unit.value === '100%') return '100%'
   if (unit.type === 'custom') return unit.value
-  if (unit.value === '100%') return unit.value
-  return unit.value * baseUnit
+  if (!unit.value) return undefined
+  return (
+    (typeof value === 'string' && value.startsWith('-') ? -1 : +1) *
+    unit.value *
+    baseUnit
+  )
 }
