@@ -3,7 +3,7 @@ import type { Child } from 'hono/jsx'
 import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 import type { SatoriStyleProperties } from './types.js'
 
-type TokenValue<property extends keyof SatoriStyleProperties, token> =
+export type TokenValue<property extends keyof SatoriStyleProperties, token> =
   | token
   | { custom: SatoriStyleProperties[property] }
 
