@@ -25,6 +25,11 @@ const { Box, Cover, HStack, VStack, tokens } = createSystem({
 
 export const app = new Frog({
   tokens,
+  // imageOptions: {
+  //   width: 2048,
+  //   height: 2048,
+  // },
+  // imageAspectRatio: '1:1',
 })
   .frame('/', (c) => {
     return c.res({
