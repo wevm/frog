@@ -428,7 +428,7 @@ export class FrogBase<
 
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
-          const encodedImage = lz.compressToEncodedURIComponent(
+          const compressedImage = lz.compressToEncodedURIComponent(
             JSON.stringify(
               await parseImage(
                 <div
@@ -455,7 +455,7 @@ export class FrogBase<
             ),
           )
           const imageParams = toSearchParams({
-            image: encodedImage,
+            image: compressedImage,
             imageOptions: imageOptions
               ? {
                   ...imageOptions,
