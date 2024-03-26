@@ -1,7 +1,8 @@
 import { Frog } from 'frog'
-import { createSystem } from 'frog/ui'
+import { colors, createSystem } from 'frog/ui'
 
-const { Box, Cover, HStack, VStack, tokens } = createSystem({
+const { Box, Cover, HStack, Spacer, VStack, tokens } = createSystem({
+  // colors: colors.light,
   fonts: {
     default: [
       {
@@ -64,7 +65,8 @@ export const app = new Frog({
               {'<Cover>'}
             </Box>
             <Box color="text200">Covers the parent element.</Box>
-            <Cover backgroundColor="background200" padding="16" marginTop="16">
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
               <Cover
                 alignItems="center"
                 backgroundColor="red"
@@ -72,6 +74,35 @@ export const app = new Frog({
               >
                 This is a {'<Cover>'} component.
               </Cover>
+            </Cover>
+          </VStack>
+        </Cover>
+      ),
+    })
+  })
+  .frame('/spacer', (c) => {
+    return c.res({
+      image: (
+        <Cover backgroundColor="background" padding="24">
+          <VStack gap="4" flexGrow="1">
+            <Box fontSize="32" fontWeight="700" width="100%">
+              {'<Spacer>'}
+            </Box>
+            <Box color="text200">Space betwen elements</Box>
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
+              <HStack flex="1" gap="16">
+                <VStack flex="1" height="100%" gap="16">
+                  <Box backgroundColor="red" flex="1" />
+                  <Spacer />
+                  <Box backgroundColor="red" flex="1" />
+                </VStack>
+                <VStack flex="1" height="100%" gap="16">
+                  <Box backgroundColor="red" flex="1" />
+                  <Spacer size="4" />
+                  <Box backgroundColor="red" flex="1" />
+                </VStack>
+              </HStack>
             </Cover>
           </VStack>
         </Cover>
@@ -87,7 +118,8 @@ export const app = new Frog({
               {'<VStack>'}
             </Box>
             <Box color="text200">Vertical Stack</Box>
-            <Cover backgroundColor="background200" padding="16" marginTop="16">
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
               <HStack flex="1" gap="16">
                 <VStack flex="1" height="100%" gap="16">
                   <Box backgroundColor="red" flex="1" />
@@ -121,9 +153,10 @@ export const app = new Frog({
               {'<HStack>'}
             </Box>
             <Box color="text200">Horizontal Stack</Box>
-            <Cover backgroundColor="background200" padding="16" marginTop="16">
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
               <VStack flex="1" gap="16">
-                <HStack flex="1" gap="16" flexWrap="wrap">
+                <HStack flex="1" gap="16" wrap>
                   <Box backgroundColor="red" flex="1" height="100%" />
                   <Box backgroundColor="red" flex="1" height="100%" />
                   <Box backgroundColor="red" flex="1" height="100%" />

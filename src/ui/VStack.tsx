@@ -1,11 +1,34 @@
 import { Box, type BoxProps } from './Box.js'
 import type { DefaultTokens, Tokens } from './tokens.js'
 
-export type VStackProps<tokens extends Tokens = DefaultTokens> =
-  BoxProps<tokens> & {
-    alignHorizontal?: 'left' | 'center' | 'right'
-    alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
-  }
+export type VStackProps<tokens extends Tokens = DefaultTokens> = Pick<
+  BoxProps<tokens>,
+  | 'bottom'
+  | 'children'
+  | 'flex'
+  | 'flexBasis'
+  | 'flexFlow'
+  | 'flexShrink'
+  | 'flexGrow'
+  | 'gap'
+  | 'height'
+  | 'left'
+  | 'maxHeight'
+  | 'maxWidth'
+  | 'maxWidth'
+  | 'minWidth'
+  | 'padding'
+  | 'paddingBottom'
+  | 'paddingLeft'
+  | 'paddingRight'
+  | 'paddingTop'
+  | 'right'
+  | 'top'
+  | 'width'
+> & {
+  alignHorizontal?: 'left' | 'center' | 'right'
+  alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
+}
 
 const alignHorizontalToAlignItems = {
   left: 'flex-start',
