@@ -232,7 +232,7 @@ export function routes(
               </style>
             </head>
             <body>
-              <div id="root" />
+              <div id="root" className="p-4 md:p-6" />
               <script
                 id="__FROG_DATA__"
                 type="application/json"
