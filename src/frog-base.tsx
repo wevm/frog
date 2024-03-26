@@ -274,6 +274,17 @@ export class FrogBase<
 
     if (dev) this.dev = { enabled: true, ...(dev ?? {}) }
     this._dev = undefined // this is set `true` by `devtools` helper
+
+    this.hono.all('*', async (c, next) => {
+      if (this._dev) {
+        for (const { handler, path } of c.req.matchedRoutes) {
+          if (path === this._dev) {
+            return handler(c, next)
+          }
+        }
+      }
+      await next()
+    })
   }
 
   frame: HandlerInterface<env, 'frame', schema, basePath> = (
