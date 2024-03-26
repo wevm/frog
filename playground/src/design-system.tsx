@@ -88,11 +88,24 @@ export const app = new Frog({
             </Box>
             <Box color="text200">Vertical Stack</Box>
             <Cover backgroundColor="background200" padding="16" marginTop="16">
-              <VStack flex="1" gap="16">
-                <Box backgroundColor="red" flex="1" />
-                <Box backgroundColor="red" flex="1" />
-                <Box backgroundColor="red" flex="1" />
-              </VStack>
+              <HStack flex="1" gap="16">
+                <VStack flex="1" height="100%" gap="16">
+                  <Box backgroundColor="red" flex="1" />
+                  <Box backgroundColor="red" flex="1" />
+                  <Box backgroundColor="red" flex="1" />
+                </VStack>
+                <VStack
+                  alignHorizontal="center"
+                  alignVertical="space-between"
+                  flex="1"
+                  height="100%"
+                  gap="16"
+                >
+                  <Box backgroundColor="red" width="48" height="24" />
+                  <Box backgroundColor="red" width="48" height="24" />
+                  <Box backgroundColor="red" width="48" height="24" />
+                </VStack>
+              </HStack>
             </Cover>
           </VStack>
         </Cover>
@@ -109,11 +122,24 @@ export const app = new Frog({
             </Box>
             <Box color="text200">Horizontal Stack</Box>
             <Cover backgroundColor="background200" padding="16" marginTop="16">
-              <HStack flex="1" gap="16" flexWrap="wrap">
-                <Box backgroundColor="red" flex="1" height="100%" />
-                <Box backgroundColor="red" flex="1" height="100%" />
-                <Box backgroundColor="red" flex="1" height="100%" />
-              </HStack>
+              <VStack flex="1" gap="16">
+                <HStack flex="1" gap="16" flexWrap="wrap">
+                  <Box backgroundColor="red" flex="1" height="100%" />
+                  <Box backgroundColor="red" flex="1" height="100%" />
+                  <Box backgroundColor="red" flex="1" height="100%" />
+                </HStack>
+                <HStack
+                  alignVertical="center"
+                  alignHorizontal="space-between"
+                  flex="1"
+                  gap="16"
+                >
+                  <Box backgroundColor="red" width="48" height="48" />
+                  <Box backgroundColor="red" width="48" height="48" />
+                  <Box backgroundColor="red" width="48" height="48" />
+                  <Box backgroundColor="red" width="48" height="48" />
+                </HStack>
+              </VStack>
             </Cover>
           </VStack>
         </Cover>
