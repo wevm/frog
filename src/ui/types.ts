@@ -142,3 +142,5 @@ export type SatoriStyleProperties = Pick<
     'normal' | 'break-all' | 'break-word' | 'keep-all'
   >
 }
+
+export type ValueOf<T> = T[keyof T]

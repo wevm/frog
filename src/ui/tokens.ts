@@ -256,7 +256,6 @@ export const units = {
   '192': 0.3,
   '224': 0.35,
   '256': 0.4,
-  '100%': '100%',
 } as const satisfies Tokens['units']
 
 export const defaultTokens = {
