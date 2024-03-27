@@ -166,8 +166,8 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
       vocs:
-        specifier: 1.0.0-alpha.43
-        version: 1.0.0-alpha.43(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)
+        specifier: 1.0.0-alpha.44
+        version: 1.0.0-alpha.44(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3)
 
   src:
     dependencies:
@@ -2011,6 +2011,11 @@ packages:
     engines: {node: '>=18.14.1'}
     dev: false
 
+  /@hono/node-server@1.9.0:
+    resolution: {integrity: sha512-oJjk7WXBlENeHhWiMqSyxPIZ3Kmf5ZYxqdlcSIXyN8Rn50bNJsPl99G4POBS03Jxh56FdfRJ0SEnC8mAVIiavQ==}
+    engines: {node: '>=18.14.1'}
+    dev: false
+
   /@hono/valibot-validator@0.2.2(hono@4.1.0)(valibot@0.30.0):
     resolution: {integrity: sha512-1IfIi4JDztOeL3ciVbDoN5uJS9nSRfJv2az8VIn/m7CcVca2uF48Hw7v5ZShO/ESTP2SxtT8ozMZkQE1hi+kiw==}
     peerDependencies:
@@ -3633,7 +3638,6 @@ packages:
 
   /@shikijs/core@1.1.7:
     resolution: {integrity: sha512-gTYLUIuD1UbZp/11qozD3fWpUTuMqPSf3svDMMrL0UmlGU7D9dPw/V1FonwAorCUJBltaaESxq90jrSjQyGixg==}
-    dev: true
 
   /@shikijs/rehype@1.1.6:
     resolution: {integrity: sha512-Tk7PKoSUKDdOffmZgbCAh7FjI5/g56iU5AcecPRJ/8RoVqyx9UxJGB6N9my49PI8X6LV1M3IUHFjcuVYEppsrA==}
@@ -4290,7 +4294,7 @@ packages:
       find-up: 5.0.0
       javascript-stringify: 2.1.0
       lodash: 4.17.21
-      mlly: 1.5.0
+      mlly: 1.6.1
       outdent: 0.8.0
       vite: 5.1.6(@types/node@20.11.19)
       vite-node: 1.3.0(@types/node@20.11.19)
@@ -4309,16 +4313,16 @@ packages:
     resolution: {integrity: sha512-17kVyLq3ePTKOkveHxXuIJZtGYs+cSoev7BlP+Lf4916qfDhk/HBjvlYDe8egrea7LNPHKwSZJK/bzZC+Q6AwQ==}
     dev: false
 
-  /@vanilla-extract/vite-plugin@3.9.5(@types/node@20.11.19)(vite@5.1.3):
+  /@vanilla-extract/vite-plugin@3.9.5(@types/node@20.11.19)(vite@5.1.6):
     resolution: {integrity: sha512-CWI/CtrVW6i3HKccI6T7uGQkTJ8bd8Xl2UMBg3Pkr7dwWMmavXTeucV0I9KSbmXaYXSbEj+Q8c9y0xAZwtmTig==}
     peerDependencies:
       vite: ^2.2.3 || ^3.0.0 || ^4.0.3 || ^5.0.0
     dependencies:
       '@vanilla-extract/integration': 6.5.0(@types/node@20.11.19)
       outdent: 0.8.0
-      postcss: 8.4.35
-      postcss-load-config: 4.0.2(postcss@8.4.35)
-      vite: 5.1.3(@types/node@20.11.19)
+      postcss: 8.4.37
+      postcss-load-config: 4.0.2(postcss@8.4.37)
+      vite: 5.1.6(@types/node@20.11.19)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -4656,7 +4660,7 @@ packages:
       - '@swc/helpers'
     dev: true
 
-  /@vitejs/plugin-react@4.2.0(vite@5.1.3):
+  /@vitejs/plugin-react@4.2.0(vite@5.1.6):
     resolution: {integrity: sha512-+MHTH/e6H12kRp5HUkzOGqPMksezRMmW+TNzlh/QXfI8rRf6l2Z2yH/v12no1UvTwhZgEDMuQ7g7rrfMseU6FQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -4667,7 +4671,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.23.3(@babel/core@7.23.9)
       '@types/babel__core': 7.20.5
       react-refresh: 0.14.0
-      vite: 5.1.3(@types/node@20.11.19)
+      vite: 5.1.6(@types/node@20.11.19)
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -5440,22 +5444,6 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: true
 
-  /autoprefixer@10.4.17(postcss@8.4.35):
-    resolution: {integrity: sha512-/cpVNRLSfhOtcGflT13P2794gVSgmPgTR+erw5ifnMLZb0UnSlkK4tquLmkd3BhA+nLo5tX8Cu0upUsGKvKbmg==}
-    engines: {node: ^10 || ^12 || >=14}
-    hasBin: true
-    peerDependencies:
-      postcss: ^8.1.0
-    dependencies:
-      browserslist: 4.23.0
-      caniuse-lite: 1.0.30001588
-      fraction.js: 4.3.7
-      normalize-range: 0.1.2
-      picocolors: 1.0.0
-      postcss: 8.4.35
-      postcss-value-parser: 4.2.0
-    dev: false
-
   /autoprefixer@10.4.18(postcss@8.4.37):
     resolution: {integrity: sha512-1DKbDfsr6KUElM6wg+0zRNkB/Q7WcKYAaK+pzXn+Xqmszm/5Xa9coeNdtP88Vi+dPzZnMjhge8GIV49ZQkDa+g==}
     engines: {node: ^10 || ^12 || >=14}
@@ -5470,7 +5458,6 @@ packages:
       picocolors: 1.0.0
       postcss: 8.4.37
       postcss-value-parser: 4.2.0
-    dev: true
 
   /available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
@@ -6426,7 +6413,7 @@ packages:
     dev: true
 
   /ee-first@1.1.1:
-    resolution: {integrity: sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=}
+    resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
     dev: false
 
   /electron-to-chromium@1.4.677:
@@ -7253,7 +7240,7 @@ packages:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
   /fresh@0.5.2:
-    resolution: {integrity: sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=}
+    resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -9413,7 +9400,6 @@ packages:
       pathe: 1.1.2
       pkg-types: 1.0.3
       ufo: 1.4.0
-    dev: true
 
   /modern-ahocorasick@1.0.1:
     resolution: {integrity: sha512-yoe+JbhTClckZ67b2itRtistFKf8yPYelHLc7e5xAwtNAXxM6wJTUx2C7QeVSJFDzKT7bCIFyBVybPMKvmB9AA==}
@@ -10055,23 +10041,6 @@ packages:
       camelcase-css: 2.0.1
       postcss: 8.4.37
 
-  /postcss-load-config@4.0.2(postcss@8.4.35):
-    resolution: {integrity: sha512-bSVhyJGL00wMVoPUzAVAnbEoWyqRxkjv64tUl427SKnPrENtq6hJwUojroMz2VB+Q1edmi4IfrAPpami5VVgMQ==}
-    engines: {node: '>= 14'}
-    peerDependencies:
-      postcss: '>=8.0.9'
-      ts-node: '>=9.0.0'
-    peerDependenciesMeta:
-      postcss:
-        optional: true
-      ts-node:
-        optional: true
-    dependencies:
-      lilconfig: 3.1.1
-      postcss: 8.4.35
-      yaml: 2.3.4
-    dev: false
-
   /postcss-load-config@4.0.2(postcss@8.4.37):
     resolution: {integrity: sha512-bSVhyJGL00wMVoPUzAVAnbEoWyqRxkjv64tUl427SKnPrENtq6hJwUojroMz2VB+Q1edmi4IfrAPpami5VVgMQ==}
     engines: {node: '>= 14'}
@@ -10373,6 +10342,7 @@ packages:
   /react-remove-scroll-bar@2.3.5(@types/react@18.2.57)(react@18.2.0):
     resolution: {integrity: sha512-3cqjOqg6s0XbOjWvmasmqHch+RLxIEk2r/70rzGXuz3iIGQsQheEQyqYCBb5EECoD01Vo2SIbDqW4paLeLTASw==}
     engines: {node: '>=10'}
+    deprecated: please update to the following version as this contains a bug (https://github.com/theKashey/react-remove-scroll-bar/issues/57)
     peerDependencies:
       '@types/react': ^16.8.0 || ^17.0.0 || ^18.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -11034,7 +11004,6 @@ packages:
     resolution: {integrity: sha512-9kUTMjZtcPH3i7vHunA6EraTPpPOITYTdA5uMrvsJRexktqP0s7P3s9HVK80b4pP42FRVe03D7fT3NmJv2yYhw==}
     dependencies:
       '@shikijs/core': 1.1.7
-    dev: true
 
   /side-channel@1.0.5:
     resolution: {integrity: sha512-QcgiIWV4WV7qWExbN5llt6frQB/lBven9pqliLXfGPB+K9ZYXxDozp0wLkHS24kWCm+6YXH/f0HhnObZnZOBnQ==}
@@ -12439,15 +12408,15 @@ packages:
       - terser
     dev: true
 
-  /vocs@1.0.0-alpha.43(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-HNceLIyKXbkZqWZPEboZzDWmLRQ6X71SMfPcFmXHYqk6kwoH/IJLTjbTCPpvvGodGtRwTbnVs+aw/3VPe2HMDw==}
+  /vocs@1.0.0-alpha.44(@types/node@20.11.19)(@types/react@18.2.57)(react-dom@18.2.0)(react@18.2.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-/HZEBDQympZYhdV7iZ/6KUZCNpmNrmmgjGJrJiIFsjqoQ33N6PiK7+DGNjaR9iVpk4at//BgieSdfCKBJYOOQA==}
     hasBin: true
     peerDependencies:
       react: ^18.2.0
       react-dom: ^18.2.0
     dependencies:
       '@floating-ui/react': 0.26.9(react-dom@18.2.0)(react@18.2.0)
-      '@hono/node-server': 1.8.2
+      '@hono/node-server': 1.9.0
       '@mdx-js/react': 3.0.1(@types/react@18.2.57)(react@18.2.0)
       '@mdx-js/rollup': 3.0.1
       '@noble/hashes': 1.3.3
@@ -12464,9 +12433,9 @@ packages:
       '@shikijs/twoslash': 1.1.6(typescript@5.3.3)
       '@vanilla-extract/css': 1.14.1
       '@vanilla-extract/dynamic': 2.1.0
-      '@vanilla-extract/vite-plugin': 3.9.5(@types/node@20.11.19)(vite@5.1.3)
-      '@vitejs/plugin-react': 4.2.0(vite@5.1.3)
-      autoprefixer: 10.4.17(postcss@8.4.35)
+      '@vanilla-extract/vite-plugin': 3.9.5(@types/node@20.11.19)(vite@5.1.6)
+      '@vitejs/plugin-react': 4.2.0(vite@5.1.6)
+      autoprefixer: 10.4.18(postcss@8.4.37)
       cac: 6.7.14
       chroma-js: 2.4.2
       clsx: 2.1.0
@@ -12485,7 +12454,7 @@ packages:
       minimatch: 9.0.3
       minisearch: 6.3.0
       ora: 7.0.1
-      postcss: 8.4.35
+      postcss: 8.4.37
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-helmet: 6.1.0(react@18.2.0)
@@ -12500,14 +12469,14 @@ packages:
       remark-mdx-frontmatter: 4.0.0
       remark-parse: 11.0.0
       serve-static: 1.15.0
-      shiki: 1.1.6
+      shiki: 1.1.7
       tailwindcss: 3.4.1
       toml: 3.0.0
       twoslash: 0.2.4(typescript@5.3.3)
       ua-parser-js: 1.0.37
       unified: 11.0.4
       unist-util-visit: 5.0.0
-      vite: 5.1.3(@types/node@20.11.19)
+      vite: 5.1.6(@types/node@20.11.19)
     transitivePeerDependencies:
       - '@types/node'
       - '@types/react'
