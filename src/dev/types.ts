@@ -46,7 +46,7 @@ export type FrameButton = {
   | {
       type: 'post' | 'post_redirect'
       postUrl: string | undefined
-      target: `http://${string}` | `https://${string}` | undefined
+      target: undefined
     }
   | {
       type: 'tx'
