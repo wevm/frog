@@ -1,12 +1,13 @@
 # FrogUI
 
-**FrogUI** is an extension of the Frog Framework that provides layout & styling primitives to help you build extensible and consistent dynamic [Frame Image](/concepts/images-intents#image) interfaces.
+**FrogUI** is an extension of the Frog Framework that provides type-safe layout & styling primitives to help you build extensible and consistent dynamic [Frame Image](/concepts/images-intents#image) interfaces.
 
 Create your [UI System](#TODO) with optional theming tokens, and build your frames with [Primitive Components](#TODO).
 
 :::code-group
 
-```tsx [index.ts]
+```tsx twoslash [src/index.ts]
+// @noErrors
 import { Frog } from 'frog'
 import { Box, Heading, Text, VStack, tokens } from './ui.js'
 
@@ -21,33 +22,26 @@ export const app = new Frog({
           <Text color="text200" size="20">
             Build consistent frame experiences
           </Text>
+          <Text color="te 
+//                       ^|
         </VStack>
       </Box>
     )
   })
 })
+
+
+
+
+
+
+
 ```
 
-```tsx [ui.ts]
-import { Frog } from 'frog'
-import { Box, Heading, Text, VStack, tokens } from './ui.js'
+```tsx twoslash [src/ui.ts] filename="./ui.js"
+import { createSystem } from 'frog/ui'
 
-export const app = new Frog({
-  tokens,
-}).frame('/', (c) => {
-  return c.res({
-    image: (
-      <Box grow alignHorizontal="center" alignVertical="center">
-        <VStack gap="4">
-          <Heading>FrogUI 🐸</Heading>
-          <Text color="text200" size="20">
-            Build consistent frame experiences
-          </Text>
-        </VStack>
-      </Box>
-    )
-  })
-})
+export const { Box, Heading, Text, VStack, tokens } = createSystem()
 ```
 
 :::
