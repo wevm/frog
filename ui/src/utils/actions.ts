@@ -22,14 +22,14 @@ function getBody() {
 
 export async function handlePost(button: {
   index: number
-  target: string | undefined
+  postUrl: string | undefined
   transactionId?: string | undefined
 }) {
-  const { index, target, transactionId } = button
+  const { index, postUrl, transactionId } = button
   const { dataKey, dataMap } = store.getState()
   const frame = dataMap[dataKey].frame
 
-  const url = target ?? frame.postUrl ?? dataMap[dataKey].url
+  const url = postUrl ?? frame.postUrl ?? dataMap[dataKey].url
   const json = await client.frames[':url'].action
     .$post({
       param: { url: encodeURIComponent(url) },

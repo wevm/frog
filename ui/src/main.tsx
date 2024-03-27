@@ -12,12 +12,12 @@ import './assets/icon.png'
 import './index.css'
 
 // Hydrate store from server data
-{
+try {
   const element = document.getElementById('__FROG_DATA__')
   const bootstrap = JSON.parse(element!.textContent!) as Bootstrap
   hydrateStore(bootstrap)
   element?.remove()
-}
+} catch {}
 
 // Mount app
 ReactDOM.createRoot(document.getElementById('root')!).render(
