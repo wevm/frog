@@ -2,7 +2,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
-import { Box, Heading, tokens } from './ui'
+import { Box, Heading, Text, tokens } from './ui'
 
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
@@ -21,7 +21,7 @@ export const app = new Frog({
     const { buttonValue, inputText, status } = c
     const fruit = inputText || buttonValue
     return c.res({
-      // action: '/action',
+      action: '/action',
       image: (
         <Box
           grow
@@ -55,20 +55,14 @@ export const app = new Frog({
     return c.res({
       action: '/',
       image: (
-        <div
-          style={{
-            backgroundColor: '#1E1E4C',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 60,
-            width: '100%',
-            height: '100%',
-          }}
+        <Box
+          grow
+          background="blue100"
+          alignHorizontal="center"
+          alignVertical="center"
         >
-          Yuck! {fruit}! Enter another one.
-        </div>
+          <Heading>Yuck! {fruit}! Enter another one.</Heading>
+        </Box>
       ),
       intents: [
         <Button value="watermelon">Watermelon</Button>,

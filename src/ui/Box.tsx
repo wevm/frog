@@ -234,7 +234,7 @@ export function Box<tokens extends Tokens>({
 
   const flexGrow = (() => {
     if (rest.flexGrow) return rest.flexGrow
-    return grow ? 1 : 0
+    return grow ? '1' : undefined
   })()
 
   return (

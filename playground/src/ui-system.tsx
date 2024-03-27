@@ -179,14 +179,14 @@ export const app = new Frog({
             <Spacer size="16" />
             <Box backgroundColor="background200" grow padding="16">
               <HStack gap="16" grow>
-                <VStack height="100%" gap="16" grow>
-                  <Box backgroundColor="red" grow />
+                <VStack height="100%" grow>
+                  <Box backgroundColor="red" height="20" />
                   <Spacer />
-                  <Box backgroundColor="red" grow />
+                  <Box backgroundColor="red" height="20" />
                 </VStack>
-                <VStack grow height="100%" gap="16">
+                <VStack grow height="100%">
                   <Box backgroundColor="red" grow />
-                  <Spacer size="4" />
+                  <Spacer size="10" />
                   <Box backgroundColor="red" grow />
                 </VStack>
               </HStack>
