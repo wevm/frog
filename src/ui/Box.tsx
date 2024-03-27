@@ -35,6 +35,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   | 'height'
   | 'gap'
   | 'left'
+  | 'letterSpacing'
   | 'lineHeight'
   | 'margin'
   | 'marginTop'
@@ -83,10 +84,14 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   children?: Child
   color?: TokenValue<'color', keyof tokens['colors']>
   fontFamily?: TokenValue<'fontFamily', keyof tokens['fonts']>
-  fontSize?: TokenValue<'fontSize', keyof tokens['units']>
+  fontSize?: TokenValue<'fontSize', keyof tokens['fontSizes']>
   height?: TokenValue<'height', keyof tokens['units'] | '100%'>
   gap?: TokenValue<'gap', keyof tokens['units']>
   left?: TokenValue<'left', keyof tokens['units']>
+  letterSpacing?: TokenValue<
+    'letterSpacing',
+    keyof tokens['units'] | NegateValues<tokens['units']>
+  >
   lineHeight?: TokenValue<'lineHeight', keyof tokens['units']>
   margin?: TokenValue<'margin', NegateValues<tokens['units']>>
   marginTop?: TokenValue<'marginTop', NegateValues<tokens['units']>>
@@ -161,6 +166,7 @@ export function Box<tokens extends Tokens>({
   const height = resolveUnitToken(units, rest.height, vheight)
   const gap = resolveUnitToken(units, rest.gap, vheight)
   const left = resolveUnitToken(units, rest.left, vwidth)
+  const letterSpacing = resolveUnitToken(units, rest.letterSpacing, vwidth)
   const lineHeight = resolveUnitToken(units, rest.lineHeight, vmin)
   const margin = resolveUnitToken(units, rest.margin, vmax)
   const marginTop = resolveUnitToken(units, rest.marginTop, vmin)
@@ -214,6 +220,7 @@ export function Box<tokens extends Tokens>({
         height,
         gap,
         left,
+        letterSpacing,
         lineHeight,
         margin,
         marginTop,

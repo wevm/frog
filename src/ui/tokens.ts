@@ -3,6 +3,7 @@ import type { Font } from '../types/frame.js'
 export type Tokens = {
   colors?: Record<string, string> | undefined
   fonts?: Record<string, Font[]> | undefined
+  fontSizes?: Record<string, number> | undefined
   frame?:
     | {
         height?: undefined
@@ -258,8 +259,21 @@ export const units = {
   '256': 0.4,
 } as const satisfies Tokens['units']
 
+export const fontSizes = {
+  '12': units['12'],
+  '14': units['14'],
+  '16': units['16'],
+  '18': units['18'],
+  '20': units['20'],
+  '24': units['24'],
+  '32': units['32'],
+  '48': units['48'],
+  '64': units['64'],
+} as const satisfies Tokens['fontSizes']
+
 export const defaultTokens = {
   colors: colors.dark,
+  fontSizes,
   frame: {
     height: 1200,
     width: 630,

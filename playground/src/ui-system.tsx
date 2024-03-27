@@ -5,9 +5,11 @@ import {
   Columns,
   Cover,
   HStack,
+  Heading,
   Row,
   Rows,
   Spacer,
+  Text,
   VStack,
   tokens,
 } from './ui'
@@ -32,12 +34,10 @@ export const app = new Frog({
             gap="32"
           >
             <VStack gap="4">
-              <Box fontSize="32" fontWeight="700" width="100%">
-                FrogUI 🐸
-              </Box>
-              <Box color="text200" fontSize="20">
+              <Heading>FrogUI 🐸</Heading>
+              <Text color="text200" size="20">
                 Build consistent frame experiences
-              </Box>
+              </Text>
             </VStack>
           </Cover>
         </Cover>
@@ -50,10 +50,10 @@ export const app = new Frog({
       image: (
         <Cover backgroundColor="background" padding="24">
           <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<Columns>'}
-            </Box>
-            <Box color="text200">Columned layout</Box>
+            <Heading>{'<Columns>'}</Heading>
+            <Text color="text200" size="18">
+              Columned layout
+            </Text>
             <Spacer size="16" />
             <Cover backgroundColor="background200" padding="16">
               <VStack flex="1" gap="16">
@@ -83,10 +83,10 @@ export const app = new Frog({
       image: (
         <Cover backgroundColor="background" padding="24">
           <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<Cover>'}
-            </Box>
-            <Box color="text200">Covers the parent element.</Box>
+            <Heading>{'<Cover>'}</Heading>
+            <Text color="text200" size="18">
+              Covers the parent element.
+            </Text>
             <Spacer size="16" />
             <Cover backgroundColor="background200" padding="16">
               <Cover
@@ -106,15 +106,37 @@ export const app = new Frog({
       ],
     })
   })
+  .frame('/heading', (c) => {
+    return c.res({
+      image: (
+        <Cover backgroundColor="background" padding="24">
+          <VStack gap="4" flexGrow="1">
+            <Heading>{'<Heading>'}</Heading>
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
+              <VStack gap="4">
+                <Heading>Hello world</Heading>
+                <Text>This is some text.</Text>
+              </VStack>
+            </Cover>
+          </VStack>
+        </Cover>
+      ),
+      intents: [
+        <Button action="/rows">←</Button>,
+        <Button action="/vstack">→</Button>,
+      ],
+    })
+  })
   .frame('/hstack', (c) => {
     return c.res({
       image: (
         <Cover backgroundColor="background" padding="24">
           <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<HStack>'}
-            </Box>
-            <Box color="text200">Horizontal Stack</Box>
+            <Heading>{'<HStack>'}</Heading>
+            <Text color="text200" size="18">
+              Horizontal Stack
+            </Text>
             <Spacer size="16" />
             <Cover backgroundColor="background200" padding="16">
               <VStack flex="1" gap="16">
@@ -150,10 +172,10 @@ export const app = new Frog({
       image: (
         <Cover backgroundColor="background" padding="24">
           <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<Rows>'}
-            </Box>
-            <Box color="text200">Row layout</Box>
+            <Heading>{'<Rows>'}</Heading>
+            <Text color="text200" size="18">
+              Row layout
+            </Text>
             <Spacer size="16" />
             <Cover backgroundColor="background200" padding="16">
               <HStack flex="1" gap="16">
@@ -183,10 +205,10 @@ export const app = new Frog({
       image: (
         <Cover backgroundColor="background" padding="24">
           <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<Spacer>'}
-            </Box>
-            <Box color="text200">Space betwen elements</Box>
+            <Heading>{'<Spacer>'}</Heading>
+            <Text color="text200" size="18">
+              Space betwen elements
+            </Text>
             <Spacer size="16" />
             <Cover backgroundColor="background200" padding="16">
               <HStack flex="1" gap="16">
@@ -211,15 +233,40 @@ export const app = new Frog({
       ],
     })
   })
+  .frame('/text', (c) => {
+    return c.res({
+      image: (
+        <Cover backgroundColor="background" padding="24">
+          <VStack gap="4" flexGrow="1">
+            <Heading>{'<Text>'}</Heading>
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
+              <Text size="16">Hello world</Text>
+              <Text align="center" size="20" weight="600">
+                Hello world
+              </Text>
+              <Text align="right" size="32" weight="700">
+                Hello world
+              </Text>
+            </Cover>
+          </VStack>
+        </Cover>
+      ),
+      intents: [
+        <Button action="/rows">←</Button>,
+        <Button action="/vstack">→</Button>,
+      ],
+    })
+  })
   .frame('/vstack', (c) => {
     return c.res({
       image: (
         <Cover backgroundColor="background" padding="24">
           <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<VStack>'}
-            </Box>
-            <Box color="text200">Vertical Stack</Box>
+            <Heading>{'<VStack>'}</Heading>
+            <Text color="text200" size="18">
+              Vertical Stack
+            </Text>
             <Spacer size="16" />
             <Cover backgroundColor="background200" padding="16">
               <HStack flex="1" gap="16">
