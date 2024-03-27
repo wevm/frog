@@ -13,6 +13,7 @@ type NegateValues<obj extends object | undefined> = ValueOf<{
 
 export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   SatoriStyleProperties,
+  | 'background'
   | 'backgroundColor'
   | 'borderColor'
   | 'borderBottomColor'
@@ -56,6 +57,9 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   | 'width'
 > & {
   __context?: { tokens?: Tokens | undefined }
+  alignHorizontal?: 'left' | 'center' | 'right' | 'space-between'
+  alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
+  background?: TokenValue<'backgroundColor', keyof tokens['colors']>
   backgroundColor?: TokenValue<'backgroundColor', keyof tokens['colors']>
   borderColor?: TokenValue<'borderColor', keyof tokens['colors']>
   borderBottomColor?: TokenValue<'borderBottomColor', keyof tokens['colors']>
@@ -113,6 +117,20 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   width?: TokenValue<'width', keyof tokens['units'] | '100%'>
 }
 
+const alignHorizontalToAlignItems = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+  'space-between': 'space-between',
+} as const
+
+const alignVerticalToJustifyContent = {
+  top: 'flex-start',
+  center: 'center',
+  bottom: 'flex-end',
+  'space-between': 'space-between',
+} as const
+
 export function Box<tokens extends Tokens>({
   __context,
   children,
@@ -127,6 +145,10 @@ export function Box<tokens extends Tokens>({
   const vmin = Math.min(vwidth, vheight)
   const vmax = Math.max(vwidth, vheight)
 
+  const display = rest.display ?? 'flex'
+  const flexDirection = rest.flexDirection ?? 'column'
+
+  const background = resolveColorToken(colors, rest.background)
   const backgroundColor = resolveColorToken(colors, rest.backgroundColor)
   const borderBottomColor = resolveColorToken(colors, rest.borderBottomColor)
   const borderBottomLeftRadius = resolveUnitToken(
@@ -190,14 +212,38 @@ export function Box<tokens extends Tokens>({
     return fonts?.[rest.fontFamily as any][0].name
   })()
 
-  const display = rest.display ?? 'flex'
-  const flexDirection = rest.flexDirection ?? 'column'
+  const alignItems = (() => {
+    if (rest.alignItems) return rest.alignItems
+    if (flexDirection === 'column') {
+      if (!rest.alignHorizontal) return
+      return alignHorizontalToAlignItems[rest.alignHorizontal]
+    }
+    if (!rest.alignVertical) return
+    return alignVerticalToJustifyContent[rest.alignVertical]
+  })()
+
+  const justifyContent = (() => {
+    if (rest.justifyContent) return rest.justifyContent
+    if (flexDirection === 'column') {
+      if (!rest.alignVertical) return
+      return alignVerticalToJustifyContent[rest.alignVertical]
+    }
+    if (!rest.alignHorizontal) return
+    return alignHorizontalToAlignItems[rest.alignHorizontal]
+  })()
+
+  const flexGrow = (() => {
+    if (rest.flexGrow) return rest.flexGrow
+    return grow ? 1 : 0
+  })()
 
   return (
     <div
       __context={__context}
       style={{
         ...rest,
+        alignItems,
+        background,
         backgroundColor,
         borderColor,
         borderBottomColor,
@@ -217,10 +263,11 @@ export function Box<tokens extends Tokens>({
         color,
         display,
         flexDirection,
-        flexGrow: typeof grow === 'boolean' ? (grow ? 1 : 0) : rest.flexGrow,
+        flexGrow,
         fontFamily,
         fontSize,
         height,
+        justifyContent,
         gap,
         left,
         letterSpacing,

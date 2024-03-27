@@ -2,6 +2,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
+import { Box, Heading, tokens } from './ui'
 
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
@@ -13,48 +14,31 @@ import { app as uiSystemApp } from './ui-system.js'
 
 export const app = new Frog({
   hub: hubs.frog(),
+  tokens,
   verify: 'silent',
 })
   .frame('/', (c) => {
     const { buttonValue, inputText, status } = c
     const fruit = inputText || buttonValue
     return c.res({
-      action: '/action',
+      // action: '/action',
       image: (
-        <div
-          tw="flex"
-          style={{
-            alignItems: 'center',
-            background:
-              status === 'response'
-                ? 'linear-gradient(to right, #432889, #17101F)'
-                : 'black',
-            backgroundSize: '100% 100%',
-            flexDirection: 'column',
-            flexWrap: 'nowrap',
-            height: '100%',
-            justifyContent: 'center',
-            textAlign: 'center',
-            width: '100%',
-          }}
+        <Box
+          grow
+          background={
+            status === 'response'
+              ? { custom: 'linear-gradient(to right, #432889, #17101F)' }
+              : 'background'
+          }
+          alignHorizontal="center"
+          alignVertical="center"
         >
-          <div
-            style={{
-              color: 'white',
-              fontSize: 60,
-              fontStyle: 'normal',
-              letterSpacing: '-0.025em',
-              lineHeight: 1.4,
-              marginTop: 30,
-              padding: '0 120px',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
+          <Heading>
             {status === 'response'
               ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
               : 'Welcome :)'}
-          </div>
-        </div>
+          </Heading>
+        </Box>
       ),
       intents: [
         <TextInput placeholder="Enter custom fruit" />,
