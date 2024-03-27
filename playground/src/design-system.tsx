@@ -1,28 +1,29 @@
 import { Frog } from 'frog'
 import { colors, createSystem } from 'frog/ui'
 
-const { Box, Cover, HStack, Spacer, VStack, tokens } = createSystem({
-  // colors: colors.light,
-  fonts: {
-    default: [
-      {
-        name: 'Open Sans',
-        source: 'google',
-        weight: 400,
-      },
-      {
-        name: 'Open Sans',
-        source: 'google',
-        weight: 600,
-      },
-      {
-        name: 'Open Sans',
-        source: 'google',
-        weight: 700,
-      },
-    ],
-  },
-})
+const { Box, Columns, Column, Cover, HStack, Spacer, VStack, tokens } =
+  createSystem({
+    // colors: colors.light,
+    fonts: {
+      default: [
+        {
+          name: 'Open Sans',
+          source: 'google',
+          weight: 400,
+        },
+        {
+          name: 'Open Sans',
+          source: 'google',
+          weight: 600,
+        },
+        {
+          name: 'Open Sans',
+          source: 'google',
+          weight: 700,
+        },
+      ],
+    },
+  })
 
 export const app = new Frog({
   tokens,
@@ -56,6 +57,35 @@ export const app = new Frog({
       ),
     })
   })
+  .frame('/columns', (c) => {
+    return c.res({
+      image: (
+        <Cover backgroundColor="background" padding="24">
+          <VStack gap="4" flexGrow="1">
+            <Box fontSize="32" fontWeight="700" width="100%">
+              {'<Columns>'}
+            </Box>
+            <Box color="text200">Columned layout</Box>
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
+              <VStack flex="1" gap="16">
+                <Columns flex="1" gap="8">
+                  <Column backgroundColor="red" height="100%" />
+                  <Column backgroundColor="red" height="100%" />
+                  <Column backgroundColor="red" height="100%" />
+                  <Column backgroundColor="red" height="100%" />
+                </Columns>
+                <Columns flex="1" gap="8">
+                  <Column backgroundColor="red" height="100%" width="1/3" />
+                  <Column backgroundColor="red" height="100%" width="2/3" />
+                </Columns>
+              </VStack>
+            </Cover>
+          </VStack>
+        </Cover>
+      ),
+    })
+  })
   .frame('/cover', (c) => {
     return c.res({
       image: (
@@ -74,6 +104,41 @@ export const app = new Frog({
               >
                 This is a {'<Cover>'} component.
               </Cover>
+            </Cover>
+          </VStack>
+        </Cover>
+      ),
+    })
+  })
+  .frame('/hstack', (c) => {
+    return c.res({
+      image: (
+        <Cover backgroundColor="background" padding="24">
+          <VStack gap="4" flexGrow="1">
+            <Box fontSize="32" fontWeight="700" width="100%">
+              {'<HStack>'}
+            </Box>
+            <Box color="text200">Horizontal Stack</Box>
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
+              <VStack flex="1" gap="16">
+                <HStack flex="1" gap="16" wrap>
+                  <Box backgroundColor="red" flex="1" height="100%" />
+                  <Box backgroundColor="red" flex="1" height="100%" />
+                  <Box backgroundColor="red" flex="1" height="100%" />
+                </HStack>
+                <HStack
+                  alignVertical="center"
+                  alignHorizontal="space-between"
+                  flex="1"
+                  gap="16"
+                >
+                  <Box backgroundColor="red" width="48" height="48" />
+                  <Box backgroundColor="red" width="48" height="48" />
+                  <Box backgroundColor="red" width="48" height="48" />
+                  <Box backgroundColor="red" width="48" height="48" />
+                </HStack>
+              </VStack>
             </Cover>
           </VStack>
         </Cover>
@@ -138,41 +203,6 @@ export const app = new Frog({
                   <Box backgroundColor="red" width="48" height="24" />
                 </VStack>
               </HStack>
-            </Cover>
-          </VStack>
-        </Cover>
-      ),
-    })
-  })
-  .frame('/hstack', (c) => {
-    return c.res({
-      image: (
-        <Cover backgroundColor="background" padding="24">
-          <VStack gap="4" flexGrow="1">
-            <Box fontSize="32" fontWeight="700" width="100%">
-              {'<HStack>'}
-            </Box>
-            <Box color="text200">Horizontal Stack</Box>
-            <Spacer size="16" />
-            <Cover backgroundColor="background200" padding="16">
-              <VStack flex="1" gap="16">
-                <HStack flex="1" gap="16" wrap>
-                  <Box backgroundColor="red" flex="1" height="100%" />
-                  <Box backgroundColor="red" flex="1" height="100%" />
-                  <Box backgroundColor="red" flex="1" height="100%" />
-                </HStack>
-                <HStack
-                  alignVertical="center"
-                  alignHorizontal="space-between"
-                  flex="1"
-                  gap="16"
-                >
-                  <Box backgroundColor="red" width="48" height="48" />
-                  <Box backgroundColor="red" width="48" height="48" />
-                  <Box backgroundColor="red" width="48" height="48" />
-                  <Box backgroundColor="red" width="48" height="48" />
-                </HStack>
-              </VStack>
             </Cover>
           </VStack>
         </Cover>

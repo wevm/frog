@@ -107,7 +107,11 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   width?: TokenValue<'width', keyof tokens['units'] | '100%'>
 }
 
-export function Box({ __context, children, ...rest }: BoxProps) {
+export function Box<tokens extends Tokens>({
+  __context,
+  children,
+  ...rest
+}: BoxProps<tokens>) {
   const { colors, fonts, frame, units } = (__context?.tokens ??
     defaultTokens) as Tokens
 
@@ -175,7 +179,7 @@ export function Box({ __context, children, ...rest }: BoxProps) {
   const fontFamily = (() => {
     if (!rest.fontFamily) return fonts?.default[0].name
     if (typeof rest.fontFamily === 'object') return rest.fontFamily.custom
-    return fonts?.[rest.fontFamily][0].name
+    return fonts?.[rest.fontFamily as any][0].name
   })()
 
   const display = rest.display ?? 'flex'
@@ -233,7 +237,7 @@ export function Box({ __context, children, ...rest }: BoxProps) {
 
 function resolveToken<tokens extends Record<string, unknown>>(
   tokens: tokens | undefined,
-  value: TokenValue<keyof SatoriStyleProperties, string> | undefined,
+  value: TokenValue<keyof SatoriStyleProperties, keyof tokens> | undefined,
   fallback?: unknown,
 ):
   | { value: tokens[keyof tokens]; type: 'token' }
@@ -246,7 +250,7 @@ function resolveToken<tokens extends Record<string, unknown>>(
 
 function resolveColorToken(
   colors: Tokens['colors'] | undefined,
-  value: TokenValue<keyof SatoriStyleProperties, string> | undefined,
+  value: TokenValue<keyof SatoriStyleProperties, any> | undefined,
   fallback?: unknown,
 ) {
   const color = resolveToken(colors, value, fallback)
@@ -255,7 +259,7 @@ function resolveColorToken(
 
 function resolveUnitToken(
   units: Tokens['units'] | undefined,
-  value: TokenValue<keyof SatoriStyleProperties, string> | undefined,
+  value: TokenValue<keyof SatoriStyleProperties, any> | undefined,
   baseUnit: number,
   fallback?: unknown,
 ) {

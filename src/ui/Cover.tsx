@@ -7,7 +7,10 @@ export type CoverProps<tokens extends Tokens = DefaultTokens> =
     children: Child
   }
 
-export function Cover({ children, ...rest }: CoverProps) {
+export function Cover<tokens extends Tokens>({
+  children,
+  ...rest
+}: CoverProps<tokens>) {
   return (
     <Box flexGrow="1" {...rest}>
       {children}
