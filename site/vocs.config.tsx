@@ -242,163 +242,235 @@ export default defineConfig({
       ],
     },
   ],
-  sidebar: [
-    {
-      text: 'Installation',
-      link: '/installation',
-    },
-    {
-      text: 'Getting Started',
-      link: '/getting-started',
-    },
-    {
-      text: 'Concepts',
+  sidebar: {
+    '/': [
+      {
+        text: 'Installation',
+        link: '/installation',
+      },
+      {
+        text: 'Getting Started',
+        link: '/getting-started',
+      },
+      {
+        text: 'Concepts',
+        items: [
+          {
+            text: 'Overview',
+            link: '/concepts/overview',
+          },
+          {
+            text: 'Routing',
+            link: '/concepts/routing',
+          },
+          {
+            text: 'Images & Intents',
+            link: '/concepts/images-intents',
+          },
+          {
+            text: 'Connecting Frames (Actions)',
+            link: '/concepts/actions',
+          },
+          {
+            text: 'Browser Redirects',
+            link: '/concepts/browser-redirects',
+          },
+          {
+            text: 'State Management',
+            link: '/concepts/state-management',
+          },
+          {
+            text: 'Securing Frames',
+            link: '/concepts/securing-frames',
+          },
+          {
+            text: 'Deployment',
+            link: '/concepts/deployment',
+          },
+          {
+            text: 'Devtools',
+            link: '/concepts/devtools',
+          },
+          {
+            text: 'Middleware',
+            link: '/concepts/middleware',
+          },
+          {
+            text: 'Transactions',
+            link: '/concepts/transactions',
+          },
+        ],
+      },
+      {
+        text: 'Platforms',
+        items: [
+          {
+            text: 'Bun',
+            link: '/platforms/bun',
+          },
+          {
+            text: 'Cloudflare Workers',
+            link: '/platforms/cloudflare-workers',
+          },
+          {
+            text: 'Next.js',
+            link: '/platforms/next',
+          },
+          {
+            text: 'Node.js',
+            link: '/platforms/node',
+          },
+          {
+            text: 'Vercel',
+            link: '/platforms/vercel',
+          },
+        ],
+      },
+      {
+        text: 'Hubs',
+        items: [
+          {
+            text: 'Neynar',
+            link: '/hubs/neynar',
+          },
+          {
+            text: 'Pinata',
+            link: '/hubs/pinata',
+          },
+        ],
+      },
+      {
+        text: 'Intent Reference',
+        items: [
+          { text: 'Button', link: '/intents/button' },
+          { text: 'Button.Link', link: '/intents/button-link' },
+          { text: 'Button.Mint', link: '/intents/button-mint' },
+          { text: 'Button.Redirect', link: '/intents/button-redirect' },
+          { text: 'Button.Reset', link: '/intents/button-reset' },
+          { text: 'Button.Transaction', link: '/intents/button-transaction' },
+          { text: 'TextInput', link: '/intents/textinput' },
+        ],
+      },
+      {
+        text: 'Frog Reference',
+        items: [
+          { text: 'Frog', link: '/reference/frog' },
+          {
+            text: 'Frog.frame',
+            link: '/reference/frog-frame',
+            items: [
+              { text: 'Context', link: '/reference/frog-frame-context' },
+              {
+                text: 'Response',
+                link: '/reference/frog-frame-response',
+              },
+            ],
+          },
+          {
+            text: 'Frog.transaction',
+            link: '/reference/frog-transaction',
+            items: [
+              { text: 'Context', link: '/reference/frog-transaction-context' },
+              {
+                text: 'Response',
+                link: '/reference/frog-transaction-response',
+              },
+            ],
+          },
+          { text: 'Frog.hono', link: '/reference/frog-hono' },
+        ],
+      },
+      {
+        text: 'Dev Reference',
+        items: [{ text: 'devtools', link: '/dev/devtools' }],
+      },
+      {
+        text: 'CLI Reference',
+        items: [
+          {
+            text: 'dev',
+            link: '/commands/dev',
+          },
+          {
+            text: 'vercel-build',
+            link: '/commands/vercel-build',
+          },
+        ],
+      },
+    ],
+    '/ui': {
+      backLink: true,
       items: [
         {
-          text: 'Overview',
-          link: '/concepts/overview',
+          text: 'Getting Started',
+          link: '/ui/getting-started',
         },
         {
-          text: 'Routing',
-          link: '/concepts/routing',
-        },
-        {
-          text: 'Images & Intents',
-          link: '/concepts/images-intents',
-        },
-        {
-          text: 'Connecting Frames (Actions)',
-          link: '/concepts/actions',
-        },
-        {
-          text: 'Browser Redirects',
-          link: '/concepts/browser-redirects',
-        },
-        {
-          text: 'State Management',
-          link: '/concepts/state-management',
-        },
-        {
-          text: 'Securing Frames',
-          link: '/concepts/securing-frames',
-        },
-        {
-          text: 'Deployment',
-          link: '/concepts/deployment',
-        },
-        {
-          text: 'Devtools',
-          link: '/concepts/devtools',
-        },
-        {
-          text: 'Middleware',
-          link: '/concepts/middleware',
-        },
-        {
-          text: 'Transactions',
-          link: '/concepts/transactions',
-        },
-      ],
-    },
-    {
-      text: 'Platforms',
-      items: [
-        {
-          text: 'Bun',
-          link: '/platforms/bun',
-        },
-        {
-          text: 'Cloudflare Workers',
-          link: '/platforms/cloudflare-workers',
-        },
-        {
-          text: 'Next.js',
-          link: '/platforms/next',
-        },
-        {
-          text: 'Node.js',
-          link: '/platforms/node',
-        },
-        {
-          text: 'Vercel',
-          link: '/platforms/vercel',
-        },
-      ],
-    },
-    {
-      text: 'Hubs',
-      items: [
-        {
-          text: 'Neynar',
-          link: '/hubs/neynar',
-        },
-        {
-          text: 'Pinata',
-          link: '/hubs/pinata',
-        },
-      ],
-    },
-    {
-      text: 'Intent Reference',
-      items: [
-        { text: 'Button', link: '/intents/button' },
-        { text: 'Button.Link', link: '/intents/button-link' },
-        { text: 'Button.Mint', link: '/intents/button-mint' },
-        { text: 'Button.Redirect', link: '/intents/button-redirect' },
-        { text: 'Button.Reset', link: '/intents/button-reset' },
-        { text: 'Button.Transaction', link: '/intents/button-transaction' },
-        { text: 'TextInput', link: '/intents/textinput' },
-      ],
-    },
-    {
-      text: 'Frog Reference',
-      items: [
-        { text: 'Frog', link: '/reference/frog' },
-        {
-          text: 'Frog.frame',
-          link: '/reference/frog-frame',
+          text: 'Reference',
           items: [
-            { text: 'Context', link: '/reference/frog-frame-context' },
             {
-              text: 'Response',
-              link: '/reference/frog-frame-response',
+              text: 'createSystem',
+              link: '/ui/createSystem',
+            },
+            {
+              text: 'Box',
+              link: '/ui/box',
+            },
+            {
+              text: 'Columns',
+              link: '/ui/columns',
+            },
+            {
+              text: 'Cover',
+              link: '/ui/cover',
+            },
+            {
+              text: 'Divider',
+              link: '/ui/divider',
+            },
+            {
+              text: 'Icon',
+              link: '/ui/icon',
+            },
+            {
+              text: 'Image',
+              link: '/ui/image',
+            },
+            {
+              text: 'Heading',
+              link: '/ui/heading',
+            },
+            {
+              text: 'HStack',
+              link: '/ui/hstack',
+            },
+            {
+              text: 'Rows',
+              link: '/ui/rows',
+            },
+            {
+              text: 'Spacer',
+              link: '/ui/spacer',
+            },
+            {
+              text: 'Text',
+              link: '/ui/text',
+            },
+            {
+              text: 'VStack',
+              link: '/ui/vstack',
             },
           ],
         },
-        {
-          text: 'Frog.transaction',
-          link: '/reference/frog-transaction',
-          items: [
-            { text: 'Context', link: '/reference/frog-transaction-context' },
-            {
-              text: 'Response',
-              link: '/reference/frog-transaction-response',
-            },
-          ],
-        },
-        { text: 'Frog.hono', link: '/reference/frog-hono' },
       ],
     },
-    {
-      text: 'Dev Reference',
-      items: [{ text: 'devtools', link: '/dev/devtools' }],
-    },
-    {
-      text: 'CLI Reference',
-      items: [
-        {
-          text: 'dev',
-          link: '/commands/dev',
-        },
-        {
-          text: 'vercel-build',
-          link: '/commands/vercel-build',
-        },
-      ],
-    },
-  ],
+  },
   title: 'Frog',
   topNav: [
+    {
+      text: 'FrogUI',
+      link: '/ui/getting-started',
+    },
     {
       text: version,
       items: [

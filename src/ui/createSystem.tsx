@@ -1,7 +1,6 @@
 import type { Assign } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
-import { Cover } from './Cover.js'
 import { HStack } from './HStack.js'
 import { Heading } from './Heading.js'
 import { Row, Rows } from './Rows.js'
@@ -32,7 +31,6 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
     Box: createComponent<typeof Box<MergedTokens>>(Box),
     Columns: createComponent<typeof Columns<MergedTokens>>(Columns),
     Column: createComponent<typeof Column<MergedTokens>>(Column),
-    Cover: createComponent<typeof Cover<MergedTokens>>(Cover),
     Heading: createComponent<typeof Heading<MergedTokens>>(Heading),
     HStack: createComponent<typeof HStack<MergedTokens>>(HStack),
     Rows: createComponent<typeof Rows<MergedTokens>>(Rows),

@@ -1,10 +1,9 @@
-import { colors, createSystem } from 'frog/ui'
+import { createSystem } from 'frog/ui'
 
 export const {
   Box,
   Columns,
   Column,
-  Cover,
   Heading,
   HStack,
   Rows,
@@ -14,7 +13,6 @@ export const {
   VStack,
   tokens,
 } = createSystem({
-  // colors: colors.light,
   fonts: {
     default: [
       {
