@@ -10,6 +10,36 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export type CreateParameters = { name: string; template: string }
 
+function templateNameToDefaultPort(name: string): number {
+  switch (name) {
+    case 'next':
+      return 3000
+    case 'bun':
+    case 'node':
+    case 'cloudflare-worker':
+    case 'default':
+    case 'vercel':
+      return 5173
+    default:
+      throw new Error('Unknown template name')
+  }
+}
+
+function templateNameToDefaultFrogPath(name: string): string {
+  switch (name) {
+    case 'next':
+    case 'vercel':
+      return '/api'
+    case 'bun':
+    case 'node':
+    case 'cloudflare-worker':
+    case 'default':
+      return '/dev'
+    default:
+      throw new Error('Unknown template name')
+  }
+}
+
 export async function create(params: CreateParameters) {
   intro('Welcome to Frog! 🐸')
 
@@ -83,7 +113,13 @@ export async function create(params: CreateParameters) {
   log.step(
     `3. ${pc.blue(pkgManagerRunCommand(pkgManager, 'dev'))} - Start dev server`,
   )
-  log.step(`4. Head to ${pc.blue('http://localhost:5173/dev')}`)
+  log.step(
+    `4. Head to ${pc.blue(
+      `http://localhost:${templateNameToDefaultPort(
+        templateName,
+      )}${templateNameToDefaultFrogPath(templateName)}`,
+    )}`,
+  )
 
   outro('Done! 🤠')
 }
