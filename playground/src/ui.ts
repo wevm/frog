@@ -1,4 +1,4 @@
-import { colors, createSystem } from 'frog/ui'
+import { createSystem } from 'frog/ui'
 
 export const {
   Box,
@@ -13,7 +13,6 @@ export const {
   VStack,
   tokens,
 } = createSystem({
-  // colors: colors.light,
   fonts: {
     default: [
       {
@@ -30,6 +29,12 @@ export const {
         name: 'Open Sans',
         source: 'google',
         weight: 700,
+      },
+    ],
+    madimi: [
+      {
+        name: 'Madimi One',
+        source: 'google',
       },
     ],
   },
