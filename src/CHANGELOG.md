@@ -1,5 +1,17 @@
 # frog
 
+## 0.7.14
+
+### Patch Changes
+
+- [#207](https://github.com/wevm/frog/pull/207) [`3d2f001`](https://github.com/wevm/frog/commit/3d2f0014413abde5e6c76191c5cb44d5ecfa6e8c) Thanks [@tmm](https://github.com/tmm)! - Fixed `<Button>` to use `post_url` internally instead of `target`.
+
+- [#187](https://github.com/wevm/frog/pull/187) [`15ece3a`](https://github.com/wevm/frog/commit/15ece3a6b35909be1a4644e2926ce9358bb9779c) Thanks [@ggomaeng](https://github.com/ggomaeng)! - Added attribution option to transaction parameters
+
+- [#206](https://github.com/wevm/frog/pull/206) [`365da14`](https://github.com/wevm/frog/commit/365da149e76bb46fe8a3b756f1d838e0364d3275) Thanks [@tmm](https://github.com/tmm)! - Added devtools support for transaction button post_url.
+
+- [#200](https://github.com/wevm/frog/pull/200) [`8b2398c`](https://github.com/wevm/frog/commit/8b2398cdb2300a9d288f35762ddf354faa8a1600) Thanks [@ggomaeng](https://github.com/ggomaeng)! - Prioritized devtools route over dynamic path if it exists.
+
 ## 0.7.13
 
 ### Patch Changes
