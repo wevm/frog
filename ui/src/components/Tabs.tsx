@@ -392,7 +392,7 @@ function TransactionReceiptContent(props: {
   })
 
   const chainId = useStore(
-    (state) => state.transactionMap[transactionId].chainId,
+    (state) => state.transactionMap[transactionId]?.chainId,
   )
   const chain = useMemo(() => {
     if (!chainId) return
