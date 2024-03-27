@@ -43,12 +43,12 @@ const alignVerticalToJustifyContent = {
   'space-between': 'space-between',
 } as const
 
-export function VStack({
+export function VStack<tokens extends Tokens>({
   alignHorizontal,
   alignVertical,
   children,
   ...rest
-}: VStackProps) {
+}: VStackProps<tokens>) {
   return (
     <Box
       alignItems={

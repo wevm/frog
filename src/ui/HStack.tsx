@@ -44,13 +44,13 @@ const alignVerticalToAlignItems = {
   bottom: 'flex-end',
 } as const
 
-export function HStack({
+export function HStack<tokens extends Tokens>({
   alignHorizontal = 'left',
   alignVertical = 'top',
   children,
   wrap = true,
   ...rest
-}: HStackProps) {
+}: HStackProps<tokens>) {
   return (
     <Box
       alignContent={wrap ? alignVerticalToAlignItems[alignVertical] : undefined}

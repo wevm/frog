@@ -143,4 +143,31 @@ export type SatoriStyleProperties = Pick<
   >
 }
 
+type Prepend<items extends Array<unknown>> =
+  items['length'] extends infer length
+    ? ((t: length, ...a: items) => void) extends (...x: infer x) => void
+      ? x
+      : never
+    : never
+
+type EnumerateInternal<items extends unknown[], n extends number> = {
+  0: items
+  1: EnumerateInternal<Prepend<items>, n>
+}[n extends items['length'] ? 0 : 1]
+
+type Enumerate<n extends number> = EnumerateInternal<
+  [],
+  n
+> extends (infer result)[]
+  ? result
+  : never
+
+type Range<from extends number, to extends number> = Exclude<
+  Enumerate<to>,
+  Enumerate<from>
+>
+
+export type Fraction<denominator extends number> = `${Range<1, denominator> &
+  number}/${denominator}`
+
 export type ValueOf<T> = T[keyof T]
