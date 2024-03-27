@@ -127,7 +127,7 @@ export type SatoriStyleProperties = Pick<
     Properties['textDecoration'],
     'underline' | 'line-through' | 'dotted' | 'dashed' | 'solid'
   >
-  textOverflow?: Extract<Properties['textTransform'], 'clip' | 'ellipsis'>
+  textOverflow?: Extract<Properties['textOverflow'], 'clip' | 'ellipsis'>
   textTransform?: Extract<
     Properties['textTransform'],
     'none' | 'lowercase' | 'uppercase' | 'capitalize'

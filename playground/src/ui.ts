@@ -5,10 +5,12 @@ export const {
   Columns,
   Column,
   Cover,
+  Heading,
   HStack,
   Rows,
   Row,
   Spacer,
+  Text,
   VStack,
   tokens,
 } = createSystem({
