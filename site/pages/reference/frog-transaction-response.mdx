@@ -144,6 +144,29 @@ app.transaction('/send-ether', (c) => {
 })
 ```
 
+### attribution (optional)
+
+- **Type:** `boolean`
+- **Default:** `false`
+
+Includes client [calldata suffix](https://warpcast.notion.site/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a)
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+
+export const app = new Frog()
+
+app.transaction('/send-ether', (c) => {
+  return c.send({ 
+    chainId: 'eip155:10',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
+    abi, 
+    attribution: true, // [!code focus]
+  }) 
+})
+```
+
 ### data (optional)
 
 - **Type:** `Hex`
@@ -279,6 +302,30 @@ app.transaction('/mint', (c) => {
 })
 ```
 
+### attribution (optional)
+
+- **Type:** `boolean`
+- **Default:** `false`
+
+Includes client [calldata suffix](https://warpcast.notion.site/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a)
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+
+export const app = new Frog()
+
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi, 
+    chainId: 'eip155:10', 
+    functionName: 'mint', 
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+    attribution: true, // [!code focus]
+  }) 
+})
+```
+
 ### value (optional)
 
 - **Type:** `Address`
@@ -373,6 +420,32 @@ app.transaction('/raw-send', (c) => {
       to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', // [!code focus] 
       value: 1n, // [!code focus] 
     }, // [!code focus] 
+  }) 
+})
+```
+
+### attribution (optional)
+
+- **Type:** `boolean`
+- **Default:** `false`
+
+Includes client [calldata suffix](https://warpcast.notion.site/Frame-Transactions-Public-9d9f9f4f527249519a41bd8d16165f73#c1c3182208ce4ae4a7ffa72129b9795a)
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+
+export const app = new Frog()
+
+app.transaction('/raw-send', (c) => {
+  return c.res({ 
+    chainId: 'eip155:10',
+    method: 'eth_sendTransaction',
+    params: { 
+      to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
+      value: 1n,
+    }, 
+    attribution: true, // [!code focus]
   }) 
 })
 ```
