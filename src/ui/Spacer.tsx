@@ -6,5 +6,5 @@ export type SpacerProps<tokens extends Tokens = DefaultTokens> = {
 }
 
 export function Spacer<tokens extends Tokens>({ size }: SpacerProps<tokens>) {
-  return <Box flex={size ? undefined : '1'} height={size} width={size} />
+  return <Box grow={size ? undefined : true} height={size} width={size} />
 }
