@@ -1,29 +1,16 @@
-import { Frog } from 'frog'
-import { colors, createSystem } from 'frog/ui'
-
-const { Box, Columns, Column, Cover, HStack, Spacer, VStack, tokens } =
-  createSystem({
-    // colors: colors.light,
-    fonts: {
-      default: [
-        {
-          name: 'Open Sans',
-          source: 'google',
-          weight: 400,
-        },
-        {
-          name: 'Open Sans',
-          source: 'google',
-          weight: 600,
-        },
-        {
-          name: 'Open Sans',
-          source: 'google',
-          weight: 700,
-        },
-      ],
-    },
-  })
+import { Button, Frog } from 'frog'
+import {
+  Box,
+  Column,
+  Columns,
+  Cover,
+  HStack,
+  Row,
+  Rows,
+  Spacer,
+  VStack,
+  tokens,
+} from './ui'
 
 export const app = new Frog({
   tokens,
@@ -55,6 +42,7 @@ export const app = new Frog({
           </Cover>
         </Cover>
       ),
+      intents: [<Button action="/columns">→</Button>],
     })
   })
   .frame('/columns', (c) => {
@@ -84,6 +72,10 @@ export const app = new Frog({
           </VStack>
         </Cover>
       ),
+      intents: [
+        <Button action="/">←</Button>,
+        <Button action="/cover">→</Button>,
+      ],
     })
   })
   .frame('/cover', (c) => {
@@ -108,6 +100,10 @@ export const app = new Frog({
           </VStack>
         </Cover>
       ),
+      intents: [
+        <Button action="/columns">←</Button>,
+        <Button action="/hstack">→</Button>,
+      ],
     })
   })
   .frame('/hstack', (c) => {
@@ -143,6 +139,43 @@ export const app = new Frog({
           </VStack>
         </Cover>
       ),
+      intents: [
+        <Button action="/cover">←</Button>,
+        <Button action="/rows">→</Button>,
+      ],
+    })
+  })
+  .frame('/rows', (c) => {
+    return c.res({
+      image: (
+        <Cover backgroundColor="background" padding="24">
+          <VStack gap="4" flexGrow="1">
+            <Box fontSize="32" fontWeight="700" width="100%">
+              {'<Rows>'}
+            </Box>
+            <Box color="text200">Row layout</Box>
+            <Spacer size="16" />
+            <Cover backgroundColor="background200" padding="16">
+              <HStack flex="1" gap="16">
+                <Rows flex="1" gap="8">
+                  <Row backgroundColor="red" width="100%" />
+                  <Row backgroundColor="red" width="100%" />
+                  <Row backgroundColor="red" width="100%" />
+                  <Row backgroundColor="red" width="100%" />
+                </Rows>
+                <Rows flex="1" gap="8">
+                  <Row backgroundColor="red" width="100%" height="1/3" />
+                  <Row backgroundColor="red" width="100%" height="2/3" />
+                </Rows>
+              </HStack>
+            </Cover>
+          </VStack>
+        </Cover>
+      ),
+      intents: [
+        <Button action="/hstack">←</Button>,
+        <Button action="/spacer">→</Button>,
+      ],
     })
   })
   .frame('/spacer', (c) => {
@@ -172,6 +205,10 @@ export const app = new Frog({
           </VStack>
         </Cover>
       ),
+      intents: [
+        <Button action="/rows">←</Button>,
+        <Button action="/vstack">→</Button>,
+      ],
     })
   })
   .frame('/vstack', (c) => {
@@ -207,5 +244,6 @@ export const app = new Frog({
           </VStack>
         </Cover>
       ),
+      intents: [<Button action="/spacer">←</Button>],
     })
   })

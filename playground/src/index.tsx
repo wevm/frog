@@ -3,13 +3,13 @@ import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
 
-import { app as designSystemApp } from './design-system.js'
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
 import { app as transactionApp } from './transaction.js'
+import { app as uiSystemApp } from './ui-system.js'
 
 export const app = new Frog({
   hub: hubs.frog(),
@@ -222,7 +222,7 @@ export const app = new Frog({
       ],
     })
   })
-  .route('/design-system', designSystemApp)
+  .route('/ui', uiSystemApp)
   .route('/fonts', fontsApp)
   .route('/middleware', middlewareApp)
   .route('/neynar', neynarApp)
