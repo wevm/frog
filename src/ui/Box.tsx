@@ -87,6 +87,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   fontSize?: TokenValue<'fontSize', keyof tokens['fontSizes']>
   height?: TokenValue<'height', keyof tokens['units'] | '100%'>
   gap?: TokenValue<'gap', keyof tokens['units']>
+  grow?: boolean
   left?: TokenValue<'left', keyof tokens['units']>
   letterSpacing?: TokenValue<
     'letterSpacing',
@@ -115,6 +116,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
 export function Box<tokens extends Tokens>({
   __context,
   children,
+  grow,
   ...rest
 }: BoxProps<tokens>) {
   const { colors, fonts, frame, units } = (__context?.tokens ??
@@ -215,6 +217,7 @@ export function Box<tokens extends Tokens>({
         color,
         display,
         flexDirection,
+        flexGrow: typeof grow === 'boolean' ? (grow ? 1 : 0) : rest.flexGrow,
         fontFamily,
         fontSize,
         height,
