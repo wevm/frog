@@ -33,7 +33,7 @@ export function ButtonRoot({
     />,
     <meta property={`fc:frame:button:${index}:action`} content="post" />,
     action && (
-      <meta property={`fc:frame:button:${index}:target`} content={action} />
+      <meta property={`fc:frame:button:${index}:post_url`} content={action} />
     ),
   ] as unknown as HtmlEscapedString
 }
