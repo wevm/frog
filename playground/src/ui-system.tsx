@@ -11,7 +11,7 @@ import {
   Text,
   VStack,
   tokens,
-} from './ui'
+} from './ui.js'
 
 export const app = new Frog({
   tokens,

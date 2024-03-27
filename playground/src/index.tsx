@@ -2,7 +2,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
-import { Box, Heading, Text, tokens } from './ui'
+import { Box, Heading, tokens } from './ui.js'
 
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
@@ -73,21 +73,8 @@ export const app = new Frog({
     })
   })
   .frame('/buttons', (c) => {
-    const { buttonValue } = c
     return c.res({
-      image: (
-        <div
-          style={{
-            backgroundColor: '#2D2D2D',
-            display: 'flex',
-            fontSize: 60,
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          {buttonValue ?? ''}
-        </div>
-      ),
+      image: <Box grow backgroundColor="red" />,
       intents: [
         <Button.Redirect location="http://github.com/honojs/vite-plugins/tree/main/packages/dev-server">
           Redirect
@@ -102,23 +89,13 @@ export const app = new Frog({
   })
   .frame('/no-intents', (c) => {
     return c.res({
-      image: (
-        <div
-          style={{ backgroundColor: 'green', width: '100%', height: '100%' }}
-        >
-          foo
-        </div>
-      ),
+      image: <Box grow backgroundColor="red" />,
       imageAspectRatio: '1:1',
     })
   })
   .frame('/falsy-intents', (c) => {
     return c.res({
-      image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
-          foo
-        </div>
-      ),
+      image: <Box grow backgroundColor="red" />,
       intents: [
         null,
         undefined,
@@ -143,9 +120,9 @@ export const app = new Frog({
     const { buttonValue } = c
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        <Box grow backgroundColor="red">
           {buttonValue ?? 'foo'}
-        </div>
+        </Box>
       ),
       intents: [
         <Button action="/" value="hello again">
@@ -164,9 +141,9 @@ export const app = new Frog({
     const { buttonValue } = c
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        <Box grow backgroundColor="red">
           {buttonValue ?? 'foo'}
-        </div>
+        </Box>
       ),
       intents: [
         <Button action="/button-action" value="back">
@@ -178,9 +155,9 @@ export const app = new Frog({
   .frame('/image-only', (c) => {
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        <Box grow backgroundColor="red">
           foo
-        </div>
+        </Box>
       ),
     })
   })
