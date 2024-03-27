@@ -221,6 +221,26 @@ export const app = new Frog({
       ],
     })
   })
+  .frame('/:dynamic', (c) => {
+    const dynamic = c.req.param('dynamic')
+    return c.res({
+      image: (
+        <div
+          style={{
+            display: 'flex',
+            backgroundColor: 'black',
+            color: 'white',
+            fontSize: 60,
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          dynamic route {dynamic} should still work with devtools
+        </div>
+      ),
+      intents: [<Button>rerender</Button>],
+    })
+  })
   .route('/fonts', fontsApp)
   .route('/middleware', middlewareApp)
   .route('/neynar', neynarApp)
