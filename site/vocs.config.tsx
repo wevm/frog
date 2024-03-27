@@ -402,8 +402,25 @@ export default defineConfig({
       backLink: true,
       items: [
         {
+          text: 'Introduction',
+          link: '/ui',
+        },
+        {
           text: 'Getting Started',
           link: '/ui/getting-started',
+        },
+        {
+          text: 'Concepts',
+          items: [
+            {
+              text: 'UI System & Tokens',
+              link: '/ui/concepts/ui-system',
+            },
+            {
+              text: 'Primitive Components',
+              link: '/ui/concepts/primitive-components',
+            },
+          ],
         },
         {
           text: 'Reference',
@@ -469,7 +486,7 @@ export default defineConfig({
   topNav: [
     {
       text: 'FrogUI',
-      link: '/ui/getting-started',
+      link: '/ui',
     },
     {
       text: version,
