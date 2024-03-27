@@ -225,7 +225,7 @@ function ButtonPost(props: {
     <button
       className={buttonClass}
       type="button"
-      onClick={() => handlePost({ index, target })}
+      onClick={() => handlePost({ index, postUrl: target })}
     >
       <span className={innerButtonClass}>{title}</span>
     </button>
@@ -269,10 +269,11 @@ function ButtonPostRedirect(props: {
 function ButtonTransaction(props: {
   domain: string
   index: number
-  target?: string | undefined
+  postUrl: string | undefined
+  target: string
   title: string
 }) {
-  const { domain, index, target, title } = props
+  const { domain, index, postUrl, target, title } = props
 
   const [open, setOpen] = useState(false)
 
@@ -292,7 +293,7 @@ function ButtonTransaction(props: {
 
       <TransactionDialog
         open={open}
-        data={{ index, target }}
+        data={{ index, postUrl, target }}
         domain={domain}
         close={() => setOpen(false)}
       />
@@ -300,13 +301,11 @@ function ButtonTransaction(props: {
   )
 }
 
-type LeavingAppPromptProps = {
+function LeavingAppPrompt(props: {
   open: boolean
   url: string | undefined
   close: () => void
-}
-
-function LeavingAppPrompt(props: LeavingAppPromptProps) {
+}) {
   const { close, open, url } = props
 
   const ref = useRef<HTMLDivElement>(null)
@@ -365,7 +364,11 @@ function LeavingAppPrompt(props: LeavingAppPromptProps) {
 }
 
 type TransactionDialogProps = {
-  data: { index: number; target?: string }
+  data: {
+    index: number
+    postUrl: string | undefined
+    target: string
+  }
   domain: string
   open: boolean
   close: () => void
@@ -410,7 +413,7 @@ function TransactionDialog(props: TransactionDialogProps) {
 
 function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
   const { data, close } = props
-  const { index, target } = data
+  const { index, postUrl, target } = data
 
   const [qrUri, setQrUri] = useState<string | undefined>()
   const { copied, copy } = useCopyToClipboard({ value: qrUri })
@@ -455,7 +458,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     },
   })
   const { disconnectAsync } = useDisconnect()
-  const { switchChainAsync } = useSwitchChain()
+  const { switchChainAsync, isPending: switchChainIsPending } = useSwitchChain()
 
   const {
     data: transactionData,
@@ -480,8 +483,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
   const {
     sendTransaction,
     error: sendTransactionError,
-    isPending: isSendTransactionPending,
-    reset: resetSendTransaction,
+    isPending: sendTransactionIsPending,
+    reset: sendTransactionReset,
   } = useSendTransaction({
     mutation: {
       onMutate() {
@@ -511,12 +514,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           },
         }))
 
-        // TOOD: Post url for button
-        await handlePost({
-          index,
-          target: undefined,
-          transactionId: data,
-        })
+        await handlePost({ index, postUrl, transactionId: data })
 
         try {
           await waitForTransactionReceipt(config, {
@@ -560,7 +558,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     if (method !== 'eth_sendTransaction') return
 
     try {
-      resetSendTransaction()
+      sendTransactionReset()
       if (chainId !== transactionChainId)
         await switchChainAsync({ chainId: transactionChainId })
       sendTransaction({
@@ -576,7 +574,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     chainId,
     transactionData,
     transactionChainId,
-    resetSendTransaction,
+    sendTransactionReset,
     sendTransaction,
     switchChainAsync,
   ])
@@ -720,13 +718,13 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           type="button"
           className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1 text-center relative flex items-center justify-center"
           disabled={
-            !transactionData ||
-            isSendTransactionPending ||
-            isTransactionDataLoading
+            isTransactionDataLoading ||
+            switchChainIsPending ||
+            sendTransactionIsPending
           }
           onClick={handleSend}
         >
-          {isSendTransactionPending ? (
+          {switchChainIsPending || sendTransactionIsPending ? (
             <>
               <span className="text-gray-700">Check Wallet</span>
 

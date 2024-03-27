@@ -20,12 +20,40 @@ export const app = new Frog({ verify: 'silent' })
             </Button.Link>,
           ]
         : [
-            <Button.Transaction target="/raw-send">Raw</Button.Transaction>,
+            <Button.Transaction action="/end" target="/raw-send">
+              Raw
+            </Button.Transaction>,
             <Button.Transaction target="/send">
               Send Transaction
             </Button.Transaction>,
             <Button.Transaction target="/mint">Mint</Button.Transaction>,
           ],
+    })
+  })
+  .frame('/end', (c) => {
+    const transactionId = c.transactionId
+    if (!transactionId)
+      return c.res({
+        image: (
+          <div tw="flex flex-col items-center justify-center w-full h-full bg-black text-white font-bold text-5xl">
+            end: no transactionId
+          </div>
+        ),
+      })
+
+    return c.res({
+      image: (
+        <div tw="flex flex-col items-center justify-center w-full h-full bg-black text-white font-bold text-5xl">
+          end: {transactionId.slice(0, 6)}...{transactionId.slice(-6)}
+        </div>
+      ),
+      intents: [
+        <Button.Link
+          href={`https://base-sepolia.blockscout.com/tx/${transactionId}`}
+        >
+          View on Block Explorer
+        </Button.Link>,
+      ],
     })
   })
   // Raw Transaction

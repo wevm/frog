@@ -23,16 +23,22 @@ test('default', () => {
         "buttons": [
           {
             "index": 1,
+            "postUrl": undefined,
+            "target": undefined,
             "title": "Apples",
             "type": "post",
           },
           {
             "index": 2,
+            "postUrl": undefined,
+            "target": undefined,
             "title": "Oranges",
             "type": "post",
           },
           {
             "index": 3,
+            "postUrl": undefined,
+            "target": undefined,
             "title": "Bananas",
             "type": "post",
           },
