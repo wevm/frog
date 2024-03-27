@@ -6,12 +6,13 @@ export type HeadingProps<tokens extends Tokens = DefaultTokens> =
 
 export function Heading<tokens extends Tokens>({
   children,
-  size = '32' as keyof tokens['fontSizes'],
+  size = '32' as any,
+  tracking = '-1' as any,
   weight = '700',
   ...rest
 }: HeadingProps<tokens>) {
   return (
-    <Text size={size} weight={weight} {...rest}>
+    <Text tracking={tracking} size={size} weight={weight} {...rest}>
       {children}
     </Text>
   )
