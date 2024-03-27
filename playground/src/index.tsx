@@ -221,6 +221,12 @@ export const app = new Frog({
       ],
     })
   })
+  .route('/fonts', fontsApp)
+  .route('/middleware', middlewareApp)
+  .route('/neynar', neynarApp)
+  .route('/routing', routingApp)
+  .route('/transaction', transactionApp)
+  .route('/todos', todoApp)
   .frame('/:dynamic', (c) => {
     const dynamic = c.req.param('dynamic')
     return c.res({
@@ -241,11 +247,5 @@ export const app = new Frog({
       intents: [<Button>rerender</Button>],
     })
   })
-  .route('/fonts', fontsApp)
-  .route('/middleware', middlewareApp)
-  .route('/neynar', neynarApp)
-  .route('/routing', routingApp)
-  .route('/transaction', transactionApp)
-  .route('/todos', todoApp)
 
 devtools(app, { serveStatic })
