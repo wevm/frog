@@ -160,7 +160,8 @@ export function routes(
         }
 
         try {
-          initialData = (await getInitialData(frameUrl)) as Bootstrap['data']
+          if (frameUrl)
+            initialData = (await getInitialData(frameUrl)) as Bootstrap['data']
         } catch (error) {
           if (error instanceof HTTPException) throw error
         }
