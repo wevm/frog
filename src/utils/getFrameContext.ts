@@ -53,8 +53,7 @@ export function getFrameContext<
 
   // If the user has clicked a reset button, we want to set the URL back to the
   // initial URL.
-  const url =
-    (reset ? `${origin}${initialPath}` : undefined) || parsePath(context.url)
+  const url = parsePath(reset ? `${origin}${initialPath}` : context.url)
 
   let previousState = (() => {
     if (context.status === 'initial') return parameters.initialState
