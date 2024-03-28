@@ -1,5 +1,13 @@
 # frog
 
+## 0.7.15
+
+### Patch Changes
+
+- [#209](https://github.com/wevm/frog/pull/209) [`8ff91cb`](https://github.com/wevm/frog/commit/8ff91cb97cd2d501879fa32ec2341c5360c80cb9) Thanks [@dalechyn](https://github.com/dalechyn)! - Set `format` property to be `png` as warpcast does not support `svg+xml` content-type, which was the previously selected by default.
+
+- [#210](https://github.com/wevm/frog/pull/210) [`ffa7108`](https://github.com/wevm/frog/commit/ffa7108f210544dfad855381ff5bb9ad83c855fd) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed broken `<Button.Reset>` behaviour.
+
 ## 0.7.14
 
 ### Patch Changes
