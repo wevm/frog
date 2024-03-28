@@ -1,0 +1,154 @@
+import * as React from 'react'
+
+# HStack
+
+Renders children horizontally, with consistent spacing (if specified)
+between them.
+
+## Usage
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box, HStack } = createSystem()
+
+function Example() {
+  return (
+    <HStack gap="8" grow> // [!code focus]
+      <Box backgroundColor="red" height="100%" /> // [!code focus]
+      <Box backgroundColor="red" height="100%" /> // [!code focus]
+      <Box backgroundColor="red" height="100%" /> // [!code focus]
+    </HStack> // [!code focus]
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', flexDirection: 'row', gap: 8, height: '100px' }}>
+    <div style={{ backgroundColor: 'red', flex: 1, height: '100%' }} />
+    <div style={{ backgroundColor: 'red', flex: 1, height: '100%' }} />
+    <div style={{ backgroundColor: 'red', flex: 1, height: '100%' }} />
+  </div>
+</div>
+
+:::
+
+## `HStack` Properties
+
+### `alignHorizontal`
+
+Horizontally aligns the contents.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { HStack } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<HStack 
+  alignHorizontal="center" // [!code focus]
+//                 ^| 
+  grow
+>
+// ---cut-after---
+    </HStack> 
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ justifyContent: 'center', display: 'flex', flexDirection: 'row', gap: 8, height: '100px' }}>
+    <div style={{ backgroundColor: 'red', flex: '0.25', height: '100%' }} />
+    <div style={{ backgroundColor: 'red', flex: '0.25', height: '100%' }} />
+  </div>
+</div>
+
+:::
+
+### `alignVertical`
+
+Vertically aligns the contents.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Box, HStack } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<HStack 
+  alignVertical="center" // [!code focus]
+//               ^|
+  grow
+>
+// ---cut-after---
+    </HStack> 
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'row', gap: 8, height: '100px' }}>
+    <div style={{ backgroundColor: 'red', flex: '1', height: '30px' }} />
+    <div style={{ backgroundColor: 'red', flex: '1', height: '30px' }} />
+    <div style={{ backgroundColor: 'red', flex: '1', height: '30px' }} />
+  </div>
+</div>
+
+:::
+
+### `gap`
+
+The space between each column.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Box, HStack } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<HStack 
+  gap="8" // [!code focus]
+//     ^|
+  grow
+>
+
+
+
+// ---cut-after---
+    </HStack> // [!code focus]
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ backgroundColor: 'red', display: 'flex', flexDirection: 'row', gap: 8, height: '100px' }}>
+    <div style={{ backgroundColor: 'var(--vocs-color_codeBlockBackground)', border: '1px solid red', flex: 1, height: '100%' }} />
+    <div style={{ backgroundColor: 'var(--vocs-color_codeBlockBackground)', border: '1px solid red', flex: 2, height: '100%' }} />
+    <div style={{ backgroundColor: 'var(--vocs-color_codeBlockBackground)', border: '1px solid red', flex: 1, height: '100%' }} />
+  </div>
+</div>
+
+:::
+
+### `Box` Properties
+
+`HStack` inherits the [properties of `Box`](/ui/box).

@@ -10,13 +10,18 @@ export function Columns<tokens extends Tokens>({
   children,
   ...rest
 }: ColumnsProps<tokens>) {
-  return <HStack {...rest}>{children}</HStack>
+  return (
+    <HStack wrap={false} {...rest}>
+      {children}
+    </HStack>
+  )
 }
 
 export type ColumnProps<tokens extends Tokens = DefaultTokens> = Omit<
   BoxProps<tokens>,
   'width'
 > & {
+  /** Sets the width span of the column (in fractions). */
   width?:
     | '1/1'
     | Fraction<2>
@@ -35,7 +40,11 @@ export function Column<tokens extends Tokens>({
   const [numerator, denominator] = width.split('/')
 
   return (
-    <Box flex={`${Number(numerator) / Number(denominator)}`} {...rest}>
+    <Box
+      flex={`${Number(numerator) / Number(denominator)}`}
+      height="100%"
+      {...rest}
+    >
       {children}
     </Box>
   )

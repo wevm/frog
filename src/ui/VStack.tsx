@@ -26,7 +26,9 @@ export type VStackProps<tokens extends Tokens = DefaultTokens> = Pick<
   | 'top'
   | 'width'
 > & {
+  /** Horizontally aligns the contents. */
   alignHorizontal?: 'left' | 'center' | 'right'
+  /** Vertically aligns the contents. */
   alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
 }
 

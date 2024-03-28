@@ -1,0 +1,257 @@
+import * as React from 'react'
+
+# Heading
+
+Renders a heading text node.
+
+## Usage
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+function Example() {
+  return <Heading>Hello world</Heading>
+}
+```
+
+<div data-title="Preview">
+  <div style={{ fontWeight: '600', fontSize: 32 }}>Hello world</div>
+</div>
+
+:::
+
+## `Heading` Properties
+
+### `align`
+
+Sets the horizontal alignment of the text.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading align="right">Hello world</Heading>
+//                       ^|
+}
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ fontWeight: '600', fontSize: 32, textAlign: 'right' }}>Hello world</div>
+</div>
+
+:::
+
+### `color`
+
+Sets the color of the text.
+
+Values are mapped to the [`colors` property](#TODO) on the UI System Tokens.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading color="red">Hello world</Heading>
+//                        ^|
+}
+
+
+
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ color: 'red', fontWeight: '600', fontSize: 32 }}>Hello world</div>
+</div>
+
+:::
+
+### `decoration`
+
+Sets the text decoration.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading decoration="underline">Hello world</Heading>
+//                            ^|
+}
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ fontWeight: '600', fontSize: 32, textDecoration: 'underline' }}>Hello world</div>
+</div>
+
+:::
+
+### `font`
+
+Sets the font family of the text.
+
+Values are mapped to the [`fonts` property](#TODO) on the UI System Tokens.
+
+```tsx twoslash [Code]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading font="merriweather">Hello world</Heading>
+}
+```
+
+### `size`
+
+Sets the size of the font.
+
+Values are mapped to the [`fontSizes` property](#TODO) on the UI System Tokens.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading size="32">Hello world</Heading>
+//                      ^|
+}
+
+
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ fontWeight: '600', fontSize: 32 }}>Hello world</div>
+</div>
+
+:::
+
+### `tracking`
+
+Sets the horizontal spacing behavior between text characters.
+
+Values are mapped to the [`units` property](#TODO) on the UI System Tokens.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading tracking="-2">Hello world</Heading>
+//                          ^|
+}
+
+
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ fontWeight: '600', fontSize: 32, letterSpacing: '-2px' }}>Hello world</div>
+</div>
+
+:::
+
+### `weight`
+
+Sets the weight (or boldness) of the font.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading weight="400">Hello world</Heading>
+//                        ^|
+}
+
+
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ fontWeight: '400', fontSize: 32, letterSpacing: '-2px' }}>Hello world</div>
+</div>
+
+:::
+
+### `wrap`
+
+Defines how the text should be wrapped.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Heading } = createSystem()
+
+// ---cut---
+function Example() {
+  return <Heading wrap="balance">Hello world, this is me.</Heading>
+//                      ^|
+}
+```
+
+<div data-title="Preview">
+  <div style={{ width: '200px' }}>
+    <div style={{ fontWeight: '400', fontSize: 32, textWrap: 'balance' }}>Hello world, this is me.</div>
+  </div>
+</div>
+
+:::

@@ -58,14 +58,14 @@ export const app = new Frog({
             <Box backgroundColor="background200" grow padding="16">
               <VStack gap="16" grow>
                 <Columns gap="8" grow>
-                  <Column backgroundColor="red" height="100%" />
-                  <Column backgroundColor="red" height="100%" />
-                  <Column backgroundColor="red" height="100%" />
-                  <Column backgroundColor="red" height="100%" />
+                  <Column backgroundColor="red" />
+                  <Column backgroundColor="red" />
+                  <Column backgroundColor="red" />
+                  <Column backgroundColor="red" />
                 </Columns>
                 <Columns gap="8" grow>
-                  <Column backgroundColor="red" height="100%" width="1/3" />
-                  <Column backgroundColor="red" height="100%" width="2/3" />
+                  <Column backgroundColor="red" width="1/3" />
+                  <Column backgroundColor="red" width="2/3" />
                 </Columns>
               </VStack>
             </Box>
@@ -202,14 +202,14 @@ export const app = new Frog({
             <Box backgroundColor="background200" grow padding="16">
               <HStack gap="16" grow>
                 <Rows gap="8" grow>
-                  <Row backgroundColor="red" width="100%" />
-                  <Row backgroundColor="red" width="100%" />
-                  <Row backgroundColor="red" width="100%" />
-                  <Row backgroundColor="red" width="100%" />
+                  <Row backgroundColor="red" />
+                  <Row backgroundColor="red" />
+                  <Row backgroundColor="red" />
+                  <Row backgroundColor="red" />
                 </Rows>
                 <Rows gap="8" grow>
-                  <Row backgroundColor="red" width="100%" height="1/3" />
-                  <Row backgroundColor="red" width="100%" height="2/3" />
+                  <Row backgroundColor="red" height="1/3" />
+                  <Row backgroundColor="red" height="2/3" />
                 </Rows>
               </HStack>
             </Box>
