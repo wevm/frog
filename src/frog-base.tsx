@@ -318,6 +318,7 @@ export class FrogBase<
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
         return new ImageResponse(image_, {
           ...imageOptions,
+          format: imageOptions?.format ?? 'png',
           fonts: await parseFonts(fonts),
           headers: imageOptions?.headers ?? headers,
         })
