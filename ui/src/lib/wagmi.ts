@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { http, createConfig, createStorage } from 'wagmi'
-import { mainnet, base, baseSepolia, optimism, zora } from 'wagmi/chains'
+import { base, baseSepolia, mainnet, optimism, zora } from 'wagmi/chains'
 import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
 
 export const config = createConfig({
