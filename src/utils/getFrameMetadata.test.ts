@@ -41,7 +41,7 @@ test('default', async () => {
       },
       {
         "content": "https://frame.frog.fm/api/features?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
-        "property": "fc:frame:button:1:target",
+        "property": "fc:frame:button:1:post_url",
       },
       {
         "content": "Docs",
