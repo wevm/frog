@@ -1,8 +1,8 @@
 import type { Assign } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
-import { Heading } from './Heading.js'
 import { HStack } from './HStack.js'
+import { Heading } from './Heading.js'
 import { Icon } from './Icon.js'
 import { Image } from './Image.js'
 import { Row, Rows } from './Rows.js'
@@ -23,25 +23,113 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
 
   function createComponent<
     const component extends (...args: any[]) => JSX.Element,
-  >(Component: component) {
+  >(Component: component): component {
     return ((props: Parameters<component>[0]) => (
       <Component __context={{ tokens: mergedTokens }} {...(props as any)} />
     )) as component
   }
 
   return {
+    /**
+     * The fundamental primitive component that includes style
+     * properties (such as: `backgroundColor`, `border`,
+     * `padding`, and more), and corresponding tokens as values.
+     *
+     * By default, it renders a `div` element.
+     *
+     * @example
+     * ```tsx
+     * <Box backgroundColor="red" padding="16" />
+     *   Hello, world!
+     * </Box>
+     * ```
+     */
     Box: createComponent<typeof Box<MergedTokens>>(Box),
+    /**
+     * Renders children horizontally, with consistent spacing (if specified)
+     * between them. Columns can also have a specific `width` value.
+     *
+     * @example
+     * ```tsx
+     * <Columns gap="8" grow>
+     *   <Column backgroundColor="red" height="100%" />
+     *   <Column backgroundColor="red" height="100%" />
+     *   <Column backgroundColor="red" height="100%" />
+     *   <Column backgroundColor="red" height="100%" />
+     * </Columns>
+     * ```
+     *
+     * @example
+     * ```tsx
+     * <Columns gap="8" grow>
+     *   <Column backgroundColor="red" height="100%" width="1/3" />
+     *   <Column backgroundColor="red" height="100%" width="2/3" />
+     * </Columns>
+     * ```
+     */
     Columns: createComponent<typeof Columns<MergedTokens>>(Columns),
+    /**
+     * The child component of `Columns`.
+     */
     Column: createComponent<typeof Column<MergedTokens>>(Column),
+    /**
+     * Renders a heading element.
+     *
+     * @example
+     * <Heading>Hello world</Heading>
+     */
     Heading: createComponent<typeof Heading<MergedTokens>>(Heading),
+    /**
+     * Arranges child nodes horizontally, wrapping to multiple lines if needed,
+     * with equal spacing between items.
+     *
+     * @example
+     * <HStack gap="8">
+     *   <Box backgroundColor="red" height="100%" />
+     *   <Box backgroundColor="red" height="100%" />
+     *   <Box backgroundColor="red" height="100%" />
+     *   <Box backgroundColor="red" height="100%" />
+     * </HStack>
+     */
     HStack: createComponent<typeof HStack<MergedTokens>>(HStack),
     Icon: createComponent<typeof Icon<MergedTokens>>(Icon),
     Image: createComponent<typeof Image<MergedTokens>>(Image),
     Rows: createComponent<typeof Rows<MergedTokens>>(Rows),
+    /**
+     * The child component of `Rows`.
+     */
     Row: createComponent<typeof Row<MergedTokens>>(Row),
+    /**
+     * Adds spacing between nodes. If no size is specified,
+     * it will span between the nodes.
+     *
+     * @example
+     * <Spacer size="16" />
+     */
     Spacer: createComponent<typeof Spacer<MergedTokens>>(Spacer),
+    /**
+     * Renders a text element.
+     *
+     * @example
+     * <Text>Hello world</Text>
+     */
     Text: createComponent<typeof Text<MergedTokens>>(Text),
+    /**
+     * Arranges children vertically with equal spacing between them.
+     *
+     * @example
+     * <VStack gap="8" grow>
+     *  <Box backgroundColor="red" width="100%" />
+     *  <Box backgroundColor="red" width="100%" />
+     *  <Box backgroundColor="red" width="100%" />
+     *  <Box backgroundColor="red" width="100%" />
+     * </VStack>
+     */
     VStack: createComponent<typeof VStack<MergedTokens>>(VStack),
+    /**
+     * The tokens object that includes all the UI tokens to be used
+     * on the primitive components.
+     */
     tokens: mergedTokens,
   }
 }
