@@ -64,12 +64,17 @@ export const app = new Frog({
 }).frame('/', (c) => {
   return c.res({
     image: (
-      <Box grow alignHorizontal="center" alignVertical="center"> // [!code focus]
+      <Box // [!code focus]
+        grow // [!code focus]
+        alignHorizontal="center" // [!code focus]
+        backgroundColor="background" // [!code focus]
+        padding="32" // [!code focus]
+      > // [!code focus]
         <VStack gap="4"> // [!code focus]
           <Heading>FrogUI 🐸</Heading> // [!code focus]
           <Text color="text200" size="20"> // [!code focus]
             Build consistent frame experiences // [!code focus]
-          </Text>  // [!code focus]
+          </Text> // [!code focus]
         </VStack> // [!code focus]
       </Box> // [!code focus]
     )
@@ -86,5 +91,14 @@ export const { Box, Heading, Text, VStack, tokens } = createSystem()
 :::
 
 [Read more on Primitive Components](#TODO) to learn about the available components and their properties.
+
+### Done!
+
+<div data-title="Preview">
+  <div style={{ justifyContent: 'center', backgroundColor: 'var(--vocs-color_backgroundDark)', display: 'flex', flexDirection: 'column', gap: 8, padding: 32, width: 600, height: 310 }}>
+    <div style={{ color: 'var(--vocs-color_heading)', fontSize: 32, fontWeight: '600', letterSpacing: '-0.25px' }}>Frog UI 🐸</div>
+    <div style={{ color: 'var(--vocs-color_text3)', fontSize: 18 }}>Build consistent frame experiences</div>
+  </div>
+</div>
 
 ::::
