@@ -1,5 +1,13 @@
 # frog
 
+## 0.7.16
+
+### Patch Changes
+
+- [#212](https://github.com/wevm/frog/pull/212) [`b5ccf51`](https://github.com/wevm/frog/commit/b5ccf518fa86b739d05ab0178e4f867bcec7d68d) Thanks [@dalechyn](https://github.com/dalechyn)! - Reverted changes introduced in 3d2f0014413abde5e6c76191c5cb44d5ecfa6e8c.
+
+- [#208](https://github.com/wevm/frog/pull/208) [`22bf324`](https://github.com/wevm/frog/commit/22bf3246703d6d3f1d34b3345915ba972b620e01) Thanks [@dalechyn](https://github.com/dalechyn)! - Added Ethereum Mainnet chain id. See https://warpcast.com/horsefacts.eth/0x7c69e9dd.
+
 ## 0.7.15
 
 ### Patch Changes
