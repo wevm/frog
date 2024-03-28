@@ -217,15 +217,15 @@ function ButtonMint(props: {
 
 function ButtonPost(props: {
   index: number
-  postUrl?: string | undefined
+  target?: string | undefined
   title: string
 }) {
-  const { index, postUrl, title } = props
+  const { index, target, title } = props
   return (
     <button
       className={buttonClass}
       type="button"
-      onClick={() => handlePost({ index, postUrl })}
+      onClick={() => handlePost({ index, postUrl: target })}
     >
       <span className={innerButtonClass}>{title}</span>
     </button>
