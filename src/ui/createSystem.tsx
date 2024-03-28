@@ -9,6 +9,26 @@ import { Text } from './Text.js'
 import { VStack } from './VStack.js'
 import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 
+/**
+ * Creates a UI System with optional theming tokens.
+ *
+ * @example
+ * ```tsx
+ * import { createSystem } from 'frog/ui'
+ *
+ * const { Box, Columns, Text } = createSystem()
+ * ```
+ *
+ * @example
+ * ```tsx
+ * import { colors, createSystem } from 'frog/ui'
+ *
+ * const { Box, HStack, Text } = createSystem({
+ *   colors: colors.light,
+ *   fonts: [...]
+ * })
+ * ```
+ */
 export function createSystem<tokens extends Tokens = DefaultTokens>(
   tokens?: tokens | undefined,
 ) {

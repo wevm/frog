@@ -26,8 +26,11 @@ export type HStackProps<tokens extends Tokens = DefaultTokens> = Pick<
   | 'top'
   | 'width'
 > & {
+  /** Horizontally aligns the contents. */
   alignHorizontal?: 'left' | 'center' | 'right' | 'space-between'
+  /** Vertically aligns the contents. */
   alignVertical?: 'top' | 'center' | 'bottom'
+  /** Wraps the contents if they overflow. */
   wrap?: boolean
 }
 

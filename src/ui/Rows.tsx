@@ -21,6 +21,7 @@ export type RowProps<tokens extends Tokens = DefaultTokens> = Omit<
   BoxProps<tokens>,
   'height'
 > & {
+  /** Sets the height span of the column (in fractions). */
   height?:
     | '1/1'
     | Fraction<2>

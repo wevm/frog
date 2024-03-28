@@ -16,7 +16,19 @@ By default, if no tokens are passed to `createSystem`, the system will use the d
 ```tsx twoslash [src/ui.ts]
 import { createSystem } from 'frog/ui'
 
-export const { Box, Heading, Text, VStack, tokens } = createSystem()
+export const {
+  Box,
+  Columns,
+  Column,
+  Heading,
+  HStack,
+  Rows,
+  Row,
+  Spacer,
+  Text,
+  VStack,
+  tokens,
+} = createSystem()
 ```
 
 [Read more on Tokens](#TODO) to learn how to customize the system.
@@ -27,7 +39,9 @@ You can also control the color scheme of the system by passing in a `colors` pro
 ```tsx twoslash [src/ui.ts]
 import { colors, createSystem } from 'frog/ui'
 
-export const { Box, Heading, Text, VStack, tokens } = createSystem({
+export const {
+  // ...
+} = createSystem({
   colors: colors.light, // [!code focus]
 })
 ```

@@ -402,12 +402,17 @@ export default defineConfig({
       backLink: true,
       items: [
         {
-          text: 'Introduction',
-          link: '/ui',
-        },
-        {
-          text: 'Getting Started',
-          link: '/ui/getting-started',
+          text: 'FrogUI',
+          items: [
+            {
+              text: 'Introduction',
+              link: '/ui',
+            },
+            {
+              text: 'Getting Started',
+              link: '/ui/getting-started',
+            },
+          ],
         },
         {
           text: 'Concepts',
@@ -436,10 +441,6 @@ export default defineConfig({
             {
               text: 'Columns',
               link: '/ui/columns',
-            },
-            {
-              text: 'Cover',
-              link: '/ui/cover',
             },
             {
               text: 'Divider',

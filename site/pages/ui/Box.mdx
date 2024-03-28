@@ -2,16 +2,39 @@ import * as React from 'react'
 
 # Box
 
+The fundamental primitive component that includes styling utility 
+properties, and corresponding tokens as values.
+     
+By default, it renders a `div` element.
+
 ## Usage
 
 :::code-group
 
-```tsx [Code]
-<Box>Hello world</Box>
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box // [!code focus]
+      backgroundColor="red" // [!code focus]
+      //                ^|
+      borderRadius="8" // [!code focus]
+      height="48" // [!code focus]
+      width="48" // [!code focus]
+    /> // [!code focus]
+  )
+}
+
+
 ```
 
 <div data-title="Preview">
-  <div>Hello world</div>
+  <div style={{ backgroundColor: 'red', borderRadius: 8, width: 48, height: 48 }} />
 </div>
 
 :::
