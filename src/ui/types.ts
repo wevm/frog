@@ -31,8 +31,9 @@ export type SatoriStyleProperties = Pick<
   | 'borderTopWidth'
   | 'bottom'
   | 'boxShadow'
-  | 'color'
   | 'clipPath'
+  | 'color'
+  | 'filter'
   | 'flex'
   | 'flexFlow'
   | 'flexGrow'
@@ -40,7 +41,6 @@ export type SatoriStyleProperties = Pick<
   | 'fontFamily'
   | 'fontSize'
   | 'fontStyle'
-  | 'filter'
   | 'gap'
   | 'height'
   | 'justifyContent'
@@ -49,26 +49,26 @@ export type SatoriStyleProperties = Pick<
   | 'lineClamp'
   | 'lineHeight'
   | 'margin'
-  | 'marginTop'
   | 'marginBottom'
   | 'marginLeft'
   | 'marginRight'
+  | 'marginTop'
+  | 'maskImage'
+  | 'maskPosition'
+  | 'maskRepeat'
+  | 'maskSize'
+  | 'opacity'
   | 'padding'
-  | 'paddingTop'
   | 'paddingBottom'
   | 'paddingLeft'
   | 'paddingRight'
-  | 'maskImage'
-  | 'maskPosition'
-  | 'maskSize'
-  | 'maskRepeat'
-  | 'opacity'
+  | 'paddingTop'
   | 'right'
   | 'tabSize'
   | 'textShadow'
+  | 'top'
   | 'transform'
   | 'transformOrigin'
-  | 'top'
   | 'width'
 > & {
   alignItems?: Extract<
@@ -118,7 +118,7 @@ export type SatoriStyleProperties = Pick<
   >
   objectFit?: Extract<Properties['objectFit'], 'contain' | 'cover' | 'none'>
   overflow?: Extract<Properties['overflow'], 'hidden' | 'visible'>
-  position?: Extract<Properties['display'], 'absolute' | 'relative'>
+  position?: Extract<Properties['position'], 'absolute' | 'relative'>
   textAlign?: Extract<
     Properties['textAlign'],
     'start' | 'end' | 'center' | 'left' | 'right' | 'justify'

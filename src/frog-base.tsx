@@ -373,6 +373,8 @@ export class FrogBase<
       } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
 
+      // return c.html(image)
+
       if (context.status === 'redirect' && context.buttonIndex) {
         const buttonValue = buttonValues[context.buttonIndex - 1]
         const location = buttonValue?.replace(/^_r:/, '')

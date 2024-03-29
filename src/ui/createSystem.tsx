@@ -1,8 +1,10 @@
 import type { Assign } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
-import { HStack } from './HStack.js'
 import { Heading } from './Heading.js'
+import { HStack } from './HStack.js'
+import { Icon } from './Icon.js'
+import { Image } from './Image.js'
 import { Row, Rows } from './Rows.js'
 import { Spacer } from './Spacer.js'
 import { Text } from './Text.js'
@@ -33,6 +35,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
     Column: createComponent<typeof Column<MergedTokens>>(Column),
     Heading: createComponent<typeof Heading<MergedTokens>>(Heading),
     HStack: createComponent<typeof HStack<MergedTokens>>(HStack),
+    Icon: createComponent<typeof Icon<MergedTokens>>(Icon),
+    Image: createComponent<typeof Image<MergedTokens>>(Image),
     Rows: createComponent<typeof Rows<MergedTokens>>(Rows),
     Row: createComponent<typeof Row<MergedTokens>>(Row),
     Spacer: createComponent<typeof Spacer<MergedTokens>>(Spacer),
