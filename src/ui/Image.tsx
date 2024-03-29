@@ -1,4 +1,4 @@
-import { type BoxProps, Box } from './Box.js'
+import { Box, type BoxProps } from './Box.js'
 import type { DefaultTokens, Tokens } from './tokens.js'
 
 export type ImageProps<tokens extends Tokens = DefaultTokens> = {
