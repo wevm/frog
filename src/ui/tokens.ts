@@ -1,4 +1,5 @@
 import type { Font } from '../types/frame.js'
+import type { icons } from './icons.js'
 
 export type Tokens = {
   colors?: Record<string, string> | undefined
@@ -13,6 +14,7 @@ export type Tokens = {
         height: number
         width: number
       }
+  icons?: keyof typeof icons | undefined
   units?: Record<string, number | '100%'> | undefined
 }
 

@@ -4,8 +4,8 @@
 - [x] `Columns`
 - [x] `Cover` (@jxom)
 - [ ] `Divider` (@tmm)
-- [ ] `Icon` (@tmm): prebundle icons, typesafe name property
-- [ ] `Image` (@tmm)
+- [x] `Icon` (@tmm): prebundle icons, typesafe name property
+- [x] `Image` (@tmm)
 - [x] `Heading` (@jxom)
 - [x] `HStack` (@jxom)
 - [x] `Rows`

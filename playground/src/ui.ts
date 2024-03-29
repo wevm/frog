@@ -6,6 +6,8 @@ export const {
   Column,
   Heading,
   HStack,
+  Icon,
+  Image,
   Rows,
   Row,
   Spacer,

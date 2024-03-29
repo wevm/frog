@@ -52,11 +52,12 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   | 'paddingBottom'
   | 'paddingLeft'
   | 'paddingRight'
+  | 'paddingRight'
   | 'right'
   | 'top'
   | 'width'
 > & {
-  __context?: { tokens?: Tokens | undefined }
+  __context?: { tokens?: Tokens | undefined } | undefined
   alignHorizontal?: 'left' | 'center' | 'right' | 'space-between'
   alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
   background?: TokenValue<'backgroundColor', keyof tokens['colors']>
@@ -85,7 +86,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   >
   borderTopWidth?: TokenValue<'borderTopWidth', keyof tokens['units']>
   bottom?: TokenValue<'bottom', keyof tokens['units']>
-  children?: Child
+  children?: Child | undefined
   color?: TokenValue<'color', keyof tokens['colors']>
   fontFamily?: TokenValue<'fontFamily', keyof tokens['fonts']>
   fontSize?: TokenValue<'fontSize', keyof tokens['fontSizes']>
@@ -132,6 +133,16 @@ const alignVerticalToJustifyContent = {
 } as const
 
 export function Box<tokens extends Tokens>({
+  __context,
+  children,
+  grow,
+  ...rest
+}: BoxProps<tokens>) {
+  const boxProps = getBoxProps({ __context, children, grow, ...rest })
+  return <div {...boxProps}>{children}</div>
+}
+
+export function getBoxProps<tokens extends Tokens>({
   __context,
   children,
   grow,
@@ -237,59 +248,55 @@ export function Box<tokens extends Tokens>({
     return grow ? '1' : undefined
   })()
 
-  return (
-    <div
-      __context={__context}
-      style={{
-        ...rest,
-        alignItems,
-        background,
-        backgroundColor,
-        borderColor,
-        borderBottomColor,
-        borderBottomLeftRadius,
-        borderBottomRightRadius,
-        borderBottomWidth,
-        borderLeftColor,
-        borderLeftWidth,
-        borderRadius,
-        borderRightColor,
-        borderRightWidth,
-        borderTopLeftRadius,
-        borderTopRightRadius,
-        borderTopColor,
-        borderTopWidth,
-        bottom,
-        color,
-        display,
-        flexDirection,
-        flexGrow,
-        fontFamily,
-        fontSize,
-        height,
-        justifyContent,
-        gap,
-        left,
-        letterSpacing,
-        lineHeight,
-        margin,
-        marginTop,
-        marginBottom,
-        marginLeft,
-        marginRight,
-        padding,
-        paddingTop,
-        paddingBottom,
-        paddingLeft,
-        paddingRight,
-        right,
-        top,
-        width,
-      }}
-    >
-      {children}
-    </div>
-  )
+  return {
+    __context,
+    style: {
+      ...rest,
+      alignItems,
+      background,
+      backgroundColor,
+      borderColor,
+      borderBottomColor,
+      borderBottomLeftRadius,
+      borderBottomRightRadius,
+      borderBottomWidth,
+      borderLeftColor,
+      borderLeftWidth,
+      borderRadius,
+      borderRightColor,
+      borderRightWidth,
+      borderTopLeftRadius,
+      borderTopRightRadius,
+      borderTopColor,
+      borderTopWidth,
+      bottom,
+      color,
+      display,
+      flexDirection,
+      flexGrow,
+      fontFamily,
+      fontSize,
+      height,
+      justifyContent,
+      gap,
+      left,
+      letterSpacing,
+      lineHeight,
+      margin,
+      marginTop,
+      marginBottom,
+      marginLeft,
+      marginRight,
+      padding,
+      paddingTop,
+      paddingBottom,
+      paddingLeft,
+      paddingRight,
+      right,
+      top,
+      width,
+    },
+  }
 }
 
 function resolveToken<tokens extends Record<string, unknown>>(
@@ -305,7 +312,7 @@ function resolveToken<tokens extends Record<string, unknown>>(
   return { type: 'token', value: tokens?.[value] } as any
 }
 
-function resolveColorToken(
+export function resolveColorToken(
   colors: Tokens['colors'] | undefined,
   value: TokenValue<keyof SatoriStyleProperties, any> | undefined,
   fallback?: unknown,
@@ -314,7 +321,7 @@ function resolveColorToken(
   return color.value
 }
 
-function resolveUnitToken(
+export function resolveUnitToken(
   units: Tokens['units'] | undefined,
   value: TokenValue<keyof SatoriStyleProperties, any> | undefined,
   baseUnit: number,

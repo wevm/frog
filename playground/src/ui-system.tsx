@@ -1,10 +1,14 @@
 import { Button, Frog } from 'frog'
+import { serveStatic } from 'frog/serve-static'
+
 import {
   Box,
   Column,
   Columns,
   HStack,
   Heading,
+  Icon,
+  Image,
   Row,
   Rows,
   Spacer,
@@ -16,6 +20,7 @@ import {
 export const app = new Frog({
   tokens,
 })
+  .use('/*', serveStatic({ root: './public' }))
   .frame('/', (c) => {
     return c.res({
       image: (
@@ -131,6 +136,56 @@ export const app = new Frog({
       intents: [
         <Button action="/heading">←</Button>,
         <Button action="/rows">→</Button>,
+      ],
+    })
+  })
+  .frame('/icon', (c) => {
+    return c.res({
+      image: (
+        <Box backgroundColor="background" grow padding="24">
+          <VStack gap="4" grow>
+            <Heading>{'<Icon>'}</Heading>
+            <Spacer size="16" />
+            <Box backgroundColor="background200" grow padding="16" height="48">
+              <HStack>
+                <Icon color="red800" name="heroicons:plus" />
+                <Icon color="amber800" name="lucide:key" />
+                <Icon color="blue800" name="radix-icons:avatar" />
+                <Icon color="green800" name="heroicons:bolt" />
+                <Icon name="logos:apple" />
+                <Icon size={200} name="logos:apple" />
+              </HStack>
+            </Box>
+          </VStack>
+        </Box>
+      ),
+      intents: [
+        <Button action="/columns">←</Button>,
+        <Button action="/hstack">→</Button>,
+      ],
+    })
+  })
+  .frame('/image_', (c) => {
+    return c.res({
+      image: (
+        <Box backgroundColor="background" grow padding="24">
+          <VStack gap="4" grow>
+            <Heading>{'<Image>'}</Heading>
+            <Spacer size="16" />
+            <Box backgroundColor="background200" grow padding="16" height="48">
+              <Image
+                objectFit="contain"
+                src="/frog.png"
+                height="100%"
+                width="100%"
+              />
+            </Box>
+          </VStack>
+        </Box>
+      ),
+      intents: [
+        <Button action="/columns">←</Button>,
+        <Button action="/hstack">→</Button>,
       ],
     })
   })
