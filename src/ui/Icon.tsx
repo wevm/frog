@@ -25,7 +25,7 @@ export type IconProps<
    * @default 'lucide'
    */
   collection?: collection | Tokens['icons'] | undefined
-  /** Icon name in the current icon collection */
+  /** Icon name in the current icon collection. */
   name: keyof (typeof icons)[collection extends keyof typeof icons
     ? collection
     : never]
@@ -33,9 +33,10 @@ export type IconProps<
   size?: BoxProps<tokens>['width']
 }
 
-export function Icon<tokens extends Tokens, collection extends Tokens['icons']>(
-  props: IconProps<tokens, collection>,
-) {
+export function Icon<
+  tokens extends Tokens,
+  collection extends Tokens['icons'] = DefaultTokens['icons'],
+>(props: IconProps<tokens, collection>) {
   const {
     __context,
     collection = __context?.tokens?.icons ?? 'lucide',

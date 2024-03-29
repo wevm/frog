@@ -17,7 +17,7 @@ const collections = (await glob('**/@iconify/json/json/*.json'))
   })
   .filter((collection) => collectionSet.has(collection.name))
 
-const iconMap = {}
+const iconMap: Record<string, Record<string, string>> = {}
 for (const collection of collectionSet) {
   iconMap[collection] = {}
 }
@@ -39,11 +39,9 @@ for (const collection of collections) {
   count += 1
 }
 
+const iconsExport = `export const icons = ${JSON.stringify(iconMap, null, 2)}`
 const dist = path.resolve(import.meta.dirname, '../src/ui')
-await Bun.write(
-  `${dist}/icons.ts`,
-  `export const icons = ${JSON.stringify(iconMap, null, 2)} as const\n`,
-)
+await Bun.write(`${dist}/icons.ts`, `${iconsExport}\n`)
 
 console.log(
   `Done. Copied ${count} ${count === 1 ? 'collection' : 'collections'}.`,

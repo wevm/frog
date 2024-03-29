@@ -1,0 +1,182 @@
+import * as React from 'react'
+
+# Icon
+
+Renders an icon from a collection.
+
+## Usage
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return <Icon name="bell" />
+}
+```
+
+<div data-title="Preview">
+  <div />
+</div>
+:::
+
+## `Icon` Properties
+
+### `color`
+
+Sets the color of the icon.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  color="green800" // [!code focus]
+//       ^|
+  name="bell"
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div />
+</div>
+:::
+
+:::tip
+This prop is only supported when [`mode`](#mode) is `'mask'` or `'auto'` (and the icon with [`name`](#name) is inferred as `'mask'`).
+:::
+
+### `mode`
+
+Sets rendering mode of the icon. Defaults to `'auto'`.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  mode="auto" // [!code focus]
+//      ^|
+  name="bell"
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div />
+</div>
+:::
+
+### `collection`
+
+Icon collection to use for resolving icons. Defaults to `'lucide'`.
+
+The following collections are available:
+- [Lucide](https://lucide.dev)
+- [Heroicons](https://heroicons.com)
+- [Radix Icons](https://www.radix-ui.com/icons)
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  collection="lucide" // [!code focus]
+//            ^|
+  name="bell"
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div />
+</div>
+:::
+
+### `name`
+
+Icon name in the current icon collection.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  name="bell" // [!code focus]
+//      ^|
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div />
+</div>
+:::
+
+
+### `size`
+
+Sets the size of the icon.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  name="bell"
+  size="48" // [!code focus]
+//      ^|
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div />
+</div>
+:::
+
