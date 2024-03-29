@@ -1,6 +1,7 @@
 import type { Assign } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
+import { Divider } from './Divider.js'
 import { HStack } from './HStack.js'
 import { Heading } from './Heading.js'
 import { Icon, type IconProps } from './Icon.js'
@@ -99,6 +100,22 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      */
     Column: createComponent<typeof Column<MergedTokens>>(Column),
     /**
+     * Renders a visual element that can be used to separate other content.
+     *
+     * When contained in a stack, the divider extends across the minor axis of the stack, or horizontally when not in a stack.
+     *
+     * @example
+     *
+     * <HStack gap="8">
+     *   <Box backgroundColor="red" height="100%" />
+     *   <Divider />
+     *   <Box backgroundColor="red" height="100%" />
+     * </HStack>
+     *
+     * @see https://frog.fm/ui/divider
+     */
+    Divider: createComponent<typeof Divider<MergedTokens>>(Divider),
+    /**
      * Renders a heading element.
      *
      * @example
@@ -130,7 +147,10 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/icon
      */
-    Icon: <tokens extends MergedTokens, collection extends Tokens['icons']>(
+    Icon: <
+      tokens extends MergedTokens,
+      collection extends Tokens['icons'] = DefaultTokens['icons'],
+    >(
       props: IconProps<tokens, collection>,
     ) => <Icon __context={{ tokens: mergedTokens }} {...props} />,
     /**

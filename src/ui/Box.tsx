@@ -140,7 +140,12 @@ export function Box<tokens extends Tokens>({
   grow,
   ...rest
 }: BoxProps<tokens>) {
-  const boxProps = getBoxProps({ __context, children, grow, ...rest })
+  const { __context: _, ...boxProps } = getBoxProps({
+    __context,
+    children,
+    grow,
+    ...rest,
+  })
   return <div {...boxProps}>{children}</div>
 }
 
@@ -250,56 +255,61 @@ export function getBoxProps<tokens extends Tokens>({
     return grow ? '1' : undefined
   })()
 
-  return {
-    __context,
-    style: {
-      ...rest,
-      alignItems,
-      background,
-      backgroundColor,
-      borderColor,
-      borderBottomColor,
-      borderBottomLeftRadius,
-      borderBottomRightRadius,
-      borderBottomWidth,
-      borderLeftColor,
-      borderLeftWidth,
-      borderRadius,
-      borderRightColor,
-      borderRightWidth,
-      borderTopLeftRadius,
-      borderTopRightRadius,
-      borderTopColor,
-      borderTopWidth,
-      borderWidth,
-      bottom,
-      color,
-      display,
-      flexDirection,
-      flexGrow,
-      fontFamily,
-      fontSize,
-      height,
-      justifyContent,
-      gap,
-      left,
-      letterSpacing,
-      lineHeight,
-      margin,
-      marginTop,
-      marginBottom,
-      marginLeft,
-      marginRight,
-      padding,
-      paddingTop,
-      paddingBottom,
-      paddingLeft,
-      paddingRight,
-      right,
-      top,
-      width,
-    },
+  const style = {
+    ...rest,
+    alignItems,
+    background,
+    backgroundColor,
+    borderColor,
+    borderBottomColor,
+    borderBottomLeftRadius,
+    borderBottomRightRadius,
+    borderBottomWidth,
+    borderLeftColor,
+    borderLeftWidth,
+    borderRadius,
+    borderRightColor,
+    borderRightWidth,
+    borderTopLeftRadius,
+    borderTopRightRadius,
+    borderTopColor,
+    borderTopWidth,
+    borderWidth,
+    bottom,
+    color,
+    display,
+    flexDirection,
+    flexGrow,
+    fontFamily,
+    fontSize,
+    height,
+    justifyContent,
+    gap,
+    left,
+    letterSpacing,
+    lineHeight,
+    margin,
+    marginTop,
+    marginBottom,
+    marginLeft,
+    marginRight,
+    padding,
+    paddingTop,
+    paddingBottom,
+    paddingLeft,
+    paddingRight,
+    right,
+    top,
+    width,
+  } as const
+
+  // remove `undefined` values from style prop
+  for (const key of Object.keys(style)) {
+    if (style[key as keyof typeof style]) continue
+    delete style[key as keyof typeof style]
   }
+
+  return { __context, style }
 }
 
 function resolveToken<tokens extends Record<string, unknown>>(

@@ -374,8 +374,6 @@ export class FrogBase<
       } = response.data
       const buttonValues = getButtonValues(parseIntents(intents))
 
-      // return c.html(image)
-
       if (context.status === 'redirect' && context.buttonIndex) {
         const buttonValue = buttonValues[context.buttonIndex - 1]
         const location = buttonValue?.replace(/^_r:/, '')
@@ -498,6 +496,19 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
+      const content = (() => {
+        const renderAsHTML =
+          c.req.header('Accept') === 'text/html' ||
+          c.req.query('accept') === 'text/html'
+        if (!renderAsHTML) return
+        return (
+          <>
+            <script src="https://cdn.tailwindcss.com" />
+            {image}
+          </>
+        )
+      })()
+
       return c.render(
         <>
           {html`<!DOCTYPE html>`}
@@ -544,7 +555,7 @@ export class FrogBase<
                 />
               )}
             </head>
-            <body />
+            <body>{content}</body>
           </html>
         </>,
       )
