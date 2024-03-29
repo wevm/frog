@@ -29,6 +29,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   | 'borderTopLeftRadius'
   | 'borderTopRightRadius'
   | 'borderTopWidth'
+  | 'borderWidth'
   | 'bottom'
   | 'color'
   | 'fontFamily'
@@ -85,6 +86,7 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
     keyof tokens['units']
   >
   borderTopWidth?: TokenValue<'borderTopWidth', keyof tokens['units']>
+  borderWidth?: TokenValue<'borderWidth', keyof tokens['units']>
   bottom?: TokenValue<'bottom', keyof tokens['units']>
   children?: Child | undefined
   color?: TokenValue<'color', keyof tokens['colors']>
@@ -153,7 +155,6 @@ export function getBoxProps<tokens extends Tokens>({
 
   const vheight = frame?.height ?? 1200
   const vwidth = frame?.width ?? 630
-  const vmin = Math.min(vwidth, vheight)
   const vmax = Math.max(vwidth, vheight)
 
   const display = rest.display ?? 'flex'
@@ -165,36 +166,41 @@ export function getBoxProps<tokens extends Tokens>({
   const borderBottomLeftRadius = resolveUnitToken(
     units,
     rest.borderBottomLeftRadius,
-    vmin,
+    vmax,
   )
   const borderBottomRightRadius = resolveUnitToken(
     units,
     rest.borderBottomRightRadius,
-    vmin,
+    vmax,
   )
   const borderBottomWidth = resolveUnitToken(
     units,
     rest.borderBottomWidth,
-    vmin,
+    vheight,
   )
   const borderColor = resolveColorToken(colors, rest.borderColor)
   const borderLeftColor = resolveColorToken(colors, rest.borderLeftColor)
-  const borderLeftWidth = resolveUnitToken(units, rest.borderLeftWidth, vmin)
-  const borderRadius = resolveUnitToken(units, rest.borderRadius, vmin)
+  const borderLeftWidth = resolveUnitToken(units, rest.borderLeftWidth, vwidth)
+  const borderRadius = resolveUnitToken(units, rest.borderRadius, vmax)
   const borderRightColor = resolveColorToken(colors, rest.borderRightColor)
-  const borderRightWidth = resolveUnitToken(units, rest.borderRightWidth, vmin)
+  const borderRightWidth = resolveUnitToken(
+    units,
+    rest.borderRightWidth,
+    vwidth,
+  )
   const borderTopColor = resolveColorToken(colors, rest.borderTopColor)
   const borderTopLeftRadius = resolveUnitToken(
     units,
     rest.borderTopLeftRadius,
-    vmin,
+    vmax,
   )
   const borderTopRightRadius = resolveUnitToken(
     units,
     rest.borderTopRightRadius,
-    vmin,
+    vmax,
   )
-  const borderTopWidth = resolveUnitToken(units, rest.borderTopWidth, vmin)
+  const borderTopWidth = resolveUnitToken(units, rest.borderTopWidth, vheight)
+  const borderWidth = resolveUnitToken(units, rest.borderWidth, vwidth)
   const bottom = resolveUnitToken(units, rest.bottom, vheight)
   const color = resolveColorToken(colors, rest.color, colors?.text)
   const fontSize = resolveUnitToken(units, rest.fontSize, vmax, units?.[16])
@@ -202,17 +208,17 @@ export function getBoxProps<tokens extends Tokens>({
   const gap = resolveUnitToken(units, rest.gap, vheight)
   const left = resolveUnitToken(units, rest.left, vwidth)
   const letterSpacing = resolveUnitToken(units, rest.letterSpacing, vwidth)
-  const lineHeight = resolveUnitToken(units, rest.lineHeight, vmin)
+  const lineHeight = resolveUnitToken(units, rest.lineHeight, vheight)
   const margin = resolveUnitToken(units, rest.margin, vmax)
-  const marginTop = resolveUnitToken(units, rest.marginTop, vmin)
-  const marginBottom = resolveUnitToken(units, rest.marginBottom, vmin)
-  const marginLeft = resolveUnitToken(units, rest.marginLeft, vmin)
-  const marginRight = resolveUnitToken(units, rest.marginRight, vmin)
+  const marginTop = resolveUnitToken(units, rest.marginTop, vmax)
+  const marginBottom = resolveUnitToken(units, rest.marginBottom, vmax)
+  const marginLeft = resolveUnitToken(units, rest.marginLeft, vmax)
+  const marginRight = resolveUnitToken(units, rest.marginRight, vmax)
   const padding = resolveUnitToken(units, rest.padding, vmax)
-  const paddingTop = resolveUnitToken(units, rest.paddingTop, vmin)
-  const paddingBottom = resolveUnitToken(units, rest.paddingBottom, vmin)
-  const paddingLeft = resolveUnitToken(units, rest.paddingLeft, vmin)
-  const paddingRight = resolveUnitToken(units, rest.paddingRight, vmin)
+  const paddingTop = resolveUnitToken(units, rest.paddingTop, vmax)
+  const paddingBottom = resolveUnitToken(units, rest.paddingBottom, vmax)
+  const paddingLeft = resolveUnitToken(units, rest.paddingLeft, vmax)
+  const paddingRight = resolveUnitToken(units, rest.paddingRight, vmax)
   const right = resolveUnitToken(units, rest.right, vwidth)
   const top = resolveUnitToken(units, rest.top, vheight)
   const width = resolveUnitToken(units, rest.width, vwidth)
@@ -269,6 +275,7 @@ export function getBoxProps<tokens extends Tokens>({
       borderTopRightRadius,
       borderTopColor,
       borderTopWidth,
+      borderWidth,
       bottom,
       color,
       display,
