@@ -29,6 +29,7 @@ export type SatoriStyleProperties = Pick<
   | 'borderTopLeftRadius'
   | 'borderTopRightRadius'
   | 'borderTopWidth'
+  | 'borderWidth'
   | 'bottom'
   | 'boxShadow'
   | 'clipPath'
