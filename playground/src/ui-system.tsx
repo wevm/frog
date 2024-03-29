@@ -148,12 +148,24 @@ export const app = new Frog({
             <Spacer size="16" />
             <Box backgroundColor="background200" grow padding="16" height="48">
               <HStack>
-                <Icon color="red800" name="heroicons:plus" />
-                <Icon color="amber800" name="lucide:key" />
-                <Icon color="blue800" name="radix-icons:avatar" />
-                <Icon color="green800" name="heroicons:bolt" />
-                <Icon name="logos:apple" />
-                <Icon size="72" name="logos:apple" />
+                <Icon
+                  color="green800"
+                  collection="lucide"
+                  name="zap"
+                  size="64"
+                />
+                <Icon
+                  color="green800"
+                  collection="heroicons"
+                  name="bolt"
+                  size="64"
+                />
+                <Icon
+                  color="green800"
+                  collection="radix-icons"
+                  name="lightning-bolt"
+                  size="64"
+                />
               </HStack>
             </Box>
           </VStack>
@@ -168,17 +180,19 @@ export const app = new Frog({
   .frame('/image_', (c) => {
     return c.res({
       image: (
-        <Box backgroundColor="background" grow padding="24">
+        <Box
+          backgroundColor="background"
+          grow
+          paddingRight="24"
+          paddingTop="24"
+          paddingLeft="24"
+          paddingBottom="0"
+        >
           <VStack gap="4" grow>
             <Heading>{'<Image>'}</Heading>
             <Spacer size="16" />
             <Box backgroundColor="background200" grow padding="16" height="48">
-              <Image
-                objectFit="contain"
-                src="/frog.png"
-                height="100%"
-                width="100%"
-              />
+              <Image borderRadius="96" src="/frog.png" width="100%" />
             </Box>
           </VStack>
         </Box>

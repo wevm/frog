@@ -1,81 +1,72 @@
-import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
-import { encodeSvgForCss } from '@iconify/utils/lib/svg/encode-svg-for-css'
-
 import { Box, type BoxProps, resolveColorToken } from './Box.js'
 import { icons } from './icons.js'
 import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 
-export type IconProps<tokens extends Tokens = DefaultTokens> = {
+export type IconProps<
+  tokens extends Tokens = DefaultTokens,
+  collection extends Tokens['icons'] = DefaultTokens['icons'],
+> = {
   __context?: { tokens?: Tokens | undefined } | undefined
+  /**
+   * Sets the color of the icon.
+   *
+   * Note: This prop is only supported when {@link mode} is `'mask'` or `'auto'` (and the icon with {@link name} is inferred as `'mask'`).
+   */
   color?: BoxProps<tokens>['backgroundColor']
   /**
+   * Sets rendering mode of the icon.
+   *
    * @default auto
    */
-  mode?: 'auto' | 'bg' | 'mask'
+  mode?: 'auto' | 'bg' | 'mask' | undefined
   /**
-   * Icon names
+   * Icon collection to use for resolving icons.
+   *
+   * @default 'lucide'
    */
-  name: tokens['icons'] extends string
-    ? keyof IconCollectionMap[tokens['icons']]['icons'] extends infer name extends
-        string
-      ? name
-      : never
-    : AllIconNames
+  collection?: collection | Tokens['icons'] | undefined
+  /** Icon name in the current icon collection */
+  name: keyof (typeof icons)[collection extends keyof typeof icons
+    ? collection
+    : never]
+  /** Sets the size of the icon. */
   size?: BoxProps<tokens>['width']
 }
 
-type AllIconNames = {
-  [k in keyof typeof icons]: keyof IconCollectionMap[k]['icons'] extends infer name extends
-    string
-    ? `${k}:${name}`
-    : never
-}[keyof typeof icons]
-type IconCollectionMap = {
-  [k in keyof typeof icons]: (typeof icons)[k]
-}
-
-export function Icon<tokens extends Tokens>(props: IconProps<tokens>) {
-  const { __context, mode = 'auto', size = '24' } = props
-
-  let collection: string | undefined = __context?.tokens?.icons
-  let name: string = props.name
-  if (props.name.includes(':')) {
-    const parts = props.name.split(':')
-    collection = parts[0]
-    name = parts[1]
-  }
-
-  const data = icons[collection as keyof typeof icons]
-  if (!data) throw new TypeError(`Invalid set: ${collection}`)
-
-  const item = getIconData(
-    data as unknown as Parameters<typeof getIconData>[0],
+export function Icon<tokens extends Tokens, collection extends Tokens['icons']>(
+  props: IconProps<tokens, collection>,
+) {
+  const {
+    __context,
+    collection = __context?.tokens?.icons ?? 'lucide',
+    mode = 'auto',
     name,
-  )
-  if (!item) throw new TypeError(`Invalid icon: ${name}`)
+    size = '24',
+  } = props
 
-  const svg = iconToSVG(item)
-  let text = iconToHTML(svg.body, svg.attributes)
+  const iconMap = icons[collection]
+  let text: string = iconMap[name as keyof typeof iconMap]
+  if (!text) throw new TypeError(`Invalid set: ${collection}`)
 
   const resolvedMode = (() => {
     if (mode === 'auto') return text.includes('currentColor') ? 'mask' : 'bg'
     return mode
   })()
 
-  // ideally we would use `mask-image` (inspo: https://antfu.me/posts/icons-in-pure-css), but satori doesn't support `currentColor` on `background`
+  // ideally we would use `mask-image`, but satori doesn't support `currentColor` on `background`
+  // so need to inject color into svg content directly
+  // inspo: https://antfu.me/posts/icons-in-pure-css
   if (resolvedMode === 'mask') {
     const { colors } = (__context?.tokens ?? defaultTokens) as Tokens
     const color = resolveColorToken(colors, props.color ?? 'gray700')
     text = text.replace(/currentColor/, color)
   }
 
-  const url = `url("data:image/svg+xml;utf8,${encodeSvgForCss(text)}")`
-
   return (
     <Box
       __context={__context}
       backgroundColor={{ custom: 'transparent' }}
-      backgroundImage={url}
+      backgroundImage={`url("data:image/svg+xml;utf8,${text}")`}
       backgroundSize="100% 100%"
       height={size as keyof Tokens['units']}
       width={size as keyof Tokens['units']}

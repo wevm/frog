@@ -3,7 +3,7 @@ import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
 import { HStack } from './HStack.js'
 import { Heading } from './Heading.js'
-import { Icon } from './Icon.js'
+import { Icon, type IconProps } from './Icon.js'
 import { Image } from './Image.js'
 import { Row, Rows } from './Rows.js'
 import { Spacer } from './Spacer.js'
@@ -63,6 +63,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *   Hello, world!
      * </Box>
      * ```
+     *
+     * @see https://frog.fm/ui/box
      */
     Box: createComponent<typeof Box<MergedTokens>>(Box),
     /**
@@ -86,10 +88,14 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *   <Column backgroundColor="red" height="100%" width="2/3" />
      * </Columns>
      * ```
+     *
+     * @see https://frog.fm/ui/columns
      */
     Columns: createComponent<typeof Columns<MergedTokens>>(Columns),
     /**
      * The child component of `Columns`.
+     *
+     * @see https://frog.fm/ui/columns
      */
     Column: createComponent<typeof Column<MergedTokens>>(Column),
     /**
@@ -97,6 +103,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @example
      * <Heading>Hello world</Heading>
+     *
+     * @see https://frog.fm/ui/heading
      */
     Heading: createComponent<typeof Heading<MergedTokens>>(Heading),
     /**
@@ -110,10 +118,23 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *   <Box backgroundColor="red" height="100%" />
      *   <Box backgroundColor="red" height="100%" />
      * </HStack>
+     *
+     * @see https://frog.fm/ui/hstack
      */
     HStack: createComponent<typeof HStack<MergedTokens>>(HStack),
     /**
      * Renders a icon element.
+     *
+     * @example
+     * <Icon color="green800" name="bolt" />
+     *
+     * @see https://frog.fm/ui/icon
+     */
+    Icon: <tokens extends MergedTokens, collection extends Tokens['icons']>(
+      props: IconProps<tokens, collection>,
+    ) => <Icon __context={{ tokens: mergedTokens }} {...props} />,
+    /**
+     * Renders a image element.
      *
      * @example
      * <Image
@@ -122,13 +143,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *   height="100%"
      *   width="100%"
      * />
-     */
-    Icon: createComponent<typeof Icon<MergedTokens>>(Icon),
-    /**
-     * Renders a image element.
      *
-     * @example
-     * <Heading>Hello world</Heading>
+     * @see https://frog.fm/ui/image
      */
     Image: createComponent<typeof Image<MergedTokens>>(Image),
     /**
@@ -148,10 +164,14 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *   <Row backgroundColor="red" width="100%" height="1/3" />
      *   <Row backgroundColor="red" width="100%" height="2/3" />
      * </Rows>
+     *
+     * @see https://frog.fm/ui/rows
      */
     Rows: createComponent<typeof Rows<MergedTokens>>(Rows),
     /**
      * The child component of `Rows`.
+     *
+     * @see https://frog.fm/ui/rows
      */
     Row: createComponent<typeof Row<MergedTokens>>(Row),
     /**
@@ -160,6 +180,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @example
      * <Spacer size="16" />
+     *
+     * @see https://frog.fm/ui/spacer
      */
     Spacer: createComponent<typeof Spacer<MergedTokens>>(Spacer),
     /**
@@ -167,6 +189,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @example
      * <Text>Hello world</Text>
+     *
+     * @see https://frog.fm/ui/text
      */
     Text: createComponent<typeof Text<MergedTokens>>(Text),
     /**
@@ -179,6 +203,8 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *  <Box backgroundColor="red" width="100%" />
      *  <Box backgroundColor="red" width="100%" />
      * </VStack>
+     *
+     * @see https://frog.fm/ui/vstack
      */
     VStack: createComponent<typeof VStack<MergedTokens>>(VStack),
     /**

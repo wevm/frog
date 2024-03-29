@@ -280,6 +280,7 @@ export const defaultTokens = {
     height: 1200,
     width: 630,
   },
+  icons: 'lucide',
   units,
 } as const satisfies Tokens
 export type DefaultTokens = typeof defaultTokens

@@ -1,0 +1,186 @@
+import * as React from 'react'
+
+# Image
+
+Renders an image.
+
+## Usage
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Image } = createSystem()
+
+function Example() {
+  return <Image src="/frog.png" />
+}
+```
+
+<div data-title="Preview">
+  <img src="/frog.png" />
+</div>
+:::
+
+## `Image` Properties
+
+### `borderRadius`
+
+Sets the border radius of the image.
+
+Also, works with `border{Bottom|Top}{Bottom|Left|Right|Top}Radius`.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Image } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Image
+  borderRadius="48" // [!code focus]
+//              ^|
+  src="/frog.png"
+/>
+// ---cut-after---
+  )
+}
+
+
+
+```
+
+<div data-title="Preview">
+  <img src="/frog.png" style={{ borderRadius: '48px' }} />
+</div>
+:::
+
+### `height`
+
+Sets the height of the image.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Image } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Image
+  height="48" // [!code focus]
+//        ^|
+  src="/frog.png"
+/>
+// ---cut-after---
+  )
+}
+
+
+
+```
+
+<div data-title="Preview">
+  <img src="/frog.png" style={{ height: '48px' }} />
+</div>
+:::
+
+### `objectFit`
+
+Sets the object fit of the image.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Image } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Image
+  height="96"
+  objectFit="cover" // [!code focus]
+//           ^|
+  src="/frog.png"
+  width="48"
+/>
+// ---cut-after---
+  )
+}
+
+
+
+```
+
+<div data-title="Preview">
+  <img src="/frog.png" style={{ height: '96px', objectFit: 'cover', width: '48px' }} />
+</div>
+:::
+
+### `src`
+
+The URL of the image to display.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Image } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Image
+  src="/frog.png" // [!code focus]
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <img src="/frog.png" />
+</div>
+:::
+
+### `width`
+
+Sets the width of the image.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Image } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Image
+  width="48" // [!code focus]
+//       ^|
+  src="/frog.png"
+/>
+// ---cut-after---
+  )
+}
+
+
+
+```
+
+<div data-title="Preview">
+  <img src="/frog.png" style={{ width: '48px' }} />
+</div>
+:::
