@@ -495,18 +495,47 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      const content = (() => {
-        const renderAsHTML =
-          c.req.header('Accept') === 'text/html' ||
-          c.req.query('accept') === 'text/html'
-        if (!renderAsHTML) return
-        return (
+      const renderAsHTML =
+        c.req.header('Accept') === 'text/html' ||
+        c.req.query('accept') === 'text/html'
+      if (renderAsHTML) {
+        const height = imageOptions?.height ?? 630
+        const width = imageOptions?.width ?? 1200
+        // Convert `tw` to `class`
+        const __html = image.toString().replace(/tw=/, 'class=')
+        // TODO: Support fonts, background-image with `url()` (mangled by Hono rendering currently)
+        return c.html(
           <>
             <script src="https://cdn.tailwindcss.com" />
-            {image}
-          </>
+            <script>
+              {html`
+                tailwind.config = {
+                  plugins: [{
+                    handler({ addBase }) {
+                      addBase({
+                        'html': {
+                          'line-height': 1.2,
+                        },
+                      })
+                    },
+                  }],
+                }
+              `}
+            </script>
+            <style
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{
+                __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Material+Icons');body{display:flex;height:100%;margin:0;tab-size:8;font-family:Inter,sans-serif;overflow:hidden}body>div,body>div *{box-sizing:border-box;display:flex}body{background:#1A1A19;}`,
+              }}
+            />
+            <div
+              style={{ height, width }}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html }}
+            />
+          </>,
         )
-      })()
+      }
 
       return c.render(
         <>
@@ -554,7 +583,7 @@ export class FrogBase<
                 />
               )}
             </head>
-            <body>{content}</body>
+            <body />
           </html>
         </>,
       )

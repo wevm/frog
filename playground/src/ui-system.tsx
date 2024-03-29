@@ -143,7 +143,33 @@ export const app = new Frog({
     return c.res({
       image: (
         <Box backgroundColor="background" grow padding="24">
-          <Icon color="green800" collection="lucide" name="bell" size="64" />
+          <VStack gap="4" grow>
+            <Heading>{'<Icon>'}</Heading>
+            <Spacer size="16" />
+            <Box backgroundColor="background200" grow padding="16" height="48">
+              <HStack>
+                <Icon color="green800" name="zap" size="64" />
+                <Icon
+                  color="green800"
+                  collection="lucide"
+                  name="zap"
+                  size="64"
+                />
+                <Icon
+                  color="green800"
+                  collection="heroicons"
+                  name="bolt"
+                  size="64"
+                />
+                <Icon
+                  color="green800"
+                  collection="radix-icons"
+                  name="lightning-bolt"
+                  size="64"
+                />
+              </HStack>
+            </Box>
+          </VStack>
         </Box>
       ),
       intents: [
