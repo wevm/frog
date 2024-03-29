@@ -1,4 +1,4 @@
-import { type BoxProps, getBoxProps } from './Box.js'
+import { type BoxProps, Box } from './Box.js'
 import type { DefaultTokens, Tokens } from './tokens.js'
 
 export type ImageProps<tokens extends Tokens = DefaultTokens> = {
@@ -23,7 +23,29 @@ export type ImageProps<tokens extends Tokens = DefaultTokens> = {
 }
 
 export function Image<tokens extends Tokens>(props: ImageProps<tokens>) {
-  const { src, ...rest } = props
-  const boxProps = getBoxProps({ ...rest, overflow: 'hidden' })
-  return <img {...boxProps} src={src} />
+  const {
+    borderRadius,
+    borderBottomLeftRadius,
+    borderBottomRightRadius,
+    borderTopLeftRadius,
+    borderTopRightRadius,
+    height,
+    objectFit,
+    src,
+    width,
+  } = props
+  return (
+    <Box
+      borderRadius={borderRadius}
+      borderBottomLeftRadius={borderBottomLeftRadius}
+      borderBottomRightRadius={borderBottomRightRadius}
+      borderTopLeftRadius={borderTopLeftRadius}
+      borderTopRightRadius={borderTopRightRadius}
+      height={height}
+      objectFit={objectFit}
+      // @ts-ignore - private
+      src={src}
+      width={width}
+    />
+  )
 }

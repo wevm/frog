@@ -60,15 +60,16 @@ export function Icon<
   if (resolvedMode === 'mask') {
     const { colors } = (__context?.tokens ?? defaultTokens) as Tokens
     const color = resolveColorToken(colors, props.color ?? 'gray700')
-    text = text.replace(/currentColor/, color)
+    text = text.replace(/currentColor/, encodeURIComponent(color))
   }
 
   return (
     <Box
       __context={__context}
+      backgroundImage={`url('data:image/svg+xml;utf8,${text}')`}
       backgroundColor={{ custom: 'transparent' }}
-      backgroundImage={`url("data:image/svg+xml;utf8,${text}")`}
       backgroundSize="100% 100%"
+      position="relative"
       height={size as keyof Tokens['units']}
       width={size as keyof Tokens['units']}
     />

@@ -138,6 +138,8 @@ export function Box<tokens extends Tokens>({
   __context,
   children,
   grow,
+  // @ts-ignore - private
+  src,
   ...rest
 }: BoxProps<tokens>) {
   const { __context: _, ...boxProps } = getBoxProps({
@@ -146,10 +148,11 @@ export function Box<tokens extends Tokens>({
     grow,
     ...rest,
   })
+  if (src) return <img {...boxProps} src={src} />
   return <div {...boxProps}>{children}</div>
 }
 
-export function getBoxProps<tokens extends Tokens>({
+function getBoxProps<tokens extends Tokens>({
   __context,
   children,
   grow,
@@ -350,9 +353,9 @@ export function resolveUnitToken(
   if (normalizedValue === '100%' || unit.value === '100%') return '100%'
   if (unit.type === 'custom') return unit.value
   if (!unit.value) return undefined
-  return (
+  const resolved =
     (typeof value === 'string' && value.startsWith('-') ? -1 : +1) *
     unit.value *
     baseUnit
-  )
+  return `${resolved}px`
 }
