@@ -1,7 +1,7 @@
 import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
 import { encodeSvgForCss } from '@iconify/utils/lib/svg/encode-svg-for-css'
 
-import { type BoxProps, resolveColorToken } from './Box.js'
+import { Box, type BoxProps, resolveColorToken } from './Box.js'
 import { icons } from './icons.js'
 import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 
@@ -21,7 +21,7 @@ export type IconProps<tokens extends Tokens = DefaultTokens> = {
       ? name
       : never
     : AllIconNames
-  size?: number
+  size?: BoxProps<tokens>['width']
 }
 
 type AllIconNames = {
@@ -35,7 +35,7 @@ type IconCollectionMap = {
 }
 
 export function Icon<tokens extends Tokens>(props: IconProps<tokens>) {
-  const { __context, mode = 'auto', size = 96 } = props
+  const { __context, mode = 'auto', size = '24' } = props
 
   let collection: string | undefined = __context?.tokens?.icons
   let name: string = props.name
@@ -70,18 +70,15 @@ export function Icon<tokens extends Tokens>(props: IconProps<tokens>) {
   }
 
   const url = `url("data:image/svg+xml;utf8,${encodeSvgForCss(text)}")`
-  const sizePx = `${size}px`
 
   return (
-    <div
-      style={{
-        backgroundColor: 'transparent',
-        backgroundImage: url,
-        backgroundSize: '100% 100%',
-        display: 'flex',
-        height: sizePx,
-        width: sizePx,
-      }}
+    <Box
+      __context={__context}
+      backgroundColor={{ custom: 'transparent' }}
+      backgroundImage={url}
+      backgroundSize="100% 100%"
+      height={size}
+      width={size}
     />
   )
 }
