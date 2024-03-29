@@ -503,7 +503,13 @@ export class FrogBase<
         const width = imageOptions?.width ?? 1200
         // Convert `tw` to `class`
         const __html = image.toString().replace(/tw=/, 'class=')
-        // TODO: Support fonts, background-image with `url()` (mangled by Hono rendering currently)
+        // TODO: background-image with `url()` (mangled by Hono rendering currently)
+        const fonts = await (async () => {
+          if (this.tokens?.fonts) return Object.values(this.tokens.fonts).flat()
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return imageOptions?.fonts
+        })()
         return c.html(
           <>
             <script src="https://cdn.tailwindcss.com" />
@@ -522,6 +528,37 @@ export class FrogBase<
                 }
               `}
             </script>
+            {fonts && Boolean(fonts?.length) && (
+              <>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link
+                  rel="preconnect"
+                  href="https://fonts.gstatic.com"
+                  crossOrigin
+                />
+                {fonts.map((font) => {
+                  if (font.source === 'google') {
+                    const name = font.name.replace(' ', '+')
+                    const style = font.style === 'italic' ? 'ital' : ''
+                    const weight = font.weight
+                      ? `wght@${style !== '' ? '1,' : ''}${font.weight}`
+                      : ''
+                    return (
+                      <link
+                        href={`https://fonts.googleapis.com/css2?family=${name}${
+                          style || weight
+                            ? `:${style}${style && weight ? ',' : ''}${weight}`
+                            : ''
+                        }&display=swap`}
+                        rel="stylesheet"
+                      />
+                    )
+                  }
+                  // TODO: buffer fonts
+                  return
+                })}
+              </>
+            )}
             <style
               // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
               dangerouslySetInnerHTML={{
@@ -529,9 +566,9 @@ export class FrogBase<
               }}
             />
             <div
-              style={{ height, width }}
               // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
               dangerouslySetInnerHTML={{ __html }}
+              style={{ height, width }}
             />
           </>,
         )
