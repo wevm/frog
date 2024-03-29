@@ -77,8 +77,8 @@ export function Icon<tokens extends Tokens>(props: IconProps<tokens>) {
       backgroundColor={{ custom: 'transparent' }}
       backgroundImage={url}
       backgroundSize="100% 100%"
-      height={size}
-      width={size}
+      height={size as keyof Tokens['units']}
+      width={size as keyof Tokens['units']}
     />
   )
 }
