@@ -1,9 +1,9 @@
-import { getIconData, iconToSVG, iconToHTML } from '@iconify/utils'
+import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
 import { encodeSvgForCss } from '@iconify/utils/lib/svg/encode-svg-for-css'
 
 import { type BoxProps, resolveColorToken } from './Box.js'
-import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 import { icons } from './icons.js'
+import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 
 export type IconProps<tokens extends Tokens = DefaultTokens> = {
   __context?: { tokens?: Tokens | undefined } | undefined

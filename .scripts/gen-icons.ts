@@ -1,6 +1,6 @@
 import path from 'node:path'
-import { glob } from 'fast-glob'
 import { IconifyJSONIconsData } from '@iconify/types'
+import { glob } from 'fast-glob'
 
 console.log('Copying icons to package.')
 
