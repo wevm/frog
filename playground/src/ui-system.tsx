@@ -153,7 +153,7 @@ export const app = new Frog({
                 <Icon color="blue800" name="radix-icons:avatar" />
                 <Icon color="green800" name="heroicons:bolt" />
                 <Icon name="logos:apple" />
-                <Icon size={200} name="logos:apple" />
+                <Icon size="72" name="logos:apple" />
               </HStack>
             </Box>
           </VStack>
