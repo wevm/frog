@@ -1,7 +1,6 @@
 import path from 'node:path'
 import { IconifyJSONIconsData } from '@iconify/types'
 import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
-import { encodeSvgForCss } from '@iconify/utils/lib/svg/encode-svg-for-css'
 import { glob } from 'fast-glob'
 
 console.log('Copying icons to package.')
@@ -32,7 +31,7 @@ for (const collection of collections) {
     if (!item) throw new TypeError(`Invalid icon: ${key}`)
     const svg = iconToSVG(item)
     const text = iconToHTML(svg.body, svg.attributes)
-    iconMap[collection.name][key] = encodeSvgForCss(text)
+    iconMap[collection.name][key] = encodeURIComponent(text)
   }
 
   console.log(collection.name)
