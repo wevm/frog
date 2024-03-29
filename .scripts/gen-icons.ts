@@ -1,10 +1,12 @@
 import path from 'node:path'
 import { IconifyJSONIconsData } from '@iconify/types'
 import { glob } from 'fast-glob'
+import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
+import { encodeSvgForCss } from '@iconify/utils/lib/svg/encode-svg-for-css'
 
 console.log('Copying icons to package.')
 
-const collectionSet = new Set(['heroicons', 'lucide', 'radix-icons', 'logos'])
+const collectionSet = new Set(['heroicons', 'lucide', 'radix-icons'])
 
 const collections = (await glob('**/@iconify/json/json/*.json'))
   .map((collectionPath) => {
@@ -15,12 +17,24 @@ const collections = (await glob('**/@iconify/json/json/*.json'))
   })
   .filter((collection) => collectionSet.has(collection.name))
 
-let count = 0
 const iconMap = {}
+for (const collection of collectionSet) {
+  iconMap[collection] = {}
+}
+
+let count = 0
 for (const collection of collections) {
   const file = Bun.file(collection.path)
   const json = (await file.json()) as IconifyJSONIconsData
-  iconMap[json.prefix] = json
+
+  for (const key of Object.keys(json.icons)) {
+    const item = getIconData(json, key)
+    if (!item) throw new TypeError(`Invalid icon: ${key}`)
+    const svg = iconToSVG(item)
+    const text = iconToHTML(svg.body, svg.attributes)
+    iconMap[collection.name][key] = encodeSvgForCss(text)
+  }
+
   console.log(collection.name)
   count += 1
 }
