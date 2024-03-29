@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { IconifyJSONIconsData } from '@iconify/types'
-import { glob } from 'fast-glob'
 import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
 import { encodeSvgForCss } from '@iconify/utils/lib/svg/encode-svg-for-css'
+import { glob } from 'fast-glob'
 
 console.log('Copying icons to package.')
 
