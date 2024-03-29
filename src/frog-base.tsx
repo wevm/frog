@@ -544,13 +544,16 @@ export class FrogBase<
                     const weight = font.weight
                       ? `wght@${style !== '' ? '1,' : ''}${font.weight}`
                       : ''
+                    const variant =
+                      style || weight
+                        ? `:${[
+                            ...(style ? [style] : []),
+                            ...(weight ? [weight] : []),
+                          ].join(',')}`
+                        : ''
                     return (
                       <link
-                        href={`https://fonts.googleapis.com/css2?family=${name}${
-                          style || weight
-                            ? `:${style}${style && weight ? ',' : ''}${weight}`
-                            : ''
-                        }&display=swap`}
+                        href={`https://fonts.googleapis.com/css2?family=${name}${variant}&display=swap`}
                         rel="stylesheet"
                       />
                     )
@@ -567,6 +570,7 @@ export class FrogBase<
               }}
             />
             <div
+              className="bg-black"
               // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
               dangerouslySetInnerHTML={{ __html }}
               style={{ height, width }}
