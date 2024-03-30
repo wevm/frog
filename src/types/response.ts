@@ -1,6 +1,6 @@
 export type TypedResponse<data> = {
   data: data
-  format: 'frame' | 'transaction'
+  format: 'action' | 'frame' | 'transaction'
 }
 
 export type HandlerResponse<typedResponse> =

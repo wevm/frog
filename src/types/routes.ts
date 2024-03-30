@@ -6,8 +6,14 @@ import type {
   RemoveBlankRecord,
   UnionToIntersection,
 } from 'hono/utils/types'
+import type { ActionResponse } from './action.js'
 import type { FrogBase, RouteOptions } from '../frog-base.js'
-import type { Context, FrameContext, TransactionContext } from './context.js'
+import type {
+  ActionContext,
+  Context,
+  FrameContext,
+  TransactionContext,
+} from './context.js'
 import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'
 import type { HandlerResponse } from './response.js'
@@ -34,6 +40,12 @@ export type BlankInput = {}
 //////          Handlers          //////
 //////                            //////
 ////////////////////////////////////////
+
+export type ActionHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: ActionContext<E, P, I>) => HandlerResponse<ActionResponse>
 
 export type FrameHandler<
   E extends Env = any,

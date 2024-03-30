@@ -8,6 +8,50 @@ import type {
   TransactionResponseFn,
 } from './transaction.js'
 import type { Pretty } from './utils.js'
+import type { ActionData, ActionResponseFn } from './action.js'
+
+export type ActionContext<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+> = {
+  /**
+   * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
+   *
+   * @example
+   * ```ts
+   * // Environment object for Cloudflare Workers
+   * app.frame('/', async c => {
+   *   const counter = c.env.COUNTER
+   * })
+   * ```
+   * @see https://hono.dev/api/context#env
+   */
+  env: Context_hono<env, path>['env']
+  /**
+   * Data from the action that was passed via the POST body.
+   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   */
+  actionData?: Pretty<ActionData>
+  /**
+   * Hono request object.
+   *
+   * @see https://hono.dev/api/context#req
+   */
+  req: Context_hono<env, path, input>['req']
+  /** Action response that includes action properties such as: message, etc */
+  res: ActionResponseFn
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path, input>['var']
+  /**
+   * Whether or not the {@link Context`actionData`} was verified by the Farcaster Hub API.
+   */
+  verified: boolean
+}
 
 export type Context<
   env extends Env = Env,
