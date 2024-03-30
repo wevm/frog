@@ -419,11 +419,11 @@ export default defineConfig({
           items: [
             {
               text: 'UI System & Tokens',
-              link: '/ui/concepts/ui-system',
+              link: '/ui/ui-system',
             },
             {
               text: 'Primitive Components',
-              link: '/ui/concepts/primitive-components',
+              link: '/ui/primitive-components',
             },
           ],
         },

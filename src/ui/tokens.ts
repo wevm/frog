@@ -14,6 +14,7 @@ export type Tokens = {
         height: number
         width: number
       }
+    | undefined
   icons?: keyof typeof icons | undefined
   units?: Record<string, number | '100%'> | undefined
 }
