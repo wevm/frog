@@ -1,18 +1,18 @@
 import { Box, type BoxProps, resolveColorToken } from './Box.js'
 import { icons } from './icons.js'
-import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
+import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 export type IconProps<
-  tokens extends Tokens = DefaultTokens,
-  collection extends Tokens['icons'] = DefaultTokens['icons'],
+  vars extends Vars = DefaultVars,
+  collection extends Vars['icons'] = DefaultVars['icons'],
 > = {
-  __context?: { tokens?: Tokens | undefined } | undefined
+  __context?: { vars?: Vars | undefined } | undefined
   /**
    * Sets the color of the icon.
    *
    * Note: This prop is only supported when {@link mode} is `'mask'` or `'auto'` (and the icon with {@link name} is inferred as `'mask'`).
    */
-  color?: BoxProps<tokens>['backgroundColor']
+  color?: BoxProps<vars>['backgroundColor']
   /**
    * Sets rendering mode of the icon.
    *
@@ -24,22 +24,22 @@ export type IconProps<
    *
    * @default 'lucide'
    */
-  collection?: collection | Tokens['icons'] | undefined
+  collection?: collection | Vars['icons'] | undefined
   /** Icon name in the current icon collection. */
   name: keyof (typeof icons)[collection extends keyof typeof icons
     ? collection
     : never]
   /** Sets the size of the icon. */
-  size?: BoxProps<tokens>['width']
+  size?: BoxProps<vars>['width']
 }
 
 export function Icon<
-  tokens extends Tokens,
-  collection extends Tokens['icons'] = DefaultTokens['icons'],
->(props: IconProps<tokens, collection>) {
+  vars extends Vars,
+  collection extends Vars['icons'] = DefaultVars['icons'],
+>(props: IconProps<vars, collection>) {
   const {
     __context,
-    collection = __context?.tokens?.icons ?? 'lucide',
+    collection = __context?.vars?.icons ?? 'lucide',
     mode = 'auto',
     name,
     size = '24',
@@ -58,7 +58,7 @@ export function Icon<
   // so need to inject color into svg content directly
   // inspo: https://antfu.me/posts/icons-in-pure-css
   if (resolvedMode === 'mask') {
-    const { colors } = (__context?.tokens ?? defaultTokens) as Tokens
+    const { colors } = (__context?.vars ?? defaultVars) as Vars
     const color = resolveColorToken(colors, props.color ?? 'gray700')
     text = text.replace(/currentColor/g, encodeURIComponent(color))
   }
@@ -69,8 +69,8 @@ export function Icon<
       backgroundImage={`url('data:image/svg+xml;utf8,${text}')`}
       backgroundColor={{ custom: 'transparent' }}
       backgroundSize="100% 100%"
-      height={size as keyof Tokens['units']}
-      width={size as keyof Tokens['units']}
+      height={size as keyof Vars['units']}
+      width={size as keyof Vars['units']}
     />
   )
 }

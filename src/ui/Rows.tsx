@@ -1,15 +1,14 @@
 import { Box, type BoxProps } from './Box.js'
 import { VStack, type VStackProps } from './VStack.js'
-import type { DefaultTokens, Tokens } from './tokens.js'
 import type { Fraction } from './types.js'
+import type { DefaultVars, Vars } from './vars.js'
 
-export type RowsProps<tokens extends Tokens = DefaultTokens> =
-  VStackProps<tokens>
+export type RowsProps<vars extends Vars = DefaultVars> = VStackProps<vars>
 
-export function Rows<tokens extends Tokens>({
+export function Rows<vars extends Vars>({
   children,
   ...rest
-}: RowsProps<tokens>) {
+}: RowsProps<vars>) {
   return (
     <VStack height="100%" {...rest}>
       {children}
@@ -17,8 +16,8 @@ export function Rows<tokens extends Tokens>({
   )
 }
 
-export type RowProps<tokens extends Tokens = DefaultTokens> = Omit<
-  BoxProps<tokens>,
+export type RowProps<vars extends Vars = DefaultVars> = Omit<
+  BoxProps<vars>,
   'height'
 > & {
   /** Sets the height span of the column (in fractions). */
@@ -32,11 +31,11 @@ export type RowProps<tokens extends Tokens = DefaultTokens> = Omit<
     | Fraction<7>
 }
 
-export function Row<tokens extends Tokens>({
+export function Row<vars extends Vars>({
   children,
   height = '1/1',
   ...rest
-}: RowProps<tokens>) {
+}: RowProps<vars>) {
   const [numerator, denominator] = height.split('/')
 
   return (

@@ -22,7 +22,7 @@ import type {
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
-import type { Tokens } from './ui/tokens.js'
+import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
@@ -150,9 +150,9 @@ export type FrogConstructorParameters<
    */
   secret?: string | undefined
   /**
-   * UI Tokens.
+   * FrogUI configuration.
    */
-  tokens?: Tokens | undefined
+  ui?: { vars: Vars | undefined } | undefined
   /**
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
@@ -236,8 +236,8 @@ export class FrogBase<
   post: Hono<env, schema, basePath>['post']
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
-  /** UI Tokens. */
-  tokens: Tokens | undefined
+  /** FrogUI configuration. */
+  ui: { vars: Vars | undefined } | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
@@ -258,7 +258,7 @@ export class FrogBase<
     initialState,
     origin,
     secret,
-    tokens,
+    ui,
     verify,
   }: FrogConstructorParameters<env, basePath, _state> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
@@ -271,7 +271,7 @@ export class FrogBase<
     if (imageOptions) this.imageOptions = imageOptions
     if (origin) this.origin = origin
     if (secret) this.secret = secret
-    if (tokens) this.tokens = tokens
+    if (ui) this.ui = ui
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
@@ -315,7 +315,8 @@ export class FrogBase<
         })()
 
         const fonts = await (async () => {
-          if (this.tokens?.fonts) return Object.values(this.tokens.fonts).flat()
+          if (this.ui?.vars?.fonts)
+            return Object.values(this.ui?.vars.fonts).flat()
           if (typeof options?.fonts === 'function') return await options.fonts()
           if (options?.fonts) return options.fonts
           return defaultImageOptions?.fonts
@@ -443,11 +444,14 @@ export class FrogBase<
                 </div>,
                 {
                   assetsUrl,
-                  tokens: {
-                    ...this.tokens,
-                    frame: {
-                      height: imageOptions?.height!,
-                      width: imageOptions?.width!,
+                  ui: {
+                    ...this.ui,
+                    vars: {
+                      ...this.ui?.vars,
+                      frame: {
+                        height: imageOptions?.height!,
+                        width: imageOptions?.width!,
+                      },
                     },
                   },
                 },
@@ -505,7 +509,8 @@ export class FrogBase<
         const __html = image.toString().replace(/tw=/, 'class=')
         // TODO: background-image with `url()` (mangled by Hono rendering currently)
         const fonts = await (async () => {
-          if (this.tokens?.fonts) return Object.values(this.tokens.fonts).flat()
+          if (this.ui?.vars?.fonts)
+            return Object.values(this.ui.vars.fonts).flat()
           if (typeof options?.fonts === 'function') return await options.fonts()
           if (options?.fonts) return options.fonts
           return imageOptions?.fonts
@@ -649,7 +654,7 @@ export class FrogBase<
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
     if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
-    if (!frog.tokens) frog.tokens = this.tokens
+    if (!frog.ui) frog.ui = this.ui
     if (!frog.verify) frog.verify = this.verify
 
     this.hono.route(path, frog.hono)

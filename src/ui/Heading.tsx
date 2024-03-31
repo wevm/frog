@@ -1,16 +1,15 @@
 import { Text, type TextProps } from './Text.js'
-import type { DefaultTokens, Tokens } from './tokens.js'
+import type { DefaultVars, Vars } from './vars.js'
 
-export type HeadingProps<tokens extends Tokens = DefaultTokens> =
-  TextProps<tokens>
+export type HeadingProps<vars extends Vars = DefaultVars> = TextProps<vars>
 
-export function Heading<tokens extends Tokens>({
+export function Heading<vars extends Vars>({
   children,
   size = '32' as any,
   tracking = '-1' as any,
   weight = '700',
   ...rest
-}: HeadingProps<tokens>) {
+}: HeadingProps<vars>) {
   return (
     <Text tracking={tracking} size={size} weight={weight} {...rest}>
       {children}

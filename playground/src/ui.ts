@@ -13,7 +13,7 @@ export const {
   Spacer,
   Text,
   VStack,
-  tokens,
+  vars,
 } = createSystem({
   fonts: {
     default: [
