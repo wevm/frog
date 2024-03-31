@@ -298,6 +298,9 @@ export class FrogBase<
 
     // Action Route (implements POST).
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+      const url = getRequestUrl(c.req)
+      const origin = this.origin ?? url.origin
+
       const { context } = getActionContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
@@ -306,6 +309,7 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
+        origin,
       })
 
       const response = await handler(context)

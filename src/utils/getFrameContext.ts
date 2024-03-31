@@ -88,6 +88,7 @@ export function getFrameContext<
       frameData,
       initialPath,
       inputText,
+      origin,
       previousButtonValues,
       previousState: previousState as any,
       req,

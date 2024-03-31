@@ -34,6 +34,10 @@ export type ActionContext<
    */
   env: Context_hono<env, path>['env']
   /**
+   * Origin of the server.
+   */
+  origin: string
+  /**
    * Hono request object.
    *
    * @see https://hono.dev/api/context#req
@@ -94,6 +98,10 @@ export type Context<
    * Input text from the previous frame.
    */
   inputText?: string | undefined
+  /**
+   * Origin of the server.
+   */
+  origin: string
   /**
    * Button values from the previous frame.
    */

@@ -8,6 +8,7 @@ type GetActionContextParameters<
   input extends Input = {},
 > = {
   context: Context<env, path, input>
+  origin: string
 }
 
 type GetActionContextReturnType<
@@ -25,23 +26,25 @@ export function getActionContext<
 >(
   parameters: GetActionContextParameters<env, path, input>,
 ): GetActionContextReturnType<env, path, input> {
-  const { context } = parameters
+  const { context, origin } = parameters
   const { env, frameData, req, verified } = context || {}
+
+  if (!frameData)
+    throw new Error('Frame data must be present for action handlers.')
 
   return {
     context: {
       env,
-      actionData: frameData
-        ? {
-            buttonIndex: 1,
-            castId: frameData.castId,
-            fid: frameData.fid,
-            network: frameData.network,
-            messageHash: frameData.messageHash,
-            timestamp: frameData.timestamp,
-            url: frameData.url,
-          }
-        : undefined,
+      actionData: {
+        buttonIndex: 1,
+        castId: frameData.castId,
+        fid: frameData.fid,
+        network: frameData.network,
+        messageHash: frameData.messageHash,
+        timestamp: frameData.timestamp,
+        url: frameData.url,
+      },
+      origin,
       req,
       res: (data) => ({ data, format: 'action' }),
       var: context.var,
