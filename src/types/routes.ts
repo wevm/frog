@@ -83,7 +83,9 @@ export type H<
   ? FrameHandler<E, P, I>
   : M extends 'transaction'
     ? TransactionHandler<E, P, I>
-    : Handler<E, P, I, R>
+    : M extends 'action'
+      ? ActionHandler<E, P, I>
+      : Handler<E, P, I, R>
 
 ////////////////////////////////////////
 //////                            //////

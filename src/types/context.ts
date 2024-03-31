@@ -16,6 +16,11 @@ export type ActionContext<
   input extends Input = {},
 > = {
   /**
+   * Data from the action that was passed via the POST body.
+   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   */
+  actionData: Pretty<ActionData>
+  /**
    * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
    *
    * @example
@@ -28,11 +33,6 @@ export type ActionContext<
    * @see https://hono.dev/api/context#env
    */
   env: Context_hono<env, path>['env']
-  /**
-   * Data from the action that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
-   */
-  actionData?: Pretty<ActionData>
   /**
    * Hono request object.
    *
