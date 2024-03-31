@@ -71,6 +71,7 @@ export async function requestBodyToContext<
 
   return {
     env: c.env,
+    origin,
     initialPath: initialPath ? initialPath : url.pathname,
     previousState,
     previousButtonValues,
