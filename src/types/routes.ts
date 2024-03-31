@@ -6,8 +6,8 @@ import type {
   RemoveBlankRecord,
   UnionToIntersection,
 } from 'hono/utils/types'
-import type { ActionResponse } from './action.js'
 import type { FrogBase, RouteOptions } from '../frog-base.js'
+import type { ActionResponse } from './action.js'
 import type {
   ActionContext,
   Context,

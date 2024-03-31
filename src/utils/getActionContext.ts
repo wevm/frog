@@ -1,5 +1,5 @@
 import type { Input } from 'hono'
-import type { Context, ActionContext } from '../types/context.js'
+import type { ActionContext, Context } from '../types/context.js'
 import type { Env } from '../types/env.js'
 
 type GetActionContextParameters<
