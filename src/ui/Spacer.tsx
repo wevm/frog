@@ -1,11 +1,11 @@
-import { Box, type TokenValue } from './Box.js'
-import type { DefaultTokens, Tokens } from './tokens.js'
+import { Box, type VariableValue } from './Box.js'
+import type { DefaultVars, Vars } from './vars.js'
 
-export type SpacerProps<tokens extends Tokens = DefaultTokens> = {
+export type SpacerProps<vars extends Vars = DefaultVars> = {
   /** Sets the size of the spacing. */
-  size?: TokenValue<'width', keyof tokens['units']>
+  size?: VariableValue<'width', keyof vars['units']>
 }
 
-export function Spacer<tokens extends Tokens>({ size }: SpacerProps<tokens>) {
+export function Spacer<vars extends Vars>({ size }: SpacerProps<vars>) {
   return <Box grow={size ? undefined : true} height={size} width={size} />
 }

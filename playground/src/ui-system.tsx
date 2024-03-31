@@ -14,11 +14,11 @@ import {
   Spacer,
   Text,
   VStack,
-  tokens,
+  vars,
 } from './ui.js'
 
 export const app = new Frog({
-  tokens,
+  ui: { vars },
 })
   .use('/*', serveStatic({ root: './public' }))
   .frame('/', (c) => {

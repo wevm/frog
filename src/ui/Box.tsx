@@ -1,9 +1,9 @@
 import type { Child } from 'hono/jsx'
 
-import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
 import type { SatoriStyleProperties, ValueOf } from './types.js'
+import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
-export type TokenValue<property extends keyof SatoriStyleProperties, token> =
+export type VariableValue<property extends keyof SatoriStyleProperties, token> =
   | token
   | { custom: SatoriStyleProperties[property] }
 
@@ -11,7 +11,7 @@ type NegateValues<obj extends object | undefined> = ValueOf<{
   [key in keyof obj]: key extends `${number}` ? `-${key}` : key
 }>
 
-export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
+export type BoxProps<vars extends Vars = DefaultVars> = Omit<
   SatoriStyleProperties,
   | 'background'
   | 'backgroundColor'
@@ -58,66 +58,69 @@ export type BoxProps<tokens extends Tokens = DefaultTokens> = Omit<
   | 'top'
   | 'width'
 > & {
-  __context?: { tokens?: Tokens | undefined } | undefined
+  __context?: { vars?: Vars | undefined } | undefined
   alignHorizontal?: 'left' | 'center' | 'right' | 'space-between'
   alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
-  background?: TokenValue<'backgroundColor', keyof tokens['colors']>
-  backgroundColor?: TokenValue<'backgroundColor', keyof tokens['colors']>
-  borderColor?: TokenValue<'borderColor', keyof tokens['colors']>
-  borderBottomColor?: TokenValue<'borderBottomColor', keyof tokens['colors']>
-  borderBottomLeftRadius?: TokenValue<
+  background?: VariableValue<'backgroundColor', keyof vars['colors']>
+  backgroundColor?: VariableValue<'backgroundColor', keyof vars['colors']>
+  borderColor?: VariableValue<'borderColor', keyof vars['colors']>
+  borderBottomColor?: VariableValue<'borderBottomColor', keyof vars['colors']>
+  borderBottomLeftRadius?: VariableValue<
     'borderBottomLeftRadius',
-    keyof tokens['units']
+    keyof vars['units']
   >
-  borderBottomRightRadius?: TokenValue<
+  borderBottomRightRadius?: VariableValue<
     'borderBottomRightRadius',
-    keyof tokens['units']
+    keyof vars['units']
   >
-  borderBottomWidth?: TokenValue<'borderBottomWidth', keyof tokens['units']>
-  borderLeftColor?: TokenValue<'borderLeftColor', keyof tokens['colors']>
-  borderLeftWidth?: TokenValue<'borderLeftWidth', keyof tokens['units']>
-  borderRadius?: TokenValue<'borderRadius', keyof tokens['units']>
-  borderRightColor?: TokenValue<'borderRightColor', keyof tokens['colors']>
-  borderRightWidth?: TokenValue<'borderRightWidth', keyof tokens['units']>
-  borderTopColor?: TokenValue<'borderTopColor', keyof tokens['colors']>
-  borderTopLeftRadius?: TokenValue<'borderTopLeftRadius', keyof tokens['units']>
-  borderTopRightRadius?: TokenValue<
+  borderBottomWidth?: VariableValue<'borderBottomWidth', keyof vars['units']>
+  borderLeftColor?: VariableValue<'borderLeftColor', keyof vars['colors']>
+  borderLeftWidth?: VariableValue<'borderLeftWidth', keyof vars['units']>
+  borderRadius?: VariableValue<'borderRadius', keyof vars['units']>
+  borderRightColor?: VariableValue<'borderRightColor', keyof vars['colors']>
+  borderRightWidth?: VariableValue<'borderRightWidth', keyof vars['units']>
+  borderTopColor?: VariableValue<'borderTopColor', keyof vars['colors']>
+  borderTopLeftRadius?: VariableValue<
+    'borderTopLeftRadius',
+    keyof vars['units']
+  >
+  borderTopRightRadius?: VariableValue<
     'borderTopRightRadius',
-    keyof tokens['units']
+    keyof vars['units']
   >
-  borderTopWidth?: TokenValue<'borderTopWidth', keyof tokens['units']>
-  borderWidth?: TokenValue<'borderWidth', keyof tokens['units']>
-  bottom?: TokenValue<'bottom', keyof tokens['units']>
+  borderTopWidth?: VariableValue<'borderTopWidth', keyof vars['units']>
+  borderWidth?: VariableValue<'borderWidth', keyof vars['units']>
+  bottom?: VariableValue<'bottom', keyof vars['units']>
   children?: Child | undefined
-  color?: TokenValue<'color', keyof tokens['colors']>
-  fontFamily?: TokenValue<'fontFamily', keyof tokens['fonts']>
-  fontSize?: TokenValue<'fontSize', keyof tokens['fontSizes']>
-  height?: TokenValue<'height', keyof tokens['units'] | '100%'>
-  gap?: TokenValue<'gap', keyof tokens['units']>
+  color?: VariableValue<'color', keyof vars['colors']>
+  fontFamily?: VariableValue<'fontFamily', keyof vars['fonts']>
+  fontSize?: VariableValue<'fontSize', keyof vars['fontSizes']>
+  height?: VariableValue<'height', keyof vars['units'] | '100%'>
+  gap?: VariableValue<'gap', keyof vars['units']>
   grow?: boolean
-  left?: TokenValue<'left', keyof tokens['units']>
-  letterSpacing?: TokenValue<
+  left?: VariableValue<'left', keyof vars['units']>
+  letterSpacing?: VariableValue<
     'letterSpacing',
-    keyof tokens['units'] | NegateValues<tokens['units']>
+    keyof vars['units'] | NegateValues<vars['units']>
   >
-  lineHeight?: TokenValue<'lineHeight', keyof tokens['units']>
-  margin?: TokenValue<'margin', NegateValues<tokens['units']>>
-  marginTop?: TokenValue<'marginTop', NegateValues<tokens['units']>>
-  marginBottom?: TokenValue<'marginBottom', NegateValues<tokens['units']>>
-  marginLeft?: TokenValue<'marginLeft', NegateValues<tokens['units']>>
-  marginRight?: TokenValue<'marginRight', NegateValues<tokens['units']>>
-  maxHeight?: TokenValue<'maxHeight', keyof tokens['units'] | '100%'>
-  minHeight?: TokenValue<'minHeight', keyof tokens['units'] | '100%'>
-  maxWidth?: TokenValue<'maxWidth', keyof tokens['units'] | '100%'>
-  minWidth?: TokenValue<'minWidth', keyof tokens['units'] | '100%'>
-  padding?: TokenValue<'padding', keyof tokens['units']>
-  paddingTop?: TokenValue<'paddingTop', keyof tokens['units']>
-  paddingBottom?: TokenValue<'paddingBottom', keyof tokens['units']>
-  paddingLeft?: TokenValue<'paddingLeft', keyof tokens['units']>
-  paddingRight?: TokenValue<'paddingRight', keyof tokens['units']>
-  right?: TokenValue<'right', keyof tokens['units']>
-  top?: TokenValue<'top', keyof tokens['units']>
-  width?: TokenValue<'width', keyof tokens['units'] | '100%'>
+  lineHeight?: VariableValue<'lineHeight', keyof vars['units']>
+  margin?: VariableValue<'margin', NegateValues<vars['units']>>
+  marginTop?: VariableValue<'marginTop', NegateValues<vars['units']>>
+  marginBottom?: VariableValue<'marginBottom', NegateValues<vars['units']>>
+  marginLeft?: VariableValue<'marginLeft', NegateValues<vars['units']>>
+  marginRight?: VariableValue<'marginRight', NegateValues<vars['units']>>
+  maxHeight?: VariableValue<'maxHeight', keyof vars['units'] | '100%'>
+  minHeight?: VariableValue<'minHeight', keyof vars['units'] | '100%'>
+  maxWidth?: VariableValue<'maxWidth', keyof vars['units'] | '100%'>
+  minWidth?: VariableValue<'minWidth', keyof vars['units'] | '100%'>
+  padding?: VariableValue<'padding', keyof vars['units']>
+  paddingTop?: VariableValue<'paddingTop', keyof vars['units']>
+  paddingBottom?: VariableValue<'paddingBottom', keyof vars['units']>
+  paddingLeft?: VariableValue<'paddingLeft', keyof vars['units']>
+  paddingRight?: VariableValue<'paddingRight', keyof vars['units']>
+  right?: VariableValue<'right', keyof vars['units']>
+  top?: VariableValue<'top', keyof vars['units']>
+  width?: VariableValue<'width', keyof vars['units'] | '100%'>
 }
 
 const alignHorizontalToAlignItems = {
@@ -134,14 +137,14 @@ const alignVerticalToJustifyContent = {
   'space-between': 'space-between',
 } as const
 
-export function Box<tokens extends Tokens>({
+export function Box<vars extends Vars>({
   __context,
   children,
   grow,
   // @ts-ignore - private
   src,
   ...rest
-}: BoxProps<tokens>) {
+}: BoxProps<vars>) {
   const { __context: _, ...boxProps } = getBoxProps({
     __context,
     children,
@@ -152,14 +155,14 @@ export function Box<tokens extends Tokens>({
   return <div {...boxProps}>{children}</div>
 }
 
-function getBoxProps<tokens extends Tokens>({
+function getBoxProps<vars extends Vars>({
   __context,
   children,
   grow,
   ...rest
-}: BoxProps<tokens>) {
-  const { colors, fonts, frame, units } = (__context?.tokens ??
-    defaultTokens) as Tokens
+}: BoxProps<vars>) {
+  const { colors, fonts, frame, units } = (__context?.vars ??
+    defaultVars) as Vars
 
   const vheight = frame?.height ?? 1200
   const vwidth = frame?.width ?? 630
@@ -315,22 +318,22 @@ function getBoxProps<tokens extends Tokens>({
   return { __context, style }
 }
 
-function resolveToken<tokens extends Record<string, unknown>>(
-  tokens: tokens | undefined,
-  value: TokenValue<keyof SatoriStyleProperties, keyof tokens> | undefined,
+function resolveToken<vars extends Record<string, unknown>>(
+  vars: vars | undefined,
+  value: VariableValue<keyof SatoriStyleProperties, keyof vars> | undefined,
   fallback?: unknown,
 ):
-  | { value: tokens[keyof tokens]; type: 'token' }
+  | { value: vars[keyof vars]; type: 'token' }
   | { value: string; type: 'custom' } {
   if (!value) return { type: 'token', value: fallback } as any
   if (typeof value === 'object')
     return { type: 'custom', value: value.custom } as any
-  return { type: 'token', value: tokens?.[value] } as any
+  return { type: 'token', value: vars?.[value] } as any
 }
 
 export function resolveColorToken(
-  colors: Tokens['colors'] | undefined,
-  value: TokenValue<keyof SatoriStyleProperties, any> | undefined,
+  colors: Vars['colors'] | undefined,
+  value: VariableValue<keyof SatoriStyleProperties, any> | undefined,
   fallback?: unknown,
 ) {
   const color = resolveToken(colors, value, fallback)
@@ -338,8 +341,8 @@ export function resolveColorToken(
 }
 
 export function resolveUnitToken(
-  units: Tokens['units'] | undefined,
-  value: TokenValue<keyof SatoriStyleProperties, any> | undefined,
+  units: Vars['units'] | undefined,
+  value: VariableValue<keyof SatoriStyleProperties, any> | undefined,
   baseUnit: number,
   fallback?: unknown,
 ) {

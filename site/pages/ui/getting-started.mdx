@@ -9,9 +9,9 @@ On this page, we will guide you through the process of setting up a UI System fo
 ### Create your UI System
 
 Firstly, we will need to create our [UI System](#TODO) with `createSystem`. 
-The `createSystem` function takes in a tokens object, and returns a set of primitive components to build our frame UI.
+The `createSystem` function takes in a [design variables](#TODO) object, and returns a set of primitive components to build our frame UI.
 
-By default, if no tokens are passed to `createSystem`, the system will use the default tokens.
+By default, if no variables are passed to `createSystem`, the system will use the default variables.
 
 ```tsx twoslash [src/ui.ts]
 import { createSystem } from 'frog/ui'
@@ -27,7 +27,7 @@ export const {
   Spacer,
   Text,
   VStack,
-  tokens,
+  vars,
 } = createSystem()
 ```
 
@@ -49,7 +49,7 @@ export const {
 
 ### Consume the System
 
-Once we have our system set up, we will need to inject the `tokens` into our `Frog` instance.
+Once we have our system set up, we will need to inject the `ui` configuration into our `Frog` instance.
 
 After that, we can then consume our components to build our frame UI.
 
@@ -57,10 +57,10 @@ After that, we can then consume our components to build our frame UI.
 
 ```tsx twoslash [src/index.ts]
 import { Frog } from 'frog'
-import { Box, Heading, Text, VStack, tokens } from './ui.js'
+import { Box, Heading, Text, VStack, vars } from './ui.js'
 
 export const app = new Frog({
-  tokens, // [!code focus]
+  ui: { vars }, // [!code focus]
 }).frame('/', (c) => {
   return c.res({
     image: (
@@ -85,7 +85,7 @@ export const app = new Frog({
 ```tsx twoslash [src/ui.ts] filename="./ui.js"
 import { createSystem } from 'frog/ui'
 
-export const { Box, Heading, Text, VStack, tokens } = createSystem()
+export const { Box, Heading, Text, VStack, vars } = createSystem()
 ```
 
 :::

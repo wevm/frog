@@ -1,15 +1,14 @@
 import { Box, type BoxProps } from './Box.js'
 import { HStack, type HStackProps } from './HStack.js'
-import type { DefaultTokens, Tokens } from './tokens.js'
 import type { Fraction } from './types.js'
+import type { DefaultVars, Vars } from './vars.js'
 
-export type ColumnsProps<tokens extends Tokens = DefaultTokens> =
-  HStackProps<tokens>
+export type ColumnsProps<vars extends Vars = DefaultVars> = HStackProps<vars>
 
-export function Columns<tokens extends Tokens>({
+export function Columns<vars extends Vars>({
   children,
   ...rest
-}: ColumnsProps<tokens>) {
+}: ColumnsProps<vars>) {
   return (
     <HStack wrap={false} {...rest}>
       {children}
@@ -17,8 +16,8 @@ export function Columns<tokens extends Tokens>({
   )
 }
 
-export type ColumnProps<tokens extends Tokens = DefaultTokens> = Omit<
-  BoxProps<tokens>,
+export type ColumnProps<vars extends Vars = DefaultVars> = Omit<
+  BoxProps<vars>,
   'width'
 > & {
   /** Sets the width span of the column (in fractions). */
@@ -32,11 +31,11 @@ export type ColumnProps<tokens extends Tokens = DefaultTokens> = Omit<
     | Fraction<7>
 }
 
-export function Column<tokens extends Tokens>({
+export function Column<vars extends Vars>({
   children,
   width = '1/1',
   ...rest
-}: ColumnProps<tokens>) {
+}: ColumnProps<vars>) {
   const [numerator, denominator] = width.split('/')
 
   return (

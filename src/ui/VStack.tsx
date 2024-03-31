@@ -1,8 +1,8 @@
 import { Box, type BoxProps } from './Box.js'
-import type { DefaultTokens, Tokens } from './tokens.js'
+import type { DefaultVars, Vars } from './vars.js'
 
-export type VStackProps<tokens extends Tokens = DefaultTokens> = Pick<
-  BoxProps<tokens>,
+export type VStackProps<vars extends Vars = DefaultVars> = Pick<
+  BoxProps<vars>,
   | 'bottom'
   | 'children'
   | 'flex'
@@ -45,12 +45,12 @@ const alignVerticalToJustifyContent = {
   'space-between': 'space-between',
 } as const
 
-export function VStack<tokens extends Tokens>({
+export function VStack<vars extends Vars>({
   alignHorizontal,
   alignVertical,
   children,
   ...rest
-}: VStackProps<tokens>) {
+}: VStackProps<vars>) {
   return (
     <Box
       alignItems={

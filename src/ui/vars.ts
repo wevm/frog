@@ -1,7 +1,7 @@
 import type { Font } from '../types/frame.js'
 import type { icons } from './icons.js'
 
-export type Tokens = {
+export type Vars = {
   colors?: Record<string, string> | undefined
   fonts?: Record<string, Font[]> | undefined
   fontSizes?: Record<string, number> | undefined
@@ -218,7 +218,7 @@ export const colors = {
     pink900: '#c31562',
     pink1000: '#450522',
   },
-} as const satisfies Record<string, Tokens['colors']>
+} as const satisfies Record<string, Vars['colors']>
 
 export const units = {
   '0': 0,
@@ -260,7 +260,7 @@ export const units = {
   '192': 0.3,
   '224': 0.35,
   '256': 0.4,
-} as const satisfies Tokens['units']
+} as const satisfies Vars['units']
 
 export const fontSizes = {
   '12': units['12'],
@@ -272,9 +272,9 @@ export const fontSizes = {
   '32': units['32'],
   '48': units['48'],
   '64': units['64'],
-} as const satisfies Tokens['fontSizes']
+} as const satisfies Vars['fontSizes']
 
-export const defaultTokens = {
+export const defaultVars = {
   colors: colors.dark,
   fontSizes,
   frame: {
@@ -283,5 +283,5 @@ export const defaultTokens = {
   },
   icons: 'lucide',
   units,
-} as const satisfies Tokens
-export type DefaultTokens = typeof defaultTokens
+} as const satisfies Vars
+export type DefaultVars = typeof defaultVars

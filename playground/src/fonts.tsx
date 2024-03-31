@@ -1,8 +1,8 @@
 import { Frog } from 'frog'
-import { Heading, VStack, tokens } from './ui.js'
+import { Heading, VStack, vars } from './ui.js'
 
 export const app = new Frog({
-  tokens,
+  ui: { vars },
 }).frame('/', (c) => {
   return c.res({
     image: (

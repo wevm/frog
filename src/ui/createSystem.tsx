@@ -10,7 +10,7 @@ import { Row, Rows } from './Rows.js'
 import { Spacer } from './Spacer.js'
 import { Text } from './Text.js'
 import { VStack } from './VStack.js'
-import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
+import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 /**
  * Creates a UI System with optional theming tokens.
@@ -32,21 +32,21 @@ import { type DefaultTokens, type Tokens, defaultTokens } from './tokens.js'
  * })
  * ```
  */
-export function createSystem<tokens extends Tokens = DefaultTokens>(
-  tokens?: tokens | undefined,
+export function createSystem<vars extends Vars = DefaultVars>(
+  vars?: vars | undefined,
 ) {
-  const mergedTokens = {
-    ...defaultTokens,
-    ...tokens,
+  const mergedVars = {
+    ...defaultVars,
+    ...vars,
   }
 
-  type MergedTokens = Assign<DefaultTokens, tokens>
+  type MergedVars = Assign<DefaultVars, vars>
 
   function createComponent<
     const component extends (...args: any[]) => JSX.Element,
   >(Component: component): component {
     return ((props: Parameters<component>[0]) => (
-      <Component __context={{ tokens: mergedTokens }} {...(props as any)} />
+      <Component __context={{ vars: mergedVars }} {...(props as any)} />
     )) as component
   }
 
@@ -54,7 +54,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
     /**
      * The fundamental primitive component that includes style
      * properties (such as: `backgroundColor`, `border`,
-     * `padding`, and more), and corresponding tokens as values.
+     * `padding`, and more), and corresponding vars as values.
      *
      * By default, it renders a `div` element.
      *
@@ -67,7 +67,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/box
      */
-    Box: createComponent<typeof Box<MergedTokens>>(Box),
+    Box: createComponent<typeof Box<MergedVars>>(Box),
     /**
      * Renders children horizontally, with consistent spacing (if specified)
      * between them. Columns can also have a specific `width` value.
@@ -92,13 +92,13 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/columns
      */
-    Columns: createComponent<typeof Columns<MergedTokens>>(Columns),
+    Columns: createComponent<typeof Columns<MergedVars>>(Columns),
     /**
      * The child component of `Columns`.
      *
      * @see https://frog.fm/ui/columns
      */
-    Column: createComponent<typeof Column<MergedTokens>>(Column),
+    Column: createComponent<typeof Column<MergedVars>>(Column),
     /**
      * Renders a visual element that can be used to separate other content.
      *
@@ -114,7 +114,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/divider
      */
-    Divider: createComponent<typeof Divider<MergedTokens>>(Divider),
+    Divider: createComponent<typeof Divider<MergedVars>>(Divider),
     /**
      * Renders a heading element.
      *
@@ -123,7 +123,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/heading
      */
-    Heading: createComponent<typeof Heading<MergedTokens>>(Heading),
+    Heading: createComponent<typeof Heading<MergedVars>>(Heading),
     /**
      * Arranges child nodes horizontally, wrapping to multiple lines if needed,
      * with equal spacing between items.
@@ -138,7 +138,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/hstack
      */
-    HStack: createComponent<typeof HStack<MergedTokens>>(HStack),
+    HStack: createComponent<typeof HStack<MergedVars>>(HStack),
     /**
      * Renders a icon element.
      *
@@ -148,11 +148,11 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      * @see https://frog.fm/ui/icon
      */
     Icon: <
-      tokens extends MergedTokens,
-      collection extends Tokens['icons'] = DefaultTokens['icons'],
+      vars extends MergedVars,
+      collection extends Vars['icons'] = DefaultVars['icons'],
     >(
-      props: IconProps<tokens, collection>,
-    ) => <Icon __context={{ tokens: mergedTokens }} {...props} />,
+      props: IconProps<vars, collection>,
+    ) => <Icon __context={{ vars: mergedVars }} {...props} />,
     /**
      * Renders a image element.
      *
@@ -166,7 +166,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/image
      */
-    Image: createComponent<typeof Image<MergedTokens>>(Image),
+    Image: createComponent<typeof Image<MergedVars>>(Image),
     /**
      * Renders children vertically in equal-height rows by default,
      * with consistent spacing between them.
@@ -187,13 +187,13 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/rows
      */
-    Rows: createComponent<typeof Rows<MergedTokens>>(Rows),
+    Rows: createComponent<typeof Rows<MergedVars>>(Rows),
     /**
      * The child component of `Rows`.
      *
      * @see https://frog.fm/ui/rows
      */
-    Row: createComponent<typeof Row<MergedTokens>>(Row),
+    Row: createComponent<typeof Row<MergedVars>>(Row),
     /**
      * Adds spacing between nodes. If no size is specified,
      * it will span between the nodes.
@@ -203,7 +203,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/spacer
      */
-    Spacer: createComponent<typeof Spacer<MergedTokens>>(Spacer),
+    Spacer: createComponent<typeof Spacer<MergedVars>>(Spacer),
     /**
      * Renders a text element.
      *
@@ -212,7 +212,7 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/text
      */
-    Text: createComponent<typeof Text<MergedTokens>>(Text),
+    Text: createComponent<typeof Text<MergedVars>>(Text),
     /**
      * Arranges children vertically with equal spacing between them.
      *
@@ -226,11 +226,11 @@ export function createSystem<tokens extends Tokens = DefaultTokens>(
      *
      * @see https://frog.fm/ui/vstack
      */
-    VStack: createComponent<typeof VStack<MergedTokens>>(VStack),
+    VStack: createComponent<typeof VStack<MergedVars>>(VStack),
     /**
-     * The tokens object that includes all the UI tokens to be used
+     * The vars object that includes all the UI vars to be used
      * on the primitive components.
      */
-    tokens: mergedTokens,
+    vars: mergedVars,
   }
 }

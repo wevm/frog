@@ -1,8 +1,8 @@
 import { Box, type BoxProps } from './Box.js'
-import type { DefaultTokens, Tokens } from './tokens.js'
+import type { DefaultVars, Vars } from './vars.js'
 
-export type HStackProps<tokens extends Tokens = DefaultTokens> = Pick<
-  BoxProps<tokens>,
+export type HStackProps<vars extends Vars = DefaultVars> = Pick<
+  BoxProps<vars>,
   | 'bottom'
   | 'children'
   | 'flex'
@@ -47,13 +47,13 @@ const alignVerticalToAlignItems = {
   bottom: 'flex-end',
 } as const
 
-export function HStack<tokens extends Tokens>({
+export function HStack<vars extends Vars>({
   alignHorizontal = 'left',
   alignVertical = 'top',
   children,
   wrap = true,
   ...rest
-}: HStackProps<tokens>) {
+}: HStackProps<vars>) {
   return (
     <Box
       alignContent={wrap ? alignVerticalToAlignItems[alignVertical] : undefined}

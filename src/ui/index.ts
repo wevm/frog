@@ -1,2 +1,2 @@
 export { createSystem } from './createSystem.js'
-export { type Tokens, colors, defaultTokens, units } from './tokens.js'
+export { type Vars, colors, defaultVars, units } from './vars.js'

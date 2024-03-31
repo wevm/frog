@@ -1,6 +1,6 @@
 # UI System & Design Tokens
 
-FrogUI uses a systematic approach to building your user interface. It utilizes a design tokens
+FrogUI uses a systematic approach to building your user interface. It utilizes design variables
 to keep styling values constrained so you can focus on building consistent users interfaces.
 
 ::::note
@@ -18,10 +18,36 @@ managing color schemes (e.g. light and dark mode) trivial.
 ::::note
 :::details[What is a UI System?]
 The UI System is a collection of components and utilities that are built 
-using our defined Design Tokens. Design Tokens are the source of truth for our UI System.
+using our defined Design Tokens. Design Tokens are an input and the source of truth for our UI System.
 :::
 ::::
 
 ## UI System
+
+In FrogUI, the UI System is depicted via [`createSystem`](/ui/createSystem) and comprises of **Design Tokens as input**, 
+that provides **[Primitive Components](/ui/primitive-components) as output**. The properties of the components may accept the 
+provided Design Tokens as values (e.g. `backgroundColor="red400"` or `padding="8"`).
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+
+export const {
+  Box,
+  Columns,
+  Column,
+  Heading,
+  HStack,
+  Rows,
+  Row,
+  Spacer,
+  Text,
+  VStack,
+  vars,
+} = createSystem()
+```
+
+:::note
+By default, if no variables are passed to `createSystem`, the system will use FrogUI's default variables.
+:::
 
 ## Design Tokens

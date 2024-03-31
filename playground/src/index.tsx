@@ -2,7 +2,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
-import { Box, Heading, tokens } from './ui.js'
+import { Box, Heading, vars } from './ui.js'
 
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
@@ -14,7 +14,7 @@ import { app as uiSystemApp } from './ui-system.js'
 
 export const app = new Frog({
   hub: hubs.frog(),
-  tokens,
+  ui: { vars },
   verify: 'silent',
 })
   .frame('/', (c) => {
