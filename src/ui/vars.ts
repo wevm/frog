@@ -279,8 +279,8 @@ export const defaultVars = {
   colors: colors.dark,
   fontSizes,
   frame: {
-    height: 1200,
-    width: 630,
+    height: 630,
+    width: 1200,
   },
   icons: 'lucide',
   units,
