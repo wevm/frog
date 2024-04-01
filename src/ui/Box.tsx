@@ -233,9 +233,9 @@ function getBoxProps<vars extends Vars>({
   const width = resolveUnitToken(units, rest.width, vmax)
 
   const fontFamily = (() => {
-    if (!rest.fontFamily) return fonts?.default[0].name
+    if (!rest.fontFamily) return fonts?.default?.[0]?.name
     if (typeof rest.fontFamily === 'object') return rest.fontFamily.custom
-    return fonts?.[rest.fontFamily as any][0].name
+    return fonts?.[rest.fontFamily as any]?.[0]?.name
   })()
 
   const alignItems = (() => {
