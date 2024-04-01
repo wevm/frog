@@ -3,6 +3,8 @@ import { version } from '../src/package.json'
 import { getFrameMetadata } from '../src/utils/getFrameMetadata.js'
 
 export default defineConfig({
+  banner:
+    '💅 Introducing [FrogUI](/ui) – systematic & type-safe UI primitives for frame images.',
   description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
   async head({ path }) {
@@ -251,6 +253,10 @@ export default defineConfig({
       {
         text: 'Getting Started',
         link: '/getting-started',
+      },
+      {
+        text: 'FrogUI',
+        link: '/ui',
       },
       {
         text: 'Concepts',

@@ -8,8 +8,8 @@ On this page, we will guide you through the process of setting up a UI System fo
 
 ### Create your UI System
 
-Firstly, we will need to create our [UI System](#TODO) with `createSystem`. 
-The `createSystem` function takes in a [design variables](#TODO) object, and returns a set of primitive components to build our frame UI.
+Firstly, we will need to create our [UI System](/ui/ui-system) with `createSystem`. 
+The `createSystem` function takes in a [variables](/ui/ui-system#ui-variables) object, and returns a set of primitive components to build our frame UI.
 
 By default, if no variables are passed to `createSystem`, the system will use the default variables.
 
@@ -31,7 +31,7 @@ export const {
 } = createSystem()
 ```
 
-[Read more on UI System & Variables](#TODO) to learn how to customize the system.
+[Read more on UI System & Variables](/ui/ui-system) to learn how to customize the system.
 
 :::tip[Tip]
 You can also control the color scheme of the system by passing in a `colors` property to `createSystem`. Frog supports a `light` and `dark` color scheme.
@@ -90,7 +90,7 @@ export const { Box, Heading, Text, VStack, vars } = createSystem()
 
 :::
 
-[Read more on Primitive Components](#TODO) to learn about the available components and their properties.
+[Read more on Primitive Components](/ui/primitive-components) to learn about the available components and their properties.
 
 ### Done!
 
