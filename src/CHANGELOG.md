@@ -1,5 +1,11 @@
 # frog
 
+## 0.8.0
+
+### Minor Changes
+
+- [`c3e3290`](https://github.com/wevm/frog/commit/c3e3290c4bb37fece29ad402d00d4bc437dd577c) Thanks [@jxom](https://github.com/jxom)! - Added [FrogUI](https://frog.fm/ui).
+
 ## 0.7.16
 
 ### Patch Changes
