@@ -330,10 +330,6 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-#root {
-  @apply p-4 md:p-6;
-}
-
 a {
   color: inherit;
   text-decoration: none;

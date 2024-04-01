@@ -506,9 +506,10 @@ export class FrogBase<
       if (renderAsHTML) {
         const height = imageOptions?.height ?? 630
         const width = imageOptions?.width ?? 1200
+
         // Convert `tw` to `class`
-        const __html = image.toString().replace(/tw=/, 'class=')
-        // TODO: background-image with `url()` (mangled by Hono rendering currently)
+        const __html = image.toString().replace(/tw=/g, 'class=')
+
         const fonts = await (async () => {
           if (this.ui?.vars?.fonts)
             return Object.values(this.ui.vars.fonts).flat()
@@ -516,6 +517,7 @@ export class FrogBase<
           if (options?.fonts) return options.fonts
           return imageOptions?.fonts
         })()
+
         return c.html(
           <>
             <script src="https://cdn.tailwindcss.com" />
@@ -571,9 +573,10 @@ export class FrogBase<
             <style
               // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
               dangerouslySetInnerHTML={{
-                __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Material+Icons');body{display:flex;height:100%;margin:0;tab-size:8;font-family:Inter,sans-serif;overflow:hidden}body>div,body>div *{box-sizing:border-box;display:flex}body{background:#1A1A19;}`,
+                __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Material+Icons');body{display:flex;height:100%;margin:0;tab-size:8;font-family:Inter,sans-serif;overflow:hidden}body>div,body>div *{box-sizing:border-box;display:flex}body{background:#1A1A19;}link,script,style{position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0, 0, 0, 0);white-space: nowrap;border-width: 0;}`,
               }}
             />
+
             <div
               className="bg-black"
               // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
