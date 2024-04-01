@@ -442,47 +442,47 @@ export default defineConfig({
             },
             {
               text: 'Box',
-              link: '/ui/box',
+              link: '/ui/Box',
             },
             {
               text: 'Columns',
-              link: '/ui/columns',
+              link: '/ui/Columns',
             },
             {
               text: 'Divider',
-              link: '/ui/divider',
+              link: '/ui/Divider',
             },
             {
               text: 'Icon',
-              link: '/ui/icon',
+              link: '/ui/Icon',
             },
             {
               text: 'Image',
-              link: '/ui/image',
+              link: '/ui/Image',
             },
             {
               text: 'Heading',
-              link: '/ui/heading',
+              link: '/ui/Heading',
             },
             {
               text: 'HStack',
-              link: '/ui/hstack',
+              link: '/ui/HStack',
             },
             {
               text: 'Rows',
-              link: '/ui/rows',
+              link: '/ui/Rows',
             },
             {
               text: 'Spacer',
-              link: '/ui/spacer',
+              link: '/ui/Spacer',
             },
             {
               text: 'Text',
-              link: '/ui/text',
+              link: '/ui/Text',
             },
             {
               text: 'VStack',
-              link: '/ui/vstack',
+              link: '/ui/VStack',
             },
           ],
         },
