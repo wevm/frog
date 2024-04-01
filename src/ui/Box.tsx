@@ -164,8 +164,8 @@ function getBoxProps<vars extends Vars>({
   const { colors, fonts, frame, units } = (__context?.vars ??
     defaultVars) as Vars
 
-  const vheight = frame?.height ?? 1200
-  const vwidth = frame?.width ?? 630
+  const vheight = frame?.height ?? 630
+  const vwidth = frame?.width ?? 1200
   const vmax = Math.max(vwidth, vheight)
 
   const display = rest.display ?? 'flex'

@@ -27,12 +27,13 @@ export type FetchFrameParameters = {
     state: string | undefined
     transactionId: string | undefined
   }
+  headers?: HeadersInit | undefined
   privateKey: string | undefined
   url: string
 }
 
 export async function fetchFrame(parameters: FetchFrameParameters) {
-  const { body, privateKey, url } = parameters
+  const { body, headers, privateKey, url } = parameters
   const { buttonIndex, castId, fid, fromAddress, state, transactionId } = body
   const inputText = body.inputText ? body.inputText : undefined
 
@@ -93,8 +94,9 @@ export async function fetchFrame(parameters: FetchFrameParameters) {
     response = await fetch(url, {
       method: 'POST',
       headers: {
-        ...defaultHeaders,
         'Content-Type': 'application/json',
+        ...defaultHeaders,
+        ...headers,
       },
       body: JSON.stringify({
         untrustedData: {

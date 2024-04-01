@@ -1,5 +1,33 @@
 # frog
 
+## 0.7.16
+
+### Patch Changes
+
+- [#212](https://github.com/wevm/frog/pull/212) [`b5ccf51`](https://github.com/wevm/frog/commit/b5ccf518fa86b739d05ab0178e4f867bcec7d68d) Thanks [@dalechyn](https://github.com/dalechyn)! - Reverted changes introduced in 3d2f0014413abde5e6c76191c5cb44d5ecfa6e8c.
+
+- [#208](https://github.com/wevm/frog/pull/208) [`22bf324`](https://github.com/wevm/frog/commit/22bf3246703d6d3f1d34b3345915ba972b620e01) Thanks [@dalechyn](https://github.com/dalechyn)! - Added Ethereum Mainnet chain id. See https://warpcast.com/horsefacts.eth/0x7c69e9dd.
+
+## 0.7.15
+
+### Patch Changes
+
+- [#209](https://github.com/wevm/frog/pull/209) [`8ff91cb`](https://github.com/wevm/frog/commit/8ff91cb97cd2d501879fa32ec2341c5360c80cb9) Thanks [@dalechyn](https://github.com/dalechyn)! - Set `format` property to be `png` as warpcast does not support `svg+xml` content-type, which was the previously selected by default.
+
+- [#210](https://github.com/wevm/frog/pull/210) [`ffa7108`](https://github.com/wevm/frog/commit/ffa7108f210544dfad855381ff5bb9ad83c855fd) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed broken `<Button.Reset>` behaviour.
+
+## 0.7.14
+
+### Patch Changes
+
+- [#207](https://github.com/wevm/frog/pull/207) [`3d2f001`](https://github.com/wevm/frog/commit/3d2f0014413abde5e6c76191c5cb44d5ecfa6e8c) Thanks [@tmm](https://github.com/tmm)! - Fixed `<Button>` to use `post_url` internally instead of `target`.
+
+- [#187](https://github.com/wevm/frog/pull/187) [`15ece3a`](https://github.com/wevm/frog/commit/15ece3a6b35909be1a4644e2926ce9358bb9779c) Thanks [@ggomaeng](https://github.com/ggomaeng)! - Added attribution option to transaction parameters
+
+- [#206](https://github.com/wevm/frog/pull/206) [`365da14`](https://github.com/wevm/frog/commit/365da149e76bb46fe8a3b756f1d838e0364d3275) Thanks [@tmm](https://github.com/tmm)! - Added devtools support for transaction button post_url.
+
+- [#200](https://github.com/wevm/frog/pull/200) [`8b2398c`](https://github.com/wevm/frog/commit/8b2398cdb2300a9d288f35762ddf354faa8a1600) Thanks [@ggomaeng](https://github.com/ggomaeng)! - Prioritized devtools route over dynamic path if it exists.
+
 ## 0.7.13
 
 ### Patch Changes

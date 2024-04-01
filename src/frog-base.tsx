@@ -329,7 +329,10 @@ export class FrogBase<
         } = fromQuery<any>(c.req.query())
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
         return new ImageResponse(image_, {
+          width: 1200,
+          height: 630,
           ...imageOptions,
+          format: imageOptions?.format ?? 'png',
           fonts: await parseFonts(fonts),
           headers: imageOptions?.headers ?? headers,
         })

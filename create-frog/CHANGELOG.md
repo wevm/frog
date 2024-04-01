@@ -1,5 +1,11 @@
 # create-frog
 
+## 0.1.7
+
+### Patch Changes
+
+- [#32](https://github.com/wevm/frog/pull/32) [`d27259c`](https://github.com/wevm/frog/commit/d27259ce59fcca5e1c650947bd9d6987816d9257) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed incorrect url shown for `next` and `vercel` templates at the completion of `create-frog`.
+
 ## 0.1.6
 
 ### Patch Changes

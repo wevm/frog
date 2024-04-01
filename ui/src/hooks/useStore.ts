@@ -13,6 +13,10 @@ export function useData(): Data | undefined {
   return useStore((state) => state.dataMap[state.dataKey])
 }
 
+export function useDataKey(): string | undefined {
+  return useStore((state) => state.dataKey)
+}
+
 export function useFrame(): Data['frame'] | undefined {
   return useStore((state) => state.dataMap[state.dataKey]?.frame)
 }
