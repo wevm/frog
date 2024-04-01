@@ -26,7 +26,7 @@ export function App() {
 
   return (
     <div
-      className="flex flex-col container md:grid md:container gap-4 md:gap-6 mx-auto md:h-full"
+      className="flex flex-col container md:grid md:container gap-4 md:gap-6 h-auto mx-auto p-4 md:p-6"
       style={{
         maxWidth: '1512px',
       }}
