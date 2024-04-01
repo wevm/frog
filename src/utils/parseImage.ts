@@ -1,8 +1,8 @@
 import type { Child, JSXNode } from 'hono/jsx'
 
 import type { Frog } from '../frog.js'
-import { parsePath } from './parsePath.js'
 import type { Direction } from '../ui/types.js'
+import { parsePath } from './parsePath.js'
 
 export async function parseImage(
   node_: Child,
