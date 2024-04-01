@@ -1,0 +1,336 @@
+# UI System & Variables
+
+FrogUI uses a systematic approach to building your user interface. It utilizes design variables
+to keep styling values constrained so you can focus on building consistent users interfaces.
+
+::::note
+:::details[What is a UI System?]
+The **UI System** is a collection of components and utilities that are built 
+using our defined **UI Variables**. **UI Variables** are an input and the source of truth for our **UI System**.
+:::
+::::
+
+::::note
+:::details[What are UI Variables?]
+**UI Variables** are seen as semantic variables that map to a specific value, and are used on styling
+elements such as colors, typography, fonts, spacing, and more. 
+
+For example, a variable for a color could be a primary color (e.g. `"colors.primary"`), which maps to a given value (e.g. `"#007bff"`).
+
+By storing style-related values in a central location as **UI Variables**, this will allow your user interface to be consistent throughout your project, feel more unified and cohesive, and makes
+managing color schemes (e.g. light and dark mode) trivial. 
+:::
+::::
+
+## UI System
+
+In FrogUI, the UI System is depicted via [`createSystem`](/ui/createSystem) and comprises of **Variables as input**, 
+that provides **[Primitive Components](/ui/primitive-components) as output**. The properties of the components may accept the 
+provided Variables as values (e.g. `backgroundColor="red400"` or `padding="8"`).
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+
+export const {
+  Box,
+  Columns,
+  Column,
+  Heading,
+  HStack,
+  Rows,
+  Row,
+  Spacer,
+  Text,
+  VStack,
+  vars,
+} = createSystem()
+```
+
+:::note
+By default, if no variables are passed to `createSystem`, the system will use FrogUI's default variables.
+:::
+
+## UI Variables
+
+UI Variables are the source of truth for the UI System. They are used to define the styling property values for the [Primitive Components](/ui/primitive-components).
+
+The `createSystem` function accepts on object of variables. If no variables are passed to `createSystem`, FrogUI uses a default set of variables.
+
+Here is an example of how you can define your own variables:
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+
+export const {
+  // ...
+} = createSystem({
+  colors: { // [!code focus]
+    text: '#000000', // [!code focus]
+    background: '#ffffff', // [!code focus]
+    blue: '#0070f3', // [!code focus]
+    green: '#00ff00', // [!code focus]
+    red: '#ff0000', // [!code focus]
+    orange: '#ffaa00', // [!code focus]
+  }, // [!code focus]
+  fonts: { // [!code focus]
+    default: [ // [!code focus]
+      { // [!code focus]
+        name: 'Open Sans', // [!code focus]
+        source: 'google', // [!code focus]
+        weight: 400, // [!code focus]
+      }, // [!code focus]
+      { // [!code focus]
+        name: 'Open Sans', // [!code focus]
+        source: 'google', // [!code focus]
+        weight: 600, // [!code focus]
+      }, // [!code focus]
+    ], // [!code focus]
+    madimi: [ // [!code focus]
+      { // [!code focus]
+        name: 'Madimi One', // [!code focus]
+        source: 'google', // [!code focus]
+      }, // [!code focus]
+    ], // [!code focus]
+  }, // [!code focus]
+})
+```
+
+[See the Variables API.](/ui/createSystem#parameters)
+
+### Consume Variables
+
+UI Variables can be consumed by the Primitive Components. 
+
+The following table shows what variables are mapped to what style properties:
+
+| Variable                  | Property                                   |
+| ------------------------- | ------------------------------------------ |
+| [`colors`](#colors)       | `background`, `backgroundColor`, `borderColor`, `borderBottomColor`, `borderLeftColor`, `borderRightColor`, `borderTopColor`, `color` |
+| [`fonts`](#fonts)         | `fontFamily`                               |
+| [`fontSizes`](#fontsizes) | `fontSize`                                 |
+| [`icons`](#icons)         | `name` (`Icon` component)                  |
+| [`units`](#units)         | `borderBottomLeftRadius`, `borderBottomRightRadius`, `borderBottomWidth`, `borderLeftWidth`, `borderRadius`, `borderRightWidth`, `borderTopLeftRadius`, `borderTopRightRadius`, `borderTopWidth`, `borderWidth`, `bottom`, `height`, `gap`, `letterSpacing`, `lineHeight`, `margin`, `marginTop`, `marginBottom`, `marginLeft`, `marginRight`, `maxHeight`, `minHeight`, `maxWidth`, `minWidth`, `padding`, `paddingTop`, `paddingBottom`, `paddingLeft`, `paddingRight`, `right`, `top`, `width` |
+
+#### Colors
+
+The `colors` variable is used to constrain the available colors on color-based style properties (e.g. `backgroundColor`).
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem({
+  colors: {
+    black: '#000000',
+    blue100: '#cce4ff',
+    blue200: '#99ccff',
+    blue300: '#66b3ff',
+    blue400: '#3399ff',
+    blue500: '#0070f3',
+    blue600: '#005ce6',
+    blue700: '#0047cc',
+    blue800: '#0033b3',
+    blue900: '#001a99',
+  }
+})
+
+function Example() {
+  return (
+    <Box 
+      backgroundColor="blue500" 
+//                      ^|
+      height="48" 
+      width="48" 
+    />
+  )
+}
+
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ backgroundColor: 'blue', height: 48, width: 48 }} />
+</div>
+
+:::
+
+:::tip[Tip]
+You can utilize the `custom` property as an escape hatch to use raw values.
+
+```tsx 
+<Box backgroundColor={{ custom: '#ff0000' }}>
+  Hello World
+</Box>
+```
+:::
+
+#### Fonts
+
+The `fonts` variable is used to constrain the available fonts on the `fontFamily` style property.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem({
+  fonts: {
+    default: [
+      {
+        name: 'Open Sans',
+        source: 'google',
+        weight: 400,
+      },
+      {
+        name: 'Open Sans',
+        source: 'google',
+        weight: 600,
+      },
+    ],
+    madimi: [
+      {
+        name: 'Madimi One',
+        source: 'google',
+      },
+    ],
+  },
+})
+
+function Example() {
+  return (
+    <Box fontFamily="madimi">
+//                   ^|
+      Hello world
+    </Box>
+  )
+}
+```
+
+:::tip[Tip]
+You can utilize the `custom` property as an escape hatch to use raw values.
+
+```tsx 
+<Box fontFamily={{ custom: 'Times New Roman' }}>
+  Hello World
+</Box>
+```
+:::
+
+#### Font Sizes
+
+The `fontSizes` variable is used to constrain the available font sizes on the `fontSize` style property.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box, Text } = createSystem({
+  fontSizes: {
+    small: 0.01,
+    medium: 0.02,
+    large: 0.03,
+  }
+})
+
+function Example() {
+  return (
+    <Box fontSize="small">
+//                 ^|
+      Hello world
+    </Box>
+  )
+}
+```
+
+:::tip[Tip]
+You can utilize the `custom` property as an escape hatch to use raw values.
+
+```tsx 
+<Box fontSize={{ custom: '12px' }}>
+  Hello World
+</Box>
+```
+:::
+
+
+#### Icons
+
+The `icons` variable is used to set the icon collection for the [`<Icon>` component](/ui/icon).
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem({
+  icons: 'lucide',
+})
+
+function Example() {
+  return <Icon name="zap" />
+  //           ^?
+}
+
+
+
+
+
+
+```
+
+#### Units
+
+The `units` variable is used to constrain the available units on spacing-based style properties (e.g. `spacing`).
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box, Text } = createSystem({
+  units: { 
+    small: 0.01, 
+    medium: 0.02, 
+    large: 0.03, 
+  } 
+})
+
+function Example() {
+  return (
+    <Box padding="small">
+//                ^|
+      Hello world
+    </Box>
+  )
+}
+```
+
+:::tip[Tip]
+You can utilize the `custom` property as an escape hatch to use raw values.
+
+```tsx 
+<Box padding={{ custom: 'Times New Roman' }}>
+  Hello World
+</Box>
+```
+:::
+
+### Light & Dark Mode
+
+FrogUI supports light and dark mode out of the box by providing color palettes for both modes via a `colors` export.
+
+```tsx twoslash
+import { colors, createSystem } from 'frog/ui'
+
+export const {
+  // ...
+} = createSystem({
+  colors: colors.light
+})
+```

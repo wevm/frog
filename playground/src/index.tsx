@@ -2,6 +2,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
+import { Box, Heading, vars } from './ui.js'
 
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
@@ -9,9 +10,11 @@ import { app as neynarApp } from './neynar.js'
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
 import { app as transactionApp } from './transaction.js'
+import { app as uiSystemApp } from './ui-system.js'
 
 export const app = new Frog({
   hub: hubs.frog(),
+  ui: { vars },
   verify: 'silent',
 })
   .frame('/', (c) => {
@@ -20,40 +23,22 @@ export const app = new Frog({
     return c.res({
       action: '/action',
       image: (
-        <div
-          tw="flex"
-          style={{
-            alignItems: 'center',
-            background:
-              status === 'response'
-                ? 'linear-gradient(to right, #432889, #17101F)'
-                : 'black',
-            backgroundSize: '100% 100%',
-            flexDirection: 'column',
-            flexWrap: 'nowrap',
-            height: '100%',
-            justifyContent: 'center',
-            textAlign: 'center',
-            width: '100%',
-          }}
+        <Box
+          grow
+          background={
+            status === 'response'
+              ? { custom: 'linear-gradient(to right, #432889, #17101F)' }
+              : 'background'
+          }
+          alignHorizontal="center"
+          alignVertical="center"
         >
-          <div
-            style={{
-              color: 'white',
-              fontSize: 60,
-              fontStyle: 'normal',
-              letterSpacing: '-0.025em',
-              lineHeight: 1.4,
-              marginTop: 30,
-              padding: '0 120px',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
+          <Heading>
             {status === 'response'
               ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
               : 'Welcome :)'}
-          </div>
-        </div>
+          </Heading>
+        </Box>
       ),
       intents: [
         <TextInput placeholder="Enter custom fruit" />,
@@ -70,20 +55,14 @@ export const app = new Frog({
     return c.res({
       action: '/',
       image: (
-        <div
-          style={{
-            backgroundColor: '#1E1E4C',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 60,
-            width: '100%',
-            height: '100%',
-          }}
+        <Box
+          grow
+          background="blue100"
+          alignHorizontal="center"
+          alignVertical="center"
         >
-          Yuck! {fruit}! Enter another one.
-        </div>
+          <Heading>Yuck! {fruit}! Enter another one.</Heading>
+        </Box>
       ),
       intents: [
         <Button value="watermelon">Watermelon</Button>,
@@ -94,21 +73,8 @@ export const app = new Frog({
     })
   })
   .frame('/buttons', (c) => {
-    const { buttonValue } = c
     return c.res({
-      image: (
-        <div
-          style={{
-            backgroundColor: '#2D2D2D',
-            display: 'flex',
-            fontSize: 60,
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          {buttonValue ?? ''}
-        </div>
-      ),
+      image: <Box grow backgroundColor="red" />,
       intents: [
         <Button.Redirect location="http://github.com/honojs/vite-plugins/tree/main/packages/dev-server">
           Redirect
@@ -123,23 +89,13 @@ export const app = new Frog({
   })
   .frame('/no-intents', (c) => {
     return c.res({
-      image: (
-        <div
-          style={{ backgroundColor: 'green', width: '100%', height: '100%' }}
-        >
-          foo
-        </div>
-      ),
+      image: <Box grow backgroundColor="red" />,
       imageAspectRatio: '1:1',
     })
   })
   .frame('/falsy-intents', (c) => {
     return c.res({
-      image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
-          foo
-        </div>
-      ),
+      image: <Box grow backgroundColor="red" />,
       intents: [
         null,
         undefined,
@@ -164,9 +120,9 @@ export const app = new Frog({
     const { buttonValue } = c
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        <Box grow backgroundColor="red">
           {buttonValue ?? 'foo'}
-        </div>
+        </Box>
       ),
       intents: [
         <Button action="/" value="hello again">
@@ -185,9 +141,9 @@ export const app = new Frog({
     const { buttonValue } = c
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        <Box grow backgroundColor="red">
           {buttonValue ?? 'foo'}
-        </div>
+        </Box>
       ),
       intents: [
         <Button action="/button-action" value="back">
@@ -199,9 +155,9 @@ export const app = new Frog({
   .frame('/image-only', (c) => {
     return c.res({
       image: (
-        <div style={{ backgroundColor: 'red', width: '100%', height: '100%' }}>
+        <Box grow backgroundColor="red">
           foo
-        </div>
+        </Box>
       ),
     })
   })
@@ -221,6 +177,7 @@ export const app = new Frog({
       ],
     })
   })
+  .route('/ui', uiSystemApp)
   .route('/fonts', fontsApp)
   .route('/middleware', middlewareApp)
   .route('/neynar', neynarApp)

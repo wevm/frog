@@ -1,0 +1,331 @@
+import * as React from 'react'
+
+# Box
+
+The fundamental primitive component that includes styling utility properties, and corresponding [design variables](/ui/ui-system) as values.
+     
+By default, it renders a `div` element.
+
+## Usage
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box // [!code focus]
+      backgroundColor="red" // [!code focus]
+      //                ^|
+      borderRadius="8" // [!code focus]
+      height="48" // [!code focus]
+      width="48" // [!code focus]
+    /> // [!code focus]
+  )
+}
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ backgroundColor: 'red', borderRadius: 8, width: 48, height: 48 }} />
+</div>
+
+:::
+
+## Style Properties
+
+The `Box` component accepts **Style Properties** (ie. properties of a div `style`).
+
+Below are some examples of the most common style properties that can be used with the `Box` component.
+
+### Layout
+
+`Box` accepts the following layout style properties:
+
+- `alignContent`
+- `alignItems`
+- `alignSelf`
+- `display`
+- `flex`
+- `flexBasis`
+- `flexDirection`
+- `flexShrink`
+- `flexWrap`
+- `gap`
+- `grow`
+- `justifyContent`
+- `overflow`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box grow flexDirection="row" gap="8">
+      <Box backgroundColor="red" flex="1" />
+      <Box backgroundColor="red" flex="1" />
+    </Box>
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', flexDirection: 'row', height: '50px', gap: 8 }}>
+    <div style={{ backgroundColor: 'red', flex: 1, height: '100%' }} />
+    <div style={{ backgroundColor: 'red', flex: 1, height: '100%' }} />
+  </div>
+</div>
+
+:::
+
+:::tip[Tip]
+The `grow` property spans the component to fill the available space in the direction of the flex container. This can be very useful when building frame templates.
+:::
+
+### Alignment
+
+`Box` accepts the following alignment style properties:
+
+- `alignHorizontal`
+- `alignVertical`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box 
+      grow 
+      alignHorizontal="center" // [!code focus]
+      alignVertical="center" // [!code focus]
+//                   ^|
+    >
+      <Box backgroundColor="red" height="20" width="20" />
+    </Box>
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100px' }}>
+    <div style={{ backgroundColor: 'red', height: 20, width: 20 }} />
+  </div>
+</div>
+
+:::
+
+### Borders
+
+`Box` accepts the following border style properties:
+
+- `borderBottom`
+- `borderBottom{Color|LeftRadius|RightRadius|Style|Width}`
+- `borderColor`
+- `borderLeft`
+- `borderLeft{Color|Style|Width}`
+- `borderStyle`
+- `borderRadius`
+- `borderRight`
+- `borderRight{Color|Style|Width}`
+- `borderTop`
+- `borderTop{Color|LeftRadius|RightRadius|Style|Width}`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box 
+      borderStyle="solid" 
+      borderRadius="8"
+      borderWidth="2" 
+      borderColor="red" 
+//                  ^|
+      height="48" 
+      width="48" 
+    />
+  )
+}
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ borderColor: 'red', borderWidth: 2, borderRadius: 8, borderStyle: 'solid', height: 48, width: 48 }} />
+</div>
+
+:::
+
+### Colors
+
+`Box` accepts the following color style properties:
+
+- `backgroundColor`
+- `borderColor`
+- `color`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box 
+      backgroundColor="blue" 
+//                      ^|
+      height="48" 
+      width="48" 
+    />
+  )
+}
+
+
+
+
+```
+
+<div data-title="Preview">
+  <div style={{ backgroundColor: 'blue', height: 48, width: 48 }} />
+</div>
+
+:::
+
+### Font & Text
+
+`Box` accepts the following font & text style properties:
+
+- `fontFamily`
+- `fontSize`
+- `fontStyle`
+- `fontWeight`
+- `textAlign`
+- `textDecoration`
+- `textOverflow`
+- `textTransform`
+- `textShadow`
+- `textWrap`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box fontSize="48" textAlign="center">
+//                                ^|
+      Hello world
+    </Box>
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ fontSize: 48, textAlign: 'center' }}>Hello world</div>
+</div>
+
+:::
+
+### Height & Width
+
+`Box` accepts the following font & text style properties:
+
+- `height`
+- `maxHeight`
+- `maxWidth`
+- `minHeight`
+- `minWidth`
+- `width`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box backgroundColor="red" height="48" width="48" />
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ backgroundColor: 'red', height: 48, width: 48 }} />
+</div>
+
+:::
+
+### Paddings
+
+`Box` accepts the following font & text style properties:
+
+- `padding`
+- `paddingBottom`
+- `paddingLeft`
+- `paddingRight`
+- `paddingTop`
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box } = createSystem()
+
+function Example() {
+  return (
+    <Box padding="48">
+      <Box backgroundColor="red" height="48" width="48" />
+    </Box>
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ padding: 48 }}>
+    <div style={{ backgroundColor: 'red', height: 48, width: 48 }} />
+  </div>
+</div>
+
+:::
+

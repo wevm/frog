@@ -1,0 +1,254 @@
+# createSystem
+
+Creates a [UI System](/ui/ui-system) with optional [UI Variables](/ui/ui-system#ui-variables).
+
+## Import
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+```
+
+## Usage
+
+```tsx twoslash [src/ui.ts]
+import { createSystem } from 'frog/ui'
+
+export const {
+  Box,
+  Columns,
+  Column,
+  Divider,
+  Heading,
+  HStack,
+  Icon,
+  Image,
+  Rows,
+  Row,
+  Spacer,
+  Text,
+  VStack,
+  vars,
+} = createSystem()
+```
+
+## Parameters (Variables)
+
+### colors
+
+- **Type:** `Record<string, string>`
+- **Default:** `colors.dark`
+
+A map of color variables. The keys of these variables can be used as values to 
+color-based style properties such as `color`, `backgroundColor`, `borderColor`, etc
+on components.
+
+By default, it uses the built-in FrogUI colors.
+
+```tsx twoslash
+// @noErrors
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const { Box } = createSystem({
+  colors: { // [!code focus]
+    text: '#000000', // [!code focus]
+    background: '#ffffff', // [!code focus]
+    blue: '#0070f3', // [!code focus]
+    green: '#00ff00', // [!code focus]
+    red: '#ff0000', // [!code focus]
+    orange: '#ffaa00', // [!code focus]
+  }
+})
+
+function Example() {
+  return <Box backgroundColor="  // [!code focus]
+//                             ^|
+}
+
+
+
+```
+
+### fonts
+
+- **Type:** `Record<string, Font[]>`
+
+A map of font variables. The keys of these variables will be used as values to the `fontFamily` property on components.
+
+```tsx twoslash
+// @noErrors
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const { Box } = createSystem({
+  fonts: {
+    default: [ // [!code focus]
+      { // [!code focus]
+        name: 'Open Sans', // [!code focus]
+        source: 'google', // [!code focus]
+        weight: 400, // [!code focus]
+      }, // [!code focus]
+      { // [!code focus]
+        name: 'Open Sans', // [!code focus]
+        source: 'google', // [!code focus]
+        weight: 600, // [!code focus]
+      }, // [!code focus]
+    ], // [!code focus]
+    madimi: [ // [!code focus]
+      { // [!code focus]
+        name: 'Madimi One', // [!code focus]
+        source: 'google', // [!code focus]
+      }, // [!code focus]
+    ], // [!code focus]
+  }, // [!code focus]
+})
+
+function Example() {
+  return <Box fontFamily="  // [!code focus]
+//                        ^|
+}
+
+```
+
+### fontSizes
+
+- **Type:** `Record<string, number>`
+- **Default:** `fontSizes`
+
+A map of font size variables. The keys of these variables will be used as values to the `fontSize` property on components.
+
+The values are relative to the dimensions of the frame (e.g. `0.01` is 1% of the larger frame dimension).
+
+By default, it uses the built-in FrogUI font size variables.
+
+```tsx twoslash
+// @noErrors
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const { Box } = createSystem({
+  fontSizes: { // [!code focus]
+    small: 0.01875, // [!code focus]
+    medium: 0.03125, // [!code focus]
+    large: 0.04375, // [!code focus]
+  } // [!code focus]
+})
+
+function Example() {
+  return <Box fontSize="  // [!code focus]
+//                      ^|
+}
+
+```
+
+### frame
+
+- **Type:** `{ height?: number, width?: number }`
+- **Default:** `inferred`
+
+The dimensions of the frame. If not specified, then it will
+be inferred from the `Frog` instance.
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const system = createSystem({
+  frame: { // [!code focus]
+    height: 1024, // [!code focus]
+    width: 1024, // [!code focus]
+  } // [!code focus]
+})
+```
+
+### icons
+
+- **Type:** `'heroicons' | 'lucide' | 'radix-icons'`
+- **Default:** `'lucide'`
+
+Icon collection to use for resolving icons. The following collections are available:
+
+- [Heroicons](https://heroicons.com)
+- [Lucide](https://lucide.dev)
+- [Radix Icons](https://www.radix-ui.com/icons)
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const system = createSystem({
+  icons: 'lucide', // [!code focus]
+})
+```
+
+See [Icon](/ui/icon) for more information on using icons.
+
+### units
+
+- **Type:** `Record<string, number>`
+
+A map of unit variables. The keys of these variables will be used as values to the unit-based properties (`padding`, `margin`, `borderWidth`, etc) properties on components.
+
+The values are relative to the dimensions of the frame (e.g. `0.01` is 1% of the larger frame dimension).
+
+By default, it uses the built-in FrogUI unit variables.
+
+```tsx twoslash
+// @noErrors
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const { Box } = createSystem({
+  units: { // [!code focus]
+    small: 0.01, // [!code focus]
+    medium: 0.02, // [!code focus]
+    large: 0.03, // [!code focus]
+  } // [!code focus]
+})
+
+function Example() {
+  return <Box padding="  // [!code focus]
+//                     ^|
+}
+
+```
+
+## Returns
+
+### Box
+
+The [Box](/ui/box) component.
+
+### Columns
+
+The [Columns](/ui/columns) component.
+
+### Divider
+
+The [Divider](/ui/divider) component.
+
+### Icon
+
+The [Icon](/ui/icon) component.
+
+### Image
+
+The [Image](/ui/image) component.
+
+### Heading
+
+The [Heading](/ui/heading) component.
+
+### HStack
+
+The [HStack](/ui/hstack) component.
+
+### Rows
+
+The [Rows](/ui/rows) component.
+
+### Text
+
+The [Text](/ui/text) component.
+
+### VStack
+
+The [VStack](/ui/vstack) component.
+
+### vars
+
+An object containing the [UI Variables](/ui/ui-system#ui-variables) used by the system.

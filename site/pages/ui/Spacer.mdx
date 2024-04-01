@@ -1,0 +1,87 @@
+import * as React from 'react'
+
+# Spacer
+
+Adds spacing between nodes. If no size is specified, it will span between the nodes.
+
+## Usage
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Box, Spacer } = createSystem()
+
+function Example() {
+  return (
+    <Box gap="8" grow> 
+      <Box backgroundColor="red" height="20" width="100%" /> 
+      <Spacer /> // [!code focus]
+      <Box backgroundColor="red" height="20" width="100%" /> 
+      <Spacer size="20" /> // [!code focus]
+      <Box backgroundColor="red" height="20" width="100%" /> 
+    </Box> 
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '200px' }}>
+    <div style={{ backgroundColor: 'red', height: '20px' }} />
+    <div style={{ flex: 1 }} />
+    <div style={{ backgroundColor: 'red', height: '20px' }} />
+    <div style={{ height: '20px' }} />
+    <div style={{ backgroundColor: 'red', height: '20px' }} />
+  </div>
+</div>
+
+:::
+
+## `Spacer` Properties
+
+### `size`
+
+Spacing size.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Box, Spacer } = createSystem()
+
+function Example() {
+  return (
+    <Box gap="8" grow> 
+      <Box backgroundColor="red" height="20" width="100%" /> 
+// ---cut---
+<Spacer size="20" /> // [!code focus]
+//            ^|
+
+
+
+
+
+
+// ---cut-after---
+      <Box backgroundColor="red" height="20" width="100%" /> 
+    </Box> 
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ backgroundColor: 'red', height: '20px' }} />
+    <div style={{ height: '20px' }} />
+    <div style={{ backgroundColor: 'red', height: '20px' }} />
+    <div style={{ height: '20px' }} />
+    <div style={{ backgroundColor: 'red', height: '20px' }} />
+  </div>
+</div>
+
+:::
