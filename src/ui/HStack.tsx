@@ -68,3 +68,4 @@ export function HStack<vars extends Vars>({
     </Box>
   )
 }
+HStack.direction = 'vertical'

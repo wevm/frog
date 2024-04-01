@@ -69,3 +69,4 @@ export function VStack<vars extends Vars>({
     </Box>
   )
 }
+VStack.direction = 'horizontal'

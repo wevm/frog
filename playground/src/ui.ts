@@ -4,6 +4,7 @@ export const {
   Box,
   Columns,
   Column,
+  Divider,
   Heading,
   HStack,
   Icon,

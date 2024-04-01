@@ -172,3 +172,5 @@ export type Fraction<denominator extends number> = `${Range<1, denominator> &
   number}/${denominator}`
 
 export type ValueOf<T> = T[keyof T]
+
+export type Direction = 'horizontal' | 'vertical'

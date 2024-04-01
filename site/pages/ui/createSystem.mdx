@@ -17,8 +17,11 @@ export const {
   Box,
   Columns,
   Column,
+  Divider,
   Heading,
   HStack,
+  Icon,
+  Image,
   Rows,
   Row,
   Spacer,
@@ -153,6 +156,27 @@ export const system = createSystem({
   } // [!code focus]
 })
 ```
+
+### icons
+
+- **Type:** `'heroicons' | 'lucide' | 'radix-icons'`
+- **Default:** `'lucide'`
+
+Icon collection to use for resolving icons. The following collections are available:
+
+- [Heroicons](https://heroicons.com)
+- [Lucide](https://lucide.dev)
+- [Radix Icons](https://www.radix-ui.com/icons)
+
+```tsx twoslash
+import { createSystem } from 'frog/ui'
+// ---cut---
+export const system = createSystem({
+  icons: 'lucide', // [!code focus]
+})
+```
+
+See [Icon](/ui/icon) for more information on using icons.
 
 ### units
 

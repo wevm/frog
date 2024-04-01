@@ -7,6 +7,17 @@ It is a **systematic & type-safe alternative** to styling components using the T
 Create your [UI System](/ui/ui-system) with optional [variables](/ui/ui-system#ui-variables), and build your frames with [Primitive Components](/ui/primitive-components).
 
 :::code-group
+<div data-title="Preview">
+  <div style={{ justifyContent: 'center', backgroundColor: 'var(--vocs-color_backgroundDark)', display: 'flex', flexDirection: 'column', gap: 8, padding: 32, width: 600, height: 310 }}>
+    <div style={{ color: 'var(--vocs-color_heading)', fontSize: 32, fontWeight: '600', letterSpacing: '-0.25px' }}>Frog UI 🐸</div>
+    <div style={{ color: 'var(--vocs-color_text3)', fontSize: 18 }}>Build consistent frame experiences</div>
+  </div>
+</div>
+```tsx
+```
+:::
+
+:::code-group
 
 ```tsx twoslash [index.ts]
 // @noErrors
@@ -50,12 +61,4 @@ import { createSystem } from 'frog/ui'
 
 export const { Box, Heading, Text, VStack, vars } = createSystem()
 ```
-
-<div data-title="Preview">
-  <div style={{ justifyContent: 'center', backgroundColor: 'var(--vocs-color_backgroundDark)', display: 'flex', flexDirection: 'column', gap: 8, padding: 32, width: 600, height: 310 }}>
-    <div style={{ color: 'var(--vocs-color_heading)', fontSize: 32, fontWeight: '600', letterSpacing: '-0.25px' }}>Frog UI 🐸</div>
-    <div style={{ color: 'var(--vocs-color_text3)', fontSize: 18 }}>Build consistent frame experiences</div>
-  </div>
-</div>
-
 :::

@@ -15,6 +15,7 @@ export function Columns<vars extends Vars>({
     </HStack>
   )
 }
+Columns.direction = 'vertical'
 
 export type ColumnProps<vars extends Vars = DefaultVars> = Omit<
   BoxProps<vars>,
@@ -48,3 +49,4 @@ export function Column<vars extends Vars>({
     </Box>
   )
 }
+Column.direction = 'vertical'

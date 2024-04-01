@@ -103,13 +103,13 @@ UI Variables can be consumed by the Primitive Components.
 
 The following table shows what variables are mapped to what style properties:
 
-| Variable | Property
-| --- | --- |
-| `colors` | `background`, `backgroundColor`, `borderColor`, `borderBottomColor`, `borderLeftColor`, `borderRightColor`, `borderTopColor`, `color` |
-| `fonts` | `fontFamily` |
-| `fontSizes` | `fontSize` |
-| `icons` | `name` (`Icon` component) |
-| `units` | `borderBottomLeftRadius`, `borderBottomRightRadius`, `borderBottomWidth`, `borderLeftWidth`, `borderRadius`, `borderRightWidth`, `borderTopLeftRadius`, `borderTopRightRadius`, `borderTopWidth`, `borderWidth`, `bottom`, `height`, `gap`, `letterSpacing`, `lineHeight`, `margin`, `marginTop`, `marginBottom`, `marginLeft`, `marginRight`, `maxHeight`, `minHeight`, `maxWidth`, `minWidth`, `padding`, `paddingTop`, `paddingBottom`, `paddingLeft`, `paddingRight`, `right`, `top`, `width` |
+| Variable                  | Property                                   |
+| ------------------------- | ------------------------------------------ |
+| [`colors`](#colors)       | `background`, `backgroundColor`, `borderColor`, `borderBottomColor`, `borderLeftColor`, `borderRightColor`, `borderTopColor`, `color` |
+| [`fonts`](#fonts)         | `fontFamily`                               |
+| [`fontSizes`](#fontsizes) | `fontSize`                                 |
+| [`icons`](#icons)         | `name` (`Icon` component)                  |
+| [`units`](#units)         | `borderBottomLeftRadius`, `borderBottomRightRadius`, `borderBottomWidth`, `borderLeftWidth`, `borderRadius`, `borderRightWidth`, `borderTopLeftRadius`, `borderTopRightRadius`, `borderTopWidth`, `borderWidth`, `bottom`, `height`, `gap`, `letterSpacing`, `lineHeight`, `margin`, `marginTop`, `marginBottom`, `marginLeft`, `marginRight`, `maxHeight`, `minHeight`, `maxWidth`, `minWidth`, `padding`, `paddingTop`, `paddingBottom`, `paddingLeft`, `paddingRight`, `right`, `top`, `width` |
 
 #### Colors
 
@@ -257,6 +257,32 @@ You can utilize the `custom` property as an escape hatch to use raw values.
 </Box>
 ```
 :::
+
+
+#### Icons
+
+The `icons` variable is used to set the icon collection for the [`<Icon>` component](/ui/icon).
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem({
+  icons: 'lucide',
+})
+
+function Example() {
+  return <Icon name="zap" />
+  //           ^?
+}
+
+
+
+
+
+
+```
 
 #### Units
 

@@ -5,6 +5,7 @@ import {
   Box,
   Column,
   Columns,
+  Divider,
   HStack,
   Heading,
   Icon,
@@ -75,6 +76,40 @@ export const app = new Frog({
       intents: [
         <Button action="/">←</Button>,
         <Button action="/heading">→</Button>,
+      ],
+    })
+  })
+  .frame('/divider', (c) => {
+    return c.res({
+      image: (
+        <Box backgroundColor="background" grow padding="24">
+          <VStack gap="4" grow>
+            <Heading>{'<Divider>'}</Heading>
+            <Spacer size="16" />
+            <Box backgroundColor="background200" grow padding="16">
+              <Box backgroundColor="red" />
+              <Columns gap="8" grow>
+                <Column backgroundColor="red" width="1/2" />
+                <Divider />
+                <Rows gap="8" grow>
+                  <Row backgroundColor="red" height="1/3" />
+                  <Divider />
+                  <Row backgroundColor="red" height="2/3" padding="16">
+                    <HStack height="100%" gap="16">
+                      <Box backgroundColor="blue" width="38" height="100%" />
+                      <Divider />
+                      <Box backgroundColor="blue" width="38" height="100%" />
+                    </HStack>
+                  </Row>
+                </Rows>
+              </Columns>
+            </Box>
+          </VStack>
+        </Box>
+      ),
+      intents: [
+        <Button action="/columns">←</Button>,
+        <Button action="/hstack">→</Button>,
       ],
     })
   })

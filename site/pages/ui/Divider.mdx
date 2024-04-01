@@ -15,21 +15,25 @@ When contained in a stack, the divider extends across the minor axis of the stac
 // ---cut---
 import { createSystem } from 'frog/ui'
 
-const { Box, Divider, HStack } = createSystem()
+const { Divider, Row, Rows } = createSystem()
 
 function Example() {
   return (
-    <HStack gap="8">
-      <Box backgroundColor="red" height="100%" />
-      <Divider />
-      <Box backgroundColor="red" height="100%" />
-    </HStack>
+    <Rows gap="8" grow> 
+      <Row backgroundColor="red" height="1/2" />
+      <Divider /> // [!code focus]
+      <Row backgroundColor="red" height="1/2" />
+    </Rows>
   )
 }
 ```
 
 <div data-title="Preview">
-  <div />
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '200px' }}>
+    <div style={{ backgroundColor: 'red', flex: 1 }} />
+    <div style={{ backgroundColor: 'rgba(255,255,255,0.5)', height: '1px' }} />
+    <div style={{ backgroundColor: 'red', flex: 1 }} />
+  </div>
 </div>
 
 :::
@@ -38,4 +42,80 @@ function Example() {
 
 ### `color`
 
-Sets the color of the divider.
+Sets the color of the divider. Defaults to `{ custom: 'rgba(255,255,255,0.5)' }`.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Divider, Row, Rows } = createSystem()
+
+function Example() {
+  return (
+    <Rows gap="8" grow> 
+      <Row backgroundColor="red" height="1/2" />
+// ---cut---
+<Divider color="red" /> // [!code focus]
+//               ^|
+
+
+
+
+
+
+// ---cut-after---
+      <Row backgroundColor="red" height="1/2" />
+    </Rows>
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '200px' }}>
+    <div style={{ backgroundColor: 'red', flex: 1 }} />
+    <div style={{ backgroundColor: 'red', height: '1px' }} />
+    <div style={{ backgroundColor: 'red', flex: 1 }} />
+  </div>
+</div>
+
+:::
+
+### `direction`
+
+Sets the direction of the divider. Defaults to `'auto'`.
+
+:::code-group
+
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Divider, Row, Rows } = createSystem()
+
+function Example() {
+  return (
+    <Rows gap="8" grow> 
+      <Row backgroundColor="red" height="1/2" />
+// ---cut---
+<Divider direction="auto" /> // [!code focus]
+//                  ^|
+
+// ---cut-after---
+      <Row backgroundColor="red" height="1/2" />
+    </Rows>
+  )
+}
+```
+
+<div data-title="Preview">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, height: '200px' }}>
+    <div style={{ backgroundColor: 'red', flex: 1 }} />
+    <div style={{ backgroundColor: 'rgba(255,255,255,0.5)', height: '1px' }} />
+    <div style={{ backgroundColor: 'red', flex: 1 }} />
+  </div>
+</div>
+
+:::
+

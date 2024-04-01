@@ -1,6 +1,6 @@
 import type { Child } from 'hono/jsx'
 
-import type { SatoriStyleProperties, ValueOf } from './types.js'
+import type { Direction, SatoriStyleProperties, ValueOf } from './types.js'
 import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 export type VariableValue<property extends keyof SatoriStyleProperties, token> =
@@ -58,7 +58,9 @@ export type BoxProps<vars extends Vars = DefaultVars> = Omit<
   | 'top'
   | 'width'
 > & {
-  __context?: { vars?: Vars | undefined } | undefined
+  __context?:
+    | { direction?: Direction | undefined; vars?: Vars | undefined }
+    | undefined
   alignHorizontal?: 'left' | 'center' | 'right' | 'space-between'
   alignVertical?: 'top' | 'center' | 'bottom' | 'space-between'
   background?: VariableValue<'backgroundColor', keyof vars['colors']>

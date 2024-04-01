@@ -15,6 +15,7 @@ export function Rows<vars extends Vars>({
     </VStack>
   )
 }
+Rows.direction = 'horizontal'
 
 export type RowProps<vars extends Vars = DefaultVars> = Omit<
   BoxProps<vars>,
@@ -44,3 +45,4 @@ export function Row<vars extends Vars>({
     </Box>
   )
 }
+Row.direction = 'horizontal'
