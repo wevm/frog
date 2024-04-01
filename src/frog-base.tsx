@@ -519,6 +519,36 @@ export class FrogBase<
           if (options?.fonts) return options.fonts
           return imageOptions?.fonts
         })()
+        const groupedFonts = new Map<string, NonNullable<typeof fonts>>()
+        if (fonts)
+          for (const font of fonts) {
+            const key = `${font.source ? `${font.source}:` : ''}${font.name}`
+            if (groupedFonts.has(key)) groupedFonts.get(key)?.push(font)
+            else groupedFonts.set(key, [font])
+          }
+        const googleFonts = []
+        for (const item of groupedFonts) {
+          const [, fonts] = item
+          const font = fonts[0]
+          if (font?.source === 'google') {
+            const name = font.name.replace(' ', '+')
+            const hasItalic = fonts.some((x) => x.style === 'italic')
+            const attributeKeys = hasItalic ? 'ital,wght' : 'wght'
+            const attributeValues = fonts
+              .map((x) => {
+                if (hasItalic) {
+                  if (x.style === 'italic') return `1,${x.weight}`
+                  return `0,${x.weight}`
+                }
+                return x.weight
+              })
+              .join(';')
+            const url = `https://fonts.googleapis.com/css2?family=${name}${
+              attributeValues ? `:${attributeKeys}@${attributeValues}` : ''
+            }&display=swap`
+            googleFonts.push(url)
+          }
+        }
 
         return c.html(
           <>
@@ -528,17 +558,20 @@ export class FrogBase<
                 tailwind.config = {
                   plugins: [{
                     handler({ addBase }) {
-                      addBase({
-                        'html': {
-                          'line-height': 1.2,
-                        },
-                      })
+                      addBase({ 'html': { 'line-height': 1.2 } })
                     },
                   }],
                 }
               `}
             </script>
-            {fonts && Boolean(fonts?.length) && (
+            <style
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{
+                __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Material+Icons');body{display:flex;height:100%;margin:0;tab-size:8;font-family:Inter,sans-serif;overflow:hidden}body>div,body>div *{box-sizing:border-box;display:flex}body{background:#1A1A19;}link,script,style{position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0, 0, 0, 0);white-space: nowrap;border-width: 0;}`,
+              }}
+            />
+
+            {Boolean(googleFonts.length) && (
               <>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
@@ -546,38 +579,11 @@ export class FrogBase<
                   href="https://fonts.gstatic.com"
                   crossOrigin
                 />
-                {fonts.map((font) => {
-                  if (font.source === 'google') {
-                    const name = font.name.replace(' ', '+')
-                    const style = font.style === 'italic' ? 'ital' : ''
-                    const weight = font.weight
-                      ? `wght@${style !== '' ? '1,' : ''}${font.weight}`
-                      : ''
-                    const variant =
-                      style || weight
-                        ? `:${[
-                            ...(style ? [style] : []),
-                            ...(weight ? [weight] : []),
-                          ].join(',')}`
-                        : ''
-                    return (
-                      <link
-                        href={`https://fonts.googleapis.com/css2?family=${name}${variant}&display=swap`}
-                        rel="stylesheet"
-                      />
-                    )
-                  }
-                  // TODO: buffer fonts
-                  return
-                })}
+                {googleFonts.map((url) => (
+                  <link href={url} rel="stylesheet" />
+                ))}
               </>
             )}
-            <style
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
-              dangerouslySetInnerHTML={{
-                __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Material+Icons');body{display:flex;height:100%;margin:0;tab-size:8;font-family:Inter,sans-serif;overflow:hidden}body>div,body>div *{box-sizing:border-box;display:flex}body{background:#1A1A19;}link,script,style{position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0, 0, 0, 0);white-space: nowrap;border-width: 0;}`,
-              }}
-            />
 
             <div
               className="bg-black"
