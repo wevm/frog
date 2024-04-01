@@ -13,7 +13,7 @@ import { VStack } from './VStack.js'
 import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 /**
- * Creates a UI System with optional theming tokens.
+ * Creates a UI System with optional variables.
  *
  * @example
  * ```tsx

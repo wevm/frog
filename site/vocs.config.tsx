@@ -418,7 +418,7 @@ export default defineConfig({
           text: 'Concepts',
           items: [
             {
-              text: 'UI System & Tokens',
+              text: 'UI System & Variables',
               link: '/ui/ui-system',
             },
             {
