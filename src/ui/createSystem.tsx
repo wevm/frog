@@ -65,7 +65,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      * </Box>
      * ```
      *
-     * @see https://frog.fm/ui/box
+     * @see https://frog.fm/ui/Box
      */
     Box: createComponent<typeof Box<MergedVars>>(Box),
     /**
@@ -90,13 +90,13 @@ export function createSystem<vars extends Vars = DefaultVars>(
      * </Columns>
      * ```
      *
-     * @see https://frog.fm/ui/columns
+     * @see https://frog.fm/ui/Columns
      */
     Columns: createComponent<typeof Columns<MergedVars>>(Columns),
     /**
      * The child component of `Columns`.
      *
-     * @see https://frog.fm/ui/columns
+     * @see https://frog.fm/ui/Columns
      */
     Column: createComponent<typeof Column<MergedVars>>(Column),
     /**
@@ -112,7 +112,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      *   <Box backgroundColor="red" height="100%" />
      * </HStack>
      *
-     * @see https://frog.fm/ui/divider
+     * @see https://frog.fm/ui/Divider
      */
     Divider: createComponent<typeof Divider<MergedVars>>(Divider),
     /**
@@ -121,7 +121,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      * @example
      * <Heading>Hello world</Heading>
      *
-     * @see https://frog.fm/ui/heading
+     * @see https://frog.fm/ui/Heading
      */
     Heading: createComponent<typeof Heading<MergedVars>>(Heading),
     /**
@@ -136,7 +136,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      *   <Box backgroundColor="red" height="100%" />
      * </HStack>
      *
-     * @see https://frog.fm/ui/hstack
+     * @see https://frog.fm/ui/HStack
      */
     HStack: createComponent<typeof HStack<MergedVars>>(HStack),
     /**
@@ -145,7 +145,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      * @example
      * <Icon color="green800" name="bolt" />
      *
-     * @see https://frog.fm/ui/icon
+     * @see https://frog.fm/ui/Icon
      */
     Icon: <
       vars extends MergedVars,
@@ -164,7 +164,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      *   width="100%"
      * />
      *
-     * @see https://frog.fm/ui/image
+     * @see https://frog.fm/ui/Image
      */
     Image: createComponent<typeof Image<MergedVars>>(Image),
     /**
@@ -185,13 +185,13 @@ export function createSystem<vars extends Vars = DefaultVars>(
      *   <Row backgroundColor="red" width="100%" height="2/3" />
      * </Rows>
      *
-     * @see https://frog.fm/ui/rows
+     * @see https://frog.fm/ui/Rows
      */
     Rows: createComponent<typeof Rows<MergedVars>>(Rows),
     /**
      * The child component of `Rows`.
      *
-     * @see https://frog.fm/ui/rows
+     * @see https://frog.fm/ui/Rows
      */
     Row: createComponent<typeof Row<MergedVars>>(Row),
     /**
@@ -201,7 +201,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      * @example
      * <Spacer size="16" />
      *
-     * @see https://frog.fm/ui/spacer
+     * @see https://frog.fm/ui/Spacer
      */
     Spacer: createComponent<typeof Spacer<MergedVars>>(Spacer),
     /**
@@ -210,7 +210,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      * @example
      * <Text>Hello world</Text>
      *
-     * @see https://frog.fm/ui/text
+     * @see https://frog.fm/ui/Text
      */
     Text: createComponent<typeof Text<MergedVars>>(Text),
     /**
@@ -224,7 +224,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      *  <Box backgroundColor="red" width="100%" />
      * </VStack>
      *
-     * @see https://frog.fm/ui/vstack
+     * @see https://frog.fm/ui/VStack
      */
     VStack: createComponent<typeof VStack<MergedVars>>(VStack),
     /**
