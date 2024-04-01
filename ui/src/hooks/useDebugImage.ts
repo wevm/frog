@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { useDataKey, useFrameUrl } from './useStore'
 import { client } from '../lib/api'
 import { store } from '../lib/store'
+import { useDataKey, useFrameUrl } from './useStore'
 
 export function useDebugImage() {
   const dataKey = useDataKey()
