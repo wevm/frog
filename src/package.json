@@ -1,7 +1,7 @@
 {
   "name": "frog",
   "description": "Framework for Farcaster Frames",
-  "version": "0.7.16",
+  "version": "0.8.0",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
@@ -64,6 +64,10 @@
       "worker": "./_lib/serve-static/worker.js",
       "default": "./_lib/serve-static/index.js"
     },
+    "./ui": {
+      "types": "./_lib/ui/index.d.ts",
+      "default": "./_lib/ui/index.js"
+    },
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
@@ -85,6 +89,7 @@
     "@noble/curves": "^1.3.0",
     "@noble/hashes": "^1.3.3",
     "cac": "^6.7.14",
+    "csstype": "^3.1.3",
     "detect-browser": "^5.3.0",
     "dom-parser": "^1.1.5",
     "fast-glob": "3.3.2",

@@ -1,0 +1,104 @@
+# Getting Started
+
+On this page, we will guide you through the process of setting up a UI System for your frames in Frog.
+
+## Steps
+
+::::steps
+
+### Create your UI System
+
+Firstly, we will need to create our [UI System](/ui/ui-system) with `createSystem`. 
+The `createSystem` function takes in a [variables](/ui/ui-system#ui-variables) object, and returns a set of primitive components to build our frame UI.
+
+By default, if no variables are passed to `createSystem`, the system will use the default variables.
+
+```tsx twoslash [src/ui.ts]
+import { createSystem } from 'frog/ui'
+
+export const {
+  Box,
+  Columns,
+  Column,
+  Heading,
+  HStack,
+  Rows,
+  Row,
+  Spacer,
+  Text,
+  VStack,
+  vars,
+} = createSystem()
+```
+
+[Read more on UI System & Variables](/ui/ui-system) to learn how to customize the system.
+
+:::tip[Tip]
+You can also control the color scheme of the system by passing in a `colors` property to `createSystem`. Frog supports a `light` and `dark` color scheme.
+
+```tsx twoslash [src/ui.ts]
+import { colors, createSystem } from 'frog/ui'
+
+export const {
+  // ...
+} = createSystem({
+  colors: colors.light, // [!code focus]
+})
+```
+:::
+
+### Consume the System
+
+Once we have our system set up, we will need to inject the `ui` configuration into our `Frog` instance.
+
+After that, we can then consume our components to build our frame UI.
+
+:::code-group
+
+```tsx twoslash [src/index.ts]
+import { Frog } from 'frog'
+import { Box, Heading, Text, VStack, vars } from './ui.js'
+
+export const app = new Frog({
+  ui: { vars }, // [!code focus]
+}).frame('/', (c) => {
+  return c.res({
+    image: (
+      <Box // [!code focus]
+        grow // [!code focus]
+        alignHorizontal="center" // [!code focus]
+        backgroundColor="background" // [!code focus]
+        padding="32" // [!code focus]
+      > // [!code focus]
+        <VStack gap="4"> // [!code focus]
+          <Heading>FrogUI 🐸</Heading> // [!code focus]
+          <Text color="text200" size="20"> // [!code focus]
+            Build consistent frame experiences // [!code focus]
+          </Text> // [!code focus]
+        </VStack> // [!code focus]
+      </Box> // [!code focus]
+    )
+  })
+})
+```
+
+```tsx twoslash [src/ui.ts] filename="./ui.js"
+import { createSystem } from 'frog/ui'
+
+export const { Box, Heading, Text, VStack, vars } = createSystem()
+```
+
+:::
+
+[Read more on Primitive Components](/ui/primitive-components) to learn about the available components and their properties.
+
+### Done!
+
+<div data-title="Preview">
+  <div style={{ justifyContent: 'center', backgroundColor: 'var(--vocs-color_backgroundDark)', display: 'flex', flexDirection: 'column', gap: 8, padding: 32, width: 600, height: 310 }}>
+    <div style={{ color: 'var(--vocs-color_heading)', fontSize: 32, fontWeight: '600', letterSpacing: '-0.25px' }}>Frog UI 🐸</div>
+    <div style={{ color: 'var(--vocs-color_text3)', fontSize: 18 }}>Build consistent frame experiences</div>
+  </div>
+</div>
+
+::::

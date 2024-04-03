@@ -1,0 +1,243 @@
+import * as React from 'react'
+
+# Icon
+
+Renders an icon from a collection.
+
+## Usage
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return <Icon name="zap" />
+}
+```
+
+<div data-title="Preview">
+  <div
+    style={{
+      backgroundImage: "url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221em%22%20height%3D%221em%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M4%2014a1%201%200%200%201-.78-1.63l9.9-10.2a.5.5%200%200%201%20.86.46l-1.92%206.02A1%201%200%200%200%2013%2010h7a1%201%200%200%201%20.78%201.63l-9.9%2010.2a.5.5%200%200%201-.86-.46l1.92-6.02A1%201%200%200%200%2011%2014z%22%2F%3E%3C%2Fsvg%3E')",
+      backgroundColor:'transparent',
+      backgroundSize:'100% 100%',
+      height: '24px',
+      width: '24px',
+    }}
+  />
+</div>
+:::
+
+## `Icon` Properties
+
+### `color`
+
+Sets the color of the icon. Defaults to `'currentColor'` or the color of the icon (when [`mode`](#mode) is set to `'bg'`).
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  color="green800" // [!code focus]
+//       ^|
+  name="zap"
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div
+    style={{
+      backgroundImage: "url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221em%22%20height%3D%221em%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23009431%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M4%2014a1%201%200%200%201-.78-1.63l9.9-10.2a.5.5%200%200%201%20.86.46l-1.92%206.02A1%201%200%200%200%2013%2010h7a1%201%200%200%201%20.78%201.63l-9.9%2010.2a.5.5%200%200%201-.86-.46l1.92-6.02A1%201%200%200%200%2011%2014z%22%2F%3E%3C%2Fsvg%3E')",
+      backgroundColor:'transparent',
+      backgroundSize:'100% 100%',
+      height: '24px',
+      width: '24px',
+    }}
+  />
+</div>
+:::
+
+:::tip
+This prop is only supported when [`mode`](#mode) is `'mask'` or `'auto'` (and the icon with [`name`](#name) is inferred as `'mask'`).
+:::
+
+### `mode`
+
+Sets rendering mode of the icon. Defaults to `'auto'`.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  name="zap"
+  mode="auto" // [!code focus]
+// ^?
+/>
+
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div
+    style={{
+      backgroundImage: "url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221em%22%20height%3D%221em%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M4%2014a1%201%200%200%201-.78-1.63l9.9-10.2a.5.5%200%200%201%20.86.46l-1.92%206.02A1%201%200%200%200%2013%2010h7a1%201%200%200%201%20.78%201.63l-9.9%2010.2a.5.5%200%200%201-.86-.46l1.92-6.02A1%201%200%200%200%2011%2014z%22%2F%3E%3C%2Fsvg%3E')",
+      backgroundColor:'transparent',
+      backgroundSize:'100% 100%',
+      height: '24px',
+      width: '24px',
+    }}
+  />
+
+</div>
+:::
+
+### `collection`
+
+Icon collection to use for resolving icons. Defaults to `'lucide'`.
+
+The following collections are available:
+- [Heroicons](https://heroicons.com)
+- [Lucide](https://lucide.dev)
+- [Radix Icons](https://www.radix-ui.com/icons)
+
+Collection is mapped to the [`icons` property](/ui/ui-system#icons) on the UI System Variables.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  name="bolt"
+  collection="heroicons" // [!code focus]
+// ^?
+/>
+
+
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div
+    style={{
+      backgroundImage: "url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221em%22%20height%3D%221em%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m3.75%2013.5l10.5-11.25L12%2010.5h8.25L9.75%2021.75L12%2013.5z%22%2F%3E%3C%2Fsvg%3E')",
+      backgroundColor:'transparent',
+      backgroundSize:'100% 100%',
+      height: '24px',
+      width: '24px',
+    }}
+  />
+
+
+</div>
+:::
+
+### `name`
+
+Icon name in the current icon collection.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  name="bell" // [!code focus]
+// ^?
+/>
+
+
+
+
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div
+    style={{
+      backgroundImage: "url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221em%22%20height%3D%221em%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M6%208a6%206%200%200%201%2012%200c0%207%203%209%203%209H3s3-2%203-9m4.3%2013a1.94%201.94%200%200%200%203.4%200%22%2F%3E%3C%2Fsvg%3E')",
+      backgroundColor:'transparent',
+      backgroundSize:'100% 100%',
+      height: '24px',
+      width: '24px',
+    }}
+  />
+
+</div>
+:::
+
+
+### `size`
+
+Sets the size of the icon.
+
+:::code-group
+```tsx twoslash [Code]
+/** @jsxImportSource frog/jsx */
+import { createSystem } from 'frog/ui'
+
+const { Icon } = createSystem()
+
+function Example() {
+  return (
+// ---cut---
+<Icon
+  name="bell"
+  size="48" // [!code focus]
+//      ^|
+/>
+// ---cut-after---
+  )
+}
+```
+
+<div data-title="Preview">
+  <div
+    style={{
+      backgroundImage: "url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221em%22%20height%3D%221em%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M4%2014a1%201%200%200%201-.78-1.63l9.9-10.2a.5.5%200%200%201%20.86.46l-1.92%206.02A1%201%200%200%200%2013%2010h7a1%201%200%200%201%20.78%201.63l-9.9%2010.2a.5.5%200%200%201-.86-.46l1.92-6.02A1%201%200%200%200%2011%2014z%22%2F%3E%3C%2Fsvg%3E')",
+      backgroundColor:'transparent',
+      backgroundSize:'100% 100%',
+      height: '48px',
+      width: '48px',
+    }}
+  />
+</div>
+:::
+

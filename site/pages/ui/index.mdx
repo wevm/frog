@@ -1,0 +1,64 @@
+# FrogUI
+
+**FrogUI** is an extension of the Frog Framework that provides type-safe layout & styling primitives to help you build extensible and consistent dynamic [Frame Image](/concepts/images-intents#image) interfaces.
+
+It is a **systematic & type-safe alternative** to styling components using the Tailwind (`tw`) or `style` property of [Satori](https://github.com/vercel/satori).
+
+Create your [UI System](/ui/ui-system) with optional [variables](/ui/ui-system#ui-variables), and build your frames with [Primitive Components](/ui/primitive-components).
+
+:::code-group
+<div data-title="Preview">
+  <div style={{ justifyContent: 'center', backgroundColor: 'var(--vocs-color_backgroundDark)', display: 'flex', flexDirection: 'column', gap: 8, padding: 32, width: 600, height: 310 }}>
+    <div style={{ color: 'var(--vocs-color_heading)', fontSize: 32, fontWeight: '600', letterSpacing: '-0.25px' }}>Frog UI 🐸</div>
+    <div style={{ color: 'var(--vocs-color_text3)', fontSize: 18 }}>Build consistent frame experiences</div>
+  </div>
+</div>
+```tsx
+```
+:::
+
+:::code-group
+
+```tsx twoslash [index.ts]
+// @noErrors
+import { Frog } from 'frog'
+import { Box, Heading, Text, VStack, vars } from './ui.js'
+
+export const app = new Frog({
+  ui: { vars },
+}).frame('/', (c) => {
+  return c.res({
+    image: (
+      <Box // [!code focus]
+        grow // [!code focus]
+        alignVertical="center" // [!code focus]
+        backgroundColor="background" // [!code focus]
+        padding="32" // [!code focus]
+      > // [!code focus]
+        <VStack gap="4"> // [!code focus]
+          <Heading>FrogUI 🐸</Heading> // [!code focus]
+          <Text color="text200" size="20"> // [!code focus]
+            Build consistent frame experiences // [!code focus]
+          </Text> // [!code focus]
+          <Text color="te // [!code focus]
+//                       ^|
+        </VStack> // [!code focus]
+      </Box> // [!code focus]
+    )
+  })
+})
+
+
+
+
+
+
+
+```
+
+```tsx twoslash [ui.ts] filename="./ui.js"
+import { createSystem } from 'frog/ui'
+
+export const { Box, Heading, Text, VStack, vars } = createSystem()
+```
+:::

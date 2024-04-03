@@ -1,0 +1,65 @@
+# Primitive Components
+
+FrogUI provides a set of primitive components from the UI System. These components are the 
+building blocks for creating higher-level components, layouts, and templates.
+
+FrogUI currently provides the following primitive components as a return value of [`createSystem`](/ui/ui-system):
+
+- [`Box`](/ui/Box): foundational component that includes styling utility properties.
+- [`Columns`](/ui/Columns): renders children horizontally (column layout).
+- [`Divider`](/ui/Divider): renders a visual separator.
+- [`Icon`](/ui/Icon): renders an icon from a collection.
+- [`Image`](/ui/Image): renders an image element.
+- [`Heading`](/ui/Heading): renders a heading text node.
+- [`HStack`](/ui/HStack): renders children horizontally (inline layout).
+- [`Rows`](/ui/Rows): renders children vertically (row layout).
+- [`Spacer`](/ui/Spacer): renders a spacer node.
+- [`Text`](/ui/Text): renders a text node.
+- [`VStack`](/ui/VStack): renders children vertically (inline layout).
+
+The following example trivially demonstrates how to use the primitive components to build a "Hero" layout:
+
+:::code-group
+
+```tsx twoslash [index.tsx]
+// @noErrors
+import { Frog } from 'frog'
+import { Box, Heading, Text, VStack, vars } from './ui.js'
+
+export const app = new Frog({
+  ui: { vars },
+}).frame('/', (c) => {
+  return c.res({
+    image: (
+      <Box // [!code focus]
+        grow // [!code focus]
+        alignVertical="center" // [!code focus]
+        backgroundColor="background" // [!code focus]
+        padding="32" // [!code focus]
+      > // [!code focus]
+        <VStack gap="4"> // [!code focus]
+          <Heading>FrogUI 🐸</Heading> // [!code focus]
+          <Text color="text200" size="20"> // [!code focus]
+            Build consistent frame experiences // [!code focus]
+          </Text> // [!code focus]
+        </VStack> // [!code focus]
+      </Box> // [!code focus]
+    )
+  })
+})
+```
+
+```tsx twoslash [ui.ts] filename="./ui.js"
+import { createSystem } from 'frog/ui'
+
+export const { Box, Heading, Text, VStack, vars } = createSystem()
+```
+
+<div data-title="Preview">
+  <div style={{ justifyContent: 'center', backgroundColor: 'var(--vocs-color_backgroundDark)', display: 'flex', flexDirection: 'column', gap: 8, padding: 32, width: 600, height: 310 }}>
+    <div style={{ color: 'var(--vocs-color_heading)', fontSize: 32, fontWeight: '600', letterSpacing: '-0.25px' }}>Frog UI 🐸</div>
+    <div style={{ color: 'var(--vocs-color_text3)', fontSize: 18 }}>Build consistent frame experiences</div>
+  </div>
+</div>
+
+:::

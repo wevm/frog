@@ -13,6 +13,7 @@ import {
 import type { inspectRoutes } from 'hono/dev'
 import { HTTPException } from 'hono/http-exception'
 
+import { object, parse, union } from 'valibot'
 import type { Hub } from '../types/hub.js'
 import type { TransactionResponse } from '../types/transaction.js'
 import {
@@ -277,6 +278,39 @@ export function apiRoutes(
       deleteCookie(c, 'user')
       return c.json({ success: true })
     })
+    .post(
+      '/debug/image/:url',
+      validator('json', union([object({}), postSchema])),
+      async (c) => {
+        const url = decodeURIComponent(c.req.param('url'))
+
+        let text: string | undefined
+        const body = await c.req.json()
+        const hasBody = Object.keys(body).length > 0
+        const headers = {
+          ...defaultHeaders,
+          Accept: 'text/html',
+        }
+        if (hasBody) {
+          const json = parse(postSchema, body)
+          const params = {
+            body: { ...json, fid: json.fid ?? c.var.fid ?? defaultFid },
+            headers,
+            privateKey: c.var.keypair?.privateKey,
+            url,
+          }
+          text = await fetchFrame(params)
+            .then((result) => result.response)
+            .then((response) => response?.text())
+        } else
+          text = await fetch(url, { headers }).then((response) =>
+            response.text(),
+          )
+
+        if (!text) throw new HTTPException(500, { message: 'Failed to fetch' })
+        return c.html(text)
+      },
+    )
 }
 
 export type ApiRoutes = ReturnType<typeof apiRoutes>

@@ -23,6 +23,7 @@ import type {
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
+import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getActionContext } from './utils/getActionContext.js'
 import { getButtonValues } from './utils/getButtonValues.js'
@@ -151,6 +152,10 @@ export type FrogConstructorParameters<
    */
   secret?: string | undefined
   /**
+   * FrogUI configuration.
+   */
+  ui?: { vars: Vars | undefined } | undefined
+  /**
    * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
    *
    * - When `true`, the frame will go through verification and throw an error if it fails.
@@ -226,12 +231,15 @@ export class FrogBase<
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
   imageOptions: ImageOptions | (() => Promise<ImageOptions>) | undefined
+  /** Origin URL of the server instance. */
   origin: string | undefined
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
+  /** FrogUI configuration. */
+  ui: { vars: Vars | undefined } | undefined
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] = true
 
@@ -252,6 +260,7 @@ export class FrogBase<
     initialState,
     origin,
     secret,
+    ui,
     verify,
   }: FrogConstructorParameters<env, basePath, _state> = {}) {
     this.hono = new Hono<env, schema, basePath>(honoOptions)
@@ -264,6 +273,7 @@ export class FrogBase<
     if (imageOptions) this.imageOptions = imageOptions
     if (origin) this.origin = origin
     if (secret) this.secret = secret
+    if (ui) this.ui = ui
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
@@ -348,6 +358,8 @@ export class FrogBase<
         })()
 
         const fonts = await (async () => {
+          if (this.ui?.vars?.fonts)
+            return Object.values(this.ui?.vars.fonts).flat()
           if (typeof options?.fonts === 'function') return await options.fonts()
           if (options?.fonts) return options.fonts
           return defaultImageOptions?.fonts
@@ -360,6 +372,8 @@ export class FrogBase<
         } = fromQuery<any>(c.req.query())
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
         return new ImageResponse(image_, {
+          width: 1200,
+          height: 630,
           ...imageOptions,
           format: imageOptions?.format ?? 'png',
           fonts: await parseFonts(fonts),
@@ -399,7 +413,7 @@ export class FrogBase<
         headers = this.headers,
         imageAspectRatio = this.imageAspectRatio,
         image,
-        imageOptions,
+        imageOptions: imageOptions_ = this.imageOptions,
         intents,
         ogImage,
         title = 'Frog Frame',
@@ -454,13 +468,44 @@ export class FrogBase<
         previousState,
       })
 
+      const imageOptions = await (async () => {
+        if (typeof imageOptions_ === 'function') return await imageOptions_()
+        return imageOptions_
+      })()
+
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
-          const encodedImage = lz.compressToEncodedURIComponent(
-            JSON.stringify(await parseImage(image, { assetsUrl })),
+          const compressedImage = lz.compressToEncodedURIComponent(
+            JSON.stringify(
+              await parseImage(
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    width: '100%',
+                  }}
+                >
+                  {await image}
+                </div>,
+                {
+                  assetsUrl,
+                  ui: {
+                    ...this.ui,
+                    vars: {
+                      ...this.ui?.vars,
+                      frame: {
+                        height: imageOptions?.height!,
+                        width: imageOptions?.width!,
+                      },
+                    },
+                  },
+                },
+              ),
+            ),
           )
           const imageParams = toSearchParams({
-            image: encodedImage,
+            image: compressedImage,
             imageOptions: imageOptions
               ? {
                   ...imageOptions,
@@ -499,6 +544,99 @@ export class FrogBase<
       // Set response headers provided by consumer.
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
+
+      const renderAsHTML =
+        c.req.header('Accept') === 'text/html' ||
+        c.req.query('accept') === 'text/html'
+      if (renderAsHTML) {
+        const height = imageOptions?.height ?? 630
+        const width = imageOptions?.width ?? 1200
+
+        // Convert `tw` to `class`
+        const __html = image.toString().replace(/tw=/g, 'class=')
+
+        const fonts = await (async () => {
+          if (this.ui?.vars?.fonts)
+            return Object.values(this.ui.vars.fonts).flat()
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return imageOptions?.fonts
+        })()
+        const groupedFonts = new Map<string, NonNullable<typeof fonts>>()
+        if (fonts)
+          for (const font of fonts) {
+            const key = `${font.source ? `${font.source}:` : ''}${font.name}`
+            if (groupedFonts.has(key)) groupedFonts.get(key)?.push(font)
+            else groupedFonts.set(key, [font])
+          }
+        const googleFonts = []
+        for (const item of groupedFonts) {
+          const [, fonts] = item
+          const font = fonts[0]
+          if (font?.source === 'google') {
+            const name = font.name.replace(' ', '+')
+            const hasItalic = fonts.some((x) => x.style === 'italic')
+            const attributeKeys = hasItalic ? 'ital,wght' : 'wght'
+            const attributeValues = fonts
+              .map((x) => {
+                if (hasItalic) {
+                  if (x.style === 'italic') return `1,${x.weight}`
+                  return `0,${x.weight}`
+                }
+                return x.weight
+              })
+              .join(';')
+            const url = `https://fonts.googleapis.com/css2?family=${name}${
+              attributeValues ? `:${attributeKeys}@${attributeValues}` : ''
+            }&display=swap`
+            googleFonts.push(url)
+          }
+        }
+
+        return c.html(
+          <>
+            <script src="https://cdn.tailwindcss.com" />
+            <script>
+              {html`
+                tailwind.config = {
+                  plugins: [{
+                    handler({ addBase }) {
+                      addBase({ 'html': { 'line-height': 1.2 } })
+                    },
+                  }],
+                }
+              `}
+            </script>
+            <style
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{
+                __html: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Material+Icons');body{display:flex;height:100%;margin:0;tab-size:8;font-family:Inter,sans-serif;overflow:hidden}body>div,body>div *{box-sizing:border-box;display:flex}body{background:#1A1A19;}link,script,style{position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0, 0, 0, 0);white-space: nowrap;border-width: 0;}`,
+              }}
+            />
+
+            {Boolean(googleFonts.length) && (
+              <>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link
+                  rel="preconnect"
+                  href="https://fonts.gstatic.com"
+                  crossOrigin
+                />
+                {googleFonts.map((url) => (
+                  <link href={url} rel="stylesheet" />
+                ))}
+              </>
+            )}
+
+            <div
+              className="bg-black"
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+              dangerouslySetInnerHTML={{ __html }}
+              style={{ height, width }}
+            />
+          </>,
+        )
+      }
 
       return c.render(
         <>
@@ -571,6 +709,7 @@ export class FrogBase<
     if (!frog.imageOptions) frog.imageOptions = this.imageOptions
     if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
+    if (!frog.ui) frog.ui = this.ui
     if (!frog.verify) frog.verify = this.verify
 
     this.hono.route(path, frog.hono)
