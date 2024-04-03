@@ -322,7 +322,7 @@ export class FrogBase<
           )
           if (!frogImage)
             throw new Error(
-              'Unexpected error: frog:image meta tag is not present in the frame url.',
+              'Unexpected error: frog:image meta tag is not present in the frame.',
             )
           // Redirect to this route but now with search params and return the response
           return c.redirect(frogImage.content)
