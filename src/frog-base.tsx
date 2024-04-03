@@ -312,8 +312,8 @@ export class FrogBase<
         const url = getRequestUrl(c.req)
 
         const query = c.req.query()
-        if (Object.keys(query).length === 0) {
-          // If the query is empty, it is an initial request to a frame.
+        if (!query.image) {
+          // If the query is doesn't have an image, it is an initial request to a frame.
           // Therefore we need to get the link to fetch the original image and jump once again in this method to resolve the options,
           // but now with query params set.
           const metadata = await getFrameMetadata(url.href.slice(0, -6)) // Stripping `/image` (6 characters) from the end of the url.
