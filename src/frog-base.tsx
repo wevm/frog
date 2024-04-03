@@ -481,7 +481,6 @@ export class FrogBase<
               ),
             ),
           )
-
           const imageParams = toSearchParams({
             image: compressedImage,
             imageOptions: imageOptions
