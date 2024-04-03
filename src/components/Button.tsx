@@ -61,7 +61,7 @@ export function ButtonInstallAction({
       // @ts-ignore - private
       dataValue={buttonPrefix.installAction}
       // Currently only warpcast supports cast actions but this component might support other clients too.
-      href={`https://warpcast.com/~/install-cast-action?url=${url}&name=${name}&action=post&icon=${icon}`}
+      href={`https://warpcast.com/~/add-cast-action?postUrl=${url}&name=${name}&action=post&icon=${icon}`}
     >
       {children}
     </ButtonLink>
