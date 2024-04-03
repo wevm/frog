@@ -310,19 +310,6 @@ export class FrogBase<
     for (const imagePath of imagePaths) {
       this.hono.get(imagePath, async (c) => {
         const url = getRequestUrl(c.req)
-        const defaultImageOptions = await (async () => {
-          if (typeof this.imageOptions === 'function')
-            return await this.imageOptions()
-          return this.imageOptions
-        })()
-
-        const fonts = await (async () => {
-          if (this.ui?.vars?.fonts)
-            return Object.values(this.ui?.vars.fonts).flat()
-          if (typeof options?.fonts === 'function') return await options.fonts()
-          if (options?.fonts) return options.fonts
-          return defaultImageOptions?.fonts
-        })()
 
         const query = c.req.query()
         if (Object.keys(query).length === 0) {
@@ -340,6 +327,20 @@ export class FrogBase<
           // Redirect to this route but now with search params and return the response
           return c.redirect(frogImage.content)
         }
+
+        const defaultImageOptions = await (async () => {
+          if (typeof this.imageOptions === 'function')
+            return await this.imageOptions()
+          return this.imageOptions
+        })()
+
+        const fonts = await (async () => {
+          if (this.ui?.vars?.fonts)
+            return Object.values(this.ui?.vars.fonts).flat()
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return defaultImageOptions?.fonts
+        })()
 
         const {
           headers = this.headers,
