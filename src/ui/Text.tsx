@@ -1,10 +1,11 @@
-import type { Child } from 'hono/jsx'
 import { Box, type BoxProps } from './Box.js'
+import type { Child } from './types.js'
 import type { DefaultVars, Vars } from './vars.js'
 
 export type TextProps<vars extends Vars = DefaultVars> = {
   /** Sets the horizontal alignment of the text. */
   align?: BoxProps<vars>['textAlign']
+  /** The text content. */
   children: Child
   /** Sets the color of the text. */
   color?: BoxProps<vars>['color']

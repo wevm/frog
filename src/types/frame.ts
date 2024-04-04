@@ -118,7 +118,7 @@ export type FrameResponse = {
    *   <Button>Submit</Button>,
    * ]
    */
-  intents?: FrameIntents | undefined
+  intents?: FrameIntent | FrameIntent[] | undefined
   /**
    * Title of the frame (added as `og:title`).
    *
@@ -149,7 +149,8 @@ export type FrameImageAspectRatio = '1.91:1' | '1:1'
 
 export type FrameVersion = 'vNext'
 
-export type FrameIntent = JSX.Element | false | null | undefined
+export type FrameIntent = JSX.Element | JSX.Element[] | false | null | undefined
+/** @deprecated */
 export type FrameIntents = FrameIntent | FrameIntent[]
 
 export type FrameButtonValue = string

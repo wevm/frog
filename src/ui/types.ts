@@ -1,5 +1,7 @@
 import type { Properties } from 'csstype'
 
+export type Child = import('hono/jsx').Child | JSX.Element
+
 export type SatoriStyleProperties = Pick<
   Properties,
   | 'alignContent'
