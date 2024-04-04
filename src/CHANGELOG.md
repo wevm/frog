@@ -1,5 +1,11 @@
 # frog
 
+## 0.8.1
+
+### Patch Changes
+
+- [#225](https://github.com/wevm/frog/pull/225) [`d219dff`](https://github.com/wevm/frog/commit/d219dff867f5355098b5f4fec6a3f75c9d50848b) Thanks [@tmm](https://github.com/tmm)! - Fixed JSX import source conflicts.
+
 ## 0.8.0
 
 ### Minor Changes
