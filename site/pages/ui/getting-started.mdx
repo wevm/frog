@@ -102,3 +102,27 @@ export const { Box, Heading, Text, VStack, vars } = createSystem()
 </div>
 
 ::::
+
+## Next.js
+::::warning
+As of `v0.8.0`, there is a known issue when using `frog/ui` in a Next.js project where nested Frog UI components display a `Type 'Element' is not assignable to type 'Child'` error.
+
+[See this issue for tracking](https://github.com/wevm/frog/issues/219).
+<br />
+:::details[Patch Instructions]
+1. Install the [patch-package](https://www.npmjs.com/package/patch-package) as a dependency (NOTE: yarnv2 and pnpm have built-in support for patch-package)
+2. Open `node_modules/hono/dist/types/jsx/base.d.ts`
+3. Update the `Child` definition to include `React.ReactNode`
+```diff
+- export type Child = string | Promise<string> | number | JSXNode | null | undefined | boolean | Child[];
++ export type Child = string | Promise<string> | number | JSXNode | null | undefined | boolean | Child[] | React.ReactNode;
+```
+4. run `pnpm patch hono` | `yarn patch-package hono`
+5. add the patch as a postinstall script in your `package.json`
+```json
+"scripts": {
+  "postinstall": "patch-package"
+}
+```
+:::
+::::
