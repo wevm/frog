@@ -31,18 +31,18 @@ export const app = new Frog()
               whiteSpace: 'pre-wrap',
             }}
           >
-            Install Cast Action
+            Add Cast Action
           </div>
         </div>
       ),
       intents: [
-        <Button.InstallAction
+        <Button.AddAction
           url={`${c.origin}/castAction/action`}
           name="Log This!"
           icon="log"
         >
-          Install
-        </Button.InstallAction>,
+          Add
+        </Button.AddAction>,
       ],
     }),
   )

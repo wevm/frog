@@ -40,7 +40,7 @@ export function ButtonRoot({
   ] as unknown as HtmlEscapedString
 }
 
-export type ButtonInstallActionProps = ButtonProps & {
+export type ButtonAddActionProps = ButtonProps & {
   /** URL of the action. */
   url: string
   /** Name of the action. 30 characters maximum */
@@ -49,15 +49,15 @@ export type ButtonInstallActionProps = ButtonProps & {
   icon: Octicon
 }
 
-ButtonInstallAction.__type = 'button'
-export function ButtonInstallAction({
+ButtonAddAction.__type = 'button'
+export function ButtonAddAction({
   children,
   name,
   icon,
   // @ts-ignore - private
   index = 1,
   url,
-}: ButtonInstallActionProps) {
+}: ButtonAddActionProps) {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -189,7 +189,7 @@ export function ButtonTransaction({
 }
 
 export const Button = Object.assign(ButtonRoot, {
-  InstallAction: ButtonInstallAction,
+  AddAction: ButtonAddAction,
   Link: ButtonLink,
   Mint: ButtonMint,
   Redirect: ButtonRedirect,
