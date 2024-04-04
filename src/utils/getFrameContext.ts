@@ -13,7 +13,6 @@ type GetFrameContextParameters<
 > = {
   context: Context<env, path, input>
   initialState?: _state
-  origin: string
 }
 
 type GetFrameContextReturnType<
@@ -36,9 +35,16 @@ export function getFrameContext<
 >(
   parameters: GetFrameContextParameters<env, path, input, _state>,
 ): GetFrameContextReturnType<env, path, input, _state> {
-  const { context, origin } = parameters
-  const { env, frameData, initialPath, previousButtonValues, req, verified } =
-    context || {}
+  const { context } = parameters
+  const {
+    env,
+    frameData,
+    origin,
+    initialPath,
+    previousButtonValues,
+    req,
+    verified,
+  } = context || {}
 
   const { buttonValue, inputText, redirect, reset } = getIntentState({
     buttonValues: previousButtonValues || [],

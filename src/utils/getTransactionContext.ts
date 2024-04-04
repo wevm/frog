@@ -53,6 +53,7 @@ export function getTransactionContext<
     status,
     verified,
     url,
+    origin,
   } = context || {}
 
   const { buttonValue, inputText } = getIntentState({
