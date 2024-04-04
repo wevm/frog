@@ -8,7 +8,6 @@ type GetActionContextParameters<
   input extends Input = {},
 > = {
   context: Context<env, path, input>
-  origin: string
 }
 
 type GetActionContextReturnType<
@@ -26,8 +25,8 @@ export function getActionContext<
 >(
   parameters: GetActionContextParameters<env, path, input>,
 ): GetActionContextReturnType<env, path, input> {
-  const { context, origin } = parameters
-  const { env, frameData, req, verified } = context || {}
+  const { context } = parameters
+  const { env, frameData, req, verified, origin } = context || {}
 
   if (!frameData)
     throw new Error('Frame data must be present for action handlers.')

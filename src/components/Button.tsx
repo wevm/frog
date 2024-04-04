@@ -54,18 +54,22 @@ export function ButtonInstallAction({
   children,
   name,
   icon,
+  // @ts-ignore - private
+  index = 1,
   url,
 }: ButtonInstallActionProps) {
-  return (
-    <ButtonLink
-      // @ts-ignore - private
-      dataValue={buttonPrefix.installAction}
-      // Currently only warpcast supports cast actions but this component might support other clients too.
-      href={`https://warpcast.com/~/add-cast-action?postUrl=${url}&name=${name}&action=post&icon=${icon}`}
-    >
-      {children}
-    </ButtonLink>
-  )
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={normalizeChildren(children)}
+      data-value={buttonPrefix.installAction}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="link" />,
+    <meta
+      property={`fc:frame:button:${index}:target`}
+      content={`https://warpcast.com/~/add-cast-action?postUrl=${url}&name=${name}&actionType=post&icon=${icon}`}
+    />,
+  ] as unknown as HtmlEscapedString
 }
 
 export type ButtonLinkProps = ButtonProps & {
@@ -74,8 +78,6 @@ export type ButtonLinkProps = ButtonProps & {
 
 ButtonLink.__type = 'button'
 export function ButtonLink({
-  // @ts-ignore - private
-  dataValue = buttonPrefix.link,
   children,
   // @ts-ignore - private
   index = 1,
@@ -85,7 +87,7 @@ export function ButtonLink({
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
-      data-value={dataValue}
+      data-value={buttonPrefix.link}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta property={`fc:frame:button:${index}:target`} content={href} />,

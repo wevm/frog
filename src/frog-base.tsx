@@ -318,8 +318,8 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
+          origin,
         }),
-        origin,
       })
 
       const response = await handler(context)

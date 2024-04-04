@@ -37,7 +37,7 @@ export const app = new Frog()
       ),
       intents: [
         <Button.InstallAction
-          url={`${c.origin}/action`}
+          url={`${c.origin}/castAction/action`}
           name="Log This!"
           icon="log"
         >
@@ -48,7 +48,9 @@ export const app = new Frog()
   )
   .action('/action', async (c) => {
     console.log(
-      `Cast Action to ${c.actionData.castId} from ${c.actionData.fid}`,
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
     )
     return c.res({ message: 'Action Succeeded' })
   })
