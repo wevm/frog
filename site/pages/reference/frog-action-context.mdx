@@ -1,0 +1,143 @@
+# Frog.action Context
+
+The `c` object is the parameter of the route handlers. It contains context about the current cast action.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.action('/', (c) => { // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+:::tip[Tip]
+An action handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
+:::
+
+## actionData
+
+- **Type**: `ActionData`
+
+Data from the action that was passed via the `POST` body from a Farcaster Client. [See more.](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  const { actionData } = c
+  const { castId, fid, messageHash, network, timestamp, url } = actionData // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## origin
+
+- **Type**: `string`
+
+Origin of the server.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  const { origin } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## req
+
+- **Type**: `Request`
+
+[Hono request object](https://hono.dev/api/request).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  const { req } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## res
+
+- **Type**: `(response: ActionResponse) => ActionResponse`
+
+The action response.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  return c.res({/* ... */}) // [!code focus]
+})
+```
+
+## var
+
+- **Type**: `HonoContext['var']`
+
+Extract a context value that was previously set via [`set`](#set) in [Middleware](/concepts/middleware).
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.use(async (c, next) => {
+  c.set('message', 'Frog is cool!!')
+  await next()
+})
+ 
+app.action('/', (c) => {
+  const message = c.var.message // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## verified
+
+- **Type**: `boolean`
+
+Whether or not the [`actionData`](#actiondata) (and [`buttonIndex`](#buttonindex)) was verified by the Farcaster Hub API.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  const { verified } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```

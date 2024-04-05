@@ -305,6 +305,10 @@ export default defineConfig({
             text: 'Transactions',
             link: '/concepts/transactions',
           },
+          {
+            text: 'Cast Actions',
+            link: '/concepts/cast-actions',
+          },
         ],
       },
       {
@@ -361,6 +365,17 @@ export default defineConfig({
         text: 'Frog Reference',
         items: [
           { text: 'Frog', link: '/reference/frog' },
+          {
+            text: 'Frog.action',
+            link: '/reference/frog-action',
+            items: [
+              { text: 'Context', link: '/reference/frog-action-context' },
+              {
+                text: 'Response',
+                link: '/reference/frog-action-response',
+              },
+            ],
+          },
           {
             text: 'Frog.frame',
             link: '/reference/frog-frame',

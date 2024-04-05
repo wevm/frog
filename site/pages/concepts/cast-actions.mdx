@@ -1,0 +1,162 @@
+# Cast Actions
+
+Cast Actions let developers create custom buttons which users can install into their action bar on any Farcaster application (see the [spec](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa)).  
+
+## Overview
+
+At a glance:
+
+1. User installs Cast Action via specific deeplink or by clicking on `<Button.AddAction>{:jsx}` element with a specified target `.action` route in a Frame.
+2. When the user presses the Cast Action button in the App, the App will make a `POST` request to the `.action` route.
+3. Frame performs any action and returns a response to the App.
+
+## Walkthrough
+
+Here is a trivial example on how to expose an action with a frame. We will break it down below.
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Button, Frog, TextInput, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Log this!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddAction
+        url={`${c.origin}/log-this`}
+        name="Log This!"
+        icon="log"
+      >
+        Add
+      </Button.AddAction>,
+    ]
+  })
+})
+
+app.action('/log-this', (c) => {
+  console.log(
+    `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+      c.actionData.fid
+    }`,
+  )
+  return c.res({ message: 'Action Succeeded' })
+})
+```
+
+:::
+
+::::steps
+
+### 1. Render Frame & Add Action Intent
+
+In the example above, we are rendering Add Action intent:
+
+1. `url` property is used to set the absolute URL of the installable action. If your Frog instance is connected to another Frog instance via `.route`, you need to
+make sure that the URL you provide includes all the possible base paths up to the top of the routing tree.
+2. `name` property is used to set the name of the action. It must be less than 30 characters
+3. `icon` property is used to associate your Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Log this!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddAction
+        url={`${c.origin}/log-this`}
+        name="Log This!"
+        icon="log"
+      >
+        Add
+      </Button.AddAction>,
+    ]
+  })
+})
+
+// ...
+```
+
+
+### 2. Handle `/log-this` Requests
+
+Without a route handler to handle the Action request, the Cast Action will be meaningless. 
+
+Thus, let's define a `/log-this` route to handle the the Cast Action:
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Log this!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddAction
+        url={`${c.origin}/log-this`}
+        name="Log This!"
+        icon="log"
+      >
+        Add
+      </Button.AddAction>,
+    ]
+  })
+})
+
+// ...
+
+app.action('/log-this', (c) => { // [!code focus]
+  console.log( // [!code focus]
+    `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
+      c.actionData.fid // [!code focus]
+    }`, // [!code focus]
+  ) // [!code focus]
+  return c.res({ message: 'Action Succeeded' }) // [!code focus]
+}) // [!code focus]
+```
+
+A breakdown of the `/log-this` route handler:
+
+- `c.actionData` is never nullable and is always defined since Cast Actions always do `POST` request.
+- We are responding with a `c.res` response and specifying a `message` that will appear in the success toast.
+
+
+:::
+
+### 5. Bonus: Learn the API
+
+You can learn more about the transaction APIs here:
+
+- [`Frog.action` Reference](/reference/frog-action)
+- [`Frog.action` Context Reference](/reference/frog-action-context)
+- [`Frog.action` Response Reference](/reference/frog-action-response)
+
+::::

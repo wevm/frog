@@ -1,0 +1,78 @@
+# Frog.action
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.action('/', (c) => { // [!code focus]
+  console.log('Apple and Banana')
+  return c.res({ message: 'Action Succeeded' }) // [!code focus]
+}) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.action(
+  '/foo/bar', // [!code focus]
+  (c) => {
+    console.log('Apple and Banana')
+    return c.res({ message: 'Action Succeeded' }) // [!code focus]
+  }
+) 
+```
+
+### handler
+
+- **Type:** `(c: Context) => ActionResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.action(
+  '/foo/bar',
+  (c) => { // [!code focus]
+    console.log('Apple and Banana')
+    return c.res({ message: 'Action Succeeded' }) // [!code focus]
+  }) // [!code focus]
+) 
+```
+
+#### Context Parameter
+
+[See the Action Context API.](/reference/frog-action-context)
+
+#### Action Response
+
+[See the Action Response API.](/reference/frog-action-response)
