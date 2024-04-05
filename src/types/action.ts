@@ -1,3 +1,7 @@
+import type {
+  ClientErrorStatusCode,
+  SuccessStatusCode,
+} from 'hono/utils/http-status'
 import type { TypedResponse } from './response.js'
 
 export type ActionResponse = {
@@ -10,11 +14,37 @@ export type ActionResponse = {
    *
    * @example 'Action succeded!'
    */
-  message?: string | undefined
+  message: string
+  /**
+   * HTTP Status code to send the message with.
+   *
+   * Should match either 200 or 4xx status code.
+   *
+   * @example 200
+   */
+  statusCode: Extract<SuccessStatusCode, 200> | ClientErrorStatusCode
 }
 
 export type ActionResponseFn = (
   response: ActionResponse,
+) => TypedResponse<ActionResponse>
+
+//////////////////////////////////////////////////////
+// Message Response
+
+export type MessageActionParameters = string
+export type MessageActionResponseFn = (
+  message: MessageActionParameters,
+) => TypedResponse<ActionResponse>
+
+//////////////////////////////////////////////////////
+// Error Response
+export type ErrorActionParameters = {
+  message: string
+  statusCode: Exclude<ActionResponse['statusCode'], 200>
+}
+export type ErrorActionResponseFn = (
+  parameters: ErrorActionParameters,
 ) => TypedResponse<ActionResponse>
 
 export type ActionData = {

@@ -43,6 +43,14 @@ export function getActionContext<
         timestamp: frameData.timestamp,
         url: frameData.url,
       },
+      error: ({ message, statusCode }) => ({
+        data: { message, statusCode },
+        format: 'action',
+      }),
+      message: (message) => ({
+        data: { message, statusCode: 200 },
+        format: 'action',
+      }),
       origin,
       req,
       res: (data) => ({ data, format: 'action' }),

@@ -331,6 +331,7 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
+      c.status(response.data.statusCode)
       return c.json({ message })
     })
 

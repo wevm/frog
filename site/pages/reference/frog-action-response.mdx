@@ -15,6 +15,31 @@ app.frame('/', (c) => {
 })
 ```
 
+## headers
+
+- **Type:** `Record<string, string>`
+
+HTTP response headers to set for the action.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/action/foo', (c) => {
+  return c.res({
+    headers: { // [!code focus]
+      'Cache-Control': 'max-age=0', // [!code focus]
+    }, // [!code focus]
+    message: 'Success!',
+    statusCode: 200
+  })
+})
+```
+
 ## message
 
 - **Type:** `string`
@@ -31,6 +56,28 @@ export const app = new Frog()
 app.action('/', (c) => {
   return c.res({
     message: 'Action Succeeded!', // [!code focus]
+    statusCode: 200
+  })
+})
+```
+
+## statusCode
+
+- **Type:** `string`
+
+HTTP Status code to respond with.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  return c.res({
+    message: 'Action Succeeded!',
+    statusCode: 200 // [!code focus]
   })
 })
 ```

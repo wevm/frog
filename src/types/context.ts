@@ -1,5 +1,10 @@
 import type { Context as Context_hono, Input } from 'hono'
-import type { ActionData, ActionResponseFn } from './action.js'
+import type {
+  ActionData,
+  ActionResponseFn,
+  ErrorActionResponseFn,
+  MessageActionResponseFn,
+} from './action.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type {
@@ -34,6 +39,14 @@ export type ActionContext<
    */
   env: Context_hono<env, path>['env']
   /**
+   * Fail message response that has HTTP status code 4xx.
+   */
+  error: ErrorActionResponseFn
+  /**
+   * Successful message response that has HTTP status code 200.
+   */
+  message: MessageActionResponseFn
+  /**
    * Origin of the server.
    */
   origin: string
@@ -43,7 +56,11 @@ export type ActionContext<
    * @see https://hono.dev/api/context#req
    */
   req: Context_hono<env, path, input>['req']
-  /** Action response that includes action properties such as: message, etc */
+  /**
+   * Raw action response that includes action properties such as: message, status.
+   *
+   * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
+   * */
   res: ActionResponseFn
   /**
    * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).

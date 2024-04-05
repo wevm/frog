@@ -52,5 +52,5 @@ export const app = new Frog()
         c.actionData.fid
       }`,
     )
-    return c.res({ message: 'Action Succeeded' })
+    return c.message('Action Succeeded')
   })

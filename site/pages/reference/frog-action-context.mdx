@@ -38,6 +38,44 @@ app.action('/', (c) => {
 })
 ```
 
+## error
+
+- **Type**: `(response: ErrorActionResponse) => ActionResponse`
+
+The error action response. Sends a message with passed HTTP status Code 4xx.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  return c.error({/* ... */}) // [!code focus]
+})
+```
+
+## message
+
+- **Type**: `(response: ErrorActionResponse) => ActionResponse`
+
+The message action response. Sends a message with HTTP Status Code 200.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.action('/', (c) => {
+  return c.message(/* ... */) // [!code focus]
+})
+```
+
 ## origin
 
 - **Type**: `string`
