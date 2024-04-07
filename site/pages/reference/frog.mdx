@@ -122,6 +122,20 @@ However, please note that this API Key is for development purposes only – it i
 It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
 :::
 
+### imageAspectRatio
+
+- **Type:** `'1.91:1' | '1:1'`
+
+Aspect ratio clients should use to display images in frames.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  imageAspectRatio: '1:1' // [!code focus]
+})
+```
+
 ### imageOptions
 
 Image options to apply to frames.
