@@ -424,6 +424,10 @@ export class FrogBase<
         return c.redirect(location, 302)
       }
 
+      const renderAsHTML =
+        c.req.header('Accept') === 'text/html' ||
+        c.req.query('accept') === 'text/html'
+
       // If the user is coming from a browser, and a `browserLocation` is set,
       // then we will redirect the user to that location.
       const browser = detect(c.req.header('user-agent'))
@@ -432,7 +436,7 @@ export class FrogBase<
         basePath: this.basePath,
         path,
       })
-      if (browser?.name && browserLocation_)
+      if (!renderAsHTML && browser?.name && browserLocation_)
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
@@ -542,9 +546,6 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      const renderAsHTML =
-        c.req.header('Accept') === 'text/html' ||
-        c.req.query('accept') === 'text/html'
       if (renderAsHTML) {
         const height = imageOptions?.height ?? 630
         const width = imageOptions?.width ?? 1200

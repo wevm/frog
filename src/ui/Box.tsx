@@ -1,6 +1,9 @@
-import type { Child } from 'hono/jsx'
-
-import type { Direction, SatoriStyleProperties, ValueOf } from './types.js'
+import type {
+  Child,
+  Direction,
+  SatoriStyleProperties,
+  ValueOf,
+} from './types.js'
 import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 export type VariableValue<property extends keyof SatoriStyleProperties, token> =

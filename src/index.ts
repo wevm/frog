@@ -30,6 +30,7 @@ export type { Env } from './types/env.js'
 export type {
   FrameResponse,
   FrameIntent,
+  /** @deprecated Use `FrameIntent[]` instead. */
   FrameIntents,
 } from './types/frame.js'
 export type { HandlerResponse, TypedResponse } from './types/response.js'

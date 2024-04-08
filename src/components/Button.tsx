@@ -26,7 +26,7 @@ export function ButtonRoot({
   // @ts-ignore - private
   index = 1,
   value,
-}: ButtonRootProps) {
+}: ButtonRootProps): JSX.Element {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -82,7 +82,7 @@ export function ButtonLink({
   // @ts-ignore - private
   index = 1,
   href,
-}: ButtonLinkProps) {
+}: ButtonLinkProps): JSX.Element {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -104,7 +104,7 @@ export function ButtonMint({
   // @ts-ignore - private
   index = 1,
   target,
-}: ButtonMintProps) {
+}: ButtonMintProps): JSX.Element {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -126,7 +126,7 @@ export function ButtonRedirect({
   // @ts-ignore - private
   index = 1,
   location,
-}: ButtonRedirectProps) {
+}: ButtonRedirectProps): JSX.Element {
   return [
     <meta
       property={`fc:frame:button:${index}`}
@@ -150,7 +150,7 @@ export function ButtonReset({
   children,
   // @ts-ignore - private
   index = 1,
-}: ButtonResetProps) {
+}: ButtonResetProps): JSX.Element {
   return (
     <meta
       property={`fc:frame:button:${index}`}
@@ -173,7 +173,7 @@ export function ButtonTransaction({
   // @ts-ignore - private
   index = 1,
   target,
-}: ButtonTransactionProps) {
+}: ButtonTransactionProps): JSX.Element {
   return [
     <meta
       property={`fc:frame:button:${index}`}
