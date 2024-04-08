@@ -50,7 +50,7 @@ app.action('/log-this', (c) => {
       c.actionData.fid
     }`,
   )
-  return c.message('Action Succeeded')
+  return c.res({ message:'Action Succeeded' })
 })
 ```
 
@@ -137,7 +137,7 @@ app.action('/log-this', (c) => { // [!code focus]
       c.actionData.fid // [!code focus]
     }`, // [!code focus]
   ) // [!code focus]
-  return c.message('Action Succeeded') // [!code focus]
+  return c.res({ message: 'Action Succeeded' }) // [!code focus]
 }) // [!code focus]
 ```
 

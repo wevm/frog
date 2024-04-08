@@ -1,10 +1,5 @@
 import type { Context as Context_hono, Input } from 'hono'
-import type {
-  ActionData,
-  ActionResponseFn,
-  ErrorActionResponseFn,
-  MessageActionResponseFn,
-} from './action.js'
+import type { ActionData, ActionResponseFn } from './action.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type {
@@ -38,14 +33,6 @@ export type ActionContext<
    * @see https://hono.dev/api/context#env
    */
   env: Context_hono<env, path>['env']
-  /**
-   * Fail message response that has HTTP status code 4xx.
-   */
-  error: ErrorActionResponseFn
-  /**
-   * Successful message response that has HTTP status code 200.
-   */
-  message: MessageActionResponseFn
   /**
    * Origin of the server.
    */
