@@ -67,7 +67,7 @@ import { Frog } from 'frog'
 
 const app = new Frog({
   headers: { // [!code focus]
-    'Cache-Control': 'max-age=0', // [!code focus]
+    'cache-control': 'max-age=0', // [!code focus]
   } // [!code focus]
 })
 ```
@@ -121,6 +121,20 @@ Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
 However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
 It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
 :::
+
+### imageAspectRatio
+
+- **Type:** `'1.91:1' | '1:1'`
+
+Aspect ratio clients should use to display images in frames.
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  imageAspectRatio: '1:1' // [!code focus]
+})
+```
 
 ### imageOptions
 

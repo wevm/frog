@@ -28,6 +28,7 @@ import { fromQuery } from './utils/fromQuery.js'
 import { getActionContext } from './utils/getActionContext.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getFrameMetadata } from './utils/getFrameMetadata.js'
 import { getImagePaths } from './utils/getImagePaths.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
@@ -348,6 +349,25 @@ export class FrogBase<
     const imagePaths = getImagePaths(parseHonoPath(path))
     for (const imagePath of imagePaths) {
       this.hono.get(imagePath, async (c) => {
+        const url = getRequestUrl(c.req)
+
+        const query = c.req.query()
+        if (!query.image) {
+          // If the query is doesn't have an image, it is an initial request to a frame.
+          // Therefore we need to get the link to fetch the original image and jump once again in this method to resolve the options,
+          // but now with query params set.
+          const metadata = await getFrameMetadata(url.href.slice(0, -6)) // Stripping `/image` (6 characters) from the end of the url.
+          const frogImage = metadata.find(
+            ({ property }) => property === 'frog:image',
+          )
+          if (!frogImage)
+            throw new Error(
+              'Unexpected error: frog:image meta tag is not present in the frame.',
+            )
+          // Redirect to this route but now with search params and return the response
+          return c.redirect(frogImage.content)
+        }
+
         const defaultImageOptions = await (async () => {
           if (typeof this.imageOptions === 'function')
             return await this.imageOptions()
@@ -366,7 +386,7 @@ export class FrogBase<
           headers = this.headers,
           image,
           imageOptions = defaultImageOptions,
-        } = fromQuery<any>(c.req.query())
+        } = fromQuery<any>(query)
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
         return new ImageResponse(image_, {
           width: 1200,
@@ -646,8 +666,22 @@ export class FrogBase<
                 property="fc:frame:image:aspect_ratio"
                 content={imageAspectRatio}
               />
-              <meta property="fc:frame:image" content={imageUrl} />
-              <meta property="og:image" content={ogImageUrl ?? imageUrl} />
+              <meta
+                property="fc:frame:image"
+                content={
+                  context.status === 'initial'
+                    ? `${context.url}/image`
+                    : imageUrl
+                }
+              />
+              <meta
+                property="og:image"
+                content={
+                  ogImageUrl ?? context.status === 'initial'
+                    ? `${context.url}/image`
+                    : imageUrl
+                }
+              />
               <meta property="og:title" content={title} />
               <meta
                 property="fc:frame:post_url"
@@ -681,6 +715,7 @@ export class FrogBase<
                   })}
                 />
               )}
+              <meta property="frog:image" content={imageUrl} />
             </head>
             <body />
           </html>
