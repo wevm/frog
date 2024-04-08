@@ -39,6 +39,7 @@ export type MessageActionResponseFn = (
 
 //////////////////////////////////////////////////////
 // Error Response
+
 export type ErrorActionParameters = {
   message: string
   statusCode: Exclude<ActionResponse['statusCode'], 200>
