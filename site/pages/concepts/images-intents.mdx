@@ -9,7 +9,7 @@ Farcaster Frames have two main UI components:
 
 ## Image
 
-In Farcaster Frames, an **Image** behaves similarly to an [Open Graph image](https://ogp.me/), and shares the same constraints.
+In Farcaster Frames, an **Image** behaves similarly to an [Open Graph image](https://ogp.me/), and shares the same constraints. One exception is the [aspect ratio](https://docs.farcaster.xyz/reference/frames/spec#required-properties), where Frames allow both 1.91:1 and 1:1 images.
 
 **Frog** uses [Satori](https://github.com/vercel/satori) & [Resvg](https://github.com/yisibl/resvg-js) under-the-hood to compile JSX elements to a static image.
 Check out Vercel's [Open Graph Image Generation page](https://vercel.com/docs/functions/og-image-generation) to learn more about the internals of **Frog's** image renderer, and the constraints and best practices for creating OG images.
