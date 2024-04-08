@@ -103,7 +103,7 @@ app.frame('/frame/foo', (c) => {
   const { buttonIndex } = c
   return c.res({
     headers: { // [!code focus]
-      'Cache-Control': 'max-age=0', // [!code focus]
+      'cache-control': 'max-age=0', // [!code focus]
     }, // [!code focus]
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
