@@ -33,7 +33,7 @@ export const app = new Frog({
           alignHorizontal="center"
           alignVertical="center"
         >
-          <Heading>
+          <Heading style="italic">
             {status === 'response'
               ? `Nice choice.${fruit ? ` ${fruit.toUpperCase()}!!` : ''}`
               : 'Welcome :)'}

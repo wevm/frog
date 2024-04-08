@@ -1,0 +1,118 @@
+diff --git a/lib/utils/loadGoogleFont.d.ts b/lib/utils/loadGoogleFont.d.ts
+index d66c5447e35e93eb6e84cd7ad1142d382df72691..6a593e6633375c051547a0ca996711162fe9db8e 100644
+--- a/lib/utils/loadGoogleFont.d.ts
++++ b/lib/utils/loadGoogleFont.d.ts
+@@ -1,7 +1,13 @@
+ export type LoadGoogleFontParameters = {
+-    family: string;
+-    weight?: number;
+-    text?: string;
+-};
+-export declare function loadGoogleFont({ family, weight, text, }: LoadGoogleFontParameters): Promise<ArrayBuffer>;
++  family: string
++  weight?: number
++  text?: string
++  style?: 'normal' | 'italic'
++}
++export declare function loadGoogleFont({
++  family,
++  weight,
++  text,
++  style,
++}: LoadGoogleFontParameters): Promise<ArrayBuffer>
+ //# sourceMappingURL=loadGoogleFont.d.ts.map
+diff --git a/lib/utils/loadGoogleFont.js b/lib/utils/loadGoogleFont.js
+index daeeef1f877b33c986a63d02a6c7650fb22aab3d..a8c9f656b1641ce2df32c314bd0fb15a7ff1aa37 100644
+--- a/lib/utils/loadGoogleFont.js
++++ b/lib/utils/loadGoogleFont.js
+@@ -1,35 +1,59 @@
+ // Adapted from: https://github.com/kvnang/workers-og/blob/main/packages/workers-og/src/font.ts
+-import { LruMap } from "./lru.js";
++import { LruMap } from './lru.js'
+ // 128 * ~0.1MB font = ~12.8MB max memory consumption
+-const buffers = new LruMap(128);
+-export async function loadGoogleFont({ family, weight, text, }) {
+-    const params = {
+-        family: `${encodeURIComponent(family)}${weight ? `:wght@${weight}` : ""}`,
+-    };
+-    if (text)
+-        params.text = text;
+-    else
+-        params.subset = "latin";
+-    const url = `https://fonts.googleapis.com/css2?${Object.keys(params)
+-        .map((key) => `${key}=${params[key]}`)
+-        .join("&")}`;
+-    if (buffers.get(url))
+-        return buffers.get(url);
+-    let response = await fetch(url, {
+-        headers: {
+-            // construct user agent to get TTF font
+-            "User-Agent": "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1",
+-        },
+-    });
+-    response = new Response(response.body, response);
+-    response.headers.append("Cache-Control", "s-maxage=3600");
+-    const body = await response.text();
+-    // Get the font URL from the CSS text
+-    const fontUrl = body.match(/src: url\((.+)\) format\('(opentype|truetype)'\)/)?.[1];
+-    if (!fontUrl)
+-        throw new Error("Could not find font URL");
+-    const buffer = await fetch(fontUrl).then((res) => res.arrayBuffer());
+-    buffers.set(url, buffer);
+-    return buffer;
++const buffers = new LruMap(128)
++export async function loadGoogleFont({
++  family,
++  weight,
++  text,
++  style = 'normal',
++}) {
++  let fontOptions
++
++  if (style === 'italic') {
++    // If no weight is specified, just append `ital:1` to get italic font.
++    if (!weight) {
++      fontOptions = 'ital@1'
++    }
++    // If weight is specified, we need to expliticly set the weight to have `1:` fallback
++    else {
++      fontOptions = `ital,wght@1,${weight}`
++    }
++  } else {
++    // If no weight is specified, `fontOptions` should stay empty
++    // If weight is specified, append weight parameter
++    if (weight) {
++      fontOptions = `wght@${weight}`
++    }
++  }
++  const params = {
++    family: `${encodeURIComponent(family)}${
++      fontOptions ? `:${fontOptions}` : ''
++    }`,
++  }
++  if (text) params.text = text
++  else params.subset = 'latin'
++  const url = `https://fonts.googleapis.com/css2?${Object.keys(params)
++    .map((key) => `${key}=${params[key]}`)
++    .join('&')}`
++  if (buffers.get(url)) return buffers.get(url)
++  let response = await fetch(url, {
++    headers: {
++      // construct user agent to get TTF font
++      'User-Agent':
++        'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; de-at) AppleWebKit/533.21.1 (KHTML, like Gecko) Version/5.0.5 Safari/533.21.1',
++    },
++  })
++  response = new Response(response.body, response)
++  response.headers.append('Cache-Control', 's-maxage=3600')
++  const body = await response.text()
++  // Get the font URL from the CSS text
++  const fontUrl = body.match(
++    /src: url\((.+)\) format\('(opentype|truetype)'\)/,
++  )?.[1]
++  if (!fontUrl) throw new Error('Could not find font URL')
++  const buffer = await fetch(fontUrl).then((res) => res.arrayBuffer())
++  buffers.set(url, buffer)
++  return buffer
+ }
+ //# sourceMappingURL=loadGoogleFont.js.map
