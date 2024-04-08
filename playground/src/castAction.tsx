@@ -36,11 +36,7 @@ export const app = new Frog()
         </div>
       ),
       intents: [
-        <Button.AddAction
-          url={`${c.origin}/castAction/action`}
-          name="Log This!"
-          icon="log"
-        >
+        <Button.AddAction action={`/action`} name="Log This!" icon="log">
           Add
         </Button.AddAction>,
       ],

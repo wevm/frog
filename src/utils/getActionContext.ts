@@ -26,7 +26,7 @@ export function getActionContext<
   parameters: GetActionContextParameters<env, path, input>,
 ): GetActionContextReturnType<env, path, input> {
   const { context } = parameters
-  const { env, frameData, req, verified, origin } = context || {}
+  const { env, frameData, req, verified } = context || {}
 
   if (!frameData)
     throw new Error('Frame data must be present for action handlers.')
@@ -43,7 +43,6 @@ export function getActionContext<
         timestamp: frameData.timestamp,
         url: frameData.url,
       },
-      origin,
       req,
       res: (data) => ({
         data,

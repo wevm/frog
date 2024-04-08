@@ -46,19 +46,22 @@ function parseIntent(
 
   const props = (() => {
     if ((node.tag as any).__type === 'button') {
+      const value = (node.tag as any)({})?.[0]?.props?.['data-value']
+
       const buttonProps: Record<string, unknown> = {
         ...node.props,
         action: node.props.action
           ? node.props.action.startsWith('http')
             ? node.props.action
             : parsePath(options.baseUrl + node.props.action) +
-              (options.search ? `?${options.search}` : '')
+              (options.search && !value?.startsWith(buttonPrefix.addAction)
+                ? `?${options.search}`
+                : '')
           : undefined,
         children: node.children,
         index: counter.button++,
       }
 
-      const value = (node.tag as any)({})?.[0]?.props?.['data-value']
       if (value?.startsWith(buttonPrefix.transaction) && node.props.target) {
         const search = (node.props.target ?? '').split('?')[1]
         buttonProps.target = node.props.target?.startsWith('http')

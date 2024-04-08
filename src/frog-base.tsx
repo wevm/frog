@@ -308,9 +308,6 @@ export class FrogBase<
 
     // Action Route (implements POST).
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
-      const url = getRequestUrl(c.req)
-      const origin = this.origin ?? url.origin
-
       const { context } = getActionContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
@@ -318,7 +315,6 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
-          origin,
         }),
       })
 
@@ -398,9 +394,9 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
-          origin,
         }),
         initialState: this._initialState,
+        origin,
       })
 
       if (context.url !== parsePath(url.href)) return c.redirect(context.url)
@@ -729,8 +725,6 @@ export class FrogBase<
     const { verify = this.verify } = options
 
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
-      const url = getRequestUrl(c.req)
-      const origin = this.origin ?? url.origin
       const { context } = getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
@@ -738,7 +732,6 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
-          origin,
         }),
         req: c.req,
       })

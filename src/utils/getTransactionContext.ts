@@ -53,7 +53,6 @@ export function getTransactionContext<
     status,
     verified,
     url,
-    origin,
   } = context || {}
 
   const { buttonValue, inputText } = getIntentState({
@@ -98,7 +97,6 @@ export function getTransactionContext<
       frameData,
       initialPath,
       inputText,
-      origin,
       previousButtonValues,
       previousState,
       req,

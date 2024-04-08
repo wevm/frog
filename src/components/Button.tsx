@@ -2,7 +2,7 @@ import type { HtmlEscapedString } from 'hono/utils/html'
 import type { Octicon } from '../types/octicon.js'
 
 export const buttonPrefix = {
-  installAction: '_i',
+  addAction: '_i',
   link: '_l',
   mint: '_m',
   redirect: '_r',
@@ -41,8 +41,8 @@ export function ButtonRoot({
 }
 
 export type ButtonAddActionProps = ButtonProps & {
-  /** URL of the action. */
-  url: string
+  /** Action path */
+  action: string
   /** Name of the action. 30 characters maximum */
   name: string
   /** Octicon name. @see https://primer.style/foundations/icons */
@@ -51,23 +51,23 @@ export type ButtonAddActionProps = ButtonProps & {
 
 ButtonAddAction.__type = 'button'
 export function ButtonAddAction({
+  action,
   children,
   name,
   icon,
   // @ts-ignore - private
   index = 1,
-  url,
 }: ButtonAddActionProps) {
   return [
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
-      data-value={buttonPrefix.installAction}
+      data-value={buttonPrefix.addAction}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta
       property={`fc:frame:button:${index}:target`}
-      content={`https://warpcast.com/~/add-cast-action?postUrl=${url}&name=${name}&actionType=post&icon=${icon}`}
+      content={`https://warpcast.com/~/add-cast-action?postUrl=${action}&name=${name}&actionType=post&icon=${icon}`}
     />,
   ] as unknown as HtmlEscapedString
 }
