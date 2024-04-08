@@ -131,8 +131,6 @@ app.frame('/', (c) => {
   })
 })
 
-// ...
-
 app.action('/log-this', (c) => { // [!code focus]
   console.log( // [!code focus]
     `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
