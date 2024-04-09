@@ -1,7 +1,7 @@
 import { type JSXNode } from 'hono/jsx'
 
 import { buttonPrefix } from '../components/Button.js'
-import { type FrameIntents } from '../types/frame.js'
+import { type FrameIntent } from '../types/frame.js'
 import { parsePath } from './parsePath.js'
 
 type Counter = { button: number }
@@ -12,7 +12,7 @@ type ParseIntentsOptions = {
 }
 
 export function parseIntents(
-  intents_: FrameIntents | undefined,
+  intents_: FrameIntent | FrameIntent[] | undefined,
   options: ParseIntentsOptions = {},
   counter: Counter = { button: 1 },
 ): JSXNode[] {
