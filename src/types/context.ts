@@ -26,7 +26,7 @@ export type CastActionContext<
    * @example
    * ```ts
    * // Environment object for Cloudflare Workers
-   * app.frame('/', async c => {
+   * app.castAction('/', async c => {
    *   const counter = c.env.COUNTER
    * })
    * ```
