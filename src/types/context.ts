@@ -59,6 +59,12 @@ export type Context<
    */
   previousState: _state
   /**
+   * Hono redirect method.
+   *
+   * @see https://hono.dev/api/context#redirect
+   */
+  redirect: Context_hono<env, path, input>['redirect']
+  /**
    * Hono request object.
    *
    * @see https://hono.dev/api/context#req

@@ -49,6 +49,7 @@ export function getTransactionContext<
     initialPath,
     previousButtonValues,
     previousState,
+    redirect,
     req,
     status,
     verified,
@@ -99,6 +100,7 @@ export function getTransactionContext<
       inputText,
       previousButtonValues,
       previousState,
+      redirect,
       req,
       res(parameters) {
         const { attribution, chainId, method, params } = parameters

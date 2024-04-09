@@ -75,6 +75,7 @@ export async function requestBodyToContext<
     previousState,
     previousButtonValues,
     frameData: trustedFrameData || untrustedData,
+    redirect: c.redirect,
     req: c.req,
     status: c.req.method === 'POST' ? 'response' : 'initial',
     url: url.href,
