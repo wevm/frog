@@ -189,7 +189,7 @@ export function ButtonTransaction({
 }
 
 export const Button = Object.assign(ButtonRoot, {
-  AddAction: ButtonAddCastAction,
+  AddCastAction: ButtonAddCastAction,
   Link: ButtonLink,
   Mint: ButtonMint,
   Redirect: ButtonRedirect,

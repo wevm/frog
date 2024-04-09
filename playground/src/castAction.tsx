@@ -36,9 +36,9 @@ export const app = new Frog()
         </div>
       ),
       intents: [
-        <Button.AddAction action="/action" name="Log This!" icon="log">
+        <Button.AddCastAction action="/action" name="Log This!" icon="log">
           Add
-        </Button.AddAction>,
+        </Button.AddCastAction>,
       ],
     }),
   )
