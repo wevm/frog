@@ -8,11 +8,6 @@ overrides:
   hono: 4.1.0
   typescript: 5.3.3
 
-patchedDependencies:
-  hono-og@0.0.26:
-    hash: 5j43l4mz3vh4kkitpfr6nacdpa
-    path: patches/hono-og@0.0.26.patch
-
 importers:
 
   .:
@@ -219,8 +214,8 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       hono-og:
-        specifier: 0.0.26
-        version: 0.0.26(patch_hash=5j43l4mz3vh4kkitpfr6nacdpa)(hono@4.1.0)
+        specifier: 0.0.27
+        version: 0.0.27(hono@4.1.0)
       jose:
         specifier: ^5.2.2
         version: 5.2.2
@@ -7784,8 +7779,8 @@ packages:
       react-is: 16.13.1
     dev: true
 
-  /hono-og@0.0.26(patch_hash=5j43l4mz3vh4kkitpfr6nacdpa)(hono@4.1.0):
-    resolution: {integrity: sha512-YUaLj+T06fWpykgPoeMbxnRMuEA+L83p5+PcBzlM2P/Rj889wnapvVDtT//81iJhRVLCkdjEkAHfcZaJ67cI8w==}
+  /hono-og@0.0.27(hono@4.1.0):
+    resolution: {integrity: sha512-FtsUmDCG7xKXD8InxzHcdzX5IIe9MrDPFHih0CUd6Hog0NcDV6tksc1cZ1sAAuftSTedmC4LV6Oi1uK6VXvZgQ==}
     peerDependencies:
       hono: 4.1.0
     dependencies:
@@ -7793,7 +7788,6 @@ packages:
       hono: 4.1.0
       workers-og: 0.0.23
     dev: false
-    patched: true
 
   /hono@4.1.0:
     resolution: {integrity: sha512-9no6DCHb4ijB1tWdFXU6JnrnFgzwVZ1cnIcS1BjAFnMcjbtBTOMsQrDrPH3GXbkNEEEkj8kWqcYBy8Qc0bBkJQ==}

@@ -53,9 +53,6 @@
     "overrides": {
       "hono": "4.1.0",
       "typescript": "5.3.3"
-    },
-    "patchedDependencies": {
-      "hono-og@0.0.26": "patches/hono-og@0.0.26.patch"
     }
   }
 }
