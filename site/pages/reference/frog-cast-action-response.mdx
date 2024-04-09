@@ -1,6 +1,6 @@
-# Frog.action Response
+# Frog.castAction Response
 
-The response returned from the `.action` handler.
+The response returned from the `.castAction` handler.
 
 ```tsx twoslash
 // @noErrors
@@ -8,7 +8,7 @@ import { Frog } from 'frog'
  
 export const app = new Frog()
 
-app.frame('/', (c) => {
+app.castAction('/', (c) => {
   return c.res({ // [!code focus]
     // ... // [!code focus]
   }) // [!code focus]
@@ -29,7 +29,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/action/foo', (c) => {
+app.castAction('/action/foo', (c) => {
   return c.res({
     headers: { // [!code focus]
       'Cache-Control': 'max-age=0', // [!code focus]
@@ -53,7 +53,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   return c.res({
     message: 'Action Succeeded!', // [!code focus]
     statusCode: 200
@@ -75,7 +75,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   return c.res({
     message: 'Action Succeeded!',
     statusCode: 200 // [!code focus]

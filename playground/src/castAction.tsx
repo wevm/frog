@@ -42,7 +42,7 @@ export const app = new Frog()
       ],
     }),
   )
-  .action('/action', async (c) => {
+  .castAction('/action', async (c) => {
     console.log(
       `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
         c.actionData.fid

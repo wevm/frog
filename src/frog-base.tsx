@@ -17,7 +17,7 @@ import type {
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
 import type {
-  ActionHandler,
+  CastActionHandler,
   FrameHandler,
   HandlerInterface,
   MiddlewareHandlerInterface,
@@ -25,8 +25,8 @@ import type {
 } from './types/routes.js'
 import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
-import { getActionContext } from './utils/getActionContext.js'
 import { getButtonValues } from './utils/getButtonValues.js'
+import { getCastActionContext } from './utils/getCastActionContext.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getFrameMetadata } from './utils/getFrameMetadata.js'
 import { getImagePaths } from './utils/getImagePaths.js'
@@ -297,19 +297,19 @@ export class FrogBase<
     })
   }
 
-  action: HandlerInterface<env, 'action', schema, basePath> = (
+  castAction: HandlerInterface<env, 'cast-action', schema, basePath> = (
     ...parameters: any[]
   ) => {
     const [path, middlewares, handler, options = {}] = getRouteParameters<
       env,
-      ActionHandler<env>
+      CastActionHandler<env>
     >(...parameters)
 
     const { verify = this.verify } = options
 
-    // Action Route (implements POST).
+    // Cast Action Route (implements POST).
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
-      const { context } = getActionContext<env, string>({
+      const { context } = getCastActionContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||

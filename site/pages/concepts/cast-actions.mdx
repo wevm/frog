@@ -6,8 +6,8 @@ Cast Actions let developers create custom buttons which users can install into t
 
 At a glance:
 
-1. User installs Cast Action via specific deeplink or by clicking on `<Button.AddAction>{:jsx}` element with a specified target `.action` route in a Frame.
-2. When the user presses the Cast Action button in the App, the App will make a `POST` request to the `.action` route.
+1. User installs Cast Action via specific deeplink or by clicking on `<Button.AddCastAction>{:jsx}` element with a specified target `.castAction` route in a Frame.
+2. When the user presses the Cast Action button in the App, the App will make a `POST` request to the `.castAction` route.
 3. Frame performs any action and returns a response to the App.
 
 ## Walkthrough
@@ -33,18 +33,18 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.AddAction
-        url={`${c.origin}/log-this`}
+      <Button.AddCastAction
+        action="/log-this"
         name="Log This!"
         icon="log"
       >
         Add
-      </Button.AddAction>,
+      </Button.AddCastAction>,
     ]
   })
 })
 
-app.action('/log-this', (c) => {
+app.castAction('/log-this', (c) => {
   console.log(
     `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
       c.actionData.fid
@@ -62,8 +62,7 @@ app.action('/log-this', (c) => {
 
 In the example above, we are rendering Add Action intent:
 
-1. `url` property is used to set the absolute URL of the installable action. If your Frog instance is connected to another Frog instance via `.route`, you need to
-make sure that the URL you provide includes all the possible base paths up to the top of the routing tree.
+1. `action` property is used to set the path to the cast action route.
 2. `name` property is used to set the name of the action. It must be less than 30 characters
 3. `icon` property is used to associate your Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
 
@@ -83,13 +82,13 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.AddAction
-        url={`${c.origin}/log-this`}
+      <Button.AddCastAction
+        action="/log-this"
         name="Log This!"
         icon="log"
       >
         Add
-      </Button.AddAction>,
+      </Button.AddCastAction>,
     ]
   })
 })
@@ -120,18 +119,18 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.AddAction
-        url={`${c.origin}/log-this`}
+      <Button.AddCastAction
+        action="/log-this"
         name="Log This!"
         icon="log"
       >
         Add
-      </Button.AddAction>,
+      </Button.AddCastAction>,
     ]
   })
 })
 
-app.action('/log-this', (c) => { // [!code focus]
+app.castAction('/log-this', (c) => { // [!code focus]
   console.log( // [!code focus]
     `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
       c.actionData.fid // [!code focus]
@@ -153,8 +152,8 @@ A breakdown of the `/log-this` route handler:
 
 You can learn more about the transaction APIs here:
 
-- [`Frog.action` Reference](/reference/frog-action)
-- [`Frog.action` Context Reference](/reference/frog-action-context)
-- [`Frog.action` Response Reference](/reference/frog-action-response)
+- [`Frog.castAction` Reference](/reference/frog-cast-action)
+- [`Frog.castAction` Context Reference](/reference/frog-cast-action-context)
+- [`Frog.castAction` Response Reference](/reference/frog-cast-action-response)
 
 ::::

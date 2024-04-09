@@ -1,5 +1,5 @@
 import type { Context as Context_hono, Input } from 'hono'
-import type { ActionData, ActionResponseFn } from './action.js'
+import type { CastActionData, CastActionResponseFn } from './castAction.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type {
@@ -10,7 +10,7 @@ import type {
 } from './transaction.js'
 import type { Pretty } from './utils.js'
 
-export type ActionContext<
+export type CastActionContext<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
@@ -19,7 +19,7 @@ export type ActionContext<
    * Data from the action that was passed via the POST body.
    * The {@link Context`verified`} flag indicates whether the data is trusted or not.
    */
-  actionData: Pretty<ActionData>
+  actionData: Pretty<CastActionData>
   /**
    * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
    *
@@ -40,11 +40,11 @@ export type ActionContext<
    */
   req: Context_hono<env, path, input>['req']
   /**
-   * Raw action response that includes action properties such as: message, status.
+   * Raw action response that includes action properties such as: message, statusCode.
    *
    * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
    * */
-  res: ActionResponseFn
+  res: CastActionResponseFn
   /**
    * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
    *

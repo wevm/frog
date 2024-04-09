@@ -1,8 +1,8 @@
 import type { Input } from 'hono'
-import type { ActionContext, Context } from '../types/context.js'
+import type { CastActionContext, Context } from '../types/context.js'
 import type { Env } from '../types/env.js'
 
-type GetActionContextParameters<
+type GetCastActionContextParameters<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
@@ -10,21 +10,21 @@ type GetActionContextParameters<
   context: Context<env, path, input>
 }
 
-type GetActionContextReturnType<
+type GetCastActionContextReturnType<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
 > = {
-  context: ActionContext<env, path, input>
+  context: CastActionContext<env, path, input>
 }
 
-export function getActionContext<
+export function getCastActionContext<
   env extends Env,
   path extends string,
   input extends Input = {},
 >(
-  parameters: GetActionContextParameters<env, path, input>,
-): GetActionContextReturnType<env, path, input> {
+  parameters: GetCastActionContextParameters<env, path, input>,
+): GetCastActionContextReturnType<env, path, input> {
   const { context } = parameters
   const { env, frameData, req, verified } = context || {}
 
@@ -46,7 +46,7 @@ export function getActionContext<
       req,
       res: (data) => ({
         data,
-        format: 'action',
+        format: 'cast-action',
       }),
       var: context.var,
       verified,

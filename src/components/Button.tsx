@@ -2,7 +2,7 @@ import type { HtmlEscapedString } from 'hono/utils/html'
 import type { Octicon } from '../types/octicon.js'
 
 export const buttonPrefix = {
-  addAction: '_i',
+  addCastAction: '_a',
   link: '_l',
   mint: '_m',
   redirect: '_r',
@@ -40,7 +40,7 @@ export function ButtonRoot({
   ] as unknown as HtmlEscapedString
 }
 
-export type ButtonAddActionProps = ButtonProps & {
+export type ButtonAddCastActionProps = ButtonProps & {
   /** Action path */
   action: string
   /** Name of the action. 30 characters maximum */
@@ -49,20 +49,20 @@ export type ButtonAddActionProps = ButtonProps & {
   icon: Octicon
 }
 
-ButtonAddAction.__type = 'button'
-export function ButtonAddAction({
+ButtonAddCastAction.__type = 'button'
+export function ButtonAddCastAction({
   action,
   children,
   name,
   icon,
   // @ts-ignore - private
   index = 1,
-}: ButtonAddActionProps) {
+}: ButtonAddCastActionProps) {
   return [
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
-      data-value={buttonPrefix.addAction}
+      data-value={buttonPrefix.addCastAction}
     />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta
@@ -189,7 +189,7 @@ export function ButtonTransaction({
 }
 
 export const Button = Object.assign(ButtonRoot, {
-  AddAction: ButtonAddAction,
+  AddAction: ButtonAddCastAction,
   Link: ButtonLink,
   Mint: ButtonMint,
   Redirect: ButtonRedirect,

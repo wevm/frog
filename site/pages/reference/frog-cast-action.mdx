@@ -1,4 +1,4 @@
-# Frog.action
+# Frog.castAction
 
 ## Import
 
@@ -15,7 +15,7 @@ import { Button, Frog } from 'frog'
 
 const app = new Frog()
 
-app.action('/', (c) => { // [!code focus]
+app.castAction('/', (c) => { // [!code focus]
   console.log('Apple and Banana')
   return c.res({ message: 'Action Succeeded' }) // [!code focus]
 }) // [!code focus]
@@ -38,7 +38,7 @@ import { Button, Frog } from 'frog'
 
 const app = new Frog()
 
-app.action(
+app.castAction(
   '/foo/bar', // [!code focus]
   (c) => {
     console.log('Apple and Banana')
@@ -49,7 +49,7 @@ app.action(
 
 ### handler
 
-- **Type:** `(c: Context) => ActionResponse`
+- **Type:** `(c: Context) => CastActionResponse`
 
 Handler function for the route.
 
@@ -60,19 +60,19 @@ import { Button, Frog } from 'frog'
 
 const app = new Frog()
 
-app.action(
+app.castAction(
   '/foo/bar',
   (c) => { // [!code focus]
     console.log('Apple and Banana')
     return c.res({ message: 'Action Succeeded' }) // [!code focus]
-  }) // [!code focus]
+  } // [!code focus]
 ) 
 ```
 
 #### Context Parameter
 
-[See the Action Context API.](/reference/frog-action-context)
+[See the Cast Action Context API.](/reference/frog-cast-action-context)
 
 #### Action Response
 
-[See the Action Response API.](/reference/frog-action-response)
+[See the Cast Action Response API.](/reference/frog-cast-action-response)

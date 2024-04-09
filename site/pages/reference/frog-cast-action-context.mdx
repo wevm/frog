@@ -1,4 +1,4 @@
-# Frog.action Context
+# Frog.castAction Context
 
 The `c` object is the parameter of the route handlers. It contains context about the current cast action.
 
@@ -8,7 +8,7 @@ import { Frog } from 'frog'
  
 export const app = new Frog()
 
-app.action('/', (c) => { // [!code focus]
+app.castAction('/', (c) => { // [!code focus]
   return c.res({/* ... */})
 })
 ```
@@ -19,7 +19,7 @@ An action handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
 
 ## actionData
 
-- **Type**: `ActionData`
+- **Type**: `CastActionData`
 
 Data from the action that was passed via the `POST` body from a Farcaster Client. [See more.](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa)
 
@@ -31,7 +31,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   const { actionData } = c
   const { castId, fid, messageHash, network, timestamp, url } = actionData // [!code focus]
   return c.res({/* ... */})
@@ -52,7 +52,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   const { req } = c // [!code focus]
   return c.res({/* ... */})
 })
@@ -60,7 +60,7 @@ app.action('/', (c) => {
 
 ## res
 
-- **Type**: `(response: ActionResponse) => ActionResponse`
+- **Type**: `(response: CastActionResponse) => CastActionResponse`
 
 The action response.
 
@@ -72,7 +72,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   return c.res({/* ... */}) // [!code focus]
 })
 ```
@@ -96,7 +96,7 @@ app.use(async (c, next) => {
   await next()
 })
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   const message = c.var.message // [!code focus]
   return c.res({/* ... */})
 })
@@ -116,7 +116,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.action('/', (c) => {
+app.castAction('/', (c) => {
   const { verified } = c // [!code focus]
   return c.res({/* ... */})
 })

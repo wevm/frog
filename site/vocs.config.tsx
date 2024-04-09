@@ -366,13 +366,13 @@ export default defineConfig({
         items: [
           { text: 'Frog', link: '/reference/frog' },
           {
-            text: 'Frog.action',
-            link: '/reference/frog-action',
+            text: 'Frog.castAction',
+            link: '/reference/frog-cast-action',
             items: [
-              { text: 'Context', link: '/reference/frog-action-context' },
+              { text: 'Context', link: '/reference/frog-cast-action-context' },
               {
                 text: 'Response',
-                link: '/reference/frog-action-response',
+                link: '/reference/frog-cast-action-response',
               },
             ],
           },
