@@ -114,7 +114,7 @@ export function getTransactionContext<
           },
         }
         if (value) response.params.value = value.toString()
-        return { data: response, format: 'transaction', isErrorResponse: false }
+        return { data: response, format: 'transaction' }
       },
       send(parameters) {
         return this.res({

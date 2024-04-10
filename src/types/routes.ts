@@ -45,25 +45,29 @@ export type CastActionHandler<
   E extends Env = any,
   P extends string = any,
   I extends Input = BlankInput,
-> = (c: CastActionContext<E, P, I>) => HandlerResponse<CastActionResponse>
+> = (
+  c: CastActionContext<E, P, I>,
+) => HandlerResponse<CastActionResponse, 'cast-action'>
 
 export type FrameHandler<
   E extends Env = any,
   P extends string = any,
   I extends Input = BlankInput,
-> = (c: FrameContext<E, P, I>) => HandlerResponse<FrameResponse>
+> = (c: FrameContext<E, P, I>) => HandlerResponse<FrameResponse, 'frame'>
 
 export type TransactionHandler<
   E extends Env = any,
   P extends string = any,
   I extends Input = BlankInput,
-> = (c: TransactionContext<E, P, I>) => HandlerResponse<TransactionResponse>
+> = (
+  c: TransactionContext<E, P, I>,
+) => HandlerResponse<TransactionResponse, 'transaction'>
 
 export type Handler<
   E extends Env = any,
   P extends string = any,
   I extends Input = BlankInput,
-  R extends HandlerResponse<any> = any,
+  R extends HandlerResponse<any, any> = any,
 > = (c: Context<E, P, I>) => R
 
 export type MiddlewareHandler<
@@ -77,7 +81,7 @@ export type H<
   E extends Env = any,
   P extends string = any,
   I extends Input = BlankInput,
-  R extends HandlerResponse<any> = any,
+  R extends HandlerResponse<any, any> = any,
   M extends string = string,
 > = M extends 'frame'
   ? FrameHandler<E, P, I>
@@ -103,7 +107,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     E2 extends Env = E,
   >(
@@ -120,7 +124,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     E2 extends Env = E,
@@ -141,7 +145,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -165,7 +169,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -192,7 +196,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -222,7 +226,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -255,7 +259,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -291,7 +295,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -330,7 +334,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -372,7 +376,7 @@ export interface HandlerInterface<
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -655,7 +659,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     E2 extends Env = E,
   >(
@@ -673,7 +677,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     E2 extends Env = E,
@@ -694,7 +698,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -721,7 +725,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -751,7 +755,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -784,7 +788,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -820,7 +824,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -859,7 +863,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -901,7 +905,7 @@ export interface OnHandlerInterface<
     M extends string,
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -990,7 +994,7 @@ export interface OnHandlerInterface<
         M,
         MergePath<BasePath, P>,
         I10['in'],
-        MergeTypedResponseData<HandlerResponse<any>>
+        MergeTypedResponseData<HandlerResponse<any, any>>
       >,
     BasePath
   >
@@ -999,7 +1003,7 @@ export interface OnHandlerInterface<
   <
     M extends string,
     P extends string,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = {},
   >(
     method: M,
@@ -1016,7 +1020,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     E2 extends Env = E,
   >(
@@ -1040,7 +1044,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     E2 extends Env = E,
@@ -1066,7 +1070,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -1098,7 +1102,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -1133,7 +1137,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -1171,7 +1175,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -1212,7 +1216,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -1256,7 +1260,7 @@ export interface OnHandlerInterface<
     Ms extends string[],
     P extends string,
     MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
@@ -1342,7 +1346,7 @@ export interface OnHandlerInterface<
         Ms[number],
         MergePath<BasePath, P>,
         I9['in'],
-        MergeTypedResponseData<HandlerResponse<any>>
+        MergeTypedResponseData<HandlerResponse<any, any>>
       >,
     BasePath
   >
@@ -1396,7 +1400,7 @@ export interface OnHandlerInterface<
         Ms[number],
         MergePath<BasePath, P>,
         I10['in'],
-        MergeTypedResponseData<HandlerResponse<any>>
+        MergeTypedResponseData<HandlerResponse<any, any>>
       >,
     BasePath
   >
@@ -1404,7 +1408,7 @@ export interface OnHandlerInterface<
   // app.on(method[], path, ...handler)
   <
     P extends string,
-    R extends HandlerResponse<any> = any,
+    R extends HandlerResponse<any, any> = any,
     I extends Input = {},
   >(
     methods: string[],
@@ -1423,7 +1427,7 @@ export interface OnHandlerInterface<
   >
 
   // app.on(method | method[], path[], ...handlers[])
-  <I extends Input = BlankInput, R extends HandlerResponse<any> = any>(
+  <I extends Input = BlankInput, R extends HandlerResponse<any, any> = any>(
     methods: string | string[],
     paths: string[],
     ...handlers: H<E, any, I, R>[]

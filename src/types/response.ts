@@ -1,11 +1,14 @@
 import type { ErrorFrameResponse } from './frame.js'
 
-export type TypedResponse<data> =
-  | {
+export type TypedResponse<
+  data,
+  format extends 'cast-action' | 'frame' | 'transaction',
+> = format extends 'cast-action' | 'transaction'
+  ? {
       data: data
-      format: 'cast-action' | 'transaction'
+      format: format
     }
-  | ({ format: 'frame' } & (
+  : { format: format } & (
       | {
           isErrorResponse: true
           error: ErrorFrameResponse
@@ -14,9 +17,12 @@ export type TypedResponse<data> =
           isErrorResponse: false
           data: data
         }
-    ))
+    )
 
-export type HandlerResponse<typedResponse> =
+export type HandlerResponse<
+  typedResponse,
+  format extends 'cast-action' | 'frame' | 'transaction',
+> =
   | Response
-  | TypedResponse<typedResponse>
-  | Promise<Response | TypedResponse<typedResponse>>
+  | TypedResponse<typedResponse, format>
+  | Promise<Response | TypedResponse<typedResponse, format>>

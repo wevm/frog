@@ -24,7 +24,7 @@ export type CastActionResponse = {
 
 export type CastActionResponseFn = (
   response: CastActionResponse,
-) => TypedResponse<CastActionResponse>
+) => TypedResponse<CastActionResponse, 'cast-action'>
 
 export type CastActionData = {
   buttonIndex: 1

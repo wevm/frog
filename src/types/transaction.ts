@@ -62,7 +62,7 @@ export type EthSendTransactionParameters<quantity = string> = {
 
 export type TransactionResponseFn<parameters> = (
   parameters: parameters,
-) => TypedResponse<TransactionResponse>
+) => TypedResponse<TransactionResponse, 'transaction'>
 
 //////////////////////////////////////////////////////
 // Send Transaction
@@ -111,4 +111,4 @@ export type ContractTransactionResponseFn = <
   >,
 >(
   response: ContractTransactionParameters<abi, functionName, args>,
-) => TypedResponse<TransactionResponse>
+) => TypedResponse<TransactionResponse, 'transaction'>

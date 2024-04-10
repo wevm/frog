@@ -130,7 +130,7 @@ export type FrameResponse = {
 
 export type FrameResponseFn = (
   response: FrameResponse,
-) => TypedResponse<FrameResponse>
+) => TypedResponse<FrameResponse, 'frame'>
 
 export type FrameData = {
   address?: string | undefined
@@ -172,4 +172,4 @@ export type ErrorFrameResponse = {
 
 export type ErrorFrameResponseFn = (
   parameters: ErrorFrameResponse,
-) => TypedResponse<FrameResponse>
+) => TypedResponse<FrameResponse, 'frame'>
