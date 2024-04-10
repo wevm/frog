@@ -324,7 +324,7 @@ export class FrogBase<
 
       if (response.format !== 'cast-action')
         throw new Error(
-          'Unexpected Error: Transaction Response format is not "cast-action"',
+          'Unexpected Error: Cast Action Response `format` is not `"cast-action"`',
         )
       const { headers = this.headers, message } = response.data
 
@@ -429,7 +429,7 @@ export class FrogBase<
       if (response instanceof Response) return response
       if (response.format !== 'frame')
         throw new Error(
-          'Unexpected Error: Transaction Response format is not "cast-action"',
+          'Unexpected Error: Frame Response `format` is not `"cast-action"`',
         )
 
       if (response.isErrorResponse) {
@@ -788,7 +788,7 @@ export class FrogBase<
       if (response instanceof Response) return response
       if (response.format !== 'transaction')
         throw new Error(
-          'Unexpected Error: Transaction Response format is not "transaction"',
+          'Unexpected Error: Transaction Response `format` is not `"transaction"`',
         )
 
       return c.json(response.data)
