@@ -94,9 +94,6 @@ export function getTransactionContext<
         })
       },
       env,
-      error(response) {
-        return { error: response, isErrorResponse: true, format: 'transaction' }
-      },
       frameData,
       initialPath,
       inputText,

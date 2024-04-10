@@ -179,6 +179,17 @@ export const app = new Frog({
       ],
     })
   })
+  // Error on purpose
+  .frame('/error', (c) => {
+    return c.res({
+      action: '/error/end',
+      image: <div tw="flex">Invoke error</div>,
+      intents: [<Button>Invoke</Button>],
+    })
+  })
+  .frame('/error/end', (c) => {
+    return c.error({ message: 'Bad inputs!' })
+  })
   .route('/castAction', castActionApp)
   .route('/clock', clock)
   .route('/ui', uiSystemApp)

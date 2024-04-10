@@ -1,14 +1,14 @@
-import type { ErrorTransactionResponse } from './transaction.js'
+import type { ErrorFrameResponse } from './frame.js'
 
 export type TypedResponse<data> =
   | {
       data: data
-      format: 'cast-action' | 'frame'
+      format: 'cast-action' | 'transaction'
     }
-  | ({ format: 'transaction' } & (
+  | ({ format: 'frame' } & (
       | {
           isErrorResponse: true
-          error: ErrorTransactionResponse
+          error: ErrorFrameResponse
         }
       | {
           isErrorResponse: false

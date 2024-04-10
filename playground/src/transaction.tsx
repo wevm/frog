@@ -26,9 +26,6 @@ export const app = new Frog({ verify: 'silent' })
             <Button.Transaction target="/send">
               Send Transaction
             </Button.Transaction>,
-            <Button.Transaction target="/error">
-              Invoke Error
-            </Button.Transaction>,
             <Button.Transaction target="/mint">Mint</Button.Transaction>,
           ],
     })
@@ -95,10 +92,6 @@ export const app = new Frog({ verify: 'silent' })
       to: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e',
       value: BigInt(c.req.param('value')),
     })
-  })
-  // Error on purpose
-  .transaction('/send/error', (c) => {
-    return c.error({ message: 'Bad inputs!' })
   })
 
 /////////////////////////////////////////////////////////////////////

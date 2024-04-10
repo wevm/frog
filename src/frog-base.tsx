@@ -432,6 +432,11 @@ export class FrogBase<
           'Unexpected Error: Transaction Response format is not "cast-action"',
         )
 
+      if (response.isErrorResponse) {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
+
       const {
         action,
         browserLocation = this.browserLocation,
@@ -785,10 +790,6 @@ export class FrogBase<
         throw new Error(
           'Unexpected Error: Transaction Response format is not "transaction"',
         )
-      if (response.isErrorResponse) {
-        c.status(response.error.statusCode ?? 400)
-        return c.json({ message: response.error.message })
-      }
 
       return c.json(response.data)
     })

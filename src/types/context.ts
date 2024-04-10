@@ -1,10 +1,14 @@
 import type { Context as Context_hono, Input } from 'hono'
 import type { CastActionData, CastActionResponseFn } from './castAction.js'
 import type { Env } from './env.js'
-import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
+import type {
+  ErrorFrameResponseFn,
+  FrameButtonValue,
+  FrameData,
+  FrameResponseFn,
+} from './frame.js'
 import type {
   ContractTransactionResponseFn,
-  ErrorTransactionResponseFn,
   SendTransactionParameters,
   TransactionParameters,
   TransactionResponseFn,
@@ -161,6 +165,8 @@ export type FrameContext<
   >(
     fn?: deriveFn,
   ) => ReturnType<deriveFn> extends Promise<void> ? Promise<_state> : _state
+  /** Error response that includes message and statusCode */
+  error: ErrorFrameResponseFn
   /** Frame response that includes frame properties such as: image, intents, action, etc */
   res: FrameResponseFn
   /**
@@ -194,7 +200,6 @@ export type TransactionContext<
    * with a type-safe interface to infer types based on a provided `abi`.
    */
   contract: ContractTransactionResponseFn
-  error: ErrorTransactionResponseFn
   /**
    * Raw transaction request.
    *

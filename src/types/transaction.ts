@@ -1,4 +1,3 @@
-import type { ClientErrorStatusCode } from 'hono/utils/http-status'
 import type {
   Abi,
   ContractFunctionArgs,
@@ -112,16 +111,4 @@ export type ContractTransactionResponseFn = <
   >,
 >(
   response: ContractTransactionParameters<abi, functionName, args>,
-) => TypedResponse<TransactionResponse>
-
-//////////////////////////////////////////////////////
-// Error Response
-
-export type ErrorTransactionResponse = {
-  message: string
-  statusCode?: ClientErrorStatusCode
-}
-
-export type ErrorTransactionResponseFn = (
-  parameters: ErrorTransactionResponse,
 ) => TypedResponse<TransactionResponse>
