@@ -1,4 +1,3 @@
-import type { ClientErrorStatusCode } from 'hono/utils/http-status'
 import type { TypedResponse } from './response.js'
 
 export type CastActionResponse = {
@@ -12,19 +11,11 @@ export type CastActionResponse = {
    * @example 'Action succeded!'
    */
   message: string
-  /**
-   * HTTP Status code to send the message with.
-   *
-   * Should match either 200 or 4xx status code.
-   *
-   * @example 200
-   */
-  statusCode?: 200 | ClientErrorStatusCode | undefined
 }
 
 export type CastActionResponseFn = (
   response: CastActionResponse,
-) => TypedResponse<CastActionResponse, 'cast-action'>
+) => TypedResponse<CastActionResponse>
 
 export type CastActionData = {
   buttonIndex: 1

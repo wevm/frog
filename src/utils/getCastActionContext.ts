@@ -34,6 +34,11 @@ export function getCastActionContext<
   return {
     context: {
       env,
+      error: (data) => ({
+        error: data,
+        format: 'cast-action',
+        status: 'error',
+      }),
       actionData: {
         buttonIndex: 1,
         castId: frameData.castId,
@@ -47,6 +52,7 @@ export function getCastActionContext<
       res: (data) => ({
         data,
         format: 'cast-action',
+        status: 'success',
       }),
       var: context.var,
       verified,

@@ -321,6 +321,10 @@ export class FrogBase<
 
       const response = await handler(context)
       if (response instanceof Response) return response
+      if (response.status === 'error') {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
 
       const { headers = this.headers, message } = response.data
 
@@ -328,7 +332,6 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      c.status(response.data.statusCode ?? 200)
       return c.json({ message })
     })
 
@@ -424,7 +427,7 @@ export class FrogBase<
       const response = await handler(context)
       if (response instanceof Response) return response
 
-      if (response.isErrorResponse) {
+      if (response.status === 'error') {
         c.status(response.error.statusCode ?? 400)
         return c.json({ message: response.error.message })
       }
@@ -778,6 +781,10 @@ export class FrogBase<
       })
       const response = await handler(context)
       if (response instanceof Response) return response
+      if (response.status === 'error')
+        throw new Error(
+          'Passing errors is not supported in .transaction routes.',
+        )
 
       return c.json(response.data)
     })

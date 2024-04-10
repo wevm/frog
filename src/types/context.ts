@@ -1,12 +1,8 @@
 import type { Context as Context_hono, Input } from 'hono'
 import type { CastActionData, CastActionResponseFn } from './castAction.js'
 import type { Env } from './env.js'
-import type {
-  ErrorFrameResponseFn,
-  FrameButtonValue,
-  FrameData,
-  FrameResponseFn,
-} from './frame.js'
+import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
+import type { BaseErrorResponseFn } from './response.js'
 import type {
   ContractTransactionResponseFn,
   SendTransactionParameters,
@@ -38,6 +34,8 @@ export type CastActionContext<
    * @see https://hono.dev/api/context#env
    */
   env: Context_hono<env, path>['env']
+  /** Error response that includes message and statusCode. */
+  error: BaseErrorResponseFn
   /**
    * Hono request object.
    *
@@ -165,8 +163,8 @@ export type FrameContext<
   >(
     fn?: deriveFn,
   ) => ReturnType<deriveFn> extends Promise<void> ? Promise<_state> : _state
-  /** Error response that includes message and statusCode */
-  error: ErrorFrameResponseFn
+  /** Error response that includes message and statusCode. */
+  error: BaseErrorResponseFn
   /** Frame response that includes frame properties such as: image, intents, action, etc */
   res: FrameResponseFn
   /**

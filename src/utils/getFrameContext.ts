@@ -85,16 +85,18 @@ export function getFrameContext<
       cycle: 'main',
       deriveState: deriveState as FrameContext['deriveState'],
       env,
-      error(response) {
-        return { error: response, isErrorResponse: true, format: 'frame' }
-      },
+      error: (data) => ({
+        error: data,
+        format: 'frame',
+        status: 'error',
+      }),
       frameData,
       initialPath,
       inputText,
       previousButtonValues,
       previousState: previousState as any,
       req,
-      res: (data) => ({ data, format: 'frame', isErrorResponse: false }),
+      res: (data) => ({ data, format: 'frame', status: 'success' }),
       status,
       transactionId: frameData?.transactionId,
       url,

@@ -1,5 +1,4 @@
 import { type ImageResponseOptions } from 'hono-og'
-import type { ClientErrorStatusCode } from 'hono/utils/http-status'
 import type { Hash } from 'viem'
 import type { TypedResponse } from './response.js'
 
@@ -130,7 +129,7 @@ export type FrameResponse = {
 
 export type FrameResponseFn = (
   response: FrameResponse,
-) => TypedResponse<FrameResponse, 'frame'>
+) => TypedResponse<FrameResponse>
 
 export type FrameData = {
   address?: string | undefined
@@ -161,15 +160,3 @@ export type TrustedData = {
 }
 
 export type UntrustedData = FrameData
-
-//////////////////////////////////////////////////////
-// Error Response
-
-export type ErrorFrameResponse = {
-  message: string
-  statusCode?: ClientErrorStatusCode
-}
-
-export type ErrorFrameResponseFn = (
-  parameters: ErrorFrameResponse,
-) => TypedResponse<FrameResponse, 'frame'>

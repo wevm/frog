@@ -48,5 +48,6 @@ export const app = new Frog()
         c.actionData.fid
       }`,
     )
+    if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
     return c.res({ message: 'Action Succeeded' })
   })

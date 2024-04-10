@@ -1,28 +1,19 @@
-import type { ErrorFrameResponse } from './frame.js'
+import type { ClientErrorStatusCode } from 'hono/utils/http-status'
+import type { OneOf } from './utils.js'
 
-export type TypedResponse<
-  data,
-  format extends 'cast-action' | 'frame' | 'transaction',
-> = format extends 'cast-action' | 'transaction'
-  ? {
-      data: data
-      format: format
-    }
-  : { format: format } & (
-      | {
-          isErrorResponse: true
-          error: ErrorFrameResponse
-        }
-      | {
-          isErrorResponse: false
-          data: data
-        }
-    )
+export type BaseError = { message: string; statusCode?: ClientErrorStatusCode }
 
-export type HandlerResponse<
-  typedResponse,
-  format extends 'cast-action' | 'frame' | 'transaction',
-> =
+export type BaseErrorResponseFn = (
+  response: BaseError,
+) => TypedResponse<BaseError>
+
+export type TypedResponse<data> = {
+  format: 'cast-action' | 'frame' | 'transaction'
+} & OneOf<
+  { data: data; status: 'success' } | { error: BaseError; status: 'error' }
+>
+
+export type HandlerResponse<typedResponse> =
   | Response
-  | TypedResponse<typedResponse, format>
-  | Promise<Response | TypedResponse<typedResponse, format>>
+  | TypedResponse<typedResponse>
+  | Promise<Response | TypedResponse<typedResponse>>
