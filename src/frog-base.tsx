@@ -322,6 +322,10 @@ export class FrogBase<
       const response = await handler(context)
       if (response instanceof Response) return response
 
+      if (response.format !== 'cast-action')
+        throw new Error(
+          'Unexpected Error: Transaction Response format is not "cast-action"',
+        )
       const { headers = this.headers, message } = response.data
 
       // Set response headers provided by consumer.
@@ -423,6 +427,10 @@ export class FrogBase<
 
       const response = await handler(context)
       if (response instanceof Response) return response
+      if (response.format !== 'frame')
+        throw new Error(
+          'Unexpected Error: Transaction Response format is not "cast-action"',
+        )
 
       const {
         action,
@@ -773,6 +781,15 @@ export class FrogBase<
       })
       const response = await handler(context)
       if (response instanceof Response) return response
+      if (response.format !== 'transaction')
+        throw new Error(
+          'Unexpected Error: Transaction Response format is not "transaction"',
+        )
+      if (response.isErrorResponse) {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
+
       return c.json(response.data)
     })
 

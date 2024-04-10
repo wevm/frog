@@ -4,6 +4,7 @@ import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type {
   ContractTransactionResponseFn,
+  ErrorTransactionResponseFn,
   SendTransactionParameters,
   TransactionParameters,
   TransactionResponseFn,
@@ -193,6 +194,7 @@ export type TransactionContext<
    * with a type-safe interface to infer types based on a provided `abi`.
    */
   contract: ContractTransactionResponseFn
+  error: ErrorTransactionResponseFn
   /**
    * Raw transaction request.
    *
