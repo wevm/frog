@@ -125,6 +125,24 @@ app.frame('/', (c) => {
 })
 ```
 
+## error
+- **Type**:  `(response: BaseError) => CastActionResponse`
+
+Error response.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.castAction('/', (c) => {
+  return c.error({/* ... */}) // [!code focus]
+})
+```
+
 ## frameData
 
 - **Type**: `FrameData`
