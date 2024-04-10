@@ -1,5 +1,5 @@
 import { type ImageResponseOptions } from 'hono-og'
-import type { Hash } from 'viem'
+import type { Hash, Address } from 'viem'
 import type { TypedResponse } from './response.js'
 
 export type Font = {
@@ -132,7 +132,7 @@ export type FrameResponseFn = (
 ) => TypedResponse<FrameResponse>
 
 export type FrameData = {
-  address?: string | undefined
+  address?: Address | string | undefined
   buttonIndex?: 1 | 2 | 3 | 4 | undefined
   castId: { fid: number; hash: string }
   fid: number
