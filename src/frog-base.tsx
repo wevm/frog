@@ -34,6 +34,7 @@ import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
+import { parseActionPath } from './utils/parseActionPath.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseFonts } from './utils/parseFonts.js'
 import { parseHonoPath } from './utils/parseHonoPath.js'
@@ -435,7 +436,7 @@ export class FrogBase<
         ogImage,
         title = 'Frog Frame',
       } = response.data
-      const buttonValues = getButtonValues(parseIntents(intents))
+      const buttonValues = getButtonValues(parseIntents(intents, { baseUrl }))
 
       if (context.status === 'redirect' && context.buttonIndex) {
         const buttonValue = buttonValues[context.buttonIndex - 1]
@@ -551,7 +552,7 @@ export class FrogBase<
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
-        return baseUrl + parsePath(action)
+        return parseActionPath(baseUrl, action)
       })()
 
       const parsedIntents = parseIntents(intents, {
