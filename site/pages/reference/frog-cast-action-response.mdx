@@ -1,0 +1,86 @@
+# Frog.castAction Response
+
+The response returned from the `.castAction` handler.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.castAction('/', (c) => {
+  return c.res({ // [!code focus]
+    // ... // [!code focus]
+  }) // [!code focus]
+})
+```
+
+## headers
+
+- **Type:** `Record<string, string>`
+
+HTTP response headers to set for the action.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.castAction('/action/foo', (c) => {
+  return c.res({
+    headers: { // [!code focus]
+      'Cache-Control': 'max-age=0', // [!code focus]
+    }, // [!code focus]
+    message: 'Success!',
+    statusCode: 200
+  })
+})
+```
+
+## message
+
+- **Type:** `string`
+
+Message to show in the toast in the App that sent the action.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.castAction('/', (c) => {
+  return c.res({
+    message: 'Action Succeeded!', // [!code focus]
+    statusCode: 200
+  })
+})
+```
+
+## statusCode
+
+- **Type:** `200 | ClientErrorStatusCode | undefined`
+- **Default:** `200`.
+
+HTTP Status code to respond with.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.castAction('/', (c) => {
+  return c.res({
+    message: 'Action Succeeded!',
+    statusCode: 200 // [!code focus]
+  })
+})
+```
+
+

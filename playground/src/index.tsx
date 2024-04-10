@@ -4,6 +4,7 @@ import { devtools } from 'frog/dev'
 import * as hubs from 'frog/hubs'
 import { Box, Heading, vars } from './ui.js'
 
+import { app as castActionApp } from './castAction.js'
 import { app as clock } from './clock.js'
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
@@ -178,6 +179,7 @@ export const app = new Frog({
       ],
     })
   })
+  .route('/castAction', castActionApp)
   .route('/clock', clock)
   .route('/ui', uiSystemApp)
   .route('/fonts', fontsApp)

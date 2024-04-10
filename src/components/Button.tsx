@@ -1,6 +1,8 @@
 import type { HtmlEscapedString } from 'hono/utils/html'
+import type { Octicon } from '../types/octicon.js'
 
 export const buttonPrefix = {
+  addCastAction: '_a',
   link: '_l',
   mint: '_m',
   redirect: '_r',
@@ -35,6 +37,38 @@ export function ButtonRoot({
     action && (
       <meta property={`fc:frame:button:${index}:target`} content={action} />
     ),
+  ] as unknown as HtmlEscapedString
+}
+
+export type ButtonAddCastActionProps = ButtonProps & {
+  /** Action path */
+  action: string
+  /** Name of the action. 30 characters maximum */
+  name: string
+  /** Octicon name. @see https://primer.style/foundations/icons */
+  icon: Octicon
+}
+
+ButtonAddCastAction.__type = 'button'
+export function ButtonAddCastAction({
+  action,
+  children,
+  name,
+  icon,
+  // @ts-ignore - private
+  index = 1,
+}: ButtonAddCastActionProps) {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={normalizeChildren(children)}
+      data-value={buttonPrefix.addCastAction}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="link" />,
+    <meta
+      property={`fc:frame:button:${index}:target`}
+      content={`https://warpcast.com/~/add-cast-action?postUrl=${action}&name=${name}&actionType=post&icon=${icon}`}
+    />,
   ] as unknown as HtmlEscapedString
 }
 
@@ -155,6 +189,7 @@ export function ButtonTransaction({
 }
 
 export const Button = Object.assign(ButtonRoot, {
+  AddCastAction: ButtonAddCastAction,
   Link: ButtonLink,
   Mint: ButtonMint,
   Redirect: ButtonRedirect,

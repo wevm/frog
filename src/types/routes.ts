@@ -7,7 +7,13 @@ import type {
   UnionToIntersection,
 } from 'hono/utils/types'
 import type { FrogBase, RouteOptions } from '../frog-base.js'
-import type { Context, FrameContext, TransactionContext } from './context.js'
+import type { CastActionResponse } from './castAction.js'
+import type {
+  CastActionContext,
+  Context,
+  FrameContext,
+  TransactionContext,
+} from './context.js'
 import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'
 import type { HandlerResponse } from './response.js'
@@ -34,6 +40,12 @@ export type BlankInput = {}
 //////          Handlers          //////
 //////                            //////
 ////////////////////////////////////////
+
+export type CastActionHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: CastActionContext<E, P, I>) => HandlerResponse<CastActionResponse>
 
 export type FrameHandler<
   E extends Env = any,
@@ -71,7 +83,9 @@ export type H<
   ? FrameHandler<E, P, I>
   : M extends 'transaction'
     ? TransactionHandler<E, P, I>
-    : Handler<E, P, I, R>
+    : M extends 'cast-action'
+      ? CastActionHandler<E, P, I>
+      : Handler<E, P, I, R>
 
 ////////////////////////////////////////
 //////                            //////
