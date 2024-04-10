@@ -21,16 +21,19 @@ export const {
       {
         name: 'Open Sans',
         source: 'google',
+        style: 'italic',
         weight: 400,
       },
       {
         name: 'Open Sans',
         source: 'google',
+        style: 'italic',
         weight: 600,
       },
       {
         name: 'Open Sans',
         source: 'google',
+        style: 'italic',
         weight: 700,
       },
     ],

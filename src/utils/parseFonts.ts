@@ -11,6 +11,7 @@ export async function parseFonts(fonts: Font[] | undefined) {
           data: await loadGoogleFont({
             family: font.name,
             weight: font.weight,
+            style: font.style,
           }),
         }
       return font

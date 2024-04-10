@@ -145,7 +145,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -214,8 +214,8 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       hono-og:
-        specifier: 0.0.26
-        version: 0.0.26(hono@4.1.0)
+        specifier: 0.0.27
+        version: 0.0.27(hono@4.1.0)
       jose:
         specifier: ^5.2.2
         version: 5.2.2
@@ -239,7 +239,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -255,7 +255,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -274,7 +274,7 @@ importers:
         version: 1.8.2
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -287,7 +287,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -324,7 +324,7 @@ importers:
         version: 1.8.1
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -340,7 +340,7 @@ importers:
     dependencies:
       frog:
         specifier: latest
-        version: 0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3)
+        version: link:../../src
       hono:
         specifier: 4.1.0
         version: 4.1.0
@@ -2031,11 +2031,6 @@ packages:
 
   /@hono/node-server@1.8.2:
     resolution: {integrity: sha512-h8l2TBLCPHZBUrrkosZ6L5CpBLj6zdESyF4B+zngiCDF7aZFQJ0alVbLx7jn8PCVi9EyoFf8a4hOZFi1tD95EA==}
-    engines: {node: '>=18.14.1'}
-    dev: false
-
-  /@hono/node-server@1.9.0:
-    resolution: {integrity: sha512-oJjk7WXBlENeHhWiMqSyxPIZ3Kmf5ZYxqdlcSIXyN8Rn50bNJsPl99G4POBS03Jxh56FdfRJ0SEnC8mAVIiavQ==}
     engines: {node: '>=18.14.1'}
     dev: false
 
@@ -7296,48 +7291,6 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /frog@0.7.16(@types/node@20.11.19)(hono@4.1.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-KJhlRXYX3DmdBqzhLl908oQ5AlMInZb6DsZ7f34H2K7dlDpBOV2hlJqOZRLxAPt8p1xJ5jrUGsF0RWcEiHzpzg==}
-    hasBin: true
-    peerDependencies:
-      hono: 4.1.0
-      typescript: 5.3.3
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@bufbuild/protobuf': 1.7.2
-      '@hono/node-server': 1.9.0
-      '@hono/valibot-validator': 0.2.2(hono@4.1.0)(valibot@0.30.0)
-      '@noble/curves': 1.3.0
-      '@noble/hashes': 1.3.3
-      cac: 6.7.14
-      detect-browser: 5.3.0
-      dom-parser: 1.1.5
-      fast-glob: 3.3.2
-      fs-extra: 11.2.0
-      hono: 4.1.0
-      hono-og: 0.0.26(hono@4.1.0)
-      jose: 5.2.2
-      lz-string: 1.5.0
-      path-browserify: 1.0.1
-      typescript: 5.3.3
-      valibot: 0.30.0
-      viem: 2.7.11(typescript@5.3.3)
-      vite: 5.1.6(@types/node@20.11.19)
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - less
-      - lightningcss
-      - sass
-      - stylus
-      - sugarss
-      - terser
-      - utf-8-validate
-      - zod
-    dev: false
-
   /fs-extra@11.1.0:
     resolution: {integrity: sha512-0rcTq621PD5jM/e0a3EJoGC/1TC5ZBCERW82LQuwfGnCa1V8w7dpYH1yNu+SLb6E5dkeCBzKEyLGlFrnr+dUyw==}
     engines: {node: '>=14.14'}
@@ -7826,8 +7779,8 @@ packages:
       react-is: 16.13.1
     dev: true
 
-  /hono-og@0.0.26(hono@4.1.0):
-    resolution: {integrity: sha512-YUaLj+T06fWpykgPoeMbxnRMuEA+L83p5+PcBzlM2P/Rj889wnapvVDtT//81iJhRVLCkdjEkAHfcZaJ67cI8w==}
+  /hono-og@0.0.27(hono@4.1.0):
+    resolution: {integrity: sha512-FtsUmDCG7xKXD8InxzHcdzX5IIe9MrDPFHih0CUd6Hog0NcDV6tksc1cZ1sAAuftSTedmC4LV6Oi1uK6VXvZgQ==}
     peerDependencies:
       hono: 4.1.0
     dependencies:
