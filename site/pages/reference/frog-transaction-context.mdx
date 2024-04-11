@@ -150,6 +150,24 @@ app.transaction('/mint', (c) => {
 })
 ```
 
+## error
+- **Type**:  `(response: BaseError) => TypedResponse<BaseError>`
+
+Error response.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/', (c) => {
+  return c.error({/* ... */}) // [!code focus]
+})
+```
+
 ## frameData
 
 - **Type**: `FrameData`

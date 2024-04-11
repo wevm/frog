@@ -781,10 +781,10 @@ export class FrogBase<
       })
       const response = await handler(context)
       if (response instanceof Response) return response
-      if (response.status === 'error')
-        throw new Error(
-          'Passing errors is not supported in .transaction routes.',
-        )
+      if (response.status === 'error') {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
 
       return c.json(response.data)
     })

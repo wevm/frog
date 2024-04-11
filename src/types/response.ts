@@ -3,9 +3,7 @@ import type { OneOf } from './utils.js'
 
 export type BaseError = { message: string; statusCode?: ClientErrorStatusCode }
 
-export type BaseErrorResponseFn = (
-  response: BaseError,
-) => TypedResponse<BaseError>
+export type BaseErrorResponseFn = (response: BaseError) => TypedResponse<never>
 
 export type TypedResponse<data> = {
   format: 'cast-action' | 'frame' | 'transaction'

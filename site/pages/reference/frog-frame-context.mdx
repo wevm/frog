@@ -138,7 +138,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog()
  
-app.castAction('/', (c) => {
+app.frame('/', (c) => {
   return c.error({/* ... */}) // [!code focus]
 })
 ```

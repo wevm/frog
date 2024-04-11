@@ -198,6 +198,8 @@ export type TransactionContext<
    * with a type-safe interface to infer types based on a provided `abi`.
    */
   contract: ContractTransactionResponseFn
+  /** Error response that includes message and statusCode. */
+  error: BaseErrorResponseFn
   /**
    * Raw transaction request.
    *

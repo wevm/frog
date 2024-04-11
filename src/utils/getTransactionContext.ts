@@ -94,6 +94,11 @@ export function getTransactionContext<
         })
       },
       env,
+      error: (data) => ({
+        error: data,
+        format: 'transaction',
+        status: 'error',
+      }),
       frameData,
       initialPath,
       inputText,
@@ -114,7 +119,7 @@ export function getTransactionContext<
           },
         }
         if (value) response.params.value = value.toString()
-        return { data: response, format: 'transaction' }
+        return { data: response, format: 'transaction', status: 'success' }
       },
       send(parameters) {
         return this.res({
