@@ -128,10 +128,6 @@ If your app is relying on the page router, the exports will change slightly:
 
 ```tsx twoslash [pages/api/[[...route]].ts]
 // @noErrors
-
-// export const GET = handle(app);
-// export const POST = handle(app);
-
 export default handle(app); // [!code focus]
 ```
 
