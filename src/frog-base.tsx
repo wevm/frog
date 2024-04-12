@@ -753,7 +753,7 @@ export class FrogBase<
     if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
     if (frog.basePath === '/') {
       // @ts-ignore - private
-      frog.initialBasePath = this.initialBasePath ?? this.basePath
+      frog.initialBasePath = this.initialBasePath ?? parsePath(this.basePath)
       frog.basePath = parsePath(this.basePath) + parsePath(path)
     }
     if (!frog.browserLocation) frog.browserLocation = this.browserLocation
