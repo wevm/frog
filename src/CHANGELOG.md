@@ -1,5 +1,19 @@
 # frog
 
+## 0.8.2
+
+### Patch Changes
+
+- [#246](https://github.com/wevm/frog/pull/246) [`1b2fffd`](https://github.com/wevm/frog/commit/1b2fffd0da3c8484497c719e338e09dd954d54c2) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where port is appended to a reverse-proxied server. Now when `x-forwarded-host` is found, port is deleted.
+
+- [#249](https://github.com/wevm/frog/pull/249) [`dd0d297`](https://github.com/wevm/frog/commit/dd0d2972bd6343315c4ff1ad91426994a0786870) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where image could not be retrieved in vercel template.
+
+- [#214](https://github.com/wevm/frog/pull/214) [`3fc8b5c`](https://github.com/wevm/frog/commit/3fc8b5c892c7fdf822fb7795063d3da7988046f2) Thanks [@dalechyn](https://github.com/dalechyn)! - Implemented "Cast Actions" support via `.castAction` handler.
+
+- [#233](https://github.com/wevm/frog/pull/233) [`8a29c4d`](https://github.com/wevm/frog/commit/8a29c4db9f58c776cc1b2f832448d764f9b46b99) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed incorrect resolution of Google Font with italic style.
+
+- [#222](https://github.com/wevm/frog/pull/222) [`7e9051d`](https://github.com/wevm/frog/commit/7e9051d6ff11828dce708e654909f6131a237bf6) Thanks [@dalechyn](https://github.com/dalechyn)! - Implemented image retrieval without search params for initial frame request.
+
 ## 0.8.1
 
 ### Patch Changes
