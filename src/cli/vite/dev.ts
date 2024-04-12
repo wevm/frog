@@ -1,3 +1,4 @@
+import { ImageResponse } from 'hono-og'
 import { IncomingMessage, ServerResponse } from 'http'
 import { getRequestListener } from '@hono/node-server'
 import type { Connect, Plugin as VitePlugin, ViteDevServer } from 'vite'
@@ -106,10 +107,13 @@ export function devServer(options?: DevServerOptions): VitePlugin {
           const response = await app.fetch(request, env, executionContext)
 
           /**
-           * If the response is not instance of `Response`, throw it so that it can be handled
+           * If the response is not instance of `Response` or `ImageResponse`, throw it so that it can be handled
            * by our custom errorHandler and passed through to Vite
            */
-          if (!(response instanceof Response)) throw response
+          if (
+            !(response instanceof ImageResponse || response instanceof Response)
+          )
+            throw response
 
           if (
             options?.injectClientScript !== false &&
