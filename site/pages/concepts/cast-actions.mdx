@@ -33,25 +33,25 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.AddCastAction
-        action="/log-this"
-        name="Log This!"
-        icon="log"
-      >
+      <Button.AddCastAction action="/log-this">
         Add
       </Button.AddCastAction>,
     ]
   })
 })
 
-app.castAction('/log-this', (c) => {
-  console.log(
-    `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
-      c.actionData.fid
-    }`,
-  )
-  return c.res({ message:'Action Succeeded' })
-})
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    )
+    return c.res({ message: 'Action Succeeded' })
+  },
+  { name: "Log This!", icon: "log" })
+)
 ```
 
 :::
@@ -82,11 +82,7 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.AddCastAction
-        action="/log-this"
-        name="Log This!"
-        icon="log"
-      >
+      <Button.AddCastAction action="/log-this">
         Add
       </Button.AddCastAction>,
     ]
@@ -130,14 +126,18 @@ app.frame('/', (c) => {
   })
 })
 
-app.castAction('/log-this', (c) => { // [!code focus]
-  console.log( // [!code focus]
-    `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
-      c.actionData.fid // [!code focus]
-    }`, // [!code focus]
-  ) // [!code focus]
-  return c.res({ message: 'Action Succeeded' }) // [!code focus]
-}) // [!code focus]
+app.castAction(
+  '/log-this',  // [!code focus]
+  (c) => { // [!code focus]
+    console.log( // [!code focus]
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
+        c.actionData.fid // [!code focus]
+      }`, // [!code focus]
+    ) // [!code focus]
+    return c.res({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { name: "Log This!", icon: "log" }) // [!code focus]
+) // [!code focus]
 ```
 
 A breakdown of the `/log-this` route handler:

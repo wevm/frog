@@ -10,7 +10,7 @@ export const app = new Frog()
 
 app.castAction('/', (c) => { // [!code focus]
   return c.res({/* ... */})
-})
+}, {/**/})
 ```
 
 :::tip[Tip]
@@ -35,7 +35,7 @@ app.castAction('/', (c) => {
   const { actionData } = c
   const { castId, fid, messageHash, network, timestamp, url } = actionData // [!code focus]
   return c.res({/* ... */})
-})
+}, {/**/})
 ```
 
 ## error
@@ -74,7 +74,7 @@ export const app = new Frog()
 app.castAction('/', (c) => {
   const { req } = c // [!code focus]
   return c.res({/* ... */})
-})
+}, {/**/})
 ```
 
 ## res
@@ -93,7 +93,7 @@ export const app = new Frog()
  
 app.castAction('/', (c) => {
   return c.res({/* ... */}) // [!code focus]
-})
+}, {/**/})
 ```
 
 ## var
@@ -118,7 +118,7 @@ app.use(async (c, next) => {
 app.castAction('/', (c) => {
   const message = c.var.message // [!code focus]
   return c.res({/* ... */})
-})
+}, {/**/})
 ```
 
 ## verified
@@ -138,5 +138,5 @@ export const app = new Frog()
 app.castAction('/', (c) => {
   const { verified } = c // [!code focus]
   return c.res({/* ... */})
-})
+}, {/**/})
 ```
