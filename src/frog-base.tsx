@@ -569,7 +569,7 @@ export class FrogBase<
           return initialBaseUrl + parsePath(action.slice(1))
         }
 
-        return parsePath(baseUrl + action)
+        return baseUrl + parsePath(action)
       })()
 
       const parsedIntents = parseIntents(intents, {
