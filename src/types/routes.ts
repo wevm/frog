@@ -93,328 +93,753 @@ export type H<
 //////                            //////
 ////////////////////////////////////////
 
-export interface HandlerInterface<
+export type HandlerInterface<
   E extends Env = Env,
   M extends string = string,
   S extends Schema = {},
   BasePath extends string = '/',
-> {
-  // app.get(path, handler, options)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    E2 extends Env = E,
-  >(
-    path: P,
-    handler: H<E2, MergedPath, I, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S & ToSchema<M, MergePath<BasePath, P>, I['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+> = /* We enforce `options` parameter to not be partial for Cast Actions*/
+M extends 'cast-action'
+  ? {
+      // app.castAction(path, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        E2 extends Env = E,
+      >(
+        path: P,
+        handler: H<E2, MergedPath, I, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    handler: H<E3, MergedPath, I2, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I2['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        E2 extends Env = E,
+        E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        handler: H<E3, MergedPath, I2, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I2['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x2, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    handler: H<E4, MergedPath, I3, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I3['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x2, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        handler: H<E4, MergedPath, I3, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I3['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x3, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    handler: H<E5, MergedPath, I4, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I4['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x3, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        handler: H<E5, MergedPath, I4, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I4['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x4, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    I5 extends Input = I & I2 & I3 & I4,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = E,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
-    handler: H<E6, MergedPath, I5, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I5['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x4, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        handler: H<E6, MergedPath, I5, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I5['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x5, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    I5 extends Input = I & I2 & I3 & I4,
-    I6 extends Input = I & I2 & I3 & I4 & I5,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = E,
-    E6 extends Env = E,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
-    middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
-    handler: H<E7, MergedPath, I6, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I6['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x5, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        handler: H<E7, MergedPath, I6, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I6['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x6, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    I5 extends Input = I & I2 & I3 & I4,
-    I6 extends Input = I & I2 & I3 & I4 & I5,
-    I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = E,
-    E6 extends Env = E,
-    E7 extends Env = E,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
-    middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
-    middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
-    handler: H<E8, MergedPath, I7, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I7['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x6, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        handler: H<E8, MergedPath, I7, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I7['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x7, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    I5 extends Input = I & I2 & I3 & I4,
-    I6 extends Input = I & I2 & I3 & I4 & I5,
-    I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = E,
-    E6 extends Env = E,
-    E7 extends Env = E,
-    E8 extends Env = E,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
-    middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
-    middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
-    middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
-    handler: H<E9, MergedPath, I8, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I8['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x7, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = E,
+        E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
+        handler: H<E9, MergedPath, I8, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I8['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x8, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    I5 extends Input = I & I2 & I3 & I4,
-    I6 extends Input = I & I2 & I3 & I4 & I5,
-    I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = E,
-    E6 extends Env = E,
-    E7 extends Env = E,
-    E8 extends Env = E,
-    E9 extends Env = E,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
-    middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
-    middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
-    middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
-    middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
-    handler: H<E10, MergedPath, I9, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I9['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
+      // app.castAction(path, middleware x8, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
+        I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = E,
+        E9 extends Env = E,
+        E10 extends Env = IntersectNonAnyTypes<
+          [E, E2, E3, E4, E5, E6, E7, E8, E9]
+        >,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
+        middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
+        handler: H<E10, MergedPath, I9, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I9['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
 
-  // app.get(path, middleware x9, handler)
-  <
-    P extends string,
-    MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
-    R extends HandlerResponse<any> = any,
-    I extends Input = BlankInput,
-    I2 extends Input = I,
-    I3 extends Input = I & I2,
-    I4 extends Input = I & I2 & I3,
-    I5 extends Input = I & I2 & I3 & I4,
-    I6 extends Input = I & I2 & I3 & I4 & I5,
-    I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
-    I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
-    E2 extends Env = E,
-    E3 extends Env = E,
-    E4 extends Env = E,
-    E5 extends Env = E,
-    E6 extends Env = E,
-    E7 extends Env = E,
-    E8 extends Env = E,
-    E9 extends Env = E,
-    E10 extends Env = E,
-    E11 extends Env = IntersectNonAnyTypes<
-      [E, E2, E3, E4, E5, E6, E7, E8, E9, E10]
-    >,
-  >(
-    path: P,
-    middleware: MiddlewareHandler<E2, MergedPath, I>,
-    middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
-    middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
-    middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
-    middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
-    middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
-    middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
-    middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
-    middleware_9: MiddlewareHandler<E10, MergedPath, I9>,
-    handler: H<E11, MergedPath, I10, R, M>,
-    options?: RouteOptions,
-  ): FrogBase<
-    E,
-    S &
-      ToSchema<M, MergePath<BasePath, P>, I10['in'], MergeTypedResponseData<R>>,
-    BasePath
-  >
-}
+      // app.castAction(path, middleware x9, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
+        I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
+        I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = E,
+        E9 extends Env = E,
+        E10 extends Env = E,
+        E11 extends Env = IntersectNonAnyTypes<
+          [E, E2, E3, E4, E5, E6, E7, E8, E9, E10]
+        >,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
+        middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
+        middleware_9: MiddlewareHandler<E10, MergedPath, I9>,
+        handler: H<E11, MergedPath, I10, R, M>,
+        options: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I10['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+    }
+  : {
+      // app.get(path, handler, options)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        E2 extends Env = E,
+      >(
+        path: P,
+        handler: H<E2, MergedPath, I, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        E2 extends Env = E,
+        E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        handler: H<E3, MergedPath, I2, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I2['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x2, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        handler: H<E4, MergedPath, I3, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I3['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x3, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        handler: H<E5, MergedPath, I4, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I4['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x4, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        handler: H<E6, MergedPath, I5, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I5['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x5, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        handler: H<E7, MergedPath, I6, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I6['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x6, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        handler: H<E8, MergedPath, I7, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I7['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x7, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = E,
+        E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
+        handler: H<E9, MergedPath, I8, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I8['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x8, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
+        I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = E,
+        E9 extends Env = E,
+        E10 extends Env = IntersectNonAnyTypes<
+          [E, E2, E3, E4, E5, E6, E7, E8, E9]
+        >,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
+        middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
+        handler: H<E10, MergedPath, I9, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I9['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+
+      // app.get(path, middleware x9, handler)
+      <
+        P extends string,
+        MergedPath extends MergePath<BasePath, P> = MergePath<BasePath, P>,
+        R extends HandlerResponse<any> = any,
+        I extends Input = BlankInput,
+        I2 extends Input = I,
+        I3 extends Input = I & I2,
+        I4 extends Input = I & I2 & I3,
+        I5 extends Input = I & I2 & I3 & I4,
+        I6 extends Input = I & I2 & I3 & I4 & I5,
+        I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
+        I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
+        I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
+        I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
+        E2 extends Env = E,
+        E3 extends Env = E,
+        E4 extends Env = E,
+        E5 extends Env = E,
+        E6 extends Env = E,
+        E7 extends Env = E,
+        E8 extends Env = E,
+        E9 extends Env = E,
+        E10 extends Env = E,
+        E11 extends Env = IntersectNonAnyTypes<
+          [E, E2, E3, E4, E5, E6, E7, E8, E9, E10]
+        >,
+      >(
+        path: P,
+        middleware: MiddlewareHandler<E2, MergedPath, I>,
+        middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
+        middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
+        middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
+        middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
+        middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
+        middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
+        middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
+        middleware_9: MiddlewareHandler<E10, MergedPath, I9>,
+        handler: H<E11, MergedPath, I10, R, M>,
+        options?: RouteOptions<M>,
+      ): FrogBase<
+        E,
+        S &
+          ToSchema<
+            M,
+            MergePath<BasePath, P>,
+            I10['in'],
+            MergeTypedResponseData<R>
+          >,
+        BasePath
+      >
+    }
 
 ////////////////////////////////////////
 //////                            //////
