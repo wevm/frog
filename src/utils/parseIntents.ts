@@ -2,13 +2,13 @@ import { type JSXNode } from 'hono/jsx'
 
 import { buttonPrefix } from '../components/Button.js'
 import { type FrameIntent } from '../types/frame.js'
-import { parseActionPath } from './parseActionPath.js'
 import { parsePath } from './parsePath.js'
 
 type Counter = { button: number }
 
 type ParseIntentsOptions = {
   baseUrl: string
+  initialBaseUrl: string | undefined
   search?: string
 }
 
@@ -54,7 +54,11 @@ function parseIntent(
         action: node.props.action
           ? node.props.action.startsWith('http')
             ? node.props.action
-            : parseActionPath(options.baseUrl, node.props.action) +
+            : parsePath(
+                (node.props.action.startsWith('@')
+                  ? options.initialBaseUrl
+                  : options.baseUrl) + node.props.action.slice(1),
+              ) +
               (options.search && !value?.startsWith(buttonPrefix.addCastAction)
                 ? `?${options.search}`
                 : '')

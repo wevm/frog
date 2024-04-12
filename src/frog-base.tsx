@@ -34,7 +34,6 @@ import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
-import { parseActionPath } from './utils/parseActionPath.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseFonts } from './utils/parseFonts.js'
 import { parseHonoPath } from './utils/parseHonoPath.js'
@@ -279,6 +278,8 @@ export class FrogBase<
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
+    // @ts-ignore - private
+    this.initialBasePath = this.basePath
     this.assetsPath = assetsPath ?? this.basePath
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
@@ -407,6 +408,12 @@ export class FrogBase<
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)
       const baseUrl = origin + parsePath(this.basePath)
+      const initialBaseUrl =
+        origin +
+        parsePath(
+          // @ts-ignore - private
+          this.initialBasePath,
+        )
 
       const { context, getState } = getFrameContext<env, string>({
         context: await requestBodyToContext(c, {
@@ -436,7 +443,13 @@ export class FrogBase<
         ogImage,
         title = 'Frog Frame',
       } = response.data
-      const buttonValues = getButtonValues(parseIntents(intents, { baseUrl }))
+
+      const buttonValues = getButtonValues(
+        parseIntents(intents, {
+          baseUrl,
+          initialBaseUrl,
+        }),
+      )
 
       if (context.status === 'redirect' && context.buttonIndex) {
         const buttonValue = buttonValues[context.buttonIndex - 1]
@@ -552,10 +565,15 @@ export class FrogBase<
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
-        return parseActionPath(baseUrl, action)
+        if (action.startsWith('@')) {
+          return parsePath(initialBaseUrl + action.slice(1))
+        }
+
+        return parsePath(baseUrl + action)
       })()
 
       const parsedIntents = parseIntents(intents, {
+        initialBaseUrl,
         baseUrl,
         search:
           context.status === 'initial'
@@ -730,11 +748,14 @@ export class FrogBase<
   route<
     subPath extends string,
     subSchema extends Schema,
-    subBasePath extends string,
-  >(path: subPath, frog: FrogBase<any, subSchema, subBasePath>) {
+    subBaseUrl extends string,
+  >(path: subPath, frog: FrogBase<any, subSchema, subBaseUrl>) {
     if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
-    if (frog.basePath === '/')
+    if (frog.basePath === '/') {
+      // @ts-ignore - private
+      frog.initialBasePath = this.initialBasePath ?? this.basePath
       frog.basePath = parsePath(this.basePath) + parsePath(path)
+    }
     if (!frog.browserLocation) frog.browserLocation = this.browserLocation
     if (!frog.dev) frog.dev = this.dev
     if (!frog.headers) frog.headers = this.headers

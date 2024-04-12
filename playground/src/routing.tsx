@@ -3,9 +3,9 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
 
 app
-  .frame('/jump-back', (c) => {
+  .frame('/jump-to-root', (c) => {
     return c.res({
-      action: '..',
+      action: '@/',
       image: (
         <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
           Press a button to jump back!
@@ -16,7 +16,7 @@ app
   })
   .frame('/jump-to-clock', (c) => {
     return c.res({
-      action: '../clock',
+      action: '@/clock',
       image: (
         <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
           Press a button to jump back!
@@ -25,14 +25,14 @@ app
       intents: [<Button>Jump to Clock</Button>],
     })
   })
-  .frame('/jump-to-clock-from-button', (c) => {
+  .frame('/jump-to-root-from-button', (c) => {
     return c.res({
       image: (
         <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
           Press a button to jump back!
         </div>
       ),
-      intents: [<Button action="../clock">Jump to Clock</Button>],
+      intents: [<Button action="@/">Jump to Root</Button>],
     })
   })
   .frame('/:name?', (c) => {
