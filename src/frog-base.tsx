@@ -536,7 +536,7 @@ export class FrogBase<
               : undefined,
             headers,
           })
-          return `${parsePath(context.url)}/image?${imageParams}`
+          return `${baseUrl}/image?${imageParams}`
         }
         if (image.startsWith('http') || image.startsWith('data')) return image
         return `${assetsUrl + parsePath(image)}`
@@ -549,7 +549,7 @@ export class FrogBase<
       })()
 
       const postUrl = (() => {
-        if (!action) return context.url
+        if (!action) return baseUrl
         if (action.startsWith('http')) return action
         return baseUrl + parsePath(action)
       })()
