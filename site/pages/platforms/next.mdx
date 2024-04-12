@@ -120,6 +120,19 @@ export const GET = handle(app) // [!code focus]
 export const POST = handle(app) // [!code focus]
 ```
 
+:::tip
+
+**Next.js Pages Router**
+
+If your app is relying on the page router, the exports will change slightly:
+
+```tsx twoslash [pages/api/[[...route]].ts]
+// @noErrors
+export default handle(app); // [!code focus]
+```
+
+:::
+
 ### Setup Devtools
 
 Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way the devtools can automatically discover all your frames.
