@@ -566,7 +566,7 @@ export class FrogBase<
         if (!action) return context.url
         if (action.startsWith('http')) return action
         if (action.startsWith('@')) {
-          return parsePath(initialBaseUrl + action.slice(1))
+          return initialBaseUrl + parsePath(action.slice(1))
         }
 
         return parsePath(baseUrl + action)
