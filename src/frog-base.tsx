@@ -328,12 +328,6 @@ export class FrogBase<
       const baseUrl = origin + parsePath(this.basePath)
 
       if (c.req.method === 'GET') {
-        console.log({
-          ...installParameters,
-          action: {
-            type: 'post',
-          },
-        })
         return c.json({
           ...installParameters,
           postUrl: baseUrl + parsePath(path),
