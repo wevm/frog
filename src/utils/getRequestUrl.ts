@@ -5,6 +5,7 @@ export function getRequestUrl(req: Context['req']) {
   const forwardedHost = req.header('x-forwarded-host')
   url.host = forwardedHost ?? url.host
   url.protocol = req.header('x-forwarded-proto') ?? url.protocol
-  if (!forwardedHost?.startsWith('localhost')) url.port = ''
+  if (forwardedHost !== undefined && !forwardedHost.startsWith('localhost'))
+    url.port = ''
   return url
 }
