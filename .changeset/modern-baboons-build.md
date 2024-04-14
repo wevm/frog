@@ -2,4 +2,4 @@
 "frog": patch
 ---
 
-A regression came in e38c898 that fixed the local devtools with NextJS,but ultimately didn't check if `X-Forwarded-Host` was even present. Fixed it by checking if the header has a value.
+Fixed a regression in local environment where port was deleted from the generated metadata `postUrl` and `image` tags that resulted in incorrect links when `X-Forwarded-Host` header value is `localhost`. 
