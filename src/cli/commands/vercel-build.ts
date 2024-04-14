@@ -1,7 +1,7 @@
+import { readFileSync } from 'fs'
 import { dirname, extname, normalize, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import glob from 'fast-glob'
-import { readFileSync } from 'fs'
 import {
   copySync,
   ensureDirSync,
