@@ -116,12 +116,12 @@ function Example() {
 
 ### `collection`
 
-Icon collection to use for resolving icons. Defaults to `'lucide'`.
+Icon collection to use for resolving icons. Defaults to `lucide` imported from `'frog/ui/icons/lucide'`.
 
 The following collections are available:
-- [Heroicons](https://heroicons.com)
-- [Lucide](https://lucide.dev)
-- [Radix Icons](https://www.radix-ui.com/icons)
+- [Heroicons - `frog/ui/icons/heroicons`](https://heroicons.com)
+- [Lucide - `frog/ui/icons/lucide`](https://lucide.dev)
+- [Radix Icons - `frog/ui/icons/radix-icons`](https://www.radix-ui.com/icons)
 
 Collection is mapped to the [`icons` property](/ui/ui-system#icons) on the UI System Variables.
 
@@ -129,6 +129,7 @@ Collection is mapped to the [`icons` property](/ui/ui-system#icons) on the UI Sy
 ```tsx twoslash [Code]
 /** @jsxImportSource frog/jsx */
 import { createSystem } from 'frog/ui'
+import { heroicons } from 'frog/ui/icons/heroicons' // [!code focus]
 
 const { Icon } = createSystem()
 
@@ -137,7 +138,7 @@ function Example() {
 // ---cut---
 <Icon
   name="bolt"
-  collection="heroicons" // [!code focus]
+  collection={heroicons} // [!code focus]
 // ^?
 />
 
