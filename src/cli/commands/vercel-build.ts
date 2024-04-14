@@ -1,6 +1,7 @@
 import { dirname, extname, normalize, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import glob from 'fast-glob'
+import { readFileSync } from 'fs-extra'
 import {
   copySync,
   ensureDirSync,
@@ -11,6 +12,12 @@ import {
 export async function build() {
   const files = await glob('./api/**/*.{js,jsx,ts,tsx}')
   for (const file of files) {
+    const contents = readFileSync(file, 'utf-8')
+    if (
+      !contents.includes('export const GET') &&
+      !contents.includes('export const POST')
+    )
+      continue
     const fileDir = normalize(file).replace(extname(file), '')
     const dir = resolve(
       process.cwd(),
