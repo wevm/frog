@@ -1,5 +1,13 @@
 # frog
 
+## 0.8.3
+
+### Patch Changes
+
+- [#256](https://github.com/wevm/frog/pull/256) [`02f03ff`](https://github.com/wevm/frog/commit/02f03ffe3be670b4ff55217fa2cbeccf776ea18e) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed a regression in local environments with templates other than `next` used where port was deleted when `X-Forwarded-Host` was not present that resulted in a malformed `postUrl` and `image` url values in the rendered frame meta tags.
+
+- [#254](https://github.com/wevm/frog/pull/254) [`e38c898`](https://github.com/wevm/frog/commit/e38c8986a8ec5af84ea80fee3fcdf8e078996e0b) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with local devtools with nextjs template that sets `x-forwarded-host` header to `localhost` which previously deleted the port and ended up creating incorrect link.
+
 ## 0.8.2
 
 ### Patch Changes
