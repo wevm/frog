@@ -400,7 +400,6 @@ export class FrogBase<
     }
 
     // Frame Route (implements GET & POST).
-
     this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
       const url = getRequestUrl(c.req)
       const origin = this.origin ?? url.origin
