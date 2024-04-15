@@ -1,5 +1,11 @@
 # frog
 
+## 0.8.4
+
+### Patch Changes
+
+- [`8f1f038`](https://github.com/wevm/frog/commit/8f1f038bd95e9c0920ccfcbe94ba851dc798850b) Thanks [@jxom](https://github.com/jxom)! - Fixed `frog/ui` children types.
+
 ## 0.8.3
 
 ### Patch Changes
