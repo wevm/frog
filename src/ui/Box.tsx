@@ -96,7 +96,7 @@ export type BoxProps<vars extends Vars = DefaultVars> = Omit<
   borderTopWidth?: VariableValue<'borderTopWidth', keyof vars['units']>
   borderWidth?: VariableValue<'borderWidth', keyof vars['units']>
   bottom?: VariableValue<'bottom', keyof vars['units']>
-  children?: Child | undefined
+  children?: JSX.Element | JSX.Element[] | Child | undefined
   color?: VariableValue<'color', keyof vars['colors']>
   fontFamily?: VariableValue<'fontFamily', keyof vars['fonts']>
   fontSize?: VariableValue<'fontSize', keyof vars['fontSizes']>

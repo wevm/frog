@@ -6,7 +6,7 @@ export type TextProps<vars extends Vars = DefaultVars> = {
   /** Sets the horizontal alignment of the text. */
   align?: BoxProps<vars>['textAlign']
   /** The text content. */
-  children: Child
+  children: JSX.Element | JSX.Element[] | Child
   /** Sets the color of the text. */
   color?: BoxProps<vars>['color']
   /** Sets the text decoration. */
