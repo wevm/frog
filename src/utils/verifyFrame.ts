@@ -29,12 +29,10 @@ export async function verifyFrame({
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        message_bytes_in_hex: bytes,
+        message_bytes_in_hex: `0x${trustedData.messageBytes}`,
       }),
     }
   ).then((res) => res.json());
-
-  console.log(response);
 
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`);

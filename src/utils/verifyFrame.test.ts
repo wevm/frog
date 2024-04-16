@@ -21,7 +21,7 @@ test("invalid hash", async () => {
       url: "https://test-farc6.vercel.app/api",
     })
   ).rejects.toMatchInlineSnapshot(
-    `[SyntaxError: Unexpected token < in JSON at position 0]`
+    "[SyntaxError: Unexpected token < in JSON at position 0]"
   );
 });
 
