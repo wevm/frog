@@ -1,5 +1,11 @@
 # frog
 
+## 0.8.5
+
+### Patch Changes
+
+- [#241](https://github.com/wevm/frog/pull/241) [`97c5fd9`](https://github.com/wevm/frog/commit/97c5fd9a9383b809c1be886770c3e9e338c09813) Thanks [@dalechyn](https://github.com/dalechyn)! - Implemented error message response from frames. See https://warpcast.notion.site/Frames-Errors-ddc965b097d44d9ea03ddf98498597c6.
+
 ## 0.8.4
 
 ### Patch Changes
