@@ -125,6 +125,25 @@ app.frame('/', (c) => {
 })
 ```
 
+## error
+
+- **Type**:  `(error: BaseError) => TypedResponse`
+
+Error response.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  return c.error({/* ... */}) // [!code focus]
+})
+```
+
 ## frameData
 
 - **Type**: `FrameData`

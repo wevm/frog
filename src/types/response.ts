@@ -1,7 +1,15 @@
+import type { ClientErrorStatusCode } from 'hono/utils/http-status'
+import type { OneOf } from './utils.js'
+
+export type BaseError = { message: string; statusCode?: ClientErrorStatusCode }
+
+export type BaseErrorResponseFn = (response: BaseError) => TypedResponse<never>
+
 export type TypedResponse<data> = {
-  data: data
   format: 'cast-action' | 'frame' | 'transaction'
-}
+} & OneOf<
+  { data: data; status: 'success' } | { error: BaseError; status: 'error' }
+>
 
 export type HandlerResponse<typedResponse> =
   | Response
