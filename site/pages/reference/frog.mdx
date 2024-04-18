@@ -153,6 +153,23 @@ const app = new Frog({
 })
 ```
 
+### initialImageMasking
+
+Wether to enable masking of intial frame image or not.
+If wrangler is used for deployments, this should be state to `false` as wrangler doesn't support fetching within a worker.
+Setting this to `false` will make initial frames to never refresh via `Cache-Control` header. If you need such functionality,
+please consider to use other templates.
+
+[Read more.](https://community.cloudflare.com/t/get-error-code-1042-when-fetching-within-worker/288031/2)
+
+```tsx twoslash
+import { Frog } from 'frog'
+
+const app = new Frog({
+  initialImageMasking: false // [!code focus]
+})
+```
+
 ### initialState
 
 Initial state for the frames.

@@ -122,6 +122,14 @@ export type FrogConstructorParameters<
    */
   imageAspectRatio?: FrameImageAspectRatio | undefined
   /**
+   * Wether to enable masking of intial frame image or not.
+   * If wrangler is used for deployments, this should be state to `false` as wrangler doesn't support fetching within a worker.
+   * @see https://community.cloudflare.com/t/get-error-code-1042-when-fetching-within-worker/288031/2
+   *
+   * @default true
+   */
+  initialImageMasking?: boolean | undefined
+  /**
    * Initial state for the frames.
    *
    * @example
@@ -228,6 +236,8 @@ export class FrogBase<
   hubApiUrl: string | undefined
   /** Farcaster Hub API config. */
   hub: Hub | undefined
+  /** Initial frame image masking. */
+  initialImageMasking?: boolean | undefined
   /** Image aspect ratio. */
   imageAspectRatio: FrameImageAspectRatio = '1.91:1'
   /** Image options. */
@@ -256,6 +266,7 @@ export class FrogBase<
     honoOptions,
     hubApiUrl,
     hub,
+    initialImageMasking,
     imageAspectRatio,
     imageOptions,
     initialState,
@@ -281,6 +292,7 @@ export class FrogBase<
     this.assetsPath = assetsPath ?? this.basePath
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
+    this.initialImageMasking = initialImageMasking ?? true
     this.post = this.hono.post.bind(this.hono)
 
     if (initialState) this._initialState = initialState
@@ -355,7 +367,7 @@ export class FrogBase<
         const url = getRequestUrl(c.req)
 
         const query = c.req.query()
-        if (!query.image) {
+        if (!query.image && this.initialImageMasking) {
           // If the query is doesn't have an image, it is an initial request to a frame.
           // Therefore we need to get the link to fetch the original image and jump once again in this method to resolve the options,
           // but now with query params set.
@@ -675,7 +687,7 @@ export class FrogBase<
               <meta
                 property="fc:frame:image"
                 content={
-                  context.status === 'initial'
+                  context.status === 'initial' && this.initialImageMasking
                     ? `${context.url}/image`
                     : imageUrl
                 }
@@ -683,7 +695,8 @@ export class FrogBase<
               <meta
                 property="og:image"
                 content={
-                  ogImageUrl ?? context.status === 'initial'
+                  ogImageUrl ??
+                  (context.status === 'initial' && this.initialImageMasking)
                     ? `${context.url}/image`
                     : imageUrl
                 }
@@ -721,7 +734,9 @@ export class FrogBase<
                   })}
                 />
               )}
-              <meta property="frog:image" content={imageUrl} />
+              {this.initialImageMasking && (
+                <meta property="frog:image" content={imageUrl} />
+              )}
             </head>
             <body />
           </html>
