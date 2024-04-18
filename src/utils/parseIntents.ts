@@ -55,7 +55,7 @@ function parseIntent(
           ? node.props.action.startsWith('http')
             ? node.props.action
             : parsePath(
-                (node.props.action.startsWith('@')
+                (node.props.action.startsWith('~')
                   ? options.initialBaseUrl
                   : options.baseUrl) + node.props.action.slice(1),
               ) +
