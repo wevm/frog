@@ -19,7 +19,6 @@ type FrameMetaTagPropertyName =
 
 type FrogMetaTagPropertyName =
   | 'frog:context'
-  | 'frog:image'
   | 'frog:prev_context'
   | 'frog:version'
 

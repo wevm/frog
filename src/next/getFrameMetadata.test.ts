@@ -20,7 +20,6 @@ test('default', async () => {
       "fc:frame:image": "https://frame.frog.fm/api/image",
       "fc:frame:image:aspect_ratio": "1.91:1",
       "fc:frame:post_url": "https://frame.frog.fm/api?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
-      "frog:image": "https://frame.frog.fm/og.png",
       "og:image": "https://frame.frog.fm/api/image",
       "og:title": "Frog Frame",
     }

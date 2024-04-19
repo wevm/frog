@@ -89,6 +89,22 @@ export const app = new Frog({
       ],
     })
   })
+  .frame('/square', (c) => {
+    return c.res({
+      image: <Box grow backgroundColor="red" />,
+      intents: [
+        <Button.Redirect location="http://github.com/honojs/vite-plugins/tree/main/packages/dev-server">
+          Redirect
+        </Button.Redirect>,
+        <Button.Link href="https://www.example.com">Link</Button.Link>,
+        <Button.Mint target="eip155:7777777:0x060f3edd18c47f59bd23d063bbeb9aa4a8fec6df">
+          Mint
+        </Button.Mint>,
+        <Button.Reset>Reset</Button.Reset>,
+      ],
+      imageAspectRatio: '1:1',
+    })
+  })
   .frame('/no-intents', (c) => {
     return c.res({
       image: <Box grow backgroundColor="red" />,

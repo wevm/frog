@@ -66,11 +66,7 @@ test('default', async () => {
       {
         "content": "https://github.com/wevm/frog",
         "property": "fc:frame:button:3:target",
-      },
-      {
-        "content": "https://frame.frog.fm/og.png",
-        "property": "frog:image",
-      },
+      }
     ]
   `)
 })
