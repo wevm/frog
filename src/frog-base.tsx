@@ -565,9 +565,8 @@ export class FrogBase<
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
-        if (action.startsWith('~')) {
+        if (action.startsWith('~'))
           return initialBaseUrl + parsePath(action.slice(1))
-        }
 
         return baseUrl + parsePath(action)
       })()
