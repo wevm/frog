@@ -747,8 +747,8 @@ export class FrogBase<
   route<
     subPath extends string,
     subSchema extends Schema,
-    subBaseUrl extends string,
-  >(path: subPath, frog: FrogBase<any, subSchema, subBaseUrl>) {
+    subBasePath extends string,
+  >(path: subPath, frog: FrogBase<any, subSchema, subBasePath>) {
     if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
     if (frog.basePath === '/') {
       // @ts-ignore - private
