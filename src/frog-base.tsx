@@ -420,7 +420,7 @@ export class FrogBase<
                     width: '100%',
                   }}
                 >
-                  {await response.data.image}
+                  {await image}
                 </div>,
                 {
                   assetsUrl,
