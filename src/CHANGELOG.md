@@ -1,5 +1,11 @@
 # frog
 
+## 0.8.6
+
+### Patch Changes
+
+- [#272](https://github.com/wevm/frog/pull/272) [`0bffc81`](https://github.com/wevm/frog/commit/0bffc817fd5ed405b86a9d73dd9dbd86f268d84b) Thanks [@dalechyn](https://github.com/dalechyn)! - Reverted changes from #222 that have caused issues in wrangler and edge environments. Intentionally introduced regression with "refreshing frame images" as #222 focused on bringing those work.
+
 ## 0.8.5
 
 ### Patch Changes
