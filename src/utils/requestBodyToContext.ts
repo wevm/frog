@@ -57,7 +57,6 @@ export async function requestBodyToContext<
     if (!hub) return null
     try {
       const { frameData } = await verifyFrame({
-        hub,
         frameUrl: untrustedData.url,
         trustedData,
         url: url.href,
