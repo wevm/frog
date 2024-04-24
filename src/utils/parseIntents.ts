@@ -55,9 +55,9 @@ function parseIntent(
           ? node.props.action.startsWith('http')
             ? node.props.action
             : parsePath(
-                (node.props.action.startsWith('~')
-                  ? options.initialBaseUrl
-                  : options.baseUrl) + node.props.action.slice(1),
+                node.props.action.startsWith('~')
+                  ? options.initialBaseUrl + node.props.action.slice(1)
+                  : options.baseUrl + node.props.action,
               ) +
               (options.search && !value?.startsWith(buttonPrefix.addCastAction)
                 ? `?${options.search}`
