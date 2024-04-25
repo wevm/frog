@@ -351,11 +351,14 @@ export class FrogBase<
       if (response instanceof Response) return response
       if (response.status === 'error') {
         c.status(response.error.statusCode ?? 400)
-        return c.json({ message: response.error.message })
+        return c.json({ type: 'message', message: response.error.message })
       }
 
       if (response.data.type === 'frame') {
-        return c.json({ frameUrl: baseUrl + parsePath(response.data.action) })
+        return c.json({
+          type: 'frame',
+          frameUrl: baseUrl + parsePath(response.data.action),
+        })
       }
 
       const { headers = this.headers, message } = response.data
