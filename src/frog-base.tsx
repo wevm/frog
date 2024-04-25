@@ -351,13 +351,13 @@ export class FrogBase<
       if (response instanceof Response) return response
       if (response.status === 'error') {
         c.status(response.error.statusCode ?? 400)
-        return c.json({ type: 'message', message: response.error.message })
+        return c.json({ message: response.error.message })
       }
 
       if (response.data.type === 'frame') {
         return c.json({
-          type: 'frame',
           frameUrl: baseUrl + parsePath(response.data.action),
+          type: 'frame',
         })
       }
 
@@ -367,7 +367,7 @@ export class FrogBase<
       for (const [key, value] of Object.entries(headers ?? {}))
         c.header(key, value)
 
-      return c.json({ message })
+      return c.json({ message, type: 'message' })
     })
 
     return this
