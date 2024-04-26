@@ -21,8 +21,9 @@ export type ChainNamespace = 'eip155'
  * - 8453: Base
  * - 84532: Base Sepolia
  * - 7777777: Zora
+ * - 666666666: Degen
  */
-export type ChainIdEip155 = 1 | 10 | 8453 | 84532 | 7777777
+export type ChainIdEip155 = 1 | 10 | 8453 | 84532 | 7777777 | 666666666
 
 export type TransactionParameters = {
   /** A CAIP-2 Chain ID to identify the transaction network. */
