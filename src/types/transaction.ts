@@ -54,6 +54,8 @@ export type EthSendTransactionParameters<quantity = string> = {
   attribution?: boolean | undefined
   /** Transaction calldata. */
   data?: Hex | undefined
+  /** Gas limit for the transaction. */
+  gas?: quantity
   /** Transaction target address. */
   to: Hex
   /** Value to send with transaction (in wei). */
