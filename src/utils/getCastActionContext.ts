@@ -36,7 +36,7 @@ export function getCastActionContext<
       env,
       error: (data) => ({
         error: data,
-        format: 'cast-action',
+        format: 'castAction',
         status: 'error',
       }),
       actionData: {
@@ -51,7 +51,7 @@ export function getCastActionContext<
       req,
       res: (data) => ({
         data,
-        format: 'cast-action',
+        format: 'castAction',
         status: 'success',
       }),
       var: context.var,

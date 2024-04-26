@@ -169,15 +169,15 @@ export type FrogConstructorParameters<
   verify?: boolean | 'silent' | undefined
 }
 
-export type RouteOptions<M extends string = string> = Pick<
+export type RouteOptions<method extends string = string> = Pick<
   FrogConstructorParameters,
   'verify'
 > &
-  (M extends 'frame'
+  (method extends 'frame'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
       }
-    : M extends 'cast-action'
+    : method extends 'castAction'
       ? {
           name: string
           icon: Octicon
@@ -310,13 +310,13 @@ export class FrogBase<
     })
   }
 
-  castAction: HandlerInterface<env, 'cast-action', schema, basePath> = (
+  castAction: HandlerInterface<env, 'castAction', schema, basePath> = (
     ...parameters: any[]
   ) => {
     const [path, middlewares, handler, options] = getRouteParameters<
       env,
       CastActionHandler<env>,
-      'cast-action'
+      'castAction'
     >(...parameters)
 
     const { verify = this.verify, ...installParameters } = options
