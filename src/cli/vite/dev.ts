@@ -164,9 +164,12 @@ export function devServer(options?: DevServerOptions): VitePlugin {
     config: () => {
       return {
         server: {
-          watch: {
-            ignored: options?.ignoreWatching ?? defaultOptions.ignoreWatching,
-          },
+          watch: options?.injectClientScript
+            ? {
+                ignored:
+                  options?.ignoreWatching ?? defaultOptions.ignoreWatching,
+              }
+            : null,
         },
       }
     },
