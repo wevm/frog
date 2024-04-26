@@ -57,7 +57,7 @@ export const app = new Frog({
         }`,
       )
       if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
-      return c.res({ type: 'message', message: 'Action Succeeded' })
+      return c.message({ message: 'Action Succeeded' })
     },
     {
       name: 'Log This!',
@@ -75,8 +75,7 @@ export const app = new Frog({
       )
       if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
 
-      return c.res({
-        type: 'frame',
+      return c.frame({
         action: '/action-frame-response',
       })
     },

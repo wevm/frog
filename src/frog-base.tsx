@@ -361,11 +361,7 @@ export class FrogBase<
         })
       }
 
-      const { headers = this.headers, message } = response.data
-
-      // Set response headers provided by consumer.
-      for (const [key, value] of Object.entries(headers ?? {}))
-        c.header(key, value)
+      const { message } = response.data
 
       return c.json({ message, type: 'message' })
     })

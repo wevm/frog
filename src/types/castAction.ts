@@ -1,32 +1,44 @@
 import type { TypedResponse } from './response.js'
 
+export type CastActionFrameResponse = {
+  /**
+   * Action path to the frame
+   *
+   * @example '/my-frame'
+   */
+  action: string
+}
+
+export type CastActionFrameResponseFn = (
+  response: CastActionFrameResponse,
+) => TypedResponse<CastActionResponse>
+
+export type CastActionMessageResponse = {
+  /**
+   * Message to show in the toast.
+   *
+   * @example 'Action succeded!'
+   */
+  message: string
+}
+
+export type CastActionMessageResponseFn = (
+  response: CastActionMessageResponse,
+) => TypedResponse<CastActionResponse>
+
 export type CastActionResponse =
-  | {
+  | ({
       /**
        * Type of the response
        */
       type: 'message'
-      /**
-       * HTTP response headers.
-       */
-      headers?: Record<string, string> | undefined
-      /**
-       * Message to show in the toast.
-       *
-       * @example 'Action succeded!'
-       */
-      message: string
-    }
-  | {
+    } & CastActionMessageResponse)
+  | ({
       /**
        * Type of the response
        */
       type: 'frame'
-      /**
-       * Action path to the frame
-       */
-      action: string
-    }
+    } & CastActionFrameResponse)
 
 export type CastActionResponseFn = (
   response: CastActionResponse,
