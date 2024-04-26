@@ -62,9 +62,7 @@ app.castAction(
 
 In the example above, we are rendering Add Action intent:
 
-1. `action` property is used to set the path to the cast action route.
-2. `name` property is used to set the name of the action. It must be less than 30 characters
-3. `icon` property is used to associate your Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+`action` property is used to set the path to the cast action route.
 
 ```tsx twoslash [src/index.tsx]
 // @noErrors
@@ -97,7 +95,13 @@ app.frame('/', (c) => {
 
 Without a route handler to handle the Action request, the Cast Action will be meaningless. 
 
-Thus, let's define a `/log-this` route to handle the the Cast Action:
+To specify the name and icon for your action, the next properties are used in the action handler definition:
+1. `name` property is used to set the name of the action. It must be less than 30 characters
+2. `icon` property is used to associate your Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+3. (optional) `description` property is used to describe your action, up to 80 characters.
+4. (optional) `aboutUrl` property is used to show an "About" link when installing an action.
+
+Let's define a `/log-this` route to handle the the Cast Action:
 
 ```tsx twoslash [src/index.tsx]
 // @noErrors
@@ -148,7 +152,7 @@ A breakdown of the `/log-this` route handler:
 
 :::
 
-### 5. Bonus: Learn the API
+### 3. Bonus: Learn the API
 
 You can learn more about the transaction APIs here:
 
