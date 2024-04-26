@@ -7,13 +7,14 @@ import { parsePath } from './parsePath.js'
 type Counter = { button: number }
 
 type ParseIntentsOptions = {
-  baseUrl?: string
+  baseUrl: string
+  initialBaseUrl: string | undefined
   search?: string
 }
 
 export function parseIntents(
   intents_: FrameIntent | FrameIntent[] | undefined,
-  options: ParseIntentsOptions = {},
+  options: ParseIntentsOptions,
   counter: Counter = { button: 1 },
 ): JSXNode[] {
   if (!intents_) return []
@@ -53,7 +54,11 @@ function parseIntent(
         action: node.props.action
           ? node.props.action.startsWith('http')
             ? node.props.action
-            : parsePath(options.baseUrl + node.props.action) +
+            : parsePath(
+                node.props.action.startsWith('~')
+                  ? options.initialBaseUrl + node.props.action.slice(1)
+                  : options.baseUrl + node.props.action,
+              ) +
               (options.search && !value?.startsWith(buttonPrefix.addCastAction)
                 ? `?${options.search}`
                 : '')

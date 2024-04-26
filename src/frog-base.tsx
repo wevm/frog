@@ -277,6 +277,8 @@ export class FrogBase<
     if (typeof verify !== 'undefined') this.verify = verify
 
     this.basePath = basePath ?? '/'
+    // @ts-ignore - private
+    this.initialBasePath = this.basePath
     this.assetsPath = assetsPath ?? this.basePath
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
@@ -388,6 +390,12 @@ export class FrogBase<
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)
       const baseUrl = origin + parsePath(this.basePath)
+      const initialBaseUrl =
+        origin +
+        parsePath(
+          // @ts-ignore - private
+          this.initialBasePath,
+        )
 
       const { context, getState } = getFrameContext<env, string>({
         context: await requestBodyToContext(c, {
@@ -421,7 +429,13 @@ export class FrogBase<
         ogImage,
         title = 'Frog Frame',
       } = response.data
-      const buttonValues = getButtonValues(parseIntents(intents))
+
+      const buttonValues = getButtonValues(
+        parseIntents(intents, {
+          baseUrl,
+          initialBaseUrl,
+        }),
+      )
 
       if (context.status === 'redirect' && context.buttonIndex) {
         const buttonValue = buttonValues[context.buttonIndex - 1]
@@ -537,10 +551,14 @@ export class FrogBase<
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
+        if (action.startsWith('~'))
+          return initialBaseUrl + parsePath(action.slice(1))
+
         return baseUrl + parsePath(action)
       })()
 
       const parsedIntents = parseIntents(intents, {
+        initialBaseUrl,
         baseUrl,
         search:
           context.status === 'initial'
@@ -703,8 +721,11 @@ export class FrogBase<
     subBasePath extends string,
   >(path: subPath, frog: FrogBase<any, subSchema, subBasePath>) {
     if (frog.assetsPath === '/') frog.assetsPath = this.assetsPath
-    if (frog.basePath === '/')
+    if (frog.basePath === '/') {
+      // @ts-ignore - private
+      frog.initialBasePath = this.initialBasePath ?? parsePath(this.basePath)
       frog.basePath = parsePath(this.basePath) + parsePath(path)
+    }
     if (!frog.browserLocation) frog.browserLocation = this.browserLocation
     if (!frog.dev) frog.dev = this.dev
     if (!frog.headers) frog.headers = this.headers
