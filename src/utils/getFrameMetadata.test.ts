@@ -16,11 +16,11 @@ test('default', async () => {
         "property": "fc:frame:image:aspect_ratio",
       },
       {
-        "content": "https://frame.frog.fm/api/image",
+        "content": "https://frame.frog.fm/og.png",
         "property": "fc:frame:image",
       },
       {
-        "content": "https://frame.frog.fm/api/image",
+        "content": "https://frame.frog.fm/og.png",
         "property": "og:image",
       },
       {
@@ -66,10 +66,6 @@ test('default', async () => {
       {
         "content": "https://github.com/wevm/frog",
         "property": "fc:frame:button:3:target",
-      },
-      {
-        "content": "https://frame.frog.fm/og.png",
-        "property": "frog:image",
       },
     ]
   `)
