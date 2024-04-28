@@ -1,5 +1,15 @@
 # frog
 
+## 0.8.7
+
+### Patch Changes
+
+- [#237](https://github.com/wevm/frog/pull/237) [`75f46a4`](https://github.com/wevm/frog/commit/75f46a4c75e2ded0fe7875481e996cdc05a366f7) Thanks [@dalechyn](https://github.com/dalechyn)! - Added root path support in `action` to jump into the root Frog instance via `'~'` symbol. Useful for code-splitting via `app.route`.
+
+- [#287](https://github.com/wevm/frog/pull/287) [`268ee0d`](https://github.com/wevm/frog/commit/268ee0de2e0a310684b1f0a062fcf95a818a5f8c) Thanks [@dalechyn](https://github.com/dalechyn)! - Added degen chain support. [See more](https://warpcast.com/horsefacts.eth/0xd4fede11).
+
+- [#257](https://github.com/wevm/frog/pull/257) [`0d41ddf`](https://github.com/wevm/frog/commit/0d41ddfd63397df502bf5e636609bf68e8c11ee9) Thanks [@dalechyn](https://github.com/dalechyn)! - Disabled watch process when frog CLI is called outside of a project directory.
+
 ## 0.8.6
 
 ### Patch Changes
