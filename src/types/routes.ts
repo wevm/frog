@@ -83,7 +83,7 @@ export type H<
   ? FrameHandler<E, P, I>
   : M extends 'transaction'
     ? TransactionHandler<E, P, I>
-    : M extends 'cast-action'
+    : M extends 'castAction'
       ? CastActionHandler<E, P, I>
       : Handler<E, P, I, R>
 
@@ -93,12 +93,12 @@ export type H<
 //////                            //////
 ////////////////////////////////////////
 
-export interface HandlerInterface<
+export type HandlerInterface<
   E extends Env = Env,
   M extends string = string,
   S extends Schema = {},
   BasePath extends string = '/',
-> {
+> = {
   // app.get(path, handler, options)
   <
     P extends string,
@@ -109,7 +109,9 @@ export interface HandlerInterface<
   >(
     path: P,
     handler: H<E2, MergedPath, I, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S & ToSchema<M, MergePath<BasePath, P>, I['in'], MergeTypedResponseData<R>>,
@@ -129,7 +131,9 @@ export interface HandlerInterface<
     path: P,
     middleware: MiddlewareHandler<E2, MergedPath, I>,
     handler: H<E3, MergedPath, I2, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -153,7 +157,9 @@ export interface HandlerInterface<
     middleware: MiddlewareHandler<E2, MergedPath, I>,
     middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
     handler: H<E4, MergedPath, I3, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -180,7 +186,9 @@ export interface HandlerInterface<
     middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
     middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
     handler: H<E5, MergedPath, I4, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -210,7 +218,9 @@ export interface HandlerInterface<
     middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
     middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
     handler: H<E6, MergedPath, I5, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -243,7 +253,9 @@ export interface HandlerInterface<
     middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
     middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
     handler: H<E7, MergedPath, I6, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -279,7 +291,9 @@ export interface HandlerInterface<
     middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
     middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
     handler: H<E8, MergedPath, I7, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -318,7 +332,9 @@ export interface HandlerInterface<
     middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
     middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
     handler: H<E9, MergedPath, I8, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -360,7 +376,9 @@ export interface HandlerInterface<
     middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
     middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
     handler: H<E10, MergedPath, I9, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &
@@ -407,7 +425,9 @@ export interface HandlerInterface<
     middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
     middleware_9: MiddlewareHandler<E10, MergedPath, I9>,
     handler: H<E11, MergedPath, I10, R, M>,
-    options?: RouteOptions,
+    ...rest: M extends 'castAction'
+      ? [options: RouteOptions<M>]
+      : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
     S &

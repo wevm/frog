@@ -36,18 +36,24 @@ export const app = new Frog()
         </div>
       ),
       intents: [
-        <Button.AddCastAction action="/action" name="Log This!" icon="log">
-          Add
-        </Button.AddCastAction>,
+        <Button.AddCastAction action="/action">Add</Button.AddCastAction>,
       ],
     }),
   )
-  .castAction('/action', async (c) => {
-    console.log(
-      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
-        c.actionData.fid
-      }`,
-    )
-    if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
-    return c.res({ message: 'Action Succeeded' })
-  })
+  .castAction(
+    '/action',
+    async (c) => {
+      console.log(
+        `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+          c.actionData.fid
+        }`,
+      )
+      if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
+      return c.res({ message: 'Action Succeeded' })
+    },
+    {
+      name: 'Log This!',
+      icon: 'log',
+      description: 'This cast action will log something!',
+    },
+  )

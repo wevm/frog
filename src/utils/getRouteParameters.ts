@@ -2,10 +2,23 @@ import type { RouteOptions } from '../frog-base.js'
 import type { Env } from '../types/env.js'
 import type { MiddlewareHandler } from '../types/routes.js'
 
-export function getRouteParameters<env extends Env, handler>(
+export function getRouteParameters<
+  env extends Env,
+  handler,
+  method extends string,
+>(
   ...parameters: any[]
-): [string, MiddlewareHandler<env>[], handler, RouteOptions] {
-  const options: RouteOptions | undefined =
+): [
+  string,
+  MiddlewareHandler<env>[],
+  handler,
+  method extends 'castAction'
+    ? RouteOptions<method>
+    : RouteOptions<method> | undefined,
+] {
+  const options: method extends 'castAction'
+    ? RouteOptions<method>
+    : RouteOptions<method> | undefined =
     typeof parameters[parameters.length - 1] === 'object'
       ? parameters[parameters.length - 1]
       : undefined
@@ -17,5 +30,5 @@ export function getRouteParameters<env extends Env, handler>(
     else middlewares.push(parameters[i])
   }
 
-  return [parameters[0], middlewares, handler!, options ?? {}]
+  return [parameters[0], middlewares, handler!, options] as const
 }

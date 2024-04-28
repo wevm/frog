@@ -16,6 +16,7 @@ import type {
   ImageOptions,
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
+import type { Octicon } from './types/octicon.js'
 import type {
   CastActionHandler,
   FrameHandler,
@@ -168,9 +169,22 @@ export type FrogConstructorParameters<
   verify?: boolean | 'silent' | undefined
 }
 
-export type RouteOptions = Pick<FrogConstructorParameters, 'verify'> & {
-  fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
-}
+export type RouteOptions<method extends string = string> = Pick<
+  FrogConstructorParameters,
+  'verify'
+> &
+  (method extends 'frame'
+    ? {
+        fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
+      }
+    : method extends 'castAction'
+      ? {
+          name: string
+          icon: Octicon
+          description?: string
+          aboutUrl?: string
+        }
+      : {})
 
 /**
  * A Frog instance.
@@ -298,18 +312,33 @@ export class FrogBase<
     })
   }
 
-  castAction: HandlerInterface<env, 'cast-action', schema, basePath> = (
+  castAction: HandlerInterface<env, 'castAction', schema, basePath> = (
     ...parameters: any[]
   ) => {
-    const [path, middlewares, handler, options = {}] = getRouteParameters<
+    const [path, middlewares, handler, options] = getRouteParameters<
       env,
-      CastActionHandler<env>
+      CastActionHandler<env>,
+      'castAction'
     >(...parameters)
 
-    const { verify = this.verify } = options
+    const { verify = this.verify, ...installParameters } = options
 
-    // Cast Action Route (implements POST).
-    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+    // Cast Action Route (implements GET and POST).
+    this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
+      const url = getRequestUrl(c.req)
+      const origin = this.origin ?? url.origin
+      const baseUrl = origin + parsePath(this.basePath)
+
+      if (c.req.method === 'GET') {
+        return c.json({
+          ...installParameters,
+          postUrl: baseUrl + parsePath(path),
+          action: {
+            type: 'post',
+          },
+        })
+      }
+
       const { context } = getCastActionContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
@@ -344,7 +373,8 @@ export class FrogBase<
   ) => {
     const [path, middlewares, handler, options = {}] = getRouteParameters<
       env,
-      FrameHandler<env>
+      FrameHandler<env>,
+      'frame'
     >(...parameters)
 
     const { verify = this.verify } = options
@@ -747,7 +777,8 @@ export class FrogBase<
   ) => {
     const [path, middlewares, handler, options = {}] = getRouteParameters<
       env,
-      TransactionHandler<env>
+      TransactionHandler<env>,
+      'transaction'
     >(...parameters)
 
     const { verify = this.verify } = options
