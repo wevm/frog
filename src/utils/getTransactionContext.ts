@@ -107,7 +107,7 @@ export function getTransactionContext<
       req,
       res(parameters) {
         const { attribution, chainId, method, params } = parameters
-        const { abi, data, to, value } = params
+        const { abi, data, gas, to, value } = params
         const response: TransactionResponse = {
           attribution,
           chainId,
@@ -118,6 +118,7 @@ export function getTransactionContext<
             to,
           },
         }
+        if (gas) response.params.gas = gas.toString()
         if (value) response.params.value = value.toString()
         return { data: response, format: 'transaction', status: 'success' }
       },
