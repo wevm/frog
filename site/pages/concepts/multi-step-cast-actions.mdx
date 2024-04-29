@@ -150,7 +150,8 @@ A breakdown of the `/hello-world` route handler:
 - We are responding with a `c.res` response and specifying a `message` that will appear in the success toast.
 
 ### 3. Defining a frame handler
-Since in the previous step we send a response with `"type": "frame"` and have specified `"action": "/hello-world-frame"`, Client won't be able to resolve it since we have not defined it yet.
+
+We will need to define a frame handler that will handle the request to the `action` path provided in the previous step:
 
 So let's define one!
 
