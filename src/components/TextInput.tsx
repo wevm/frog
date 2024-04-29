@@ -3,6 +3,10 @@ export type TextInputProps = {
 }
 
 TextInput.__type = 'text-input'
-export function TextInput({ placeholder }: TextInputProps): JSX.Element {
-  return <meta property="fc:frame:input:text" content={placeholder} />
+export function TextInput({
+  placeholder,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
+}: TextInputProps): JSX.Element {
+  return <meta property={`${prefix}:input:text`} content={placeholder} />
 }

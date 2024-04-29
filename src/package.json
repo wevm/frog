@@ -56,6 +56,10 @@
       "types": "./_lib/next/index.d.ts",
       "default": "./_lib/next/index.js"
     },
+    "./renderers": {
+      "types": "./_lib/renderers/index.d.ts",
+      "default": "./_lib/renderers/index.js"
+    },
     "./serve-static": {
       "types": "./_lib/serve-static/index.d.ts",
       "bun": "./_lib/serve-static/bun.js",
@@ -105,10 +109,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

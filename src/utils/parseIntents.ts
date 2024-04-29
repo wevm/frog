@@ -10,6 +10,7 @@ type ParseIntentsOptions = {
   baseUrl: string
   initialBaseUrl: string | undefined
   search?: string
+  prefix?: string
 }
 
 export function parseIntents(
@@ -65,6 +66,7 @@ function parseIntent(
           : undefined,
         children: node.children,
         index: counter.button++,
+        prefix: options.prefix,
       }
 
       if (value?.startsWith(buttonPrefix.transaction) && node.props.target) {
@@ -78,7 +80,7 @@ function parseIntent(
       return buttonProps
     }
     if ((node.tag as any).__type === 'text-input')
-      return { ...node.props, children: node.children }
+      return { ...node.props, children: node.children, prefix: options.prefix }
     return {}
   })()
 

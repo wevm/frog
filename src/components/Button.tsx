@@ -24,17 +24,19 @@ export function ButtonRoot({
   children,
   // @ts-ignore - private
   index = 1,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
   value,
 }: ButtonRootProps): JSX.Element {
   return [
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       {...(value ? { 'data-value': value } : {})}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content="post" />,
+    <meta property={`${prefix}:button:${index}:action`} content="post" />,
     action && (
-      <meta property={`fc:frame:button:${index}:target`} content={action} />
+      <meta property={`${prefix}:button:${index}:target`} content={action} />
     ),
   ] as unknown as HtmlEscapedString
 }
@@ -50,16 +52,18 @@ export function ButtonAddCastAction({
   children,
   // @ts-ignore - private
   index = 1,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
 }: ButtonAddCastActionProps) {
   return [
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       data-value={buttonPrefix.addCastAction}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content="link" />,
+    <meta property={`${prefix}:button:${index}:action`} content="link" />,
     <meta
-      property={`fc:frame:button:${index}:target`}
+      property={`${prefix}:button:${index}:target`}
       content={`https://warpcast.com/~/add-cast-action?url=${action}`}
     />,
   ] as unknown as HtmlEscapedString
@@ -75,15 +79,17 @@ export function ButtonLink({
   // @ts-ignore - private
   index = 1,
   href,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
 }: ButtonLinkProps): JSX.Element {
   return [
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       data-value={buttonPrefix.link}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content="link" />,
-    <meta property={`fc:frame:button:${index}:target`} content={href} />,
+    <meta property={`${prefix}:button:${index}:action`} content="link" />,
+    <meta property={`${prefix}:button:${index}:target`} content={href} />,
   ] as unknown as HtmlEscapedString
 }
 
@@ -97,15 +103,17 @@ export function ButtonMint({
   // @ts-ignore - private
   index = 1,
   target,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
 }: ButtonMintProps): JSX.Element {
   return [
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       data-value={buttonPrefix.mint}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content="mint" />,
-    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+    <meta property={`${prefix}:button:${index}:action`} content="mint" />,
+    <meta property={`${prefix}:button:${index}:target`} content={target} />,
   ] as unknown as HtmlEscapedString
 }
 
@@ -119,16 +127,18 @@ export function ButtonRedirect({
   // @ts-ignore - private
   index = 1,
   location,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
 }: ButtonRedirectProps): JSX.Element {
   return [
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       data-type="redirect"
       data-value={`${buttonPrefix.redirect}:${location}`}
     />,
     <meta
-      property={`fc:frame:button:${index}:action`}
+      property={`${prefix}:button:${index}:action`}
       content="post_redirect"
     />,
     // TODO: Add `target` prop so folks can `'post_redirect'` to a different frame
@@ -143,10 +153,12 @@ export function ButtonReset({
   children,
   // @ts-ignore - private
   index = 1,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
 }: ButtonResetProps): JSX.Element {
   return (
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       data-value={buttonPrefix.reset}
       data-type="reset"
@@ -166,17 +178,19 @@ export function ButtonTransaction({
   // @ts-ignore - private
   index = 1,
   target,
+  // @ts-ignore - private
+  prefix = 'fc:frame',
 }: ButtonTransactionProps): JSX.Element {
   return [
     <meta
-      property={`fc:frame:button:${index}`}
+      property={`${prefix}:button:${index}`}
       content={normalizeChildren(children)}
       data-value={buttonPrefix.transaction}
     />,
-    <meta property={`fc:frame:button:${index}:action`} content="tx" />,
-    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+    <meta property={`${prefix}:button:${index}:action`} content="tx" />,
+    <meta property={`${prefix}:button:${index}:target`} content={target} />,
     action && (
-      <meta property={`fc:frame:button:${index}:post_url`} content={action} />
+      <meta property={`${prefix}:button:${index}:post_url`} content={action} />
     ),
   ] as unknown as HtmlEscapedString
 }

@@ -9,6 +9,7 @@ import { app as clock } from './clock.js'
 import { app as fontsApp } from './fonts.js'
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
+import { app as openFrameApp } from './openFrame.js'
 import { app as routingApp } from './routing.js'
 import { app as todoApp } from './todos.js'
 import { app as transactionApp } from './transaction.js'
@@ -196,6 +197,7 @@ export const app = new Frog({
   .route('/fonts', fontsApp)
   .route('/middleware', middlewareApp)
   .route('/neynar', neynarApp)
+  .route('/open-frame', openFrameApp)
   .route('/routing', routingApp)
   .route('/transaction', transactionApp)
   .route('/todos', todoApp)

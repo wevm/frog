@@ -1,6 +1,9 @@
 import { type ImageResponseOptions } from 'hono-og'
 import type { Hash } from 'viem'
+import type { Env } from './env.js'
+import type { FrameContext } from './context.js'
 import type { TypedResponse } from './response.js'
+import type { Input } from './routes.js'
 
 export type Font = {
   name: string
@@ -154,6 +157,23 @@ export type FrameIntent = JSX.Element | JSX.Element[] | false | null | undefined
 export type FrameIntents = FrameIntent | FrameIntent[]
 
 export type FrameButtonValue = string
+
+export type FrameRenderer<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+  _state = env['State'],
+> = (parameters: {
+  baseUrl: string
+  context: FrameContext<env, path, input, _state>
+  initialBaseUrl: string | undefined
+  intents: FrameIntent | FrameIntent[]
+  imageAspectRatio: FrameImageAspectRatio
+  imageUrl: string
+  nextFrameStateMeta: string
+  nextFrameStateSearch: URLSearchParams
+  postUrl: string
+}) => JSX.Element
 
 export type TrustedData = {
   messageBytes: string

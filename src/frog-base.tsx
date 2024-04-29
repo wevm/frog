@@ -12,6 +12,7 @@ import { default as p } from 'path-browserify'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
+  FrameRenderer,
   FrameResponse,
   ImageOptions,
 } from './types/frame.js'
@@ -44,6 +45,7 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import { farcaster } from './renderers/farcaster.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -139,6 +141,10 @@ export type FrogConstructorParameters<
    * @link https://developer.mozilla.org/en-US/docs/Web/API/URL/origin
    */
   origin?: string | undefined
+  /**
+   * Renderers to render a frame.
+   */
+  renderers?: FrameRenderer[]
   /**
    * Key used to sign secret data.
    *
@@ -250,6 +256,7 @@ export class FrogBase<
   fetch: Hono<env, schema, basePath>['fetch']
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
+  renderers: FrameRenderer[]
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
   /** FrogUI configuration. */
@@ -273,6 +280,7 @@ export class FrogBase<
     imageOptions,
     initialState,
     origin,
+    renderers,
     secret,
     ui,
     verify,
@@ -297,6 +305,7 @@ export class FrogBase<
     this.fetch = this.hono.fetch.bind(this.hono)
     this.get = this.hono.get.bind(this.hono)
     this.post = this.hono.post.bind(this.hono)
+    this.renderers = renderers ?? [farcaster]
 
     if (initialState) this._initialState = initialState
 
@@ -587,14 +596,19 @@ export class FrogBase<
         return baseUrl + parsePath(action)
       })()
 
-      const parsedIntents = parseIntents(intents, {
-        initialBaseUrl,
-        baseUrl,
-        search:
-          context.status === 'initial'
-            ? nextFrameStateSearch.toString()
-            : undefined,
-      })
+      const renderedNodes = this.renderers.map((renderer) =>
+        renderer({
+          baseUrl,
+          context,
+          initialBaseUrl,
+          intents,
+          imageAspectRatio,
+          imageUrl,
+          nextFrameStateMeta,
+          nextFrameStateSearch,
+          postUrl,
+        }),
+      )
 
       // Set response headers provided by consumer.
       for (const [key, value] of Object.entries(headers ?? {}))
@@ -695,26 +709,9 @@ export class FrogBase<
           {html`<!DOCTYPE html>`}
           <html lang="en">
             <head>
-              <meta property="fc:frame" content="vNext" />
-              <meta
-                property="fc:frame:image:aspect_ratio"
-                content={imageAspectRatio}
-              />
-              <meta property="fc:frame:image" content={imageUrl} />
               <meta property="og:image" content={ogImageUrl ?? imageUrl} />
               <meta property="og:title" content={title} />
-              <meta
-                property="fc:frame:post_url"
-                content={
-                  context.status === 'initial'
-                    ? `${postUrl}?${nextFrameStateSearch.toString()}`
-                    : postUrl
-                }
-              />
-              {context.status !== 'initial' && (
-                <meta property="fc:frame:state" content={nextFrameStateMeta} />
-              )}
-              {parsedIntents}
+              {renderedNodes}
 
               <meta property="frog:version" content={version} />
               {/* The devtools needs a serialized context. */}
