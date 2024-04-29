@@ -99,10 +99,10 @@ app.frame('/', (c) => {
 Next, we will add a route handler to handle the Cast Action request.
 
 The following properties can be used in the handler options object:
-1. `name` property is used to set the name of the action. It must be less than 30 characters
-2. `icon` property is used to associate your Multi-step Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
-3. (optional) `description` property is used to describe your action, up to 80 characters.
-4. (optional) `aboutUrl` property is used to show an "About" link when installing an action.
+- `name`: Used to set the name of the action. It must be less than 30 characters
+- `icon`: Used to associate your Multi-step Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+- `description` (optional): Used to describe your action, up to 80 characters.
+- `aboutUrl` (optional): Used to show an "About" link when installing an action.
 
 Let's define a `/hello-world` route to handle the the Multi-step Cast Action:
 
