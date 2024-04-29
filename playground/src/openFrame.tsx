@@ -1,6 +1,6 @@
 import { Button, Frog, TextInput } from 'frog'
-import { farcaster, openFrame } from 'frog/renderers'
 import * as hubs from 'frog/hubs'
+import { farcaster, openFrame } from 'frog/renderers'
 import { Box, Heading, vars } from './ui.js'
 
 export const app = new Frog({

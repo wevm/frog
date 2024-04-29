@@ -9,6 +9,7 @@ import lz from 'lz-string'
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
+import { farcaster } from './renderers/farcaster.js'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
@@ -45,7 +46,6 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
-import { farcaster } from './renderers/farcaster.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
