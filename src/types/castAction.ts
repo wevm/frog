@@ -2,11 +2,11 @@ import type { TypedResponse } from './response.js'
 
 export type CastActionFrameResponse = {
   /**
-   * Action path to the frame
+   * Path to the frame.
    *
    * @example '/my-frame'
    */
-  action: string
+  path: string
 }
 
 export type CastActionFrameResponseFn = (

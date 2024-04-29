@@ -357,11 +357,11 @@ export class FrogBase<
       }
 
       if (response.data.type === 'frame') {
-        const action = response.data.action
+        const framePath = response.data.path
         return c.json({
-          frameUrl: action.startsWith('http')
-            ? action
-            : baseUrl + parsePath(action),
+          frameUrl: framePath.startsWith('http')
+            ? framePath
+            : baseUrl + parsePath(framePath),
           type: 'frame',
         })
       }

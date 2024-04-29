@@ -142,12 +142,11 @@ app.castAction( // [!code focus]
 
 A breakdown of the `/log-this` route handler:
 
-- `c.actionData` is never nullable and is always defined since Cast Actions always do `POST` request.
 - We are responding with a `c.res` response and specifying a `message` that will appear in the success toast.
 
 ### 3. Bonus: Shorthand `c.message`
 
-In order not to add property `"type": "message"` to your `c.res(...)`, you can use a shorthand `c.message(...)`.
+Instead of `c.res({ type: 'message' })`, you can use a shorthand `c.message(...)`.
 
 ```tsx twoslash [src/index.tsx]
 // @noErrors

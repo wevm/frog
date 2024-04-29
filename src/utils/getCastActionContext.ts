@@ -49,7 +49,7 @@ export function getCastActionContext<
         status: 'error',
       }),
       frame: (data) => ({
-        data: { action: data.action, type: 'frame' },
+        data: { path: data.path, type: 'frame' },
         format: 'castAction',
         status: 'success',
       }),
