@@ -76,7 +76,7 @@ export const app = new Frog({
       if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
 
       return c.frame({
-        action: '/action-frame-response',
+        path: '/action-frame-response',
       })
     },
     {
