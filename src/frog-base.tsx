@@ -356,13 +356,19 @@ export class FrogBase<
         return c.json({ message: response.error.message })
       }
 
-      const { headers = this.headers, message } = response.data
+      if (response.data.type === 'frame') {
+        const framePath = response.data.path
+        return c.json({
+          frameUrl: framePath.startsWith('http')
+            ? framePath
+            : baseUrl + parsePath(framePath),
+          type: 'frame',
+        })
+      }
 
-      // Set response headers provided by consumer.
-      for (const [key, value] of Object.entries(headers ?? {}))
-        c.header(key, value)
+      const { message } = response.data
 
-      return c.json({ message })
+      return c.json({ message, type: 'message' })
     })
 
     return this

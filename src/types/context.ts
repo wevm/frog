@@ -1,5 +1,10 @@
 import type { Context as Context_hono, Input } from 'hono'
-import type { CastActionData, CastActionResponseFn } from './castAction.js'
+import type {
+  CastActionData,
+  CastActionFrameResponseFn,
+  CastActionMessageResponseFn,
+  CastActionResponseFn,
+} from './castAction.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type { BaseErrorResponseFn } from './response.js'
@@ -36,6 +41,18 @@ export type CastActionContext<
   env: Context_hono<env, path>['env']
   /** Error response that includes message and statusCode. */
   error: BaseErrorResponseFn
+  /**
+   * Frame response for building ephemeral frames.
+   *
+   * @see https://warpcast.notion.site/Frames-Multi-step-actions-f469054de8fb4ffc8b8e2649a41b6ad9?pvs=74
+   */
+  frame: CastActionFrameResponseFn
+  /**
+   * Message response for building single-step cast actions.
+   *
+   * @see https://warpcast.notion.site/Frames-Cast-Actions-v1-84d5a85d479a43139ea883f6823d8caa
+   */
+  message: CastActionMessageResponseFn
   /**
    * Hono request object.
    *

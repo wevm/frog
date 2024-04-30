@@ -33,12 +33,6 @@ export function getCastActionContext<
 
   return {
     context: {
-      env,
-      error: (data) => ({
-        error: data,
-        format: 'castAction',
-        status: 'error',
-      }),
       actionData: {
         buttonIndex: 1,
         castId: frameData.castId,
@@ -48,6 +42,22 @@ export function getCastActionContext<
         timestamp: frameData.timestamp,
         url: frameData.url,
       },
+      env,
+      error: (data) => ({
+        error: data,
+        format: 'castAction',
+        status: 'error',
+      }),
+      frame: (data) => ({
+        data: { path: data.path, type: 'frame' },
+        format: 'castAction',
+        status: 'success',
+      }),
+      message: (data) => ({
+        data: { message: data.message, type: 'message' },
+        format: 'castAction',
+        status: 'success',
+      }),
       req,
       res: (data) => ({
         data,

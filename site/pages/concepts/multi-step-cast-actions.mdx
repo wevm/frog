@@ -1,0 +1,229 @@
+# Multi-step Cast Actions
+
+Multi-step Cast Actions are similar to [Cast Actions](/concepts/cast-actions) with a difference that they display a frame, instead of displaying a message. See the [spec](https://warpcast.notion.site/Frames-Multi-step-actions-f469054de8fb4ffc8b8e2649a41b6ad9).
+
+## Overview
+
+At a glance:
+
+1. User installs Cast Action via specific deeplink or by clicking on `<Button.AddCastAction>{:jsx}` element with a specified target `.castAction` route in a Frame.
+2. When the user presses the Cast Action button in the App, the App will make a `POST` request to the `.castAction` route.
+3. Server performs any action and returns a response to the App, which is shown as an interactible Frame dialog.
+
+## Walkthrough
+
+Here is a trivial example on how to expose a multi-step action with a frame. We will break it down below.
+
+:::code-group
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Button, Frog, TextInput, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Hello world!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction action="/hello-world">
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+
+app.castAction(
+  '/hello-world',
+  (c) => {
+    return c.res({ type: 'frame', path: '/hello-world-frame' })
+  },
+  { name: "Hello world!", icon: "smiley" })
+)
+
+app.frame('/hello-world-frame', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Hello world!
+      </div>
+    )
+  })
+})
+```
+
+:::
+
+::::steps
+
+### 1. Render Frame & Add Action Intent
+
+In the example below, we are rendering an "add cast action" intent.
+
+The `action` property is used to set the path to the cast action route.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Hello world!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction action="/hello-world">
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+```
+
+
+### 2. Handle `/hello-world` Requests
+
+Next, we will add a route handler to handle the Cast Action request.
+
+The following properties can be used in the handler options object:
+- `name`: Used to set the name of the action. It must be less than 30 characters
+- `icon`: Used to associate your Multi-step Cast Action with one of the Octicons. You can see the supported list [here](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+- `description` (optional): Used to describe your action, up to 80 characters.
+- `aboutUrl` (optional): Used to show an "About" link when installing an action.
+
+Let's define a `/hello-world` route to handle the the Multi-step Cast Action:
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+import { Button, Frog, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+// ---cut---
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Hello world!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction
+        action="/hello-world"
+      >
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+
+app.castAction( // [!code focus]
+  '/hello-world', // [!code focus]
+  (c) => { // [!code focus]
+    console.log( // [!code focus]
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${ // [!code focus]
+        c.actionData.fid // [!code focus]
+      }`, // [!code focus]
+    ) // [!code focus]
+    return c.res({ type: 'frame', path: '/hello-world-frame' }) // [!code focus]
+  }, // [!code focus]
+  { name: "Hello world!", icon: "smiley" }) // [!code focus]
+) // [!code focus]
+```
+
+A breakdown of the `/hello-world` route handler:
+
+- We are responding with a `c.res` response and specifying a `message` that will appear in the success toast.
+
+### 3. Defining a frame handler
+
+We will need to define a frame handler that will handle the request to the `action` path provided in the previous step:
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Button, Frog, TextInput, parseEther } from 'frog'
+import { abi } from './abi'
+
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Add "Hello world!" Action
+      </div>
+    ),
+    intents: [
+      <Button.AddCastAction action="/hello-world">
+        Add
+      </Button.AddCastAction>,
+    ]
+  })
+})
+
+app.castAction(
+  '/hello-world',
+  (c) => {
+    return c.res({ type: 'frame', path: '/hello-world-frame' })
+  },
+  { name: "Hello world!", icon: "smiley" })
+)
+
+app.frame('/hello-world-frame', (c) => { // [!code focus]
+  return c.res({ // [!code focus]
+    image: ( // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+        Hello world! // [!code focus]
+      </div> // [!code focus]
+    ) // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+```
+
+Now we're all set! You can use existing Frame API to connect multiple frames together to have a multi-step experience. See [Connecting Frames (Actions)](/concepts/actions).
+
+### 4. Bonus: Shorthand `c.frame`
+
+Instead of `c.res({ type: 'frame' })`, you can use a shorthand `c.frame(...)`.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+app.castAction(
+  '/hello-world',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    ) 
+    return c.frame({ path: '/hello-world-frame' }) // [!code focus]
+  }, 
+  { name: "Hello world!", icon: "smiley" })
+)
+```
+
+### 4. Bonus: Learn the API
+
+You can learn more about the Cast Action APIs here:
+
+- [`Frog.castAction` Reference](/reference/frog-cast-action)
+- [`Frog.castAction` Context Reference](/reference/frog-cast-action-context)
+- [`Frog.castAction` Response Reference](/reference/frog-cast-action-response)
+
+::::

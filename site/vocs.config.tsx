@@ -4,7 +4,7 @@ import { getFrameMetadata } from '../src/utils/getFrameMetadata.js'
 
 export default defineConfig({
   banner:
-    '💅 Introducing [FrogUI](/ui) – systematic & type-safe UI primitives for frame images.',
+    '👣 Introducing [Multi-step Cast Actions](/concepts/multi-step-cast-actions).',
   description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
   async head({ path }) {
@@ -308,6 +308,10 @@ export default defineConfig({
           {
             text: 'Cast Actions',
             link: '/concepts/cast-actions',
+          },
+          {
+            text: 'Multi-step Cast Actions',
+            link: '/concepts/multi-step-cast-actions',
           },
         ],
       },

@@ -8,7 +8,7 @@ At a glance:
 
 1. User installs Cast Action via specific deeplink or by clicking on `<Button.AddCastAction>{:jsx}` element with a specified target `.castAction` route in a Frame.
 2. When the user presses the Cast Action button in the App, the App will make a `POST` request to the `.castAction` route.
-3. Frame performs any action and returns a response to the App.
+3. Server performs any action and returns a response to the App which is shown as a toast.
 
 ## Walkthrough
 
@@ -48,7 +48,7 @@ app.castAction(
         c.actionData.fid
       }`,
     )
-    return c.res({ message: 'Action Succeeded' })
+    return c.res({ type: 'message', message: 'Action Succeeded' })
   },
   { name: "Log This!", icon: "log" })
 )
@@ -126,7 +126,7 @@ app.frame('/', (c) => {
   })
 })
 
-app.castAction(
+app.castAction( // [!code focus]
   '/log-this',  // [!code focus]
   (c) => { // [!code focus]
     console.log( // [!code focus]
@@ -134,7 +134,7 @@ app.castAction(
         c.actionData.fid // [!code focus]
       }`, // [!code focus]
     ) // [!code focus]
-    return c.res({ message: 'Action Succeeded' }) // [!code focus]
+    return c.res({ type: 'message', message: 'Action Succeeded' }) // [!code focus]
   }, // [!code focus]
   { name: "Log This!", icon: "log" }) // [!code focus]
 ) // [!code focus]
@@ -142,11 +142,49 @@ app.castAction(
 
 A breakdown of the `/log-this` route handler:
 
-- `c.actionData` is never nullable and is always defined since Cast Actions always do `POST` request.
 - We are responding with a `c.res` response and specifying a `message` that will appear in the success toast.
 
+### 3. Bonus: Shorthand `c.message`
 
-### 3. Bonus: Learn the API
+Instead of `c.res({ type: 'message' })`, you can use a shorthand `c.message(...)`.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    ) 
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, 
+  { name: "Log This!", icon: "log" })
+)
+```
+
+### 4. Bonus: Returning an error
+
+You can return an error response for a Client to render an error toast by using `c.error`.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+app.castAction(
+  '/log-this',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    ) 
+    return c.error({ message: 'Action Failed' }) // [!code focus]
+  }, 
+  { name: "Log This!", icon: "log" })
+)
+```
+
+### 5. Bonus: Learn the API
 
 You can learn more about the transaction APIs here:
 
