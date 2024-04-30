@@ -212,7 +212,7 @@ app.castAction(
         c.actionData.fid
       }`,
     ) 
-    return c.frame({ action: '/hello-world-frame' }) // [!code focus]
+    return c.frame({ path: '/hello-world-frame' }) // [!code focus]
   }, 
   { name: "Hello world!", icon: "smiley" })
 )
