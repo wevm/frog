@@ -1,5 +1,26 @@
 # frog
 
+## 0.9.0
+
+### Minor Changes
+
+- [#251](https://github.com/wevm/frog/pull/251) [`f841edc`](https://github.com/wevm/frog/commit/f841edc49614a4fd67e5feaae7161f1592ea8c6d) Thanks [@dalechyn](https://github.com/dalechyn)! - Deprecated the Cast Actions Deeplink V1 format in favor of V2. [See more](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa).
+
+  Breaking changes have affected `Button.AddCastAction` and `.castAction` handler:
+
+  - `Button.AddCastAction` now only accepts `action` property;
+  - `.castAction` handler now requries a third parameter (`options`) to be set. Properties that were removed from `Button.AddCastAction` have migrated here, and `aboutUrl` and `description` were added along.
+
+- [#285](https://github.com/wevm/frog/pull/285) [`6fc1642`](https://github.com/wevm/frog/commit/6fc1642dd61e640054fade000bb9d54e1f4a49fe) Thanks [@dalechyn](https://github.com/dalechyn)! - Implemented multi-step cast actions. [See more](https://warpcast.notion.site/Frames-Multi-step-actions-f469054de8fb4ffc8b8e2649a41b6ad9?pvs=74).
+
+  Breaking changes have affected `.castAction` handler definition and its response:
+
+  - `.castAction` handler response now requires a `"type": "message" | "frame"` to be specified. Shorthands `c.message(...)` and `c.frame(...)` were added for the ease of use.
+
+### Patch Changes
+
+- [#286](https://github.com/wevm/frog/pull/286) [`bfb2f70`](https://github.com/wevm/frog/commit/bfb2f702734314399412b446dbe943f962de0450) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `gas` parameter to transaction response to specify the gas limit. [See more](https://warpcast.com/horsefacts.eth/0xd6390bb3).
+
 ## 0.8.7
 
 ### Patch Changes

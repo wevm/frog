@@ -1,7 +1,7 @@
 {
   "name": "frog",
   "description": "Framework for Farcaster Frames",
-  "version": "0.8.7",
+  "version": "0.9.0",
   "type": "module",
   "module": "_lib/index.js",
   "types": "_lib/index.d.ts",
