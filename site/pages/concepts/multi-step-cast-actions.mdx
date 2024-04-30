@@ -43,7 +43,7 @@ app.frame('/', (c) => {
 app.castAction(
   '/hello-world',
   (c) => {
-    return c.res({ type: 'frame', action: '/hello-world-frame' })
+    return c.res({ type: 'frame', path: '/hello-world-frame' })
   },
   { name: "Hello world!", icon: "smiley" })
 )
