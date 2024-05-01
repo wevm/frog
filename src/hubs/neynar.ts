@@ -25,7 +25,7 @@ export const neynar = createHub((parameters: NeynarHubParameters) => {
         method: 'POST',
         headers: {
           accept: 'application json',
-          api_key: 'NEYNAR_FROG_FM',
+          api_key: apiKey,
           'content-type': 'application/json',
         },
         body: JSON.stringify({
