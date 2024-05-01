@@ -21,6 +21,10 @@ export async function verifyFrame({
   url,
 }: VerifyFrameParameters): Promise<VerifyFrameReturnType> {
   const body = hexToBytes(`0x${trustedData.messageBytes}`)
+  if (hub.verifyFrame) {
+    return await hub.verifyFrame({ hub, trustedData, body, frameUrl, url })
+  }
+
   const response = await fetch(`${hub.apiUrl}/v1/validateMessage`, {
     ...hub.fetchOptions,
     method: 'POST',
@@ -29,7 +33,7 @@ export async function verifyFrame({
       ...hub.fetchOptions?.headers,
     },
     body,
-  }).then((res) => res.json())
+  }).then(async (res) => res.json())
 
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`)
