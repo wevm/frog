@@ -33,7 +33,7 @@ export async function verifyFrame({
       ...hub.fetchOptions?.headers,
     },
     body,
-  }).then(async (res) => res.json())
+  }).then((res) => res.json())
 
   if (!response.valid)
     throw new Error(`message is invalid. ${response.details}`)
