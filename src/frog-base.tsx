@@ -366,9 +366,9 @@ export class FrogBase<
         })
       }
 
-      const { message } = response.data
+      const { message, link } = response.data
 
-      return c.json({ message, type: 'message' })
+      return c.json({ message, link, type: 'message' })
     })
 
     return this
