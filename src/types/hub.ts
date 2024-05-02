@@ -5,7 +5,7 @@ export type Hub = {
   apiUrl: string
   /** Options to pass to `fetch`. */
   fetchOptions?: RequestInit
-  /** Verify a frame. */
+  /** Verify frame override. */
   verifyFrame?: ({
     trustedData,
   }: {
