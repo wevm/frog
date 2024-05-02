@@ -8,8 +8,6 @@ export type NeynarHubParameters = {
 export const neynar = createHub((parameters: NeynarHubParameters) => {
   const { apiKey } = parameters
 
-  console.log('NEYNAR REQ')
-
   return {
     apiUrl: 'https://hub-api.neynar.com',
     fetchOptions: {
