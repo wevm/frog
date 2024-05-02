@@ -1,4 +1,4 @@
-import type { VerifyFrameParameters } from '../utils/verifyFrame.js'
+import type { TrustedData } from './frame.js'
 
 export type Hub = {
   /** Hub API URL. */
@@ -7,12 +7,8 @@ export type Hub = {
   fetchOptions?: RequestInit
   /** Verify a frame. */
   verifyFrame?: ({
-    frameUrl,
-    hub,
     trustedData,
-    body,
-    url,
-  }: VerifyFrameParameters & { body: Uint8Array }) => Promise<{
-    frameData: any
-  }>
+  }: {
+    trustedData: TrustedData
+  }) => Promise<void>
 }

@@ -21,22 +21,23 @@ export async function verifyFrame({
   url,
 }: VerifyFrameParameters): Promise<VerifyFrameReturnType> {
   const body = hexToBytes(`0x${trustedData.messageBytes}`)
-  if (hub.verifyFrame) {
-    return await hub.verifyFrame({ hub, trustedData, body, frameUrl, url })
-  }
 
-  const response = await fetch(`${hub.apiUrl}/v1/validateMessage`, {
-    ...hub.fetchOptions,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      ...hub.fetchOptions?.headers,
-    },
-    body,
-  }).then((res) => res.json())
+  const response = hub.verifyFrame
+    ? await hub.verifyFrame({ trustedData })
+    : await fetch(`${hub.apiUrl}/v1/validateMessage`, {
+        ...hub.fetchOptions,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          ...hub.fetchOptions?.headers,
+        },
+        body,
+      }).then((res) => res.json())
 
   if (!response.valid)
-    throw new Error(`message is invalid. ${response.details}`)
+    throw new Error(
+      `message is invalid. ${response.details || response.message}`,
+    )
 
   if (new URL(url).origin !== new URL(frameUrl).origin)
     throw new Error(`Invalid frame url: ${frameUrl}. Expected: ${url}.`)
