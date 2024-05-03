@@ -329,7 +329,7 @@ export class FrogBase<
       const origin = this.origin ?? url.origin
       const baseUrl = origin + parsePath(this.basePath)
 
-      if (c.req.method === 'GET') {
+      if (c.req.method === 'GET')
         return c.json({
           ...installParameters,
           postUrl: baseUrl + parsePath(path),
@@ -337,7 +337,6 @@ export class FrogBase<
             type: 'post',
           },
         })
-      }
 
       const { context } = getCastActionContext<env, string>({
         context: await requestBodyToContext(c, {
@@ -367,7 +366,6 @@ export class FrogBase<
       }
 
       const { message, link } = response.data
-
       return c.json({ message, link, type: 'message' })
     })
 

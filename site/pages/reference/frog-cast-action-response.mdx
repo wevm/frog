@@ -35,7 +35,7 @@ app.castAction('/action/foo', (c) => {
       'Cache-Control': 'max-age=0', // [!code focus]
     }, // [!code focus]
     message: 'Success!',
-    statusCode: 200
+    statusCode: 200,
   })
 })
 ```
@@ -56,17 +56,16 @@ export const app = new Frog()
 app.castAction('/', (c) => {
   return c.res({
     message: 'Action Succeeded!', // [!code focus]
-    statusCode: 200
+    statusCode: 200,
   })
 })
 ```
 
 ## link
+#
 :::warning
-
 The `link` property is valid to be added only in response with HTTP status 200.
 Thus you cannot add one in `.error()` response.
-
 :::
 
 - **Type:** `string | undefined`
@@ -84,8 +83,8 @@ export const app = new Frog()
 app.castAction('/', (c) => {
   return c.res({
     message: 'Action Succeeded!',
-    link: 'https://frog.fm' // [!code focus]
-    statusCode: 200
+    link: 'https://frog.fm', // [!code focus]
+    statusCode: 200,
   })
 })
 ```
@@ -107,7 +106,7 @@ export const app = new Frog()
 app.castAction('/', (c) => {
   return c.res({
     message: 'Action Succeeded!',
-    statusCode: 200 // [!code focus]
+    statusCode: 200, // [!code focus]
   })
 })
 ```
