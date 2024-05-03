@@ -125,6 +125,10 @@ export type FrameResponse = {
    * @example 'Hello Frog'
    */
   title?: string | undefined
+  /**
+   * Additional meta tags for the frame.
+   */
+  unstable_metaTags?: { property: string; content: string }[] | undefined
 }
 
 export type FrameResponseFn = (
