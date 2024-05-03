@@ -6,9 +6,5 @@ export type Hub = {
   /** Options to pass to `fetch`. */
   fetchOptions?: RequestInit
   /** Verify frame override. */
-  verifyFrame?: ({
-    trustedData,
-  }: {
-    trustedData: TrustedData
-  }) => Promise<void>
+  verifyFrame?: (parameters: { trustedData: TrustedData }) => Promise<void>
 }
