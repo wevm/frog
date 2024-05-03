@@ -181,6 +181,17 @@ export type RouteOptions<method extends string = string> = Pick<
   (method extends 'frame'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
+        initial?: Omit<FrameResponse, 'image'> &
+          (
+            | {
+                refreshing: true
+                image: () => FrameResponse['image']
+              }
+            | {
+                refreshing?: false | undefined
+                image: FrameResponse['image']
+              }
+          )
       }
     : method extends 'castAction'
       ? {
@@ -394,12 +405,14 @@ export class FrogBase<
       'frame'
     >(...parameters)
 
-    const { verify = this.verify } = options
+    const { verify = this.verify, initial } = options
 
     // OG Image Route
     const imagePaths = getImagePaths(parseHonoPath(path))
     for (const imagePath of imagePaths) {
       this.hono.get(imagePath, async (c) => {
+        const query = c.req.query()
+
         const defaultImageOptions = await (async () => {
           if (typeof this.imageOptions === 'function')
             return await this.imageOptions()
@@ -414,11 +427,55 @@ export class FrogBase<
           return defaultImageOptions?.fonts
         })()
 
+        // If the query is empty, it is expected that user has added info on `initial` frame response.
+        if (Object.keys(query).length === 0) {
+          if (!initial)
+            throw new Error(
+              `Image handler cannot return an image at ${c.req.path} if there are no query parameters and if \`initial\` property is not set. Either add query parameters, or add \`initial\` property in the third argument of this frame handler.`,
+            )
+
+          const image_ = await (initial.refreshing
+            ? initial.image()
+            : initial.image)
+
+          if (typeof image_ === 'string')
+            throw new Error(
+              'Unexpected Error: `image_` cannot be of type string as if it is an absolute URL, this route should have never been triggered.',
+            )
+
+          const imageOptions = initial.imageOptions ?? defaultImageOptions
+
+          const defaultHeaders = imageOptions?.headers ?? this.headers
+          const headers = initial.refreshing
+            ? defaultHeaders
+              ? (() => {
+                  const headers_ = new Headers(defaultHeaders).toJSON()
+                  if (headers_['Cache-Control']) return headers_
+
+                  headers_['Cache-Control'] = 'max-age=0'
+                  return headers_
+                })()
+              : (() => {
+                  return { 'Cache-Control': 'max-age=0' }
+                })()
+            : defaultHeaders
+
+          return new ImageResponse(image_, {
+            width: 1200,
+            height: 630,
+            ...imageOptions,
+            format: imageOptions?.format ?? 'png',
+            fonts: await parseFonts(fonts),
+            headers,
+          })
+        }
+
         const {
           headers = this.headers,
           image,
           imageOptions = defaultImageOptions,
-        } = fromQuery<any>(c.req.query())
+        } = fromQuery<any>(query)
+
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
         return new ImageResponse(image_, {
           width: 1200,
@@ -458,9 +515,13 @@ export class FrogBase<
 
       if (context.url !== parsePath(url.href)) return c.redirect(context.url)
 
-      const response = await handler(context)
+      const response =
+        context.status === 'initial' && initial !== undefined
+          ? ({ data: initial, status: 'success' } as const)
+          : await handler(context)
+
       if (response instanceof Response) return response
-      if (response.status === 'error') {
+      if (response?.status === 'error') {
         c.status(response.error.statusCode ?? 400)
         return c.json({ message: response.error.message })
       }
@@ -536,13 +597,20 @@ export class FrogBase<
         previousState,
       })
 
-      const imageOptions = await (async () => {
-        if (typeof imageOptions_ === 'function') return await imageOptions_()
-        return imageOptions_
-      })()
+      const imageOptions =
+        context.status === 'initial' && initial !== undefined
+          ? initial.imageOptions
+          : await (async () => {
+              if (typeof imageOptions_ === 'function')
+                return await imageOptions_()
+              return imageOptions_
+            })()
 
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
+          if (context.status === 'initial' && initial !== undefined)
+            return `${parsePath(context.url)}/image`
+
           const compressedImage = lz.compressToEncodedURIComponent(
             JSON.stringify(
               await parseImage(
