@@ -1,5 +1,11 @@
 # frog
 
+## 0.9.1
+
+### Patch Changes
+
+- [#292](https://github.com/wevm/frog/pull/292) [`0017052`](https://github.com/wevm/frog/commit/001705270445172cbfa17fbf3e1b82da2d102743) Thanks [@avneesh0612](https://github.com/avneesh0612)! - Added `verifyFrame` option to hub definition.
+
 ## 0.9.0
 
 ### Minor Changes
