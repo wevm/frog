@@ -20,6 +20,10 @@ export type CastActionMessageResponse = {
    * @example 'Action succeded!'
    */
   message: string
+  /**
+   * If present, clients must display the message as an external link to this URL.
+   */
+  link?: string | undefined
 }
 
 export type CastActionMessageResponseFn = (
