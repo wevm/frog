@@ -1,0 +1,56 @@
+# Error Handling
+
+Farcaster Frames have the ability to return application-level error messages (see the [spec](https://warpcast.notion.site/Frames-Errors-ddc965b097d44d9ea03ddf98498597c6)). This is the best way for frame developers to give users feedback in response to an input or other requirements.
+
+## Overview
+
+At a glance:
+
+1. A Frame has a `<Button>{:jsx}`
+2. When the user presses the button in the App, the App will make a `POST` request to the specified route.
+3. The App responds with a `400` status code and error message.
+4. The client displays the error message to the user.
+
+Frog supports error messages for [frames](/reference/frog-frame-context#error), [transactions](/reference/frog-transaction-context#error), and [cast actions](/reference/frog-cast-action-context#error).
+
+## Reference
+
+:::code-group
+```ts twoslash [Frame Error]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.frame('/', (c) => {
+  return c.error({/* ... */})
+})
+```
+```ts twoslash [Transaction Error]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.transaction('/', (c) => {
+  return c.error({/* ... */})
+})
+```
+```ts twoslash [Cast Action Error]
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.castAction('/', (c) => {
+  return c.error({/* ... */})
+})
+```
+:::
+

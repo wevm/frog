@@ -313,6 +313,10 @@ export default defineConfig({
             text: 'Multi-step Cast Actions',
             link: '/concepts/multi-step-cast-actions',
           },
+          {
+            text: 'Error Handling',
+            link: '/concepts/error-handling',
+          },
         ],
       },
       {
