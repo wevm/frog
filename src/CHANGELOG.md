@@ -1,5 +1,16 @@
 # frog
 
+## 0.9.2
+
+### Patch Changes
+
+- [#298](https://github.com/wevm/frog/pull/298) [`b9e181b`](https://github.com/wevm/frog/commit/b9e181b3355d65d2f9842b661d90c84d8e426e36) Thanks [@tmm](https://github.com/tmm)! - Added experimental feature to allow additional custom meta tags.
+
+- [#295](https://github.com/wevm/frog/pull/295) [`14ec5b1`](https://github.com/wevm/frog/commit/14ec5b1922c594d169a67e2c43b898c99ba3eb79) Thanks [@sinasab](https://github.com/sinasab)! - Added verifyFrame util exports
+
+- [#293](https://github.com/wevm/frog/pull/293) [`536c491`](https://github.com/wevm/frog/commit/536c491c175527c3fcbd3d80e99f323f2eecb27e) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `link` property to `CastActionMessageResponse` to display the toasted message as an external link to the specified URL.
+  [See more](https://docs.farcaster.xyz/reference/actions/spec#message-response-type).
+
 ## 0.9.1
 
 ### Patch Changes
