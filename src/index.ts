@@ -21,6 +21,13 @@ export {
   getFrameMetadata,
 } from './utils/getFrameMetadata.js'
 
+export {
+  messageToFrameData,
+  type VerifyFrameParameters,
+  type VerifyFrameReturnType,
+  verifyFrame,
+} from './utils/verifyFrame.js'
+
 export type {
   Context,
   FrameContext,
