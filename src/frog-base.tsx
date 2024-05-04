@@ -477,29 +477,30 @@ export class FrogBase<
           const imageOptions = initial.imageOptions ?? defaultImageOptions
 
           const defaultHeaders = imageOptions?.headers ?? this.headers
-          const headers = initial.refreshing
-            ? defaultHeaders
-              ? (() => {
-                  const headers_ = new Headers(defaultHeaders).toJSON()
-                  if (headers_['cache-control']) return headers_
+          const headers = (() => {
+            const value = `max-age=${
+              typeof initial.refreshing === 'number' ? initial.refreshing : 0
+            }`
 
-                  headers_['cache-control'] = `max-age=${
-                    typeof initial.refreshing === 'number'
-                      ? initial.refreshing
-                      : 0
-                  }`
-                  return headers_
-                })()
-              : (() => {
-                  return {
-                    'cache-control': `max-age=${
-                      typeof initial.refreshing === 'number'
-                        ? initial.refreshing
-                        : 0
-                    }`,
-                  }
-                })()
-            : defaultHeaders
+            return initial.refreshing
+              ? defaultHeaders
+                ? (() => {
+                    const headers_ = new Headers(defaultHeaders).toJSON()
+                    if (headers_['cache-control'] || headers_['Cache-Control'])
+                      return headers_
+
+                    headers_['cache-control'] = value
+                    headers_['Cache-Control'] = value
+                    return headers_
+                  })()
+                : (() => {
+                    return {
+                      'cache-control': value,
+                      'Cache-Control': value,
+                    }
+                  })()
+              : defaultHeaders
+          })()
 
           return new ImageResponse(image_, {
             width: 1200,
