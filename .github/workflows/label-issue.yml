@@ -8,8 +8,8 @@ jobs:
   reply-labeled:
     runs-on: ubuntu-latest
     steps:
-      - name: needs reproduction
-        if: github.event.label.name == 'needs reproduction'
+      - name: Needs Reproduction
+        if: github.event.label.name == 'M: Needs Reproduction'
         uses: actions-cool/issues-helper@v3
         with:
           actions: 'create-comment'
