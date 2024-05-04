@@ -237,3 +237,80 @@ app.use('/', fdk.analyticsMiddleware({
 }))
 ```
 
+
+### XMTP Frames Middleware
+
+The XMTP community has implemeted ways to enhance user experience by supporting frames within XMTP applications.
+
+**Metadata**
+
+To build a Frame with XMTP, you must first add XMTP metadata. This is done following the specifications of [OpenFrames](https://www.openframes.xy).
+
+```jsx
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
+  return {
+    unstable_metaTags: [
+      { property: `of:accepts`, content: version || "vNext" },
+      { property: `of:accepts:${client}`, content: version || "vNext" },
+    ],
+  };
+};
+
+export const app = new Frog(addMetaTags("xmtp"));
+```
+
+**Validate incoming messages**:
+
+Install the `@xmtp/frames-validator` package to validate incoming messages.
+
+:::code-group
+
+```bash [npm]
+npm install @xmtp/frames-validator
+```
+
+```bash [yarn]
+yarn add @xmtp/frames-validator
+```
+:::
+
+Add the middleware to validate incoming messages.
+
+```jsx
+import { validateFramesPost } from "@xmtp/frames-validator";
+
+const xmtpSupport = async (c: Context, next: Next) => {
+  // Check if the request is a POST and relevant for XMTP processing
+  if (c.req.method === "POST") {
+    const requestBody = (await c.req.json().catch(() => {})) || {};
+    if (requestBody?.clientProtocol?.includes("xmtp")) {
+      c.set("client", "xmtp");
+      const { verifiedWalletAddress } = await validateFramesPost(requestBody);
+      c.set("verifiedWalletAddress", verifiedWalletAddress);
+    } else {
+      // Add farcaster check
+      c.set("client", "farcaster");
+    }
+  }
+  await next();
+};
+
+app.use(xmtpSupport);
+```
+
+**Access verified wallet address**:
+
+```jsx
+app.frame("/", (c) => {
+  /* Get Frame variables */
+  const { buttonValue, inputText, status } = c;
+
+  // XMTP verified address
+  const { verifiedWalletAddress } = c?.var || {};
+
+  /* return */
+})
+```
+
+For more information refer to [XMTP Docs](https://xmtp.org/docs/build/frames).
