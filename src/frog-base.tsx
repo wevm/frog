@@ -184,8 +184,10 @@ export type RouteOptions<method extends string = string> = Pick<
         initial?: Omit<FrameResponse, 'image'> &
           (
             | {
-                refreshing: true
-                image: () => FrameResponse['image']
+                refreshing: true | number
+                image: () =>
+                  | Promise<FrameResponse['image']>
+                  | FrameResponse['image']
               }
             | {
                 refreshing?: false | undefined
@@ -434,7 +436,7 @@ export class FrogBase<
               `Image handler cannot return an image at ${c.req.path} if there are no query parameters and if \`initial\` property is not set. Either add query parameters, or add \`initial\` property in the third argument of this frame handler.`,
             )
 
-          const image_ = await (initial.refreshing
+          const image_ = await (typeof initial.image === 'function'
             ? initial.image()
             : initial.image)
 
@@ -452,11 +454,21 @@ export class FrogBase<
                   const headers_ = new Headers(defaultHeaders).toJSON()
                   if (headers_['Cache-Control']) return headers_
 
-                  headers_['Cache-Control'] = 'max-age=0'
+                  headers_['Cache-Control'] = `max-age=${
+                    typeof initial.refreshing === 'number'
+                      ? initial.refreshing
+                      : 0
+                  }`
                   return headers_
                 })()
               : (() => {
-                  return { 'Cache-Control': 'max-age=0' }
+                  return {
+                    'Cache-Control': `max-age=${
+                      typeof initial.refreshing === 'number'
+                        ? initial.refreshing
+                        : 0
+                    }`,
+                  }
                 })()
             : defaultHeaders
 
