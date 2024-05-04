@@ -181,15 +181,44 @@ export type RouteOptions<method extends string = string> = Pick<
   (method extends 'frame'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
+        /**
+         * Define the initial frame response explicitly, changing initial frame image URL to be static
+         * which allows the use of "refreshing frame images".
+         *
+         * WARNING: Once you define this property, all the existing frames at this URL will have an invalid
+         * image URL.
+         * If you have frame live at this URL, it is advised to create a separate frame handler at a different path
+         * having this property set along with the existing one, to ensure that existing frames image URLs are accessible.
+         * If maintaining existing frames image URLs is not required, you can define this property and use [Warpcast's Embeds Tool](https://warpcast.com/~/developers/embeds),
+         * paste your frame URL and click on "Scrape Again" button to invalidate existing frame response cache at that URL for new casts.
+         *
+         * @see https://warpcast.com/~/developers/embeds
+         * @see https://docs.farcaster.xyz/reference/frames/spec#initial-frames
+         */
         initial?: Omit<FrameResponse, 'image'> &
           (
             | {
+                /**
+                 * Enables "refreshing frame images".
+                 *
+                 * If `true` is passed, sets the `'cache-control'` header value in image response to `max-age=0`.
+                 * If `number` is passed, sets the `'cache-control'` header value in image response to `max-age=<number>`.
+                 *
+                 * INFO: If you are changing this value from `false | undefined` to `true | number`, and have frame live at this URL
+                 * in order to see the refreshing images, you have to scrape again the embed at this URL using [Warpcast's Embeds Tool](https://warpcast.com/~/developers/embeds).
+                 *
+                 * @see https://warpcast.com/~/developers/embeds
+                 * @see https://docs.farcaster.xyz/reference/frames/spec#initial-frames
+                 */
                 refreshing: true | number
                 image: () =>
                   | Promise<FrameResponse['image']>
                   | FrameResponse['image']
               }
             | {
+                /**
+                 * Disables "refreshing frame images".
+                 */
                 refreshing?: false | undefined
                 image: FrameResponse['image']
               }
