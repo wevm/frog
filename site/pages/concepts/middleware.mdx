@@ -486,7 +486,8 @@ The XMTP community has implemeted ways to enhance user experience by supporting 
 To build a Frame with XMTP, you must first add XMTP metadata. This is done following the specifications of [OpenFrames](https://www.openframes.xy).
 
 ```jsx
-const openFrames = (client: string, version?: string) => {
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
   return {
     unstable_metaTags: [
       { property: `of:accepts`, content: version || "vNext" },
@@ -495,7 +496,7 @@ const openFrames = (client: string, version?: string) => {
   };
 };
 
-export const app = new Frog(openFrames("xmtp"));
+export const app = new Frog(addMetaTags("xmtp"));
 ```
 
 **Validate incoming messages**:
