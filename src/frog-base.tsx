@@ -481,9 +481,9 @@ export class FrogBase<
             ? defaultHeaders
               ? (() => {
                   const headers_ = new Headers(defaultHeaders).toJSON()
-                  if (headers_['Cache-Control']) return headers_
+                  if (headers_['cache-control']) return headers_
 
-                  headers_['Cache-Control'] = `max-age=${
+                  headers_['cache-control'] = `max-age=${
                     typeof initial.refreshing === 'number'
                       ? initial.refreshing
                       : 0
@@ -492,7 +492,7 @@ export class FrogBase<
                 })()
               : (() => {
                   return {
-                    'Cache-Control': `max-age=${
+                    'cache-control': `max-age=${
                       typeof initial.refreshing === 'number'
                         ? initial.refreshing
                         : 0
