@@ -49,7 +49,6 @@ const xmtpSupport = async (c: Context, next: Next) => {
       c.set("client", "xmtp");
       const { verifiedWalletAddress } = await validateFramesPost(requestBody);
       c.set("verifiedWalletAddress", verifiedWalletAddress);
-      console.log("verifiedWalletAddress", verifiedWalletAddress);
     } else {
       // Add farcaster check
       c.set("client", "farcaster");
