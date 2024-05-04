@@ -358,15 +358,6 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Protocols',
-        items: [
-          {
-            text: 'XMTP',
-            link: '/protocols/xmtp',
-          },
-        ],
-      },
-      {
         text: 'Intent Reference',
         items: [
           { text: 'Button', link: '/intents/button' },
