@@ -66,7 +66,7 @@ export function getTransactionContext<
       buttonIndex: frameData?.buttonIndex,
       buttonValue,
       contract(parameters) {
-        const { abi, chainId, gas, functionName, to, args, attribution, value } =
+        const { abi, chainId, functionName, gas, to, args, attribution, value } =
           parameters
 
         const abiItem = getAbiItem({
