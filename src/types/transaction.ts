@@ -90,7 +90,7 @@ export type ContractTransactionParameters<
   ///
   allFunctionNames = ContractFunctionName<abi, 'nonpayable' | 'payable'>,
   allArgs = ContractFunctionArgs<abi, 'nonpayable' | 'payable', functionName>,
-> = Pick<SendTransactionParameters, 'chainId' | 'to'> & {
+> = Pick<SendTransactionParameters, 'chainId' | 'gas' | 'to'> & {
   /** Contract ABI. */
   abi: abi
   /** Contract function arguments. */
