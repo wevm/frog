@@ -1,5 +1,11 @@
 # frog
 
+## 0.9.3
+
+### Patch Changes
+
+- [#309](https://github.com/wevm/frog/pull/309) [`7fedd5a`](https://github.com/wevm/frog/commit/7fedd5ac6e3d1e76d9d6a0f2f5fff5225ecb19ec) Thanks [@tmm](https://github.com/tmm)! - Added gas limit for contract transactions
+
 ## 0.9.2
 
 ### Patch Changes
