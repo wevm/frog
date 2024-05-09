@@ -284,18 +284,20 @@ app.transaction('/mint', (c) => {
 
 Gas limit of the transaction to send.
 
+
 ```tsx twoslash
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
 export const app = new Frog()
 
-app.transaction('/send-ether', (c) => {
-  return c.send({ 
+app.transaction('/mint', (c) => {
+  return c.contract({ 
+    abi,
     chainId: 'eip155:10',
     gas: 100_000n, // [!code focus]
-    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B',
-    value: parseEther('1'),
+    functionName: 'mint',
+    to: '0xd2135CfB216b74109775236E36d4b433F1DF507B', 
   }) 
 })
 ```
