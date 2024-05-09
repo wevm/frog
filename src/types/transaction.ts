@@ -90,11 +90,9 @@ export type ContractTransactionParameters<
   ///
   allFunctionNames = ContractFunctionName<abi, 'nonpayable' | 'payable'>,
   allArgs = ContractFunctionArgs<abi, 'nonpayable' | 'payable', functionName>,
-> = Pick<SendTransactionParameters, 'chainId' | 'to'> & {
+> = Pick<SendTransactionParameters, 'chainId' | 'to' | 'gas'> & {
   /** Contract ABI. */
   abi: abi
-  /** Gas limit for the transaction. */
-  gas?: bigint
   /** Contract function arguments. */
   args?: (abi extends Abi ? UnionWiden<args> : never) | allArgs | undefined
   /** Includes client calldata attribution suffix */
