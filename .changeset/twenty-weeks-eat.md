@@ -2,4 +2,4 @@
 "frog": patch
 ---
 
-Changed the Send transaction button on dev environment to send gas to wallet
+Updated devtools to pass through gas for transactions
