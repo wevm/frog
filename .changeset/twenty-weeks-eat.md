@@ -1,5 +1,5 @@
 ---
-"frog": minor
+"frog": patch
 ---
 
 Changed the Send transaction button on dev environment to send gas to wallet
