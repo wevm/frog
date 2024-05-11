@@ -564,6 +564,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       sendTransaction({
         chainId: transactionChainId,
         to: params.to,
+        gas: params.gas ? BigInt(params.gas) : undefined,
         data: params.data,
         value: params.value ? BigInt(params.value) : undefined,
       })
