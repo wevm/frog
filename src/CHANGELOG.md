@@ -1,5 +1,11 @@
 # frog
 
+## 0.9.4
+
+### Patch Changes
+
+- [#312](https://github.com/wevm/frog/pull/312) [`3a54496`](https://github.com/wevm/frog/commit/3a54496b4530073feff04216f8d3c4ec6f3526aa) Thanks [@0xboby](https://github.com/0xboby)! - Updated devtools to pass through gas for transactions
+
 ## 0.9.3
 
 ### Patch Changes
