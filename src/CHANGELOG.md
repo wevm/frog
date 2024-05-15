@@ -1,5 +1,22 @@
 # frog
 
+## 0.10.0
+
+### Minor Changes
+
+- [`2aac5d5`](https://github.com/wevm/frog/commit/2aac5d54d73c329f1fe0e56aeff46d0ad23e12c8) Thanks [@tmm](https://github.com/tmm)! - Removed `frog` hub. Use `neynar` along with the `'NEYNAR_FROG_FM'` dev API key instead.
+
+  ```diff
+  import { Frog } from 'frog'
+  - import { frog } from 'frog/hubs'
+  + import { neynar } from 'frog/hubs'
+
+  export const app = new Frog({
+  - hub: frog(),
+  + hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }),
+  })
+  ```
+
 ## 0.9.4
 
 ### Patch Changes
