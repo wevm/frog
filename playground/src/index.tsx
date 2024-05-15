@@ -1,7 +1,7 @@
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
-import * as hubs from 'frog/hubs'
+import { neynar } from 'frog/hubs'
 import { Box, Heading, vars } from './ui.js'
 
 import { app as castActionApp } from './castAction.js'
@@ -15,7 +15,7 @@ import { app as transactionApp } from './transaction.js'
 import { app as uiSystemApp } from './ui-system.js'
 
 export const app = new Frog({
-  hub: hubs.frog(),
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }),
   ui: { vars },
   verify: 'silent',
 })
