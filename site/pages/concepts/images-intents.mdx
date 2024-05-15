@@ -129,6 +129,139 @@ export const app = new Frog({
 
 [Read more on Image Options.](https://vercel.com/docs/functions/og-image-generation/og-image-api#fonts-parameters-within-options)
 
+### Fonts
+
+Below is an example of using `fonts` property in `imageOptions`.
+
+:::code-group
+
+```tsx twoslash [Google fonts]
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog' 
+ 
+export const app = new Frog({
+  imageOptions: {
+    /* Other default options */
+    fonts: [
+      {
+        name: 'Open Sans',
+        weight: 400,
+        source: 'google',
+      },
+      {
+        name: 'Open Sans',
+        weight: 700,
+        source: 'google',
+      },
+      {
+        name: 'Madimi One',
+        source: 'google',
+      },
+    ],
+  },
+})
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            color: 'white',
+            fontFamily: 'Open Sans',
+            display: 'flex',
+            fontWeight: 400,
+            fontSize: 60,
+          }}
+        >
+          Open Sans (normal)
+        </div>
+        <div
+          style={{
+            color: 'white',
+            fontFamily: 'Open Sans',
+            display: 'flex',
+            fontWeight: 700,
+            fontSize: 60,
+          }}
+        >
+          Open Sans (bold)
+        </div>
+        <div
+          style={{
+            color: 'white',
+            fontFamily: 'Madimi One',
+            display: 'flex',
+            fontSize: 60,
+          }}
+        >
+          Madimi One
+        </div>
+      </div>
+    ),
+  })
+})
+```
+
+```tsx [Custom fonts]
+import { Frog } from 'frog' 
+
+// from url
+const urlFont = await fetch('https://...').then((res) => res.arrayBuffer());
+
+// or from local file in Node.js environment
+import { readFile } from 'fs/promises';
+const localFont = await readFile('./cool-green-frog.ttf');
+ 
+export const app = new Frog({
+  imageOptions: {
+    /* Other default options */
+    fonts: [
+      {
+        name: 'custom1',
+        data: urlFont,
+      },
+      {
+        name: 'custom2',
+        data: localFont,
+      },
+    ],
+  },
+})
+
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            color: 'white',
+            fontFamily: 'custom1',
+            display: 'flex',
+            fontSize: 60,
+          }}
+        >
+          Custom Font 1
+        </div>
+        <div
+          style={{
+            color: 'white',
+            fontFamily: 'custom2',
+            display: 'flex',
+            fontSize: 60,
+          }}
+        >
+          Custom Font 2
+        </div>
+      </div>
+    ),
+  })
+})
+```
+
+:::
+
 ## Intents
 
 **Intents** are the interactive elements in a Farcaster Frame. They are the buttons and/or text inputs that users can interact with.
