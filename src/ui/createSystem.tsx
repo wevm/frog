@@ -1,4 +1,4 @@
-import type { Assign, Pretty } from '../types/utils.js'
+import type { Assign } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
 import { Divider } from './Divider.js'
@@ -32,17 +32,10 @@ import { type DefaultVars, type Vars, defaultVars } from './vars.js'
  * })
  * ```
  */
-export function createSystem<const vars extends Vars = DefaultVars>(
+export function createSystem<vars extends Vars = DefaultVars>(
   vars?: vars | undefined,
 ) {
-  type Icons = unknown extends vars['icons']
-    ? DefaultVars['icons']
-    : vars['icons']
-  type MergedVars = Pretty<
-    Omit<Assign<DefaultVars, vars>, 'icons'> & {
-      icons: Icons
-    }
-  >
+  type MergedVars = Assign<DefaultVars, vars>
 
   const mergedVars = {
     ...defaultVars,
