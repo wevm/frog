@@ -5,16 +5,13 @@ runs:
   using: "composite"
   steps:
     - name: Set up pnpm
-      uses: pnpm/action-setup@v2
+      uses: pnpm/action-setup@v4
 
     - name: Set up Node
       uses: actions/setup-node@v3
       with:
         cache: pnpm
         node-version: 20
-
-    - name: Set up Bun
-      uses: oven-sh/setup-bun@v1
 
     - name: Install dependencies
       shell: bash

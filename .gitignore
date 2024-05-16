@@ -8,6 +8,7 @@ coverage
 create-frog/templates
 node_modules
 site/dist
+src/protobufs/**
 src/ui/.frog
 src/ui/icons/**
 !src/ui/icons/package.json

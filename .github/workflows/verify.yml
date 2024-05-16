@@ -52,6 +52,7 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
+      - run: pnpm gen:icons && pnpm gen:protobufs && pnpm preconstruct
 
       - name: Setup Node
         uses: actions/setup-node@v4
