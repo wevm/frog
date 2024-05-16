@@ -68,6 +68,22 @@
       "types": "./_lib/ui/index.d.ts",
       "default": "./_lib/ui/index.js"
     },
+    "./ui/icons": {
+      "types": "./_lib/ui/icons/index.d.ts",
+      "default": "./_lib/ui/icons/index.js"
+    },
+    "./ui/icons/heroicons": {
+      "types": "./_lib/ui/icons/heroicons/index.d.ts",
+      "default": "./_lib/ui/icons/heroicons/index.js"
+    },
+    "./ui/icons/lucide": {
+      "types": "./_lib/ui/icons/lucide/index.d.ts",
+      "default": "./_lib/ui/icons/lucide/index.js"
+    },
+    "./ui/icons/radix-icons": {
+      "types": "./_lib/ui/icons/radix-icons/index.d.ts",
+      "default": "./_lib/ui/icons/radix-icons/index.js"
+    },
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
@@ -105,10 +121,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",

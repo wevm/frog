@@ -1,4 +1,4 @@
-import type { Assign } from '../types/utils.js'
+import type { Assign, Pretty } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'
 import { Divider } from './Divider.js'
@@ -32,15 +32,22 @@ import { type DefaultVars, type Vars, defaultVars } from './vars.js'
  * })
  * ```
  */
-export function createSystem<vars extends Vars = DefaultVars>(
+export function createSystem<const vars extends Vars = DefaultVars>(
   vars?: vars | undefined,
 ) {
+  type Icons = unknown extends vars['icons']
+    ? DefaultVars['icons']
+    : vars['icons']
+  type MergedVars = Pretty<
+    Omit<Assign<DefaultVars, vars>, 'icons'> & {
+      icons: Icons
+    }
+  >
+
   const mergedVars = {
     ...defaultVars,
     ...vars,
-  }
-
-  type MergedVars = Assign<DefaultVars, vars>
+  } as MergedVars
 
   function createComponent<
     const component extends (...args: any[]) => JSX.Element,
@@ -149,7 +156,7 @@ export function createSystem<vars extends Vars = DefaultVars>(
      */
     Icon: <
       vars extends MergedVars,
-      collection extends Vars['icons'] = DefaultVars['icons'],
+      collection extends Vars['icons'] = MergedVars['icons'],
     >(
       props: IconProps<vars, collection>,
     ) => <Icon __context={{ vars: mergedVars }} {...props} />,

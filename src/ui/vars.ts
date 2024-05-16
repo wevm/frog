@@ -1,5 +1,5 @@
 import type { Font } from '../types/frame.js'
-import type { icons } from './icons.js'
+import { lucide } from './icons/lucide/index.js'
 
 export type Vars = {
   colors?: Record<string, string> | undefined
@@ -15,7 +15,7 @@ export type Vars = {
         width: number
       }
     | undefined
-  icons?: keyof typeof icons | undefined
+  icons?: Record<string, string> | undefined
   units?: Record<string, number | '100%'> | undefined
 }
 
@@ -282,7 +282,7 @@ export const defaultVars = {
     height: 630,
     width: 1200,
   },
-  icons: 'lucide',
+  icons: lucide,
   units,
 } as const satisfies Vars
 export type DefaultVars = typeof defaultVars

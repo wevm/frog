@@ -9,6 +9,7 @@ create-frog/templates
 node_modules
 site/dist
 src/ui/.frog
-src/ui/icons.ts
+src/ui/icons/**
+!src/ui/icons/package.json
 tsconfig.*.tsbuildinfo
 tsconfig.tsbuildinfo

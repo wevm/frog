@@ -270,9 +270,10 @@ The `icons` variable is used to set the icon collection for the [`<Icon>` compon
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { createSystem } from 'frog/ui'
+import { lucide } from 'frog/ui/icons'
 
 const { Icon } = createSystem({
-  icons: 'lucide',
+  icons: lucide,
 })
 
 function Example() {

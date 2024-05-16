@@ -1,10 +1,10 @@
 import { Box, type BoxProps, resolveColorToken } from './Box.js'
-import { icons } from './icons.js'
+import { lucide } from './icons/lucide/index.js'
 import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 export type IconProps<
   vars extends Vars = DefaultVars,
-  collection extends Vars['icons'] = DefaultVars['icons'],
+  collection extends Vars['icons'] = vars['icons'],
 > = {
   __context?: { vars?: Vars | undefined } | undefined
   /**
@@ -22,13 +22,13 @@ export type IconProps<
   /**
    * Icon collection to use for resolving icons.
    *
-   * @default 'lucide'
+   * @default lucide (from 'frog/ui/icons')
    */
   collection?: collection | Vars['icons'] | undefined
   /** Icon name in the current icon collection. */
-  name: keyof (typeof icons)[collection extends keyof typeof icons
-    ? collection
-    : never]
+  name: Record<string, any> | undefined extends collection
+    ? keyof vars['icons']
+    : keyof collection
   /** Sets the size of the icon. */
   size?: BoxProps<vars>['width']
 }
@@ -39,14 +39,13 @@ export function Icon<
 >(props: IconProps<vars, collection>) {
   const {
     __context,
-    collection = __context?.vars?.icons ?? 'lucide',
+    collection = __context?.vars?.icons ?? lucide,
     mode = 'auto',
     name,
     size = '24',
   } = props
 
-  const iconMap = icons[collection]
-  let text: string = iconMap[name as keyof typeof iconMap]
+  let text: string = collection[name as keyof typeof collection]
   if (!text) throw new TypeError(`Invalid set: ${collection}`)
 
   const resolvedMode = (() => {
