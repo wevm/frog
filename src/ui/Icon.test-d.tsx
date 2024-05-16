@@ -1,8 +1,7 @@
 import { expectTypeOf, test } from 'vitest'
 
 import { createSystem } from './createSystem.js'
-import type { lucide } from './icons/index.js'
-import { heroicons } from '../_lib/ui/icons/index.js'
+import { heroicons, lucide } from './icons/index.js'
 
 test('defaults', () => {
   const { Icon } = createSystem()
