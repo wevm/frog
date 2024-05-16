@@ -1,5 +1,11 @@
 # frog
 
+## 0.11.2
+
+### Patch Changes
+
+- [`117aae5`](https://github.com/wevm/frog/commit/117aae5673214b3f713bd4a3dff6ad9e257d75f8) Thanks [@tmm](https://github.com/tmm)! - Changed devtools cookie names to be (more) unique to avoid localhost conflicts
+
 ## 0.11.1
 
 ### Patch Changes
