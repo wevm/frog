@@ -68,15 +68,20 @@ export function apiRoutes(
     }
   }>()
     .use('*', async (c, next) => {
-      const userCookie = getCookie(c, 'user')
-      const fid = userCookie ? JSON.parse(userCookie).userFid : undefined
-      c.set('fid', fid)
+      try {
+        const userCookie = getCookie(c, 'frog_user') ?? getCookie(c, 'user')
+        const fid = userCookie ? JSON.parse(userCookie).userFid : undefined
+        c.set('fid', fid)
+      } catch {}
 
-      const sessionCookie = secret
-        ? await getSignedCookie(c, secret, 'session')
-        : getCookie(c, 'session')
-      const keypair = sessionCookie ? JSON.parse(sessionCookie) : undefined
-      c.set('keypair', keypair)
+      try {
+        const sessionCookie = secret
+          ? (await getSignedCookie(c, secret, 'frog_session')) ??
+            (await getSignedCookie(c, secret, 'session'))
+          : getCookie(c, 'frog_session') ?? getCookie(c, 'session')
+        const keypair = sessionCookie ? JSON.parse(sessionCookie) : undefined
+        c.set('keypair', keypair)
+      } catch {}
 
       await next()
     })
@@ -240,9 +245,15 @@ export function apiRoutes(
       // 4. Save keypair in cookie
       const value = JSON.stringify({ privateKey, publicKey })
       if (secret)
-        await setSignedCookie(c, 'session', value, secret, defaultCookieOptions)
+        await setSignedCookie(
+          c,
+          'frog_session',
+          value,
+          secret,
+          defaultCookieOptions,
+        )
       else
-        setCookie(c, 'session', value, {
+        setCookie(c, 'frog_session', value, {
           ...defaultCookieOptions,
           httpOnly: true,
         })
@@ -264,7 +275,7 @@ export function apiRoutes(
 
         setCookie(
           c,
-          'user',
+          'frog_user',
           JSON.stringify({ token, userFid }),
           defaultCookieOptions,
         )
@@ -274,8 +285,8 @@ export function apiRoutes(
       return c.json({ state })
     })
     .post('/auth/logout', async (c) => {
-      deleteCookie(c, 'session')
-      deleteCookie(c, 'user')
+      deleteCookie(c, 'frog_session')
+      deleteCookie(c, 'frog_user')
       return c.json({ success: true })
     })
     .post(
