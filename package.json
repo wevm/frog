@@ -17,7 +17,7 @@
     "docs:dev": "pnpm --filter site dev",
     "docs:build": "pnpm --filter site build",
     "format": "biome format . --write",
-    "lint": "biome check . --apply-unsafe",
+    "lint": "biome check .",
     "gen:icons": "bun .scripts/gen-icons.ts",
     "gen:protobufs": "pnpm --filter protobufs generate",
     "postinstall": "pnpm build && pnpm preconstruct",
