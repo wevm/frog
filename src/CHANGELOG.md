@@ -1,5 +1,11 @@
 # frog
 
+## 0.11.1
+
+### Patch Changes
+
+- [`a9123a0`](https://github.com/wevm/frog/commit/a9123a01848637d4040bb8757a51dedfc7aa0449) Thanks [@tmm](https://github.com/tmm)! - Added `createNeynar` for composing hub and middleware.
+
 ## 0.11.0
 
 ### Minor Changes
