@@ -1,8 +1,13 @@
 import type { MiddlewareHandler } from 'hono'
 import { hexToBytes } from 'viem'
+
 import { Message } from '../protobufs/generated/message_pb.js'
 import type { Pretty } from '../types/utils.js'
 import { messageToFrameData } from '../utils/verifyFrame.js'
+import {
+  neynar as neynarHub,
+  type NeynarHubParameters,
+} from '../hubs/neynar.js'
 
 export type NeynarVariables = {
   /**
@@ -182,5 +187,26 @@ export type NeynarUser = {
   viewerContext?: {
     following: boolean
     followedBy: boolean
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Higher-Level API
+
+export type CreateNeynarParameters = {
+  apiKey: string
+  hub?: NeynarHubParameters | undefined
+  middleware?: NeynarMiddlewareParameters | undefined
+}
+
+export function createNeynar(parameters: CreateNeynarParameters) {
+  const {
+    apiKey,
+    hub = { apiKey },
+    middleware = { apiKey, features: ['cast', 'interactor'] },
+  } = parameters
+  return {
+    hub: neynarHub(hub),
+    middleware: neynar(middleware),
   }
 }

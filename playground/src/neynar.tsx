@@ -1,12 +1,9 @@
 import { Button, Frog } from 'frog'
-import { neynar } from 'frog/middlewares'
+import { createNeynar } from 'frog/middlewares'
 
-export const neynarMiddleware = neynar({
-  apiKey: 'NEYNAR_FROG_FM',
-  features: ['interactor', 'cast'],
-})
+const neynar = createNeynar({ apiKey: 'NEYNAR_FROG_FM' })
 
-export const app = new Frog()
+export const app = new Frog({ hub: neynar.hub })
   .frame('/', (c) => {
     return c.res({
       action: '/guess',
@@ -28,7 +25,7 @@ export const app = new Frog()
       intents: [<Button>Go on</Button>],
     })
   })
-  .frame('/guess', neynarMiddleware, (c) => {
+  .frame('/guess', neynar.middleware, (c) => {
     const { displayName, followerCount } = c.var.interactor || {}
     console.log('interactor: ', c.var.interactor)
     console.log('cast: ', c.var.cast)
