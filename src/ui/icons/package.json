@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "types": "../../_lib/ui/icons/index.d.ts",
+  "module": "../../_lib/ui/icons/index.js"
+}

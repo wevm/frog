@@ -68,6 +68,10 @@
       "types": "./_lib/ui/index.d.ts",
       "default": "./_lib/ui/index.js"
     },
+    "./ui/icons": {
+      "types": "./_lib/ui/icons/index.d.ts",
+      "default": "./_lib/ui/icons/index.js"
+    },
     "./ui/icons/heroicons": {
       "types": "./_lib/ui/icons/heroicons/index.d.ts",
       "default": "./_lib/ui/icons/heroicons/index.js"
@@ -117,10 +121,7 @@
   "license": "MIT",
   "homepage": "https://frog.fm",
   "repository": "wevm/frog",
-  "authors": [
-    "awkweb.eth",
-    "jxom.eth"
-  ],
+  "authors": ["awkweb.eth", "jxom.eth"],
   "funding": [
     {
       "type": "github",
