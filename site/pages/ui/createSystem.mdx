@@ -160,7 +160,7 @@ export const system = createSystem({
 ### icons
 
 - **Type:** `Record<string, string>`
-- **Default:** `frog/ui/icons/lucide`
+- **Default:** lucide
 
 Icon collection to use for resolving icons. The following collections are available:
 
@@ -170,7 +170,7 @@ Icon collection to use for resolving icons. The following collections are availa
 
 ```tsx twoslash
 import { createSystem } from 'frog/ui'
-import { lucide } from 'frog/ui/icons/lucide' // [!code focus]
+import { lucide } from 'frog/ui/icons' // [!code focus]
 // ---cut---
 export const system = createSystem({
   icons: lucide, // [!code focus]

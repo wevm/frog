@@ -22,7 +22,7 @@ export type IconProps<
   /**
    * Icon collection to use for resolving icons.
    *
-   * @default lucide from 'frog/ui/lucide'
+   * @default lucide (from 'frog/ui/icons')
    */
   collection?: collection | Vars['icons'] | undefined
   /** Icon name in the current icon collection. */

@@ -116,7 +116,7 @@ function Example() {
 
 ### `collection`
 
-Icon collection to use for resolving icons. Defaults to `lucide` imported from `'frog/ui/icons/lucide'`.
+Icon collection to use for resolving icons. Defaults to `lucide` imported from `'frog/ui/icons'`.
 
 The following collections are available:
 - [Heroicons - `frog/ui/icons/heroicons`](https://heroicons.com)
@@ -129,7 +129,7 @@ Collection is mapped to the [`icons` property](/ui/ui-system#icons) on the UI Sy
 ```tsx twoslash [Code]
 /** @jsxImportSource frog/jsx */
 import { createSystem } from 'frog/ui'
-import { heroicons } from 'frog/ui/icons/heroicons' // [!code focus]
+import { heroicons } from 'frog/ui/icons' // [!code focus]
 
 const { Icon } = createSystem()
 

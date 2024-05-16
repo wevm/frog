@@ -1,8 +1,6 @@
 import { Button, Frog } from 'frog'
 import { serveStatic } from 'frog/serve-static'
-import { lucide } from 'frog/ui/icons/lucide'
-import { radixIcons } from 'frog/ui/icons/radix-icons'
-import { heroicons } from '../../src/_lib/ui/icons/heroicons/index.js'
+import { heroicons, lucide, radixIcons } from 'frog/ui/icons'
 
 import {
   Box,
