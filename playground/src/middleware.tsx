@@ -1,7 +1,7 @@
 import { Frog } from 'frog'
 import type { MiddlewareHandler } from 'hono'
 
-import { neynarMiddleware } from './neynar.js'
+import { neynar } from './neynar.js'
 
 type EchoMiddlewareVariables = {
   echo: (str: string) => string
@@ -25,12 +25,16 @@ export const app = new Frog()
       ),
     })
   })
-  .frame('/neynar', neynarMiddleware, (c) => {
-    return c.res({
-      image: (
-        <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-          {c.var.interactor?.displayName}
-        </div>
-      ),
-    })
-  })
+  .frame(
+    '/neynar',
+    neynar.middleware({ features: ['cast', 'interactor'] }),
+    (c) => {
+      return c.res({
+        image: (
+          <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+            {c.var.interactor?.displayName}
+          </div>
+        ),
+      })
+    },
+  )

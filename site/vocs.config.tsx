@@ -410,6 +410,15 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Middlewares',
+        items: [
+          {
+            text: 'Neynar',
+            link: '/middlewares/neynar',
+          },
+        ],
+      },
+      {
         text: 'Dev Reference',
         items: [{ text: 'devtools', link: '/dev/devtools' }],
       },

@@ -12,7 +12,7 @@
     "changeset": "changeset",
     "changeset:release": "pnpm build && changeset publish",
     "changeset:version": "changeset version && pnpm install --lockfile-only && bun .scripts/postversion.ts",
-    "clean": "rimraf src/_lib src/ui/icons.ts src/ui/.frog src/tsconfig.build.tsbuildinfo",
+    "clean": "rimraf src/_lib src/protobufs/generated src/ui/icons/index.ts src/ui/icons/**/index.ts src/ui/icons/**/package.json src/ui/.frog src/tsconfig.build.tsbuildinfo",
     "create-frog": "node --import tsx ./create-frog/bin.ts",
     "docs:dev": "pnpm --filter site dev",
     "docs:build": "pnpm --filter site build",

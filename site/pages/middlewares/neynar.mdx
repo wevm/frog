@@ -1,0 +1,143 @@
+# Neynar
+
+[Neynar](https://neynar.com/) is a Farcaster development platform that provides intuitive APIs to build on Farcaster.
+
+## Import
+
+```ts twoslash
+import { neynar } from 'frog/middlewares'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { neynar } from 'frog/middlewares' // [!code focus]
+ 
+export const app = new Frog()
+  .use( // [!code focus]
+    neynar({ // [!code focus]
+      apiKey: 'NEYNAR_FROG_FM', // [!code focus]
+      features: ['interactor', 'cast'], // [!code focus]
+    }), // [!code focus]
+  ) // [!code focus]
+```
+
+:::warning
+Feel free to use our Neynar API Key: `"NEYNAR_FROG_FM"`.
+
+However, please note that this API Key is for development purposes only – it is prone to rate-limiting.
+It is recommended to use your own API Key in production. [See more](https://neynar.com/#get-started).
+:::
+
+## Parameters
+
+### apiKey
+
+- **Type**: `string`
+
+Neynar API key.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { neynar } from 'frog/middlewares'
+ 
+export const app = new Frog()
+  .use(
+    neynar({
+      apiKey: 'NEYNAR_FROG_FM', // [!code focus]
+      features: ['interactor', 'cast'],
+    }),
+  )
+```
+
+### features
+
+- **Type**: `('interactor' | 'cast')[]`
+
+Set of features to enable and inject into context.
+
+- `'interactor'`: Fetches the user who interacted with the frame.
+- `'cast'`: Fetches the cast of the frame.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { neynar } from 'frog/middlewares'
+ 
+export const app = new Frog()
+  .use(
+    neynar({
+      apiKey: 'NEYNAR_FROG_FM',
+      features: ['interactor', 'cast'], // [!code focus]
+    }),
+  )
+```
+
+---
+
+## createNeynar
+
+Convenience utility to setup a Neynar [hub](/hubs/neynar) and middleware with a single `apiKey`.
+
+### Import
+
+```ts twoslash
+import { createNeynar } from 'frog/middlewares'
+```
+
+### Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+import { createNeynar } from 'frog/middlewares' // [!code focus]
+
+const neynar = createNeynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+ 
+export const app = new Frog({
+  hub: neynar.hub(), // [!code focus]
+})
+  .use(
+    neynar.middleware({ features: ['interactor', 'cast'] }), // [!code focus]
+  ) 
+```
+
+### Parameters
+
+```ts twoslash
+import { type CreateNeynarParameters } from 'frog/middlewares'
+```
+
+#### apiKey
+
+- **Type**: `string`
+
+Neynar API key.
+
+### Return Type
+
+```ts twoslash
+import { type CreateNeynarReturnType } from 'frog/middlewares'
+//            ^?
+
+
+
+
+
+
+
+
+
+
+```
