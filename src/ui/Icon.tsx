@@ -4,7 +4,7 @@ import { type DefaultVars, type Vars, defaultVars } from './vars.js'
 
 export type IconProps<
   vars extends Vars = DefaultVars,
-  collection extends Vars['icons'] = DefaultVars['icons'],
+  collection extends Vars['icons'] = vars['icons'],
 > = {
   __context?: { vars?: Vars | undefined } | undefined
   /**
@@ -26,7 +26,9 @@ export type IconProps<
    */
   collection?: collection | Vars['icons'] | undefined
   /** Icon name in the current icon collection. */
-  name: collection extends undefined ? never : keyof collection
+  name: Record<string, any> | undefined extends collection
+    ? keyof vars['icons']
+    : keyof collection
   /** Sets the size of the icon. */
   size?: BoxProps<vars>['width']
 }
