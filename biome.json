@@ -7,7 +7,9 @@
       "node_modules",
       "site/dist",
       "src/_lib",
+      "src/protobufs",
       "src/ui/.frog",
+      "src/ui/icons",
       "src/vendor",
       "tsconfig.json",
       "tsconfig.*.json"

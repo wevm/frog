@@ -6,9 +6,9 @@ import {
   neynar as neynarHub,
 } from '../hubs/neynar.js'
 import { Message } from '../protobufs/generated/message_pb.js'
+import type { Hub } from '../types/hub.js'
 import type { Pretty } from '../types/utils.js'
 import { messageToFrameData } from '../utils/verifyFrame.js'
-import type { Hub } from '../types/hub.js'
 
 export type NeynarVariables = {
   /**
