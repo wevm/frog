@@ -21,6 +21,7 @@ import type {
   CastActionHandler,
   FrameHandler,
   HandlerInterface,
+  ImageHandler,
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
@@ -44,6 +45,7 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import { getImageContext } from './utils/getImageContext.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -178,51 +180,9 @@ export type RouteOptions<method extends string = string> = Pick<
   FrogConstructorParameters,
   'verify'
 > &
-  (method extends 'frame'
+  (method extends 'frame' | 'image'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
-        /**
-         * Define the initial frame response explicitly, changing initial frame image URL to be static
-         * which allows the use of "refreshing frame images".
-         *
-         * WARNING: Once you define this property, all the existing frames at this URL will have an invalid
-         * image URL.
-         * If you have frame live at this URL, it is advised to create a separate frame handler at a different path
-         * having this property set along with the existing one, to ensure that existing frames image URLs are accessible.
-         * If maintaining existing frames image URLs is not required, you can define this property and use [Warpcast's Embeds Tool](https://warpcast.com/~/developers/embeds),
-         * paste your frame URL and click on "Scrape Again" button to invalidate existing frame response cache at that URL for new casts.
-         *
-         * @see https://warpcast.com/~/developers/embeds
-         * @see https://docs.farcaster.xyz/reference/frames/spec#initial-frames
-         */
-        initial?: Omit<FrameResponse, 'image'> &
-          (
-            | {
-                /**
-                 * Enables "refreshing frame images".
-                 *
-                 * If `true` is passed, sets the `'cache-control'` header value in image response to `max-age=0`.
-                 * If `number` is passed, sets the `'cache-control'` header value in image response to `max-age=<number>`.
-                 *
-                 * INFO: If you are changing this value from `false | undefined` to `true | number`, and have frame live at this URL
-                 * in order to see the refreshing images, you have to scrape again the embed at this URL using [Warpcast's Embeds Tool](https://warpcast.com/~/developers/embeds).
-                 *
-                 * @see https://warpcast.com/~/developers/embeds
-                 * @see https://docs.farcaster.xyz/reference/frames/spec#initial-frames
-                 */
-                refreshing: true | number
-                image: () =>
-                  | Promise<FrameResponse['image']>
-                  | FrameResponse['image']
-              }
-            | {
-                /**
-                 * Disables "refreshing frame images".
-                 */
-                refreshing?: false | undefined
-                image: FrameResponse['image']
-              }
-          )
       }
     : method extends 'castAction'
       ? {
@@ -436,14 +396,12 @@ export class FrogBase<
       'frame'
     >(...parameters)
 
-    const { verify = this.verify, initial } = options
+    const { verify = this.verify } = options
 
     // OG Image Route
     const imagePaths = getImagePaths(parseHonoPath(path))
     for (const imagePath of imagePaths) {
       this.hono.get(imagePath, async (c) => {
-        const query = c.req.query()
-
         const defaultImageOptions = await (async () => {
           if (typeof this.imageOptions === 'function')
             return await this.imageOptions()
@@ -458,66 +416,11 @@ export class FrogBase<
           return defaultImageOptions?.fonts
         })()
 
-        // If the query is empty, it is expected that user has added info on `initial` frame response.
-        if (Object.keys(query).length === 0) {
-          if (!initial)
-            throw new Error(
-              `Image handler cannot return an image at ${c.req.path} if there are no query parameters and if \`initial\` property is not set. Either add query parameters, or add \`initial\` property in the third argument of this frame handler.`,
-            )
-
-          const image_ = await (typeof initial.image === 'function'
-            ? initial.image()
-            : initial.image)
-
-          if (typeof image_ === 'string')
-            throw new Error(
-              'Unexpected Error: `image_` cannot be of type string as if it is an absolute URL, this route should have never been triggered.',
-            )
-
-          const imageOptions = initial.imageOptions ?? defaultImageOptions
-
-          const defaultHeaders = imageOptions?.headers ?? this.headers
-          const headers = (() => {
-            const value = `max-age=${
-              typeof initial.refreshing === 'number' ? initial.refreshing : 0
-            }`
-
-            return initial.refreshing
-              ? defaultHeaders
-                ? (() => {
-                    const headers_ = new Headers(defaultHeaders).toJSON()
-                    if (headers_['cache-control'] || headers_['Cache-Control'])
-                      return headers_
-
-                    headers_['cache-control'] = value
-                    headers_['Cache-Control'] = value
-                    return headers_
-                  })()
-                : (() => {
-                    return {
-                      'cache-control': value,
-                      'Cache-Control': value,
-                    }
-                  })()
-              : defaultHeaders
-          })()
-
-          return new ImageResponse(image_, {
-            width: 1200,
-            height: 630,
-            ...imageOptions,
-            format: imageOptions?.format ?? 'png',
-            fonts: await parseFonts(fonts),
-            headers,
-          })
-        }
-
         const {
           headers = this.headers,
           image,
           imageOptions = defaultImageOptions,
-        } = fromQuery<any>(query)
-
+        } = fromQuery<any>(c.req.query())
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
         return new ImageResponse(image_, {
           width: 1200,
@@ -557,13 +460,9 @@ export class FrogBase<
 
       if (context.url !== parsePath(url.href)) return c.redirect(context.url)
 
-      const response =
-        context.status === 'initial' && initial !== undefined
-          ? ({ data: initial, status: 'success' } as const)
-          : await handler(context)
-
+      const response = await handler(context)
       if (response instanceof Response) return response
-      if (response?.status === 'error') {
+      if (response.status === 'error') {
         c.status(response.error.statusCode ?? 400)
         return c.json({ message: response.error.message })
       }
@@ -639,20 +538,13 @@ export class FrogBase<
         previousState,
       })
 
-      const imageOptions =
-        context.status === 'initial' && initial !== undefined
-          ? initial.imageOptions
-          : await (async () => {
-              if (typeof imageOptions_ === 'function')
-                return await imageOptions_()
-              return imageOptions_
-            })()
+      const imageOptions = await (async () => {
+        if (typeof imageOptions_ === 'function') return await imageOptions_()
+        return imageOptions_
+      })()
 
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
-          if (context.status === 'initial' && initial !== undefined)
-            return `${parsePath(context.url)}/image`
-
           const compressedImage = lz.compressToEncodedURIComponent(
             JSON.stringify(
               await parseImage(
@@ -696,6 +588,8 @@ export class FrogBase<
           return `${parsePath(context.url)}/image?${imageParams}`
         }
         if (image.startsWith('http') || image.startsWith('data')) return image
+        if (image.startsWith('@/'))
+          return `${baseUrl + parsePath(image.slice(1))}`
         return `${assetsUrl + parsePath(image)}`
       })()
 
@@ -887,6 +781,59 @@ export class FrogBase<
           </html>
         </>,
       )
+    })
+
+    return this
+  }
+
+  image: HandlerInterface<env, 'image', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      ImageHandler<env>,
+      'image'
+    >(...parameters)
+
+    this.hono.get(path, ...middlewares, async (c) => {
+      const { context } = getImageContext<env, string>({
+        context: c,
+      })
+
+      const response = await handler(context)
+
+      if (response.status !== 'success')
+        throw new Error(
+          `Unexepcted Error: Image response must always have value 'success'.`,
+        )
+
+      const defaultImageOptions = await (async () => {
+        if (typeof this.imageOptions === 'function')
+          return await this.imageOptions()
+        return this.imageOptions
+      })()
+
+      const fonts = await (async () => {
+        if (this.ui?.vars?.fonts)
+          return Object.values(this.ui?.vars.fonts).flat()
+        if (typeof options?.fonts === 'function') return await options.fonts()
+        if (options?.fonts) return options.fonts
+        return defaultImageOptions?.fonts
+      })()
+
+      const {
+        headers = this.headers,
+        image,
+        imageOptions = defaultImageOptions,
+      } = response.data
+      return new ImageResponse(image, {
+        width: 1200,
+        height: 630,
+        ...imageOptions,
+        format: imageOptions?.format ?? 'png',
+        fonts: await parseFonts(fonts),
+        headers: imageOptions?.headers ?? headers,
+      })
     })
 
     return this

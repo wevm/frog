@@ -12,10 +12,12 @@ import type {
   CastActionContext,
   Context,
   FrameContext,
+  ImageContext,
   TransactionContext,
 } from './context.js'
 import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'
+import type { ImageResponse } from './image.js'
 import type { HandlerResponse } from './response.js'
 import type { TransactionResponse } from './transaction.js'
 
@@ -53,6 +55,12 @@ export type FrameHandler<
   I extends Input = BlankInput,
 > = (c: FrameContext<E, P, I>) => HandlerResponse<FrameResponse>
 
+export type ImageHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: ImageContext<E, P, I>) => HandlerResponse<ImageResponse>
+
 export type TransactionHandler<
   E extends Env = any,
   P extends string = any,
@@ -85,7 +93,9 @@ export type H<
     ? TransactionHandler<E, P, I>
     : M extends 'castAction'
       ? CastActionHandler<E, P, I>
-      : Handler<E, P, I, R>
+      : M extends 'image'
+        ? ImageHandler<E, P, I>
+        : Handler<E, P, I, R>
 
 ////////////////////////////////////////
 //////                            //////
