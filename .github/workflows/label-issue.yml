@@ -8,11 +8,18 @@ jobs:
   reply-labeled:
     runs-on: ubuntu-latest
     steps:
-      - name: Needs Reproduction
-        if: github.event.label.name == 'M: Needs Reproduction'
-        uses: actions-cool/issues-helper@v3
+      - name: Label needs reproduction
+        if: github.event.label.name == 'Needs Reproduction'
+        uses: peter-evans/close-issue@v3
         with:
-          actions: 'create-comment'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          close-reason: not_planned
+          comment: |
+            Hello @${{ github.event.issue.user.login }}. 
+
+            Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using [StackBlitz](https://stackblitz.com), [TypeScript Playground](https://www.typescriptlang.org/play) (for type issues), or a separate minimal GitHub repository.
+
+            Minimal reproductions are required as they save us a lot of time reproducing your config & environment, and trying to reproduce your issue. See [Why reproductions are required](https://antfu.me/posts/why-reproductions-are-required). 
+
+            Please reopen this issue when a reproduction is added.
           issue-number: ${{ github.event.issue.number }}
-          body: Hello @${{ github.event.issue.user.login }}. Please provide a [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) using [cli](https://frog.fm/getting-started#bootstrap-via-cli) for runtime issues or [TypeScript Playground](https://www.typescriptlang.org/play) for type issues.
+          token: ${{ secrets.GITHUB_TOKEN }}
