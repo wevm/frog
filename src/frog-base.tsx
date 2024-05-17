@@ -623,7 +623,7 @@ export class FrogBase<
             return Object.values(this.ui.vars.fonts).flat()
           if (typeof options?.fonts === 'function') return await options.fonts()
           if (options?.fonts) return options.fonts
-          return imageOptions?.fonts
+          return (imageOptions as any)?.fonts
         })()
         const groupedFonts = new Map<string, NonNullable<typeof fonts>>()
         if (fonts)
