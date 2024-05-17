@@ -101,7 +101,7 @@ export type FrameResponse = {
    * @example
    * { width: 1200, height: 630 }
    */
-  imageOptions?: ImageOptions | undefined
+  imageOptions?: Omit<ImageOptions, 'fonts'> | undefined
   /**
    * Path or URI to the OG image.
    *

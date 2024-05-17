@@ -574,13 +574,7 @@ export class FrogBase<
           )
           const imageParams = toSearchParams({
             image: compressedImage,
-            imageOptions: imageOptions
-              ? {
-                  ...imageOptions,
-                  // TODO: Remove once `fonts` is removed from `imageOptions`.
-                  fonts: undefined,
-                }
-              : undefined,
+            imageOptions,
             headers,
           })
           return `${parsePath(context.url)}/image?${imageParams}`
