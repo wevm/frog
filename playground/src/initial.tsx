@@ -1,5 +1,5 @@
 import { Button, Frog } from 'frog'
-import { Heading, vars, VStack } from './ui.js'
+import { Heading, VStack, vars } from './ui.js'
 
 export const app = new Frog({
   ui: { vars },
