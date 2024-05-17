@@ -32,7 +32,7 @@ export const app = new Frog<{
     return c.res({
       image: (
         <div tw="flex flex-col w-full h-full p-10 bg-black">
-          <div tw="text-white text-6xl">TODO List</div>
+          <div tw="text-primary text-6xl">TODO List</div>
           {todos.map((todo, i) => (
             <div tw="text-white flex text-4xl mt-5">
               {todo.completed ? '✅' : '◻️'} {todo.name}{' '}

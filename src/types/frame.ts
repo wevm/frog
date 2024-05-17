@@ -12,7 +12,10 @@ export type Font = {
   | { source: 'google' }
 )
 
-export type ImageOptions = Omit<ImageResponseOptions, 'fonts'> & {
+export type ImageOptions = Omit<
+  ImageResponseOptions,
+  'fonts' | 'tailwindConfig'
+> & {
   fonts?: Font[] | undefined
 }
 
