@@ -54,7 +54,8 @@ export async function parseImage(
     )
   if (node.tag === 'img') {
     const src = node.props.src
-    if (src.startsWith('/')) node.props.src = `${assetsUrl + parsePath(src)}`
+    const isPath = typeof src === 'string' && src.startsWith('/')
+    if (isPath) node.props.src = `${assetsUrl + parsePath(src)}`
   }
 
   return node
