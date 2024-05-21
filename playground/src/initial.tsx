@@ -6,11 +6,11 @@ export const app = new Frog({
 })
   .frame('/', (c) => {
     return c.res({
-      image: '@/refreshing-image',
+      image: '/refreshing-image/cool-parameter',
       intents: [<Button>Check again</Button>],
     })
   })
-  .image('/refreshing-image', (c) => {
+  .image('/refreshing-image/:param', (c) => {
     return c.res({
       imageOptions: {
         headers: {

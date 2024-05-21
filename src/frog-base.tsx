@@ -1,9 +1,11 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
+import { inspectRoutes } from 'hono/dev'
 import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import type { Schema } from 'hono/types'
+import type { RouterRoute, Schema } from 'hono/types'
+import type { ParamIndexMap, Params } from 'hono/router'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
@@ -20,6 +22,7 @@ import type { Octicon } from './types/octicon.js'
 import type {
   CastActionHandler,
   FrameHandler,
+  H,
   HandlerInterface,
   ImageHandler,
   MiddlewareHandlerInterface,
@@ -46,6 +49,7 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import { Frog } from './_lib/index.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -588,8 +592,40 @@ export class FrogBase<
           return `${parsePath(context.url)}/image?${imageParams}`
         }
         if (image.startsWith('http') || image.startsWith('data')) return image
-        if (image.startsWith('@/'))
-          return `${baseUrl + parsePath(image.slice(1))}`
+
+        const isHandlerPresentOnImagePath = (() => {
+          const routes = inspectRoutes(this.hono)
+          const matchesWithoutParamsStash = this.hono.router
+            .match('GET', image)
+            .filter(
+              (routeOrParams) => typeof routeOrParams[0] !== 'string',
+            ) as unknown as (
+            | [[H, RouterRoute], Params][]
+            | [[H, RouterRoute], ParamIndexMap][]
+          )[]
+
+          const matchedRoutes = matchesWithoutParamsStash
+            .flat(1)
+            .map((matchedRouteWithoutParams) => matchedRouteWithoutParams[0][1])
+
+          const nonMiddlewareMatchedRoutes = matchedRoutes.filter(
+            (matchedRoute) => {
+              const routeWithAdditionalInfo = routes.find(
+                (route) =>
+                  route.path === matchedRoute.path &&
+                  route.method === matchedRoute.method,
+              )
+              if (!routeWithAdditionalInfo)
+                throw new Error(
+                  'Unexpected error: Matched a route that is not in the list of all routes.',
+                )
+              return !routeWithAdditionalInfo.isMiddleware
+            },
+          )
+          return nonMiddlewareMatchedRoutes.length !== 0
+        })()
+
+        if (isHandlerPresentOnImagePath) return `${baseUrl + parsePath(image)}`
         return `${assetsUrl + parsePath(image)}`
       })()
 
@@ -794,6 +830,11 @@ export class FrogBase<
       ImageHandler<env>,
       'image'
     >(...parameters)
+
+    if (path.endsWith('/image'))
+      throw new Error(
+        'Image handler path cannot end with `/image` as it might conflict with internal frame image handler path that also ends with `/image`.',
+      )
 
     this.hono.get(path, ...middlewares, async (c) => {
       const { context } = getImageContext<env, string>({
