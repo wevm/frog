@@ -4,8 +4,8 @@ import { ImageResponse } from 'hono-og'
 import { inspectRoutes } from 'hono/dev'
 import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import type { RouterRoute, Schema } from 'hono/types'
 import type { ParamIndexMap, Params } from 'hono/router'
+import type { RouterRoute, Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
@@ -49,7 +49,6 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
-import { Frog } from './_lib/index.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
