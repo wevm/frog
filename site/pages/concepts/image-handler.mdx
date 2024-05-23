@@ -1,0 +1,61 @@
+# Image Handler [Moving image rendering into another handler.]
+
+Internally, **Frog** serves an image handler for every Frame at the frame path + `/image` endpoint.
+Although it comes with ease, this approach has several limitations:
+- Making *refreshing frames* would not be possible as initial frame response is cached indefinitely and image URL would change
+if the image changes.
+- If your Frame is heavily composed of different UI elements, browsers might *cut* a part of image URL that contains the compressed
+image in the query parameter, making it fail to render.
+
+In order to mitigate that, **Frog** has `.image` handler that can be used to serve an image at a *static URL*.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (c) => { // [!code focus]
+  return c.res({
+    image: '/img'
+    /* ... */
+  })
+})
+
+app.image('/img', (c) => { // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+Since the image URL is static now, you're open to add `Cache-Control: max-age=0` header to image response to achieve refreshing initial frame.
+
+:::warning
+By default, image response will have `Cache-Control: public, immutable, no-transform, max-age=31536000` header set.
+However, since HTTP headers are case-insensitive, different frameworks (i.e. Next.JS, Vercel) might
+treat them differently and use lowercased format of such.
+
+Thus, if you're overriding the `Cache-Control` header and can't see the changes to kick in – try lowercasing the header.
+:::
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  return c.res({
+    image: '/img'
+    /* ... */
+  })
+})
+
+app.image('/img', (c) => {
+  return c.res({
+    headers: { // [!code focus]
+        'Cache-Control': 'max-age=0' // [!code focus]
+    }, // [!code focus]
+    /* ... */
+  })
+})
+```
