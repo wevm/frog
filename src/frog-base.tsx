@@ -1,9 +1,11 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
+import { inspectRoutes } from 'hono/dev'
 import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import type { Schema } from 'hono/types'
+import type { ParamIndexMap, Params } from 'hono/router'
+import type { RouterRoute, Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
@@ -20,7 +22,9 @@ import type { Octicon } from './types/octicon.js'
 import type {
   CastActionHandler,
   FrameHandler,
+  H,
   HandlerInterface,
+  ImageHandler,
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
@@ -29,6 +33,7 @@ import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getCastActionContext } from './utils/getCastActionContext.js'
 import { getFrameContext } from './utils/getFrameContext.js'
+import { getImageContext } from './utils/getImageContext.js'
 import { getImagePaths } from './utils/getImagePaths.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
@@ -178,15 +183,39 @@ export type RouteOptions<method extends string = string> = Pick<
   FrogConstructorParameters,
   'verify'
 > &
-  (method extends 'frame'
+  (method extends 'frame' | 'image'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
       }
     : method extends 'castAction'
       ? {
+          /**
+           * An action name up to 30 characters.
+           *
+           * @example `'My action.'`
+           */
           name: string
+          /**
+           * An icon ID.
+           *
+           * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
+           * @example `'log'`
+           */
           icon: Octicon
+          /**
+           * A short description up to 80 characters.
+           *
+           * @example `'My awesome action description.'`
+           */
           description?: string
+          /**
+           * Optional external link to an "about" page.
+           * You should only include this if you can't fully describe your
+           * action using the `description` field.
+           * Must be http or https protocol.
+           *
+           * @example `'My awesome action description.'`
+           */
           aboutUrl?: string
         }
       : {})
@@ -580,6 +609,40 @@ export class FrogBase<
           return `${parsePath(context.url)}/image?${imageParams}`
         }
         if (image.startsWith('http') || image.startsWith('data')) return image
+
+        const isHandlerPresentOnImagePath = (() => {
+          const routes = inspectRoutes(this.hono)
+          const matchesWithoutParamsStash = this.hono.router
+            .match('GET', image)
+            .filter(
+              (routeOrParams) => typeof routeOrParams[0] !== 'string',
+            ) as unknown as (
+            | [[H, RouterRoute], Params][]
+            | [[H, RouterRoute], ParamIndexMap][]
+          )[]
+
+          const matchedRoutes = matchesWithoutParamsStash
+            .flat(1)
+            .map((matchedRouteWithoutParams) => matchedRouteWithoutParams[0][1])
+
+          const nonMiddlewareMatchedRoutes = matchedRoutes.filter(
+            (matchedRoute) => {
+              const routeWithAdditionalInfo = routes.find(
+                (route) =>
+                  route.path === matchedRoute.path &&
+                  route.method === matchedRoute.method,
+              )
+              if (!routeWithAdditionalInfo)
+                throw new Error(
+                  'Unexpected error: Matched a route that is not in the list of all routes.',
+                )
+              return !routeWithAdditionalInfo.isMiddleware
+            },
+          )
+          return nonMiddlewareMatchedRoutes.length !== 0
+        })()
+
+        if (isHandlerPresentOnImagePath) return `${baseUrl + parsePath(image)}`
         return `${assetsUrl + parsePath(image)}`
       })()
 
@@ -771,6 +834,64 @@ export class FrogBase<
           </html>
         </>,
       )
+    })
+
+    return this
+  }
+
+  image: HandlerInterface<env, 'image', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      ImageHandler<env>,
+      'image'
+    >(...parameters)
+
+    if (path.endsWith('/image'))
+      throw new Error(
+        'Image handler path cannot end with `/image` as it might conflict with internal frame image handler path that also ends with `/image`.',
+      )
+
+    this.hono.get(path, ...middlewares, async (c) => {
+      const { context } = getImageContext<env, string>({
+        context: c,
+      })
+
+      const response = await handler(context)
+
+      if (response.status !== 'success')
+        throw new Error(
+          `Unexepcted Error: Image response must always have value 'success'.`,
+        )
+
+      const defaultImageOptions = await (async () => {
+        if (typeof this.imageOptions === 'function')
+          return await this.imageOptions()
+        return this.imageOptions
+      })()
+
+      const fonts = await (async () => {
+        if (this.ui?.vars?.fonts)
+          return Object.values(this.ui?.vars.fonts).flat()
+        if (typeof options?.fonts === 'function') return await options.fonts()
+        if (options?.fonts) return options.fonts
+        return defaultImageOptions?.fonts
+      })()
+
+      const {
+        headers = this.headers,
+        image,
+        imageOptions = defaultImageOptions,
+      } = response.data
+      return new ImageResponse(image, {
+        width: 1200,
+        height: 630,
+        ...imageOptions,
+        format: imageOptions?.format ?? 'png',
+        fonts: await parseFonts(fonts),
+        headers: imageOptions?.headers ?? headers,
+      })
     })
 
     return this

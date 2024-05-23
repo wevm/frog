@@ -13,6 +13,10 @@ runs:
         cache: pnpm
         node-version: 20
 
+    - uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
     - name: Install dependencies
       shell: bash
       run: pnpm install

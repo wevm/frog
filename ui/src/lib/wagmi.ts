@@ -1,10 +1,28 @@
 import { QueryClient } from '@tanstack/react-query'
 import { http, createConfig, createStorage } from 'wagmi'
-import { base, baseSepolia, degen, mainnet, optimism, zora } from 'wagmi/chains'
+import {
+  arbitrum,
+  arbitrumNova,
+  base,
+  baseSepolia,
+  degen,
+  mainnet,
+  optimism,
+  zora,
+} from 'wagmi/chains'
 import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
 
 export const config = createConfig({
-  chains: [mainnet, base, baseSepolia, degen, optimism, zora],
+  chains: [
+    mainnet,
+    arbitrum,
+    arbitrumNova,
+    base,
+    baseSepolia,
+    degen,
+    optimism,
+    zora,
+  ],
   connectors: [
     coinbaseWallet({ appName: 'Frog Devtools', headlessMode: true }),
     walletConnect({
@@ -15,6 +33,8 @@ export const config = createConfig({
   storage: createStorage({ storage: localStorage, key: 'frog' }),
   transports: {
     [mainnet.id]: http(),
+    [arbitrum.id]: http(),
+    [arbitrumNova.id]: http(),
     [base.id]: http(),
     [baseSepolia.id]: http(),
     [degen.id]: http(),

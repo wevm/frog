@@ -1,0 +1,132 @@
+# Frog.image Response
+
+The response returned from the `.image` handler.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog()
+
+app.image('/', (c) => {
+  return c.res({ // [!code focus]
+    // ... // [!code focus]
+  }) // [!code focus]
+})
+```
+
+## headers
+
+- **Type:** `Record<string, string>`
+
+HTTP response headers to set for the image.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.image('/image/foo', (c) => {
+  return c.res({
+    headers: { // [!code focus]
+      'cache-control': 'max-age=0', // [!code focus]
+    }, // [!code focus]
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Select a frog
+      </div>
+    )
+  })
+})
+```
+
+## image
+
+- **Type:** `string`
+
+The Image to render for the image. Must be a JSX element.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.image('/', (c) => {
+  return c.res({
+    image: ( // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+        Select a frog // [!code focus]
+      </div> // [!code focus]
+    ) // [!code focus]
+  })
+})
+```
+
+## imageOptions
+
+- **Type:** `ImageResponseOptions`
+
+[Options for the image](https://vercel.com/docs/functions/og-image-generation/og-image-api) to render for the image.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog()
+ 
+app.image('/', (c) => {
+  return c.res({
+    image: ( 
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
+        Select a frog 
+      </div> 
+    ), 
+    imageOptions: { // [!code focus]
+      height: 600, // [!code focus]
+      width: 600, // [!code focus]
+    } // [!code focus]
+  })
+})
+```
+
+:::warning
+The `fonts` property is not available on the `imageOptions` passed to `c.res`. If you would like to add custom fonts, either:
+
+1. Add it to `imageOptions.fonts` on the `new Frog(){:js}` instance:
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+  imageOptions: { fonts: [/* ... */] } // [!code focus]
+})
+```
+
+2. Add it to the route options:
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+import { Frog } from 'frog'
+ 
+export const app = new Frog({
+  imageOptions: { fonts: [/* ... */] }
+})
+// ---cut---
+app.image('/', (c) => {
+  return c.res({})
+}, {
+  fonts: [/* ... */] // [!code focus]
+})
+```
+
+:::
+

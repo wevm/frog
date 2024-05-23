@@ -1,5 +1,11 @@
 # frog
 
+## 0.11.3
+
+### Patch Changes
+
+- [`7e8134c`](https://github.com/wevm/frog/commit/7e8134c6f0deea5c27ef1c9856f5adf3b0558e1e) Thanks [@tmm](https://github.com/tmm)! - Added Arbitrum chains for transaction support.
+
 ## 0.11.2
 
 ### Patch Changes

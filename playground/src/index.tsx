@@ -5,8 +5,8 @@ import { neynar } from 'frog/hubs'
 import { Box, Heading, vars } from './ui.js'
 
 import { app as castActionApp } from './castAction.js'
-import { app as clock } from './clock.js'
 import { app as fontsApp } from './fonts.js'
+import { app as initial } from './initial.js'
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
 import { app as routingApp } from './routing.js'
@@ -191,7 +191,7 @@ export const app = new Frog({
     return c.error({ message: 'Bad inputs!' })
   })
   .route('/castAction', castActionApp)
-  .route('/clock', clock)
+  .route('/initial', initial)
   .route('/ui', uiSystemApp)
   .route('/fonts', fontsApp)
   .route('/middleware', middlewareApp)
