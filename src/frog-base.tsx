@@ -603,13 +603,7 @@ export class FrogBase<
           )
           const imageParams = toSearchParams({
             image: compressedImage,
-            imageOptions: imageOptions
-              ? {
-                  ...imageOptions,
-                  // TODO: Remove once `fonts` is removed from `imageOptions`.
-                  fonts: undefined,
-                }
-              : undefined,
+            imageOptions,
             headers,
           })
           return `${parsePath(context.url)}/image?${imageParams}`
@@ -692,7 +686,7 @@ export class FrogBase<
             return Object.values(this.ui.vars.fonts).flat()
           if (typeof options?.fonts === 'function') return await options.fonts()
           if (options?.fonts) return options.fonts
-          return imageOptions?.fonts
+          return (imageOptions as ImageOptions | undefined)?.fonts
         })()
         const groupedFonts = new Map<string, NonNullable<typeof fonts>>()
         if (fonts)

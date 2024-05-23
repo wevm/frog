@@ -1,6 +1,7 @@
 import { type ImageResponseOptions } from 'hono-og'
 import type { Hash } from 'viem'
 import type { TypedResponse } from './response.js'
+import type { Pretty } from './utils.js'
 
 export type Font = {
   name: string
@@ -130,7 +131,7 @@ export type FrameResponse = {
        * @example
        * { width: 1200, height: 630 }
        */
-      imageOptions?: ImageOptions | undefined
+      imageOptions?: Pretty<Omit<ImageOptions, 'fonts'>> | undefined
     }
   | {
       /**
