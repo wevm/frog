@@ -1,5 +1,17 @@
 # frog
 
+## 0.11.4
+
+### Patch Changes
+
+- [#333](https://github.com/wevm/frog/pull/333) [`d457c65`](https://github.com/wevm/frog/commit/d457c65cb4726905f77578579f6644c2f242ebaa) Thanks [@dalechyn](https://github.com/dalechyn)! - Added Gnosis chain support.
+
+- [#294](https://github.com/wevm/frog/pull/294) [`c9257f5`](https://github.com/wevm/frog/commit/c9257f514bbbf2fb2a6668a89f8fae8391525a77) Thanks [@dalechyn](https://github.com/dalechyn)! - Introduced `.image` handler to handle images separately from the frame handler.
+
+- [#325](https://github.com/wevm/frog/pull/325) [`d8aabe7`](https://github.com/wevm/frog/commit/d8aabe76c7e5f0de3e4f30943bd5421b4721c467) Thanks [@dalechyn](https://github.com/dalechyn)! - Removed `tailwindConfig` from the allowed properties in `imageOptions` since it's not fully implemented in Satori.
+
+- [#324](https://github.com/wevm/frog/pull/324) [`a22492a`](https://github.com/wevm/frog/commit/a22492a1fb5021b7da8da149a62017349344dd74) Thanks [@dalechyn](https://github.com/dalechyn)! - Deleted `font` property from `imageOptions` type in frame handler response.
+
 ## 0.11.3
 
 ### Patch Changes
