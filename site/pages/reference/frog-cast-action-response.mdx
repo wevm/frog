@@ -9,35 +9,15 @@ import { Frog } from 'frog'
 export const app = new Frog()
 
 app.castAction('/', (c) => {
-  return c.res({ // [!code focus]
-    // ... // [!code focus]
-  }) // [!code focus]
-})
-```
-
-## headers
-
-- **Type:** `Record<string, string>`
-
-HTTP response headers to set for the action.
-
-```tsx twoslash
-// @noErrors
-/** @jsxImportSource frog/jsx */
-// ---cut---
-import { Button, Frog } from 'frog'
- 
-export const app = new Frog()
- 
-app.castAction('/action/foo', (c) => {
-  return c.res({
-    headers: { // [!code focus]
-      'Cache-Control': 'max-age=0', // [!code focus]
-    }, // [!code focus]
-    message: 'Success!',
-    statusCode: 200,
-  })
-})
+    return c.res({ // [!code focus]
+      // ... // [!code focus]
+    }) // [!code focus]
+  },
+  {
+    name: 'My Action',
+    icon: 'log'
+  }
+)
 ```
 
 ## message
@@ -54,15 +34,20 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 app.castAction('/', (c) => {
-  return c.res({
-    message: 'Action Succeeded!', // [!code focus]
-    statusCode: 200,
-  })
-})
+    return c.res({
+      message: 'Action Succeeded!', // [!code focus]
+      type: 'message'
+    })
+  },
+  {
+    name: 'My Action',
+    icon: 'log'
+  }
+)
 ```
 
 ## link
-#
+
 :::warning
 The `link` property is valid to be added only in response with HTTP status 200.
 Thus you cannot add one in `.error()` response.
@@ -81,34 +66,15 @@ import { Button, Frog } from 'frog'
 export const app = new Frog()
  
 app.castAction('/', (c) => {
-  return c.res({
-    message: 'Action Succeeded!',
-    link: 'https://frog.fm', // [!code focus]
-    statusCode: 200,
-  })
-})
+    return c.res({
+      message: 'Action Succeeded!',
+      link: 'https://frog.fm', // [!code focus]
+      type: 'message',
+    })
+  },
+  {
+    name: 'My Action',
+    icon: 'log'
+  }
+)
 ```
-
-## statusCode
-
-- **Type:** `200 | ClientErrorStatusCode | undefined`
-- **Default:** `200`.
-
-HTTP Status code to respond with.
-
-```tsx twoslash
-/** @jsxImportSource frog/jsx */
-// ---cut---
-import { Button, Frog } from 'frog'
- 
-export const app = new Frog()
- 
-app.castAction('/', (c) => {
-  return c.res({
-    message: 'Action Succeeded!',
-    statusCode: 200, // [!code focus]
-  })
-})
-```
-
-
