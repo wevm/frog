@@ -7,6 +7,7 @@ import type {
 } from './castAction.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
+import type { ImageResponseFn } from './image.js'
 import type { BaseErrorResponseFn } from './response.js'
 import type {
   ContractTransactionResponseFn,
@@ -229,4 +230,40 @@ export type TransactionContext<
    * This is a convenience method for "eth_sendTransaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869).
    */
   send: TransactionResponseFn<SendTransactionParameters>
+}
+
+export type ImageContext<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+> = {
+  /**
+   * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
+   *
+   * @example
+   * ```ts
+   * // Environment object for Cloudflare Workers
+   * app.castAction('/', async c => {
+   *   const counter = c.env.COUNTER
+   * })
+   * ```
+   * @see https://hono.dev/api/context#env
+   */
+  env: Context_hono<env, path>['env']
+  /**
+   * Hono request object.
+   *
+   * @see https://hono.dev/api/context#req
+   */
+  req: Context_hono<env, path, input>['req']
+  /**
+   * Raw response with the image and imageOptions.
+   * */
+  res: ImageResponseFn
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path, input>['var']
 }

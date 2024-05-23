@@ -1,0 +1,93 @@
+# Frog.image
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.image('/', (c) => { // [!code focus]
+  return c.res({ // [!code focus]
+    image: ( // [!code focus]
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+        Select your fruit! // [!code focus]
+      </div> // [!code focus]
+    ) // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.image(
+  '/foo/bar', // [!code focus]
+  (c) => {
+    return c.res({ 
+      image: ( 
+        <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> 
+          Select your fruit! 
+        </div> 
+      ) 
+    })
+  }
+) 
+```
+
+### handler
+
+- **Type:** `(c: Context) => ImageResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.image(
+  '/foo/bar',
+  (c) => { // [!code focus]
+    return c.res({ // [!code focus]
+      image: ( // [!code focus]
+        <div style={{ color: 'white', display: 'flex', fontSize: 60 }}> // [!code focus]
+          Select your fruit! // [!code focus]
+        </div> // [!code focus]
+      )
+    }) // [!code focus]
+  } // [!code focus]
+) 
+```
+
+#### Context Parameter
+
+[See the Context API.](/reference/frog-image-context)
+
+#### Image Response
+
+[See the Image Response API.](/reference/frog-image-response)

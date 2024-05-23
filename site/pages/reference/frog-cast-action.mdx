@@ -16,9 +16,13 @@ import { Button, Frog } from 'frog'
 const app = new Frog()
 
 app.castAction('/', (c) => { // [!code focus]
-  console.log('Apple and Banana')
-  return c.res({ message: 'Action Succeeded' }) // [!code focus]
-}) // [!code focus]
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { // [!code focus]
+    name: 'My Action', // [!code focus]
+    icon: 'log' // [!code focus]
+  } // [!code focus]
+) // [!code focus]
 ```
 
 ## Parameters
@@ -41,10 +45,13 @@ const app = new Frog()
 app.castAction(
   '/foo/bar', // [!code focus]
   (c) => {
-    console.log('Apple and Banana')
-    return c.res({ message: 'Action Succeeded' }) // [!code focus]
-  }
-) 
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { // [!code focus]
+    name: 'My Action', // [!code focus]
+    icon: 'log' // [!code focus]
+  } // [!code focus]
+) // [!code focus]
 ```
 
 ### handler
@@ -63,9 +70,39 @@ const app = new Frog()
 app.castAction(
   '/foo/bar',
   (c) => { // [!code focus]
-    console.log('Apple and Banana')
-    return c.res({ message: 'Action Succeeded' }) // [!code focus]
-  } // [!code focus]
+    return c.message({ message: 'Action Succeeded' }) // [!code focus]
+  }, // [!code focus]
+  { 
+    name: 'My Action',
+    icon: 'log'
+  }
+) 
+```
+
+### options
+
+- **Type:** `RouteOptions<'castAction'>`
+
+Options for a Cast Action
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+const app = new Frog()
+
+app.castAction(
+  '/foo/bar',
+  (c) => {
+    return c.message({ message: 'Action Succeeded' })
+  },
+  { 
+    aboutUrl: 'https://frog.fm/reference/frog-cast-action', // [!code focus]
+    name: 'My Action', // [!code focus]
+    description: 'My awesome action.', // [!code focus]
+    icon: 'log' // [!code focus]
+  }
 ) 
 ```
 
