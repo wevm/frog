@@ -14,5 +14,10 @@
     "react-dom": "latest",
     "typescript": "latest",
     "vocs": "1.0.0-alpha.45"
+  },
+  "devDependencies": {
+    "@airstack/frames": "^1.1.8",
+    "@xmtp/frames-validator": "^0.6.1",
+    "pinata-fdk": "^3.10.2"
   }
 }

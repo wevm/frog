@@ -172,8 +172,9 @@ The [Allow List Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk/
 
 To use this middleware, you must first install the [Airstack Frames SDK](https://www.npmjs.com/package/@airstack/frames).
 
-```tsx
+```tsx twoslash
 import { allowList, TokenBlockchain } from "@airstack/frames"
+import { Frog } from 'frog'
 
 const app = new Frog()
 
@@ -198,8 +199,9 @@ The [Onchain Data Middleware](https://github.com/Airstack-xyz/airstack-frames-sd
 
 To use this middleware, you must first install the [Airstack Frames SDK](https://www.npmjs.com/package/@airstack/frames).
 
-```tsx
+```tsx twoslash
 import { onchainData, TokenBlockchain } from "@airstack/frames"
+import { Frog } from 'frog'
 
 const app = new Frog()
 
@@ -208,7 +210,7 @@ const onchainDataMiddleware = onchainData({
   features: {
     userDetails: {},
     erc20Mints: {
-      chains: [TokenBlockchain.Polygon],
+      chains: [TokenBlockchain.Base],
       limit: 1,
     },
   },
@@ -221,7 +223,8 @@ app.use('/', onchainDataMiddleware)
 
 The [Frog Analytics Plugin](https://docs.pinata.cloud/farcaster/fdk#frog-analytics-plug-in) allows you to hook into Pinata Frame analytics.
 
-```tsx
+```tsx twoslash
+import { Frog } from 'frog'
 import { PinataFDK } from 'pinata-fdk'
 
 const app = new Frog()
@@ -246,7 +249,9 @@ The XMTP community has implemeted ways to enhance user experience by supporting 
 
 To build a Frame with XMTP, you must first add XMTP metadata. This is done following the specifications of [OpenFrames](https://www.openframes.xyz).
 
-```jsx
+```tsx twoslash
+import { Frog } from 'frog'
+
 const addMetaTags = (client: string, version?: string) => {
   // Follow the OpenFrames meta tags spec
   return {
@@ -277,31 +282,46 @@ yarn add @xmtp/frames-validator
 
 Add the middleware to validate incoming messages.
 
-```jsx
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
 import { validateFramesPost } from "@xmtp/frames-validator";
+import { Frog } from 'frog'
+import type { MiddlewareHandler } from 'hono'
 
-const xmtpSupport = async (c: Context, next: Next) => {
-  // Check if the request is a POST and relevant for XMTP processing
-  if (c.req.method === "POST") {
-    const requestBody = (await c.req.json().catch(() => {})) || {};
-    if (requestBody?.clientProtocol?.includes("xmtp")) {
-      c.set("client", "xmtp");
-      const { verifiedWalletAddress } = await validateFramesPost(requestBody);
-      c.set("verifiedWalletAddress", verifiedWalletAddress);
-    } else {
-      // Add farcaster check
-      c.set("client", "farcaster");
-    }
-  }
-  await next();
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
+  return {
+    unstable_metaTags: [
+      { property: `of:accepts`, content: version || "vNext" },
+      { property: `of:accepts:${client}`, content: version || "vNext" },
+    ],
+  };
 };
 
-app.use(xmtpSupport);
-```
+function xmtpSupport(): MiddlewareHandler<{
+  Variables: { client?: 'xmtp' | 'farcaster'; verifiedWalletAddress?: string }
+}> {
+  return async (c, next) => {
+    // Check if the request is a POST and relevant for XMTP processing
+    if (c.req.method === "POST") {
+      const requestBody = (await c.req.json().catch(() => {})) || {};
+      if (requestBody?.clientProtocol?.includes("xmtp")) {
+        c.set("client", "xmtp");
+        const { verifiedWalletAddress } = await validateFramesPost(requestBody);
+        c.set("verifiedWalletAddress", verifiedWalletAddress);
+      } else {
+        // Add farcaster check
+        c.set("client", "farcaster");
+      }
+    }
+    await next();
+  }
+}
 
-**Access verified wallet address**:
+const app = new Frog(addMetaTags("xmtp")).use(xmtpSupport());
 
-```jsx
+// Access verified wallet address in a frame:
 app.frame("/", (c) => {
   /* Get Frame variables */
   const { buttonValue, inputText, status } = c;
@@ -309,7 +329,13 @@ app.frame("/", (c) => {
   // XMTP verified address
   const { verifiedWalletAddress } = c?.var || {};
 
-  /* return */
+  return c.res({
+    image: (
+      <div tw="flex">
+        XMTP Frame. Verified Address: {verifiedWalletAddress}
+      </div>
+    )
+  })
 })
 ```
 
