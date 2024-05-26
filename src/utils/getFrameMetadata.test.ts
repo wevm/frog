@@ -28,7 +28,7 @@ test('default', async () => {
         "property": "og:title",
       },
       {
-        "content": "https://frame.frog.fm/api?initialPath=%252Fapi&previousButtonValues=%2523A_%252C_l%252C_l",
+        "content": "https://frame.frog.fm/api?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
         "property": "fc:frame:post_url",
       },
       {
@@ -40,7 +40,7 @@ test('default', async () => {
         "property": "fc:frame:button:1:action",
       },
       {
-        "content": "https://frame.frog.fm/api/features?initialPath=%252Fapi&previousButtonValues=%2523A_%252C_l%252C_l",
+        "content": "https://frame.frog.fm/api/features?initialPath=%252Fapi&amp;previousButtonValues=%2523A_%252C_l%252C_l",
         "property": "fc:frame:button:1:target",
       },
       {
