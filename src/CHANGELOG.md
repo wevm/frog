@@ -1,5 +1,11 @@
 # frog
 
+## 0.11.5
+
+### Patch Changes
+
+- [#335](https://github.com/wevm/frog/pull/335) [`913b0cb`](https://github.com/wevm/frog/commit/913b0cb6da5de738118d35d767d0168295bc5b2d) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed the `&amp;` being unescaped in devtools.
+
 ## 0.11.4
 
 ### Patch Changes
