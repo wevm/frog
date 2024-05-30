@@ -1,11 +1,9 @@
 import { detect } from 'detect-browser'
 import { Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
-import { inspectRoutes } from 'hono/dev'
 import type { HonoOptions } from 'hono/hono-base'
 import { html } from 'hono/html'
-import type { ParamIndexMap, Params } from 'hono/router'
-import type { RouterRoute, Schema } from 'hono/types'
+import type { Schema } from 'hono/types'
 import lz from 'lz-string'
 // TODO: maybe write our own "modern" universal path (or resolve) module.
 // We are not using `node:path` to remain compatible with Edge runtimes.
@@ -22,7 +20,6 @@ import type { Octicon } from './types/octicon.js'
 import type {
   CastActionHandler,
   FrameHandler,
-  H,
   HandlerInterface,
   ImageHandler,
   MiddlewareHandlerInterface,
@@ -49,6 +46,8 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import type { Pretty } from './types/utils.js'
+import { getIsHandlerPresentAtPath } from './utils/getIsHandlerPresentOnImagePath.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -186,7 +185,51 @@ export type RouteOptions<method extends string = string> = Pick<
   (method extends 'frame' | 'image'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
-      }
+      } & (method extends 'frame'
+        ? {
+            preview?: {
+              /**
+               * An icon ID.
+               *
+               * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
+               * @example `'log'`
+               */
+              icon?: Octicon
+              title?: FrameResponse['title']
+              action?: FrameResponse['action']
+              headers?: FrameResponse['headers']
+            } & (
+              | {
+                  /**
+                   * Preview Image to render for the frame. Can either be a JSX element, or URL.
+                   *
+                   * @example
+                   * <div style={{ fontSize: 60 }}>Hello Frog</div>
+                   */
+                  image?: JSX.Element
+                  /**
+                   * Image options.
+                   *
+                   * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
+                   *
+                   * @example
+                   * { width: 1200, height: 630 }
+                   */
+                  imageOptions?: Pretty<Omit<ImageOptions, 'fonts'>> | undefined
+                }
+              | {
+                  /**
+                   * Preview Image to render for the frame. Can either be a JSX element, or URL.
+                   *
+                   * @example
+                   * "https://i.ytimg.com/vi/R3UACX5eULI/maxresdefault.jpg"
+                   */
+                  image?: string
+                  imageOptions?: never
+                }
+            )
+          }
+        : {})
     : method extends 'castAction'
       ? {
           /**
@@ -459,6 +502,40 @@ export class FrogBase<
         })
       })
     }
+    ;(async () => {
+      // If the preview image is type of JSX, we have to serve the preview image route
+      if (typeof options.preview?.image === 'object') {
+        const image_ = await options.preview.image
+        const defaultImageOptions = await (async () => {
+          if (typeof this.imageOptions === 'function')
+            return await this.imageOptions()
+          return this.imageOptions
+        })()
+
+        const fonts = await (async () => {
+          if (this.ui?.vars?.fonts)
+            return Object.values(this.ui?.vars.fonts).flat()
+          if (typeof options?.fonts === 'function') return await options.fonts()
+          if (options?.fonts) return options.fonts
+          return defaultImageOptions?.fonts
+        })()
+
+        const headers = options.preview?.headers ?? this.headers
+        const imageOptions =
+          options.preview?.imageOptions ?? defaultImageOptions
+
+        this.hono.get(`${parsePath(path)}/preview-image`, async () => {
+          return new ImageResponse(image_, {
+            width: 1200,
+            height: 630,
+            ...imageOptions,
+            format: imageOptions?.format ?? 'png',
+            fonts: await parseFonts(fonts),
+            headers: imageOptions?.headers ?? headers,
+          })
+        })
+      }
+    })()
 
     // Frame Route (implements GET & POST).
     this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
@@ -610,39 +687,9 @@ export class FrogBase<
         }
         if (image.startsWith('http') || image.startsWith('data')) return image
 
-        const isHandlerPresentOnImagePath = (() => {
-          const routes = inspectRoutes(this.hono)
-          const matchesWithoutParamsStash = this.hono.router
-            .match('GET', image)
-            .filter(
-              (routeOrParams) => typeof routeOrParams[0] !== 'string',
-            ) as unknown as (
-            | [[H, RouterRoute], Params][]
-            | [[H, RouterRoute], ParamIndexMap][]
-          )[]
+        if (getIsHandlerPresentAtPath(image, this.hono))
+          return `${baseUrl + parsePath(image)}`
 
-          const matchedRoutes = matchesWithoutParamsStash
-            .flat(1)
-            .map((matchedRouteWithoutParams) => matchedRouteWithoutParams[0][1])
-
-          const nonMiddlewareMatchedRoutes = matchedRoutes.filter(
-            (matchedRoute) => {
-              const routeWithAdditionalInfo = routes.find(
-                (route) =>
-                  route.path === matchedRoute.path &&
-                  route.method === matchedRoute.method,
-              )
-              if (!routeWithAdditionalInfo)
-                throw new Error(
-                  'Unexpected error: Matched a route that is not in the list of all routes.',
-                )
-              return !routeWithAdditionalInfo.isMiddleware
-            },
-          )
-          return nonMiddlewareMatchedRoutes.length !== 0
-        })()
-
-        if (isHandlerPresentOnImagePath) return `${baseUrl + parsePath(image)}`
         return `${assetsUrl + parsePath(image)}`
       })()
 
@@ -652,6 +699,23 @@ export class FrogBase<
         return baseUrl + parsePath(ogImage)
       })()
 
+      const previewImageUrl = await (async () => {
+        if (!options.preview?.image) return imageUrl
+
+        const previewImage = await options.preview.image
+
+        if (typeof previewImage !== 'string')
+          return `${parsePath(path)}/preview-image`
+
+        if (previewImage.startsWith('http') || previewImage.startsWith('data'))
+          return image
+
+        if (getIsHandlerPresentAtPath(previewImage, this.hono))
+          return `${baseUrl + parsePath(previewImage)}`
+
+        return `${assetsUrl + parsePath(previewImage)}`
+      })()
+
       const postUrl = (() => {
         if (!action) return context.url
         if (action.startsWith('http')) return action
@@ -659,6 +723,15 @@ export class FrogBase<
           return initialBaseUrl + parsePath(action.slice(1))
 
         return baseUrl + parsePath(action)
+      })()
+
+      const previewPostUrl = (() => {
+        if (!options.preview?.action) return
+        if (options.preview.action.startsWith('http')) return action
+        if (options.preview.action.startsWith('~'))
+          return initialBaseUrl + parsePath(options.preview.action.slice(1))
+
+        return baseUrl + parsePath(options.preview.action)
       })()
 
       const parsedIntents = parseIntents(intents, {
@@ -801,6 +874,26 @@ export class FrogBase<
                     : postUrl
                 }
               />
+              <meta
+                property="fc:frame:preview:image"
+                content={previewImageUrl}
+              />
+              <meta
+                property="fc:frame:preview:title"
+                content={options.preview?.title ?? title}
+              />
+              {previewPostUrl && (
+                <meta
+                  property="fc:frame:preview:post_url"
+                  content={previewPostUrl}
+                />
+              )}
+              {options.preview?.icon && (
+                <meta
+                  property="fc:frame:preview:icon"
+                  content={options.preview.icon}
+                />
+              )}
               {context.status !== 'initial' && (
                 <meta property="fc:frame:state" content={nextFrameStateMeta} />
               )}
