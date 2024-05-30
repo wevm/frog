@@ -25,6 +25,7 @@ import type {
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
+import type { Pretty } from './types/utils.js'
 import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
@@ -32,6 +33,7 @@ import { getCastActionContext } from './utils/getCastActionContext.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getImageContext } from './utils/getImageContext.js'
 import { getImagePaths } from './utils/getImagePaths.js'
+import { getIsHandlerPresentAtPath } from './utils/getIsHandlerPresentOnImagePath.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
@@ -46,8 +48,6 @@ import { requestBodyToContext } from './utils/requestBodyToContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
-import type { Pretty } from './types/utils.js'
-import { getIsHandlerPresentAtPath } from './utils/getIsHandlerPresentOnImagePath.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -189,15 +189,28 @@ export type RouteOptions<method extends string = string> = Pick<
         ? {
             preview?: {
               /**
+               * Path of the next frame.
+               *
+               * @example '/submit'
+               */
+              action?: FrameResponse['action']
+              /**
+               * HTTP response headers.
+               */
+              headers?: FrameResponse['headers']
+              /**
                * An icon ID.
                *
                * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
                * @example `'log'`
                */
               icon?: Octicon
+              /**
+               * Title of the frame (added as `og:title`).
+               *
+               * @example 'Hello Frog'
+               */
               title?: FrameResponse['title']
-              action?: FrameResponse['action']
-              headers?: FrameResponse['headers']
             } & (
               | {
                   /**
