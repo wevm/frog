@@ -1,5 +1,5 @@
 import { detect } from 'detect-browser'
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import { ImageResponse } from 'hono-og'
 import { inspectRoutes } from 'hono/dev'
 import type { HonoOptions } from 'hono/hono-base'
@@ -11,6 +11,7 @@ import lz from 'lz-string'
 // We are not using `node:path` to remain compatible with Edge runtimes.
 import { default as p } from 'path-browserify'
 
+import type { CastActionOptions } from './types/castAction.js'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
@@ -18,13 +19,14 @@ import type {
   ImageOptions,
 } from './types/frame.js'
 import type { Hub } from './types/hub.js'
-import type { Octicon } from './types/octicon.js'
 import type {
+  BlankInput,
   CastActionHandler,
   FrameHandler,
   H,
   HandlerInterface,
   ImageHandler,
+  Input,
   MiddlewareHandlerInterface,
   TransactionHandler,
 } from './types/routes.js'
@@ -179,45 +181,28 @@ export type FrogConstructorParameters<
   unstable_metaTags?: { property: string; content: string }[] | undefined
 }
 
-export type RouteOptions<method extends string = string> = Pick<
-  FrogConstructorParameters,
-  'verify'
-> &
+export type RouteOptions<
+  method extends string = string,
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = Pick<FrogConstructorParameters, 'verify'> &
   (method extends 'frame' | 'image'
     ? {
         fonts?: ImageOptions['fonts'] | (() => Promise<ImageOptions['fonts']>)
       }
     : method extends 'castAction'
-      ? {
-          /**
-           * An action name up to 30 characters.
-           *
-           * @example `'My action.'`
-           */
-          name: string
-          /**
-           * An icon ID.
-           *
-           * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
-           * @example `'log'`
-           */
-          icon: Octicon
-          /**
-           * A short description up to 80 characters.
-           *
-           * @example `'My awesome action description.'`
-           */
-          description?: string
-          /**
-           * Optional external link to an "about" page.
-           * You should only include this if you can't fully describe your
-           * action using the `description` field.
-           * Must be http or https protocol.
-           *
-           * @example `'My awesome action description.'`
-           */
-          aboutUrl?: string
-        }
+      ?
+          | CastActionOptions
+          | {
+              /**
+               * Custom handler for Cast Action `GET` response.
+               * One can use that if something needs to be derived from the `Context`.
+               */
+              handler: (
+                c: Context<E, P, I>,
+              ) => Promise<CastActionOptions> | CastActionOptions
+            }
       : {})
 
 /**
@@ -363,22 +348,47 @@ export class FrogBase<
       'castAction'
     >(...parameters)
 
-    const { verify = this.verify, ...installParameters } = options
+    const { verify = this.verify } = options
 
-    // Cast Action Route (implements GET and POST).
-    this.hono.use(parseHonoPath(path), ...middlewares, async (c) => {
-      const url = getRequestUrl(c.req)
-      const origin = this.origin ?? url.origin
-      const baseUrl = origin + parsePath(this.basePath)
+    // Cast Action Route (implements GET).
+    if ('handler' in options) {
+      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+        const url = getRequestUrl(c.req)
 
-      if (c.req.method === 'GET')
+        const { aboutUrl, name, description, icon } = await options.handler(c)
         return c.json({
-          ...installParameters,
-          postUrl: baseUrl + parsePath(path),
+          aboutUrl,
           action: {
             type: 'post',
           },
+          name,
+          description,
+          icon,
+          postUrl: url,
         })
+      })
+    } else {
+      const { aboutUrl, name, description, icon } = options
+
+      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+        const url = getRequestUrl(c.req)
+        return c.json({
+          aboutUrl,
+          action: {
+            type: 'post',
+          },
+          name,
+          description,
+          icon,
+          postUrl: url,
+        })
+      })
+    }
+    // Cast Action Route (implements POST).
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+      const url = getRequestUrl(c.req)
+      const origin = this.origin ?? url.origin
+      const baseUrl = origin + parsePath(this.basePath)
 
       const { context } = getCastActionContext<env, string>({
         context: await requestBodyToContext(c, {
