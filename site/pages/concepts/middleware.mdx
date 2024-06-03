@@ -166,77 +166,12 @@ Middleware is one of the most powerful pieces of Frog. This section showcases co
 
 If you've built a middleware for Frog, feel free to [submit a PR](https://github.com/wevm/frog) to add it to this list.
 
-### Airstack Allow List Middleware
+### Airstack Middlewares
+- [Airstack Allow List Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk?tab=readme-ov-file#allow-list-middleware)
+- [Airstack Onchain Data Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk?tab=readme-ov-file#onchain-data-middleware)
 
-The [Allow List Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk/tree/main?tab=readme-ov-file#allow-list-middleware) allows you to build an allow list that only allows certain users to interact a Farcaster Frames. The allow list can be built based on various onchain criterias, including having > X followers, attended certain POAPs, holding certain ERC20/721/1155 tokens, and if a user certain Farcaster users.
-
-To use this middleware, you must first install the [Airstack Frames SDK](https://www.npmjs.com/package/@airstack/frames).
-
-```tsx
-import { allowList, TokenBlockchain } from "@airstack/frames"
-
-const app = new Frog()
-
-const allowListMiddleware = allowList({
-  allowListCriteria: {
-    eventIds: [166577],
-    tokens: [
-      {
-        tokenAddress: "0xe03ef4b9db1a47464de84fb476f9baf493b3e886",
-        chain: TokenBlockchain.Zora,
-      },
-    ],
-  },
-});
-
-app.use('/', allowListMiddleware)
-```
-
-### Airstack Onchain Data Middleware
-
-The [Onchain Data Middleware](https://github.com/Airstack-xyz/airstack-frames-sdk/tree/main?tab=readme-ov-file#onchain-data-middleware) enables you to easily inject various onchain data to your Frames, including Farcaster user details, followings, followers, channels, token balances, POAPs, and more.
-
-To use this middleware, you must first install the [Airstack Frames SDK](https://www.npmjs.com/package/@airstack/frames).
-
-```tsx
-import { onchainData, TokenBlockchain } from "@airstack/frames"
-
-const app = new Frog()
-
-const onchainDataMiddleware = onchainData({
-  env: "dev",
-  features: {
-    userDetails: {},
-    erc20Mints: {
-      chains: [TokenBlockchain.Polygon],
-      limit: 1,
-    },
-  },
-});
-
-app.use('/', onchainDataMiddleware)
-```
-
-### Pinata FDK Analytics Middleware
-
-The [Frog Analytics Plugin](https://docs.pinata.cloud/farcaster/fdk#frog-analytics-plug-in) allows you to hook into Pinata Frame analytics.
-
-```tsx
-import { PinataFDK } from 'pinata-fdk'
-
-const app = new Frog()
-
-const fdk = new PinataFDK({
-  pinata_jwt: '<YOUR_PINATA_JWT>',
-  pinata_gateway: '<YOUR_PINATA_GATEWAY>'
-})
-
-app.use('/', fdk.analyticsMiddleware({
-  frameId: 'my-frame-id',
-  customId: 'my-custom-id',
-}))
-```
-
+### Pinata FDK Middlewares
+- [Pinata FDK Analytics Middleware](https://docs.pinata.cloud/farcaster/fdk/farcaster-frames#frog-analytics-plug-in)
 
 ### XMTP Frames Middleware
 
@@ -246,7 +181,9 @@ The XMTP community has implemeted ways to enhance user experience by supporting 
 
 To build a Frame with XMTP, you must first add XMTP metadata. This is done following the specifications of [OpenFrames](https://www.openframes.xyz).
 
-```jsx
+```tsx twoslash
+import { Frog } from 'frog'
+
 const addMetaTags = (client: string, version?: string) => {
   // Follow the OpenFrames meta tags spec
   return {
@@ -277,31 +214,46 @@ yarn add @xmtp/frames-validator
 
 Add the middleware to validate incoming messages.
 
-```jsx
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
 import { validateFramesPost } from "@xmtp/frames-validator";
+import { Frog } from 'frog'
+import type { MiddlewareHandler } from 'hono'
 
-const xmtpSupport = async (c: Context, next: Next) => {
-  // Check if the request is a POST and relevant for XMTP processing
-  if (c.req.method === "POST") {
-    const requestBody = (await c.req.json().catch(() => {})) || {};
-    if (requestBody?.clientProtocol?.includes("xmtp")) {
-      c.set("client", "xmtp");
-      const { verifiedWalletAddress } = await validateFramesPost(requestBody);
-      c.set("verifiedWalletAddress", verifiedWalletAddress);
-    } else {
-      // Add farcaster check
-      c.set("client", "farcaster");
-    }
-  }
-  await next();
+const addMetaTags = (client: string, version?: string) => {
+  // Follow the OpenFrames meta tags spec
+  return {
+    unstable_metaTags: [
+      { property: `of:accepts`, content: version || "vNext" },
+      { property: `of:accepts:${client}`, content: version || "vNext" },
+    ],
+  };
 };
 
-app.use(xmtpSupport);
-```
+function xmtpSupport(): MiddlewareHandler<{
+  Variables: { client?: 'xmtp' | 'farcaster'; verifiedWalletAddress?: string }
+}> {
+  return async (c, next) => {
+    // Check if the request is a POST and relevant for XMTP processing
+    if (c.req.method === "POST") {
+      const requestBody = (await c.req.json().catch(() => {})) || {};
+      if (requestBody?.clientProtocol?.includes("xmtp")) {
+        c.set("client", "xmtp");
+        const { verifiedWalletAddress } = await validateFramesPost(requestBody);
+        c.set("verifiedWalletAddress", verifiedWalletAddress);
+      } else {
+        // Add farcaster check
+        c.set("client", "farcaster");
+      }
+    }
+    await next();
+  }
+}
 
-**Access verified wallet address**:
+const app = new Frog(addMetaTags("xmtp")).use(xmtpSupport());
 
-```jsx
+// Access verified wallet address in a frame:
 app.frame("/", (c) => {
   /* Get Frame variables */
   const { buttonValue, inputText, status } = c;
@@ -309,7 +261,13 @@ app.frame("/", (c) => {
   // XMTP verified address
   const { verifiedWalletAddress } = c?.var || {};
 
-  /* return */
+  return c.res({
+    image: (
+      <div tw="flex">
+        XMTP Frame. Verified Address: {verifiedWalletAddress}
+      </div>
+    )
+  })
 })
 ```
 
