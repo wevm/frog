@@ -613,7 +613,7 @@ export class FrogBase<
         const isHandlerPresentOnImagePath = (() => {
           const routes = inspectRoutes(this.hono)
           const matchesWithoutParamsStash = this.hono.router
-            .match('GET', image)
+            .match('GET', this.basePath + parsePath(image))
             .filter(
               (routeOrParams) => typeof routeOrParams[0] !== 'string',
             ) as unknown as (
