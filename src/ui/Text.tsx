@@ -38,6 +38,8 @@ const alignToAlignItems = {
 } as const
 
 export function Text<vars extends Vars>({
+  // @ts-ignore - private
+  __context,
   align,
   children,
   color,
@@ -54,6 +56,7 @@ export function Text<vars extends Vars>({
 }: TextProps<vars>) {
   return (
     <Box
+      __context={__context}
       alignItems={align ? (alignToAlignItems as any)[align] : undefined}
       color={color}
       fontFamily={font}

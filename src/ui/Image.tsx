@@ -24,6 +24,8 @@ export type ImageProps<vars extends Vars = DefaultVars> = {
 
 export function Image<vars extends Vars>(props: ImageProps<vars>) {
   const {
+    // @ts-ignore - private
+    __context,
     borderRadius,
     borderBottomLeftRadius,
     borderBottomRightRadius,
@@ -36,6 +38,7 @@ export function Image<vars extends Vars>(props: ImageProps<vars>) {
   } = props
   return (
     <Box
+      __context={__context}
       borderRadius={borderRadius}
       borderBottomLeftRadius={borderBottomLeftRadius}
       borderBottomRightRadius={borderBottomRightRadius}

@@ -27,6 +27,7 @@ export function Divider<vars extends Vars = DefaultVars>(
     resolvedDirection === 'horizontal' ? horizontalProps : verticalProps
   return (
     <Box
+      __context={__context}
       backgroundColor={color ?? { custom: 'rgba(255,255,255,0.5)' }}
       {...resolvedProps}
     />
