@@ -10,8 +10,8 @@ export type VariableValue<property extends keyof SatoriStyleProperties, token> =
   | token
   | { custom: SatoriStyleProperties[property] }
 
-type NegateValues<obj extends object | undefined> = ValueOf<{
-  [key in keyof obj]: key extends `${number}` ? `-${key}` : key
+type WithNegatedValues<obj extends object | undefined> = ValueOf<{
+  [key in keyof obj]: key extends `${number}` ? `-${key}` | key : key
 }>
 
 export type BoxProps<vars extends Vars = DefaultVars> = Omit<
@@ -106,14 +106,14 @@ export type BoxProps<vars extends Vars = DefaultVars> = Omit<
   left?: VariableValue<'left', keyof vars['units']>
   letterSpacing?: VariableValue<
     'letterSpacing',
-    keyof vars['units'] | NegateValues<vars['units']>
+    keyof vars['units'] | WithNegatedValues<vars['units']>
   >
   lineHeight?: VariableValue<'lineHeight', keyof vars['units']>
-  margin?: VariableValue<'margin', NegateValues<vars['units']>>
-  marginTop?: VariableValue<'marginTop', NegateValues<vars['units']>>
-  marginBottom?: VariableValue<'marginBottom', NegateValues<vars['units']>>
-  marginLeft?: VariableValue<'marginLeft', NegateValues<vars['units']>>
-  marginRight?: VariableValue<'marginRight', NegateValues<vars['units']>>
+  margin?: VariableValue<'margin', WithNegatedValues<vars['units']>>
+  marginTop?: VariableValue<'marginTop', WithNegatedValues<vars['units']>>
+  marginBottom?: VariableValue<'marginBottom', WithNegatedValues<vars['units']>>
+  marginLeft?: VariableValue<'marginLeft', WithNegatedValues<vars['units']>>
+  marginRight?: VariableValue<'marginRight', WithNegatedValues<vars['units']>>
   maxHeight?: VariableValue<'maxHeight', keyof vars['units'] | '100%'>
   minHeight?: VariableValue<'minHeight', keyof vars['units'] | '100%'>
   maxWidth?: VariableValue<'maxWidth', keyof vars['units'] | '100%'>
