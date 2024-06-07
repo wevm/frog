@@ -1,5 +1,17 @@
 # frog
 
+## 0.11.6
+
+### Patch Changes
+
+- [#342](https://github.com/wevm/frog/pull/342) [`904cfbf`](https://github.com/wevm/frog/commit/904cfbfa5b6a27ecbce20d094dbea9eb1e904294) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed incorrect internal image route matching that previously was only working when `assetsUrl` and `baseUrl` were the same.
+
+- [#341](https://github.com/wevm/frog/pull/341) [`f6033d3`](https://github.com/wevm/frog/commit/f6033d315b24205e976485d15a1c9954751aecfe) Thanks [@dalechyn](https://github.com/dalechyn)! - Added support of custom `handler` for Cast Actions if one wants to rely on the `Context` to give out a response for `GET` method. I.e. having the Action name to be derived from the path parameter.
+
+- [#347](https://github.com/wevm/frog/pull/347) [`a14da7b`](https://github.com/wevm/frog/commit/a14da7bc953891e0d6989a46d7b3c4e5cb0a9157) Thanks [@dalechyn](https://github.com/dalechyn)! - Added Sepolia, Arbitrum Sepolia and Optimism Sepolia support. [See more](https://warpcast.com/horsefacts.eth/0x0a22c0f0).
+
+- [#345](https://github.com/wevm/frog/pull/345) [`c2f4d56`](https://github.com/wevm/frog/commit/c2f4d563b4633b0ef87a3132db571659700ce84d) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where user defined vars were not passed to `Text`, `Spacer`, `Divider` and `Image` components.
+
 ## 0.11.5
 
 ### Patch Changes
