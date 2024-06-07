@@ -120,7 +120,7 @@ export type HandlerInterface<
     path: P,
     handler: H<E2, MergedPath, I, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -142,7 +142,7 @@ export type HandlerInterface<
     middleware: MiddlewareHandler<E2, MergedPath, I>,
     handler: H<E3, MergedPath, I2, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -168,7 +168,7 @@ export type HandlerInterface<
     middleware_2: MiddlewareHandler<E3, MergedPath, I2>,
     handler: H<E4, MergedPath, I3, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -197,7 +197,7 @@ export type HandlerInterface<
     middleware_3: MiddlewareHandler<E4, MergedPath, I3>,
     handler: H<E5, MergedPath, I4, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -229,7 +229,7 @@ export type HandlerInterface<
     middleware_4: MiddlewareHandler<E5, MergedPath, I4>,
     handler: H<E6, MergedPath, I5, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -264,7 +264,7 @@ export type HandlerInterface<
     middleware_5: MiddlewareHandler<E6, MergedPath, I5>,
     handler: H<E7, MergedPath, I6, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -302,7 +302,7 @@ export type HandlerInterface<
     middleware_6: MiddlewareHandler<E7, MergedPath, I6>,
     handler: H<E8, MergedPath, I7, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -343,7 +343,7 @@ export type HandlerInterface<
     middleware_7: MiddlewareHandler<E8, MergedPath, I7>,
     handler: H<E9, MergedPath, I8, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -387,7 +387,7 @@ export type HandlerInterface<
     middleware_8: MiddlewareHandler<E9, MergedPath, I8>,
     handler: H<E10, MergedPath, I9, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,
@@ -436,7 +436,7 @@ export type HandlerInterface<
     middleware_9: MiddlewareHandler<E10, MergedPath, I9>,
     handler: H<E11, MergedPath, I10, R, M>,
     ...rest: M extends 'castAction'
-      ? [options: RouteOptions<M>]
+      ? [options: RouteOptions<'castAction', E2, MergedPath, I>]
       : [options?: RouteOptions<M>]
   ): FrogBase<
     E,

@@ -42,6 +42,9 @@ export const app = new Frog({
         <Button.AddCastAction action="/action-message">
           Message
         </Button.AddCastAction>,
+        <Button.AddCastAction action="/action-message-dynamic/lmao">
+          Dynamic message
+        </Button.AddCastAction>,
         <Button.AddCastAction action="/action-frame">
           Frame
         </Button.AddCastAction>,
@@ -66,6 +69,31 @@ export const app = new Frog({
       name: 'Log This!',
       icon: 'log',
       description: 'This cast action will log something and return a message!',
+    },
+  )
+  .castAction(
+    '/action-message-dynamic/:name',
+    async (c) => {
+      console.log(
+        `Cast Action ${c.req.param('name')} to ${JSON.stringify(
+          c.actionData.castId,
+        )} from ${c.actionData.fid}`,
+      )
+      if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
+      return c.message({
+        message: 'Action Succeeded',
+        link: 'https://frog.fm',
+      })
+    },
+    {
+      handler: (c) => {
+        const name = c.req.param('name')
+
+        return {
+          name: `Action ${name}`,
+          icon: 'law',
+        }
+      },
     },
   )
   .castAction(
