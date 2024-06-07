@@ -23,7 +23,10 @@ export type ChainNamespace = 'eip155'
  * - 42161: Arbitrum One
  * - 42170: Arbitrum Nova
  * - 84532: Base Sepolia
+ * - 421614: Arbitrum Sepolia
  * - 7777777: Zora
+ * - 11155111: Sepolia
+ * - 11155420: Optimism Sepolia
  * - 666666666: Degen
  */
 export type ChainIdEip155 =
@@ -34,7 +37,10 @@ export type ChainIdEip155 =
   | 42161
   | 42170
   | 84532
+  | 421614
   | 7777777
+  | 11155111
+  | 11155420
   | 666666666
 
 export type TransactionParameters = {
