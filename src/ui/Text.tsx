@@ -1,3 +1,4 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
 import { Box, type BoxProps } from './Box.js'
 import type { Child } from './types.js'
 import type { DefaultVars, Vars } from './vars.js'

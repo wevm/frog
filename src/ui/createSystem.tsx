@@ -1,3 +1,4 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
 import type { Assign } from '../types/utils.js'
 import { Box } from './Box.js'
 import { Column, Columns } from './Columns.js'

@@ -1,3 +1,4 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
 import { type ImageResponseOptions } from 'hono-og'
 import type { Hash } from 'viem'
 import type { TypedResponse } from './response.js'

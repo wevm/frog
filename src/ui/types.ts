@@ -1,3 +1,4 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
 import type { Properties } from 'csstype'
 
 export type Child = import('hono/jsx').Child | JSX.Element

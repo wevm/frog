@@ -20,6 +20,7 @@ import type { FrameResponse } from './frame.js'
 import type { ImageResponse } from './image.js'
 import type { HandlerResponse } from './response.js'
 import type { TransactionResponse } from './transaction.js'
+import type { StatusCode } from 'hono/utils/http-status'
 
 ////////////////////////////////////////
 //////                            //////
@@ -1490,13 +1491,18 @@ export type ToSchema<
   }
 }
 
+export type KnownResponseFormat = 'json' | 'text' | 'redirect'
+export type ResponseFormat = KnownResponseFormat | string
+
 export type Schema = {
   [Path: string]: {
     [Method: `$${Lowercase<string>}`]: {
       input: Partial<ValidationTargets> & {
-        param?: Record<string, string>
+        param?: Record<string, string | undefined>
       }
       output: any
+      outputFormat: ResponseFormat
+      status: StatusCode
     }
   }
 }
@@ -1589,7 +1595,7 @@ export type ValidationTargets = {
   json: any
   form: Record<string, string | File>
   query: Record<string, string | string[]>
-  param: Record<string, string>
+  param: Record<string, string> | Record<string, string | undefined>
   header: Record<string, string>
   cookie: Record<string, string>
 }

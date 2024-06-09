@@ -1,3 +1,4 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
 import type { HtmlEscapedString } from 'hono/utils/html'
 
 export const buttonPrefix = {
