@@ -184,11 +184,11 @@ importers:
         specifier: ^1.7.2
         version: 1.7.2
       '@hono/node-server':
-        specifier: ^1.8.2
-        version: 1.8.2
+        specifier: ^1.11.2
+        version: 1.11.2
       '@hono/valibot-validator':
-        specifier: ^0.2.2
-        version: 0.2.2(hono@4.1.0)(valibot@0.30.0)
+        specifier: ^0.3.0
+        version: 0.3.0(hono@4.1.0)(valibot@0.30.0)
       '@noble/curves':
         specifier: ^1.3.0
         version: 1.3.0
@@ -1926,6 +1926,11 @@ packages:
     resolution: {integrity: sha512-sa80nNnqF8kzhBvqusWiL9vlPMVpdmOwMmDBup46Jggsr1VBqo+YuzwB36Ls+X6uHJtb8Yv3ALBHL/zGmT862A==}
     dev: true
 
+  /@hono/node-server@1.11.2:
+    resolution: {integrity: sha512-JhX0nUC66GeDxpIdMKWDRMEwtQBa64CY907iAF1sYqb4m2p2PdSU7zkbnNhAZLg/6IjSlTuj6CF307JlBXVvpg==}
+    engines: {node: '>=18.14.1'}
+    dev: false
+
   /@hono/node-server@1.8.1:
     resolution: {integrity: sha512-9ondWs/5EuyZOd/iyiRp0GQfMEq+IA+IbV8Wy2bgdr5+cC55I3xbQrqtXKprw7jJhfvq3IVw7ALiuvCEmLdCAA==}
     engines: {node: '>=18.14.1'}
@@ -1940,11 +1945,11 @@ packages:
     engines: {node: '>=18.14.1'}
     dev: false
 
-  /@hono/valibot-validator@0.2.2(hono@4.1.0)(valibot@0.30.0):
-    resolution: {integrity: sha512-1IfIi4JDztOeL3ciVbDoN5uJS9nSRfJv2az8VIn/m7CcVca2uF48Hw7v5ZShO/ESTP2SxtT8ozMZkQE1hi+kiw==}
+  /@hono/valibot-validator@0.3.0(hono@4.1.0)(valibot@0.30.0):
+    resolution: {integrity: sha512-EcGJKzLt11SK4K11yKHrhI93ECtKeSHAnnENHw5tCL0ZhyDIx96avc3Ua8/ri4fwVvRPuOzFQ2OBRsVvwZuqeQ==}
     peerDependencies:
       hono: 4.1.0
-      valibot: ^0.13.1
+      valibot: '>=0.31.0 <1'
     dependencies:
       hono: 4.1.0
       valibot: 0.30.0
