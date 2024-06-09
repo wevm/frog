@@ -1,6 +1,7 @@
 // NOTE: THIS IS A FORK OF https://github.com/honojs/hono/blob/139e863aa214118397e442329121f8f39833b2f9/src/types.ts
 
 import type { Context as Context_hono } from 'hono'
+import type { StatusCode } from 'hono/utils/http-status'
 import type {
   IfAnyThenEmptyObject,
   RemoveBlankRecord,
@@ -20,7 +21,6 @@ import type { FrameResponse } from './frame.js'
 import type { ImageResponse } from './image.js'
 import type { HandlerResponse } from './response.js'
 import type { TransactionResponse } from './transaction.js'
-import type { StatusCode } from 'hono/utils/http-status'
 
 ////////////////////////////////////////
 //////                            //////
