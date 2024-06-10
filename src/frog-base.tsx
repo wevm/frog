@@ -623,7 +623,22 @@ export class FrogBase<
         const isHandlerPresentOnImagePath = (() => {
           const routes = inspectRoutes(this.hono)
           const matchesWithoutParamsStash = this.hono.router
-            .match('GET', this.basePath + parsePath(image))
+            .match(
+              'GET',
+              // `this.initialBasePath` and `this.basePath` are equal only when this handler is triggered at
+              // the top `Frog` instance.
+              //
+              // However, such are not equal when an instance of `Frog` is routed to another one via `.route`,
+              // and since we not expect one to set `basePath` to the instance which is being routed to, we can
+              // safely assume it's only set at the top level, as doing otherwise is irrational.
+              //
+              // Since `this.basePath` is set at the top instance, we have to account for that while looking for a match.
+              //
+              // @ts-ignore - accessing a private field
+              this.initialBasePath === this.basePath
+                ? this.basePath + parsePath(image)
+                : parsePath(image),
+            )
             .filter(
               (routeOrParams) => typeof routeOrParams[0] !== 'string',
             ) as unknown as (
