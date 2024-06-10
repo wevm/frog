@@ -330,7 +330,7 @@ function resolveToken<vars extends Record<string, unknown>>(
 ):
   | { value: vars[keyof vars]; type: 'token' }
   | { value: string; type: 'custom' } {
-  if (!value) return { type: 'token', value: fallback } as any
+  if (value === undefined) return { type: 'token', value: fallback } as any
   if (typeof value === 'object')
     return { type: 'custom', value: value.custom } as any
   return { type: 'token', value: vars?.[value] } as any
@@ -360,7 +360,7 @@ export function resolveUnitToken(
   const unit = resolveToken(units, normalizedValue, fallback)
   if (normalizedValue === '100%' || unit.value === '100%') return '100%'
   if (unit.type === 'custom') return unit.value
-  if (!unit.value) return undefined
+  if (unit.value === undefined) return undefined
   const resolved =
     (typeof value === 'string' && value.startsWith('-') ? -1 : +1) *
     unit.value *
