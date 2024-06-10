@@ -1,6 +1,7 @@
 // NOTE: THIS IS A FORK OF https://github.com/honojs/hono/blob/139e863aa214118397e442329121f8f39833b2f9/src/types.ts
 
 import type { Context as Context_hono } from 'hono'
+import type { StatusCode } from 'hono/utils/http-status'
 import type {
   IfAnyThenEmptyObject,
   RemoveBlankRecord,
@@ -1490,13 +1491,18 @@ export type ToSchema<
   }
 }
 
+export type KnownResponseFormat = 'json' | 'text' | 'redirect'
+export type ResponseFormat = KnownResponseFormat | string
+
 export type Schema = {
   [Path: string]: {
     [Method: `$${Lowercase<string>}`]: {
       input: Partial<ValidationTargets> & {
-        param?: Record<string, string>
+        param?: Record<string, string | undefined>
       }
       output: any
+      outputFormat: ResponseFormat
+      status: StatusCode
     }
   }
 }
@@ -1589,7 +1595,7 @@ export type ValidationTargets = {
   json: any
   form: Record<string, string | File>
   query: Record<string, string | string[]>
-  param: Record<string, string>
+  param: Record<string, string> | Record<string, string | undefined>
   header: Record<string, string>
   cookie: Record<string, string>
 }

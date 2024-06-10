@@ -1,3 +1,4 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
 import type { ImageOptions } from './frame.js'
 import type { TypedResponse } from './response.js'
 

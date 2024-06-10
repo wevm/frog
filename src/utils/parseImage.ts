@@ -20,6 +20,8 @@ export async function parseImage(
     )) as Child
   if (node_ instanceof Promise) return await node_
 
+  if (node_ === null) return null
+
   let node = node_
   const direction =
     (node.tag as unknown as { direction: Direction } | undefined)?.direction ??

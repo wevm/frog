@@ -1,3 +1,5 @@
+import type { JSX } from 'hono/jsx/jsx-runtime'
+
 export type TextInputProps = {
   placeholder?: string | undefined
 }

@@ -45,11 +45,11 @@ export function Navigator(props: NavigatorProps) {
   )
 
   return (
-    <div className="items-center flex gap-2 w-full" style={{ height: '2rem' }}>
-      <div className="flex border rounded-md h-full">
+    <div className="flex gap-2 items-center w-full" style={{ height: '2rem' }}>
+      <div className="flex h-full rounded-md border">
         <button
           aria-label="back"
-          className="text-gray-700 bg-background-100 px-2 rounded-l-md"
+          className="px-2 text-gray-700 rounded-l-md bg-background-100"
           type="button"
           disabled={stackIndex === 0}
           onClick={handleBack}
@@ -59,11 +59,11 @@ export function Navigator(props: NavigatorProps) {
           />
         </button>
 
-        <div className="bg-gray-alpha-300 h-full" style={{ width: '1px' }} />
+        <div className="h-full bg-gray-alpha-300" style={{ width: '1px' }} />
 
         <button
           aria-label="forward"
-          className="text-gray-700 bg-background-100 px-2 rounded-r-md"
+          className="px-2 text-gray-700 rounded-r-md bg-background-100"
           type="button"
           onClick={handleForward}
         >
@@ -75,7 +75,7 @@ export function Navigator(props: NavigatorProps) {
 
       <button
         aria-label="refresh"
-        className="bg-background-100 border rounded-md text-gray-700 px-2 h-full"
+        className="px-2 h-full text-gray-700 rounded-md border bg-background-100"
         type="button"
         onClick={handleReload}
       >
@@ -122,7 +122,10 @@ function AuthButton() {
           .$get({
             param: { token: data.token },
           })
-          .then((response) => response.json())
+          .then(async (response) => {
+            const json = await response.json()
+            return json
+          })
         if (json.state !== 'completed') return
 
         store.setState((state) => ({ ...state, user: json }))
@@ -147,7 +150,7 @@ function AuthButton() {
     <>
       <button
         type="button"
-        className="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+        className="overflow-hidden text-gray-700 rounded-md border bg-background-100"
         onClick={() => setOpen(true)}
       >
         <div style={{ height: '30px', width: '30px' }}>
@@ -185,11 +188,11 @@ function UserButton(props: UserButtonProps) {
   })
 
   return (
-    <div className="relative grid h-full">
+    <div className="grid relative h-full">
       <button
         aria-label="open user menu"
         type="button"
-        className="bg-background-100 rounded-md border overflow-hidden text-gray-700"
+        className="overflow-hidden text-gray-700 rounded-md border bg-background-100"
         onClick={() => setOpen(true)}
       >
         {user.pfp ? (
@@ -204,7 +207,7 @@ function UserButton(props: UserButtonProps) {
       {open && (
         <div
           ref={ref}
-          className="border bg-background-100 rounded-xl w-full overflow-hidden absolute"
+          className="overflow-hidden absolute w-full rounded-xl border bg-background-100"
           style={{
             marginTop: '4px',
             top: '100%',
@@ -213,20 +216,20 @@ function UserButton(props: UserButtonProps) {
             zIndex: '10',
           }}
         >
-          <div className="text-sm p-4">
+          <div className="p-4 text-sm">
             {user.username && <div>{user.displayName ?? user.username}</div>}
             <div className="text-gray-700">{`FID #${user.userFid}`}</div>
           </div>
 
           <div className="px-4">
-            <div className="border-t w-full" />
+            <div className="w-full border-t" />
           </div>
 
           <div className="py-2">
             {user.username && (
               <a
                 type="button"
-                className="bg-transparent flex items-center justify-between font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
+                className="flex justify-between items-center py-2 px-4 w-full font-sans text-sm text-left text-gray-700 bg-transparent hover:bg-gray-100"
                 style={{ textDecoration: 'none' }}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -239,7 +242,7 @@ function UserButton(props: UserButtonProps) {
 
             <button
               type="button"
-              className="bg-transparent display-block font-sans text-sm px-4 py-2 text-gray-700 w-full text-left hover:bg-gray-100"
+              className="py-2 px-4 w-full font-sans text-sm text-left text-gray-700 bg-transparent hover:bg-gray-100 display-block"
               onClick={() =>
                 client.auth.logout
                   .$post()
@@ -296,13 +299,13 @@ function AddressBar(props: AddressBarProps) {
 
   return (
     <div
-      className="relative grid h-full"
+      className="grid relative h-full"
       style={{ flex: '1' }}
       ref={containerRef}
     >
       {open ? (
         <form
-          className="bg-background-100 border flex rounded-md w-full h-full overflow-hidden"
+          className="flex overflow-hidden w-full h-full rounded-md border bg-background-100"
           onSubmit={handleSubmit}
           style={{ paddingLeft: '0.5rem' }}
         >
@@ -315,7 +318,7 @@ function AddressBar(props: AddressBarProps) {
             defaultValue={url}
             name="url"
             ref={inputRef}
-            className="bg-transparent font-sans text-gray-1000 px-2 w-full"
+            className="px-2 w-full font-sans bg-transparent text-gray-1000"
             data-1p-ignore
             placeholder="Enter address"
             autoComplete="off"
@@ -329,7 +332,7 @@ function AddressBar(props: AddressBarProps) {
           />
           <button
             type="submit"
-            className="bg-background-100 flex items-center justify-center text-gray-700 px-2 hover:bg-gray-100"
+            className="flex justify-center items-center px-2 text-gray-700 hover:bg-gray-100 bg-background-100"
           >
             <span className="sr-only">Go</span>
             <ArrowRightIcon />
@@ -338,7 +341,7 @@ function AddressBar(props: AddressBarProps) {
       ) : (
         <button
           type="button"
-          className="bg-background-100 border rounded-md w-full h-full relative overflow-hidden"
+          className="overflow-hidden relative w-full h-full rounded-md border bg-background-100"
           style={{
             paddingLeft: '1.75rem',
             paddingRight: '1.75rem',
@@ -346,11 +349,11 @@ function AddressBar(props: AddressBarProps) {
           onClick={() => setOpen(true)}
         >
           <GlobeIcon
-            className="flex items-center h-full text-gray-700 absolute"
+            className="flex absolute items-center h-full text-gray-700"
             style={{ left: '0.5rem' }}
           />
 
-          <div className="overflow-hidden whitespace-nowrap text-ellipsis h-full">
+          <div className="overflow-hidden h-full whitespace-nowrap text-ellipsis">
             <span
               className="font-sans text-gray-1000"
               style={{ lineHeight: '1.9rem', fontSize: '13px' }}
@@ -363,7 +366,7 @@ function AddressBar(props: AddressBarProps) {
 
       {open && Boolean(frameUrls.length) && (
         <div
-          className="border bg-background-100 rounded-lg w-full overflow-hidden py-1 absolute"
+          className="overflow-hidden absolute py-1 w-full rounded-lg border bg-background-100"
           style={{
             marginTop: '4px',
             top: '100%',
@@ -373,7 +376,7 @@ function AddressBar(props: AddressBarProps) {
           {frameUrls.map((frameUrl) => (
             <button
               type="button"
-              className="bg-transparent display-block font-sans text-sm whitespace-nowrap px-3 py-2 rounded-lg overflow-hidden text-ellipsis text-gray-900 w-full text-left hover:bg-gray-100"
+              className="overflow-hidden py-2 px-3 w-full font-sans text-sm text-left text-gray-900 whitespace-nowrap bg-transparent rounded-lg hover:bg-gray-100 display-block text-ellipsis"
               onClick={() =>
                 handleSelectNewFrame(frameUrl).finally(() => setOpen(false))
               }

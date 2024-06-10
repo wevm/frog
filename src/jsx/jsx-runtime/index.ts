@@ -1,4 +1,4 @@
-export { jsxDEV as jsx, Fragment } from '../jsx-dev-runtime/index.js'
+export { jsxDEV as jsx, Fragment, type JSX } from '../jsx-dev-runtime/index.js'
 export { jsxDEV as jsxs } from '../jsx-dev-runtime/index.js'
 
 import { html, raw } from 'hono/html'
