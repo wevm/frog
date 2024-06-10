@@ -1,5 +1,17 @@
 # frog
 
+## 0.11.7
+
+### Patch Changes
+
+- [#355](https://github.com/wevm/frog/pull/355) [`7d75e97`](https://github.com/wevm/frog/commit/7d75e9745f31f8dfe0ac34b38274ceb7cbe07b07) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed a bug where properties on UI elements having `0` value were not being set, such as `left="0"` and etc.
+
+- [#354](https://github.com/wevm/frog/pull/354) [`e1d5597`](https://github.com/wevm/frog/commit/e1d5597fb98b2c4613d00b74ed7f3c11262d7591) Thanks [@dalechyn](https://github.com/dalechyn)! - Bumped `hono` and related packages versions.
+
+- [#356](https://github.com/wevm/frog/pull/356) [`7ab81f0`](https://github.com/wevm/frog/commit/7ab81f05681af368892d6a45ef83ebab9224f2de) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where other `Frog` instances routed via `.route` constructed an incorrect image URL due to the absence of `basePath`.
+
+- [#348](https://github.com/wevm/frog/pull/348) [`8286f21`](https://github.com/wevm/frog/commit/8286f217959707f21926a17142122789ade6d2f5) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed a type issue where `margin*` and `letterSpacing` props in `Box` accepted only negative values.
+
 ## 0.11.6
 
 ### Patch Changes
