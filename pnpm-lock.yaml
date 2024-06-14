@@ -188,7 +188,7 @@ importers:
         version: 1.11.2
       '@hono/valibot-validator':
         specifier: ^0.3.0
-        version: 0.3.0(hono@4.4.4)(valibot@0.30.0)
+        version: 0.3.0(hono@4.4.4)(valibot@0.31.1)
       '@noble/curves':
         specifier: ^1.3.0
         version: 1.3.0
@@ -226,8 +226,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       valibot:
-        specifier: ^0.30.0
-        version: 0.30.0
+        specifier: ^0.31.0
+        version: 0.31.1
       viem:
         specifier: ^2.7.10
         version: 2.7.11(typescript@5.3.3)
@@ -1945,14 +1945,14 @@ packages:
     engines: {node: '>=18.14.1'}
     dev: false
 
-  /@hono/valibot-validator@0.3.0(hono@4.4.4)(valibot@0.30.0):
+  /@hono/valibot-validator@0.3.0(hono@4.4.4)(valibot@0.31.1):
     resolution: {integrity: sha512-EcGJKzLt11SK4K11yKHrhI93ECtKeSHAnnENHw5tCL0ZhyDIx96avc3Ua8/ri4fwVvRPuOzFQ2OBRsVvwZuqeQ==}
     peerDependencies:
       hono: 4.4.4
       valibot: '>=0.31.0 <1'
     dependencies:
       hono: 4.4.4
-      valibot: 0.30.0
+      valibot: 0.31.1
     dev: false
 
   /@iconify/json@2.2.196:
@@ -11908,8 +11908,8 @@ packages:
       convert-source-map: 2.0.0
     dev: true
 
-  /valibot@0.30.0:
-    resolution: {integrity: sha512-5POBdbSkM+3nvJ6ZlyQHsggisfRtyT4tVTo1EIIShs6qCdXJnyWU5TJ68vr8iTg5zpOLjXLRiBqNx+9zwZz/rA==}
+  /valibot@0.31.1:
+    resolution: {integrity: sha512-2YYIhPrnVSz/gfT2/iXVTrSj92HwchCt9Cga/6hX4B26iCz9zkIsGTS0HjDYTZfTi1Un0X6aRvhBi1cfqs/i0Q==}
     dev: false
 
   /validate-npm-package-license@3.0.4:
