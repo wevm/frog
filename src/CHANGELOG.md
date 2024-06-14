@@ -1,5 +1,11 @@
 # frog
 
+## 0.11.8
+
+### Patch Changes
+
+- [#360](https://github.com/wevm/frog/pull/360) [`42f143d`](https://github.com/wevm/frog/commit/42f143d22802fb7764eb043ca18fffecacca1eb4) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with `valibot` having an incorrect schema on parsing POST request.
+
 ## 0.11.7
 
 ### Patch Changes
