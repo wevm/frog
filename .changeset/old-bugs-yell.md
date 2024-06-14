@@ -2,4 +2,4 @@
 "frog": patch
 ---
 
-Fixed an issue with valibot with an incorrect schema.
+Fixed an issue with `valibot` having an incorrect schema on parsing POST request.
