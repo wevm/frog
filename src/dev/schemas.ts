@@ -5,10 +5,10 @@ import {
   number,
   object,
   optional,
+  pipe,
   string,
   undefined_,
   union,
-  pipe,
 } from 'valibot'
 
 import { defaultCastId } from './constants.js'
