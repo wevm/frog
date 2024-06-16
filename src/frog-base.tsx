@@ -879,6 +879,10 @@ export class FrogBase<
       )
 
     this.hono.get(path, ...middlewares, async (c) => {
+      const url = getRequestUrl(c.req)
+      const origin = this.origin ?? url.origin
+      const assetsUrl = origin + parsePath(this.assetsPath)
+
       const { context } = getImageContext<env, string>({
         context: c,
       })
@@ -909,14 +913,41 @@ export class FrogBase<
         image,
         imageOptions = defaultImageOptions,
       } = response.data
-      return new ImageResponse(image, {
-        width: 1200,
-        height: 630,
-        ...imageOptions,
-        format: imageOptions?.format ?? 'png',
-        fonts: await parseFonts(fonts),
-        headers: imageOptions?.headers ?? headers,
-      })
+      return new ImageResponse(
+        (await parseImage(
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              width: '100%',
+            }}
+          >
+            {await image}
+          </div>,
+          {
+            assetsUrl,
+            ui: {
+              ...this.ui,
+              vars: {
+                ...this.ui?.vars,
+                frame: {
+                  height: imageOptions?.height!,
+                  width: imageOptions?.width!,
+                },
+              },
+            },
+          },
+        )) as any,
+        {
+          width: 1200,
+          height: 630,
+          ...imageOptions,
+          format: imageOptions?.format ?? 'png',
+          fonts: await parseFonts(fonts),
+          headers: imageOptions?.headers ?? headers,
+        },
+      )
     })
 
     return this
