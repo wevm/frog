@@ -114,6 +114,45 @@ export const app = new Frog({
       ],
     })
   })
+  .frame('/divider-with-image-handler', (c) => {
+    return c.res({
+      image: '/divider-with-image-handler/img',
+      intents: [
+        <Button action="/columns">←</Button>,
+        <Button action="/hstack">→</Button>,
+      ],
+    })
+  })
+  .image('/divider-with-image-handler/img', (c) => {
+    return c.res({
+      image: (
+        <Box backgroundColor="background" grow padding="24">
+          <VStack gap="4" grow>
+            <Heading>{'<Divider>'}</Heading>
+            <Spacer size="16" />
+            <Box backgroundColor="background200" grow padding="16">
+              <Box backgroundColor="red" />
+              <Columns gap="8" grow>
+                <Column backgroundColor="red" width="1/2" />
+                <Divider />
+                <Rows gap="8" grow>
+                  <Row backgroundColor="red" height="1/3" />
+                  <Divider />
+                  <Row backgroundColor="red" height="2/3" padding="16">
+                    <VStack height="100%" gap="16">
+                      <Box backgroundColor="blue" width="100%" height="18" />
+                      <Divider />
+                      <Box backgroundColor="blue" width="100%" height="18" />
+                    </VStack>
+                  </Row>
+                </Rows>
+              </Columns>
+            </Box>
+          </VStack>
+        </Box>
+      ),
+    })
+  })
   .frame('/heading', (c) => {
     return c.res({
       image: (
