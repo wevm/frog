@@ -159,7 +159,14 @@ export async function handleTransaction(button: {
         sourceFrameId,
       },
     })
-    .then((response) => response.json())
+    .then(async (response) => await response.json())
+
+  if (json.type === 'error') {
+    return {
+      status: 'error',
+      message: json.response.error,
+    } as const
+  }
 
   const id = json.id
   store.setState((state) => {
@@ -186,7 +193,7 @@ export async function handleTransaction(button: {
     }
   })
 
-  return json.response.data
+  return { status: 'success', data: json.response.data } as const
 }
 
 export async function performAction(data: Data, previousData: Data) {
@@ -214,14 +221,19 @@ export async function performAction(data: Data, previousData: Data) {
           const { context, frame } = previousData
           return { context, frame, ...json }
         })
-    case 'tx':
-      return await client.frames[':url'].tx
+    case 'tx': {
+      const json = await client.frames[':url'].tx
         .$post({ param: { url }, json: data.body })
-        .then((response) => response.json())
+        .then(async (response) => await response.json())
         .then((json) => {
           const { context, frame } = previousData
           return { context, frame, ...json }
         })
+
+      if (json.type === 'error') return
+
+      return json
+    }
   }
 }
 

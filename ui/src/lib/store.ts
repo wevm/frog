@@ -7,7 +7,7 @@ import { deepEqual } from '../utils/deepEqual'
 
 export type State = {
   dataKey: string
-  dataMap: Record<string, Data & {}>
+  dataMap: Record<string, Data>
   frameUrls: string[]
   inputText: string
   logIndex: number
