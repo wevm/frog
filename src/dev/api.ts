@@ -33,6 +33,7 @@ import {
   getUserDataByFid,
   postSignedKeyRequest,
 } from './utils/warpcast.js'
+import { responseToBaseErrorMessage } from './utils/responseToBaseErrorMessage.js'
 
 export type ApiRoutesOptions = {
   /** Custom app fid to auth with. */
@@ -109,6 +110,28 @@ export function apiRoutes(
       if (!response) throw new Error('Failed to fetch frame')
 
       const cloned = response.clone()
+
+      if (!response.ok) {
+        const message = await responseToBaseErrorMessage(cloned)
+        return c.json({
+          id: uid(),
+          timestamp: Date.now(),
+          type: 'error',
+          method: 'post',
+          body,
+          metrics: {
+            speed,
+          },
+          response: {
+            success: false,
+            error: message,
+            status: response.status,
+            statusText: response.statusText,
+          },
+          url,
+        } as const)
+      }
+
       const text = await response.text()
       const metadata = htmlToMetadata(text)
       const { context, frame } = metadata
@@ -330,7 +353,10 @@ type Client = ReturnType<typeof hc<ApiRoutes>>
 
 export type Data =
   | InferResponseType<Client['frames'][':url']['$get']>
-  | InferResponseType<Client['frames'][':url']['action']['$post']>
+  | Extract<
+      InferResponseType<Client['frames'][':url']['action']['$post']>,
+      { type: 'action' }
+    >
   | (InferResponseType<Client['frames'][':url']['redirect']['$post']> &
       BaseData)
   | (InferResponseType<Client['frames'][':url']['tx']['$post']> & BaseData)
