@@ -6,17 +6,6 @@ export type SpacerProps<vars extends Vars = DefaultVars> = {
   size?: VariableValue<'width', keyof vars['units']>
 }
 
-export function Spacer<vars extends Vars>({
-  // @ts-ignore - private
-  __context,
-  size,
-}: SpacerProps<vars>) {
-  return (
-    <Box
-      __context={__context}
-      grow={size ? undefined : true}
-      height={size}
-      width={size}
-    />
-  )
+export function Spacer<vars extends Vars>({ size }: SpacerProps<vars>) {
+  return <Box grow={size ? undefined : true} height={size} width={size} />
 }
