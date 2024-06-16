@@ -1,4 +1,4 @@
-import { ChainIdEip155 } from '../types/frog'
+import type { ChainIdEip155 } from '../types/frog'
 
 // https://regexr.com/7tstq
 // https://chainagnostic.org/CAIPs/caip-2

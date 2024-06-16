@@ -34,6 +34,12 @@
         "noBannedTypes": "off",
         "noUselessFragments": "off"
       },
+      "correctness": {
+        "useJsxKeyInIterable": "off"
+      },
+      "nursery": {
+        "useSortedClasses": "error"
+      },
       "suspicious": {
         "noExplicitAny": "off",
         "noRedeclare": "off"
@@ -46,7 +52,7 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
-      "trailingComma": "all",
+      "trailingCommas": "all",
       "semicolons": "asNeeded"
     }
   }

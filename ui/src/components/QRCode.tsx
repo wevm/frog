@@ -91,7 +91,7 @@ export function QRCode(props: QRCodeProps) {
 
   return (
     <div
-      className="border border-gray-100 p-3 w-fit"
+      className="w-fit border border-gray-100 p-3"
       style={{ borderRadius: '1.5rem' }}
     >
       <div
@@ -103,11 +103,11 @@ export function QRCode(props: QRCodeProps) {
         }}
       >
         <div
-          className="flex items-center justify-center absolute"
+          className="absolute flex items-center justify-center"
           style={{ inset: '0' }}
         >
           <div
-            className="flex items-center justify-center rounded-lg overflow-hidden"
+            className="flex items-center justify-center overflow-hidden rounded-lg"
             style={{
               height: `${logoSize - logoMargin}px`,
               width: `${logoSize - logoMargin}px`,

@@ -54,13 +54,13 @@ export function AuthDialog(props: AuthDialogProps) {
       }}
     >
       <div
-        className="bg-background-100 relative flex flex-col gap-4 scrollbars p-6 border-gray-alpha-100 border"
+        className="scrollbars relative flex flex-col gap-4 border border-gray-alpha-100 bg-background-100 p-6"
         style={{ borderRadius: '1.5rem' }}
         ref={ref}
       >
         <button
           type="button"
-          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100 size-8"
+          className="absolute flex size-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
           style={{
             top: '1.25rem',
             right: '1rem',
@@ -71,12 +71,12 @@ export function AuthDialog(props: AuthDialogProps) {
           <Cross1Icon />
         </button>
 
-        <h1 className="text-base font-bold text-gray-1000 text-center">
+        <h1 className="text-center font-bold text-base text-gray-1000">
           Scan with Phone
         </h1>
 
         <p
-          className="text-sm text-gray-700 leading-snug text-center"
+          className="text-center text-gray-700 text-sm leading-snug"
           style={{ maxWidth: '17rem' }}
         >
           Scan with your phone's camera to sign in with your Farcaster account.
@@ -110,7 +110,7 @@ export function AuthDialog(props: AuthDialogProps) {
               role="alert"
               aria-live="assertive"
               aria-atomic="true"
-              className="flex items-center justify-center flex-col gap-4 absolute"
+              className="absolute flex flex-col items-center justify-center gap-4"
               style={{
                 inset: '0',
               }}
@@ -118,7 +118,7 @@ export function AuthDialog(props: AuthDialogProps) {
               <div className="font-medium text-gray-1000">Code timed out</div>
 
               <button
-                className="bg-gray-1000 border border-gray-200 py-2 px-4 text-gray-100 font-medium text-sm rounded-md"
+                className="rounded-md border border-gray-200 bg-gray-1000 px-4 py-2 font-medium text-gray-100 text-sm"
                 type="button"
                 onClick={reset}
               >
@@ -130,7 +130,7 @@ export function AuthDialog(props: AuthDialogProps) {
 
         <button
           type="button"
-          className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1"
+          className="mt-1 rounded-xl border border-gray-200 bg-gray-100 p-3 font-medium text-gray-1000 text-sm"
           onClick={copy}
           disabled={timedOut}
           style={timedOut ? { opacity: '0.4' } : undefined}

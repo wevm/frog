@@ -17,7 +17,7 @@ export function App() {
   if (!data || !frame || !frameUrl)
     return (
       <div
-        className="flex flex-col items-center gap-4 md:gap-6 p-4 pt-32 mx-auto"
+        className="mx-auto flex flex-col items-center gap-4 p-4 pt-32 md:gap-6"
         style={{ maxWidth: '40rem' }}
       >
         <StartForm />
@@ -26,13 +26,13 @@ export function App() {
 
   return (
     <div
-      className="flex flex-col container md:grid md:container gap-4 md:gap-6 h-auto mx-auto p-4 md:p-6"
+      className="container mx-auto flex h-auto flex-col gap-4 p-4 md:container md:grid md:gap-6 md:p-6"
       style={{
         maxWidth: '1512px',
       }}
     >
       <aside
-        className="order-1 space-y-4 md:min-w-sidebar md:max-w-sidebar lg:min-w-sidebar lg:max-w-sidebar w-full"
+        className="order-1 w-full space-y-4 lg:min-w-sidebar md:min-w-sidebar lg:max-w-sidebar md:max-w-sidebar"
         style={{
           position: 'sticky',
           top: '1.5rem',
@@ -43,10 +43,10 @@ export function App() {
         <QuickLinks url={frameUrl} />
       </aside>
 
-      <main className="flex flex-col md:h-full w-full gap-4 order-0 md:order-1 overflow-hidden">
+      <main className="order-0 flex w-full flex-col gap-4 overflow-hidden md:order-1 md:h-full">
         <Navigator frameUrls={frameUrls} url={frameUrl} />
 
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row">
           <div className="flex flex-col gap-4">
             <Metrics />
             <Preview frame={frame} url={frameUrl} />

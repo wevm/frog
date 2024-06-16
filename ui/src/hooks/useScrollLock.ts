@@ -40,8 +40,10 @@ export function useScrollLock(
             : target.current.offsetWidth
         // Get current computed padding right in pixels
         const currentPaddingRight =
-          parseInt(window.getComputedStyle(target.current).paddingRight, 10) ||
-          0
+          Number.parseInt(
+            window.getComputedStyle(target.current).paddingRight,
+            10,
+          ) || 0
 
         const scrollbarWidth = offsetWidth - target.current.scrollWidth
         target.current.style.paddingRight = `${

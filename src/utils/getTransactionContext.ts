@@ -1,4 +1,4 @@
-import { type HonoRequest, type Input } from 'hono'
+import type { HonoRequest, Input } from 'hono'
 import {
   type Abi,
   AbiFunctionNotFoundError,

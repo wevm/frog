@@ -23,7 +23,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useNotification, useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
 import { config } from '../lib/wagmi.js'
-import { Frame } from '../types/frog.js'
+import type { Frame } from '../types/frog.js'
 import {
   handlePost,
   handlePostRedirect,
@@ -52,8 +52,8 @@ export function Preview(props: PreviewProps) {
   const notification = useNotification()
 
   return (
-    <div className="lg:w-frame lg:min-h-frame w-full h-full">
-      <div className="relative rounded-md relative w-full">
+    <div className="h-full w-full lg:min-h-frame lg:w-frame">
+      <div className="relative relative w-full rounded-md">
         <div className="relative">
           <Img
             aspectRatio={frame.imageAspectRatio}
@@ -62,14 +62,14 @@ export function Preview(props: PreviewProps) {
             title={frame.title}
           />
           {notification && (
-            <div className="absolute bottom-2 inset-x-4">
+            <div className="absolute inset-x-4 bottom-2">
               <Toast {...notification} />
             </div>
           )}
         </div>
 
         {hasIntents && (
-          <div className="bg-background-100 flex flex-col px-4 py-2 gap-2 rounded-bl-md rounded-br-md border-t-0 border">
+          <div className="flex flex-col gap-2 rounded-br-md rounded-bl-md border border-t-0 bg-background-100 px-4 py-2">
             {frame.input && <Input placeholder={frame.input.text} />}
 
             {frame.buttons && (
@@ -103,8 +103,8 @@ export function Preview(props: PreviewProps) {
         )}
       </div>
 
-      <div className="text-xs mt-1 text-right">
-        <a className="text-gray-700 font-medium" href={url}>
+      <div className="mt-1 text-right text-xs">
+        <a className="font-medium text-gray-700" href={url}>
           {domain}
         </a>
       </div>
@@ -156,7 +156,7 @@ function Input(props: InputProps) {
     <input
       aria-label={placeholder}
       autoComplete="off"
-      className="bg-background-200 rounded-md border px-3 py-2.5 text-sm leading-snug w-full"
+      className="w-full rounded-md border bg-background-200 px-3 py-2.5 text-sm leading-snug"
       data-1p-ignore
       name="inputText"
       placeholder={placeholder}
@@ -320,7 +320,7 @@ function LeavingAppPrompt(props: {
 
   return (
     <div
-      className="flex flex-col gap-1.5 border bg-background-100 p-4 rounded-lg text-center absolute"
+      className="absolute flex flex-col gap-1.5 rounded-lg border bg-background-100 p-4 text-center"
       style={{
         marginTop: '4px',
         width: '20rem',
@@ -332,16 +332,16 @@ function LeavingAppPrompt(props: {
         Leaving Warpcast
       </h1>
 
-      <div className="line-clamp-2 text-gray-700 text-sm font-mono">{url}</div>
+      <div className="line-clamp-2 font-mono text-gray-700 text-sm">{url}</div>
 
-      <p className="text-sm leading-snug text-gray-900">
+      <p className="text-gray-900 text-sm leading-snug">
         If you connect your wallet and the site is malicious, you may lose
         funds.
       </p>
 
-      <div className="flex gap-1.5 mt-1.5">
+      <div className="mt-1.5 flex gap-1.5">
         <button
-          className="bg-background-100 border rounded-md w-full text-sm font-medium py-2"
+          className="w-full rounded-md border bg-background-100 py-2 font-medium text-sm"
           type="button"
           onClick={close}
         >
@@ -349,7 +349,7 @@ function LeavingAppPrompt(props: {
         </button>
 
         <button
-          className="bg-red-400 hover:bg-red-300 rounded-md w-full text-sm text-bg font-medium py-2"
+          className="w-full rounded-md bg-red-400 py-2 font-medium text-bg text-sm hover:bg-red-300"
           type="button"
           onClick={() => {
             close()
@@ -389,7 +389,7 @@ function TransactionDialog(props: TransactionDialogProps) {
 
   return (
     <div
-      className="flex flex-col gap-1.5 border bg-background-100 p-4 rounded-lg text-center absolute"
+      className="absolute flex flex-col gap-1.5 rounded-lg border bg-background-100 p-4 text-center"
       style={{
         marginTop: '4px',
         width: '20rem',
@@ -399,7 +399,7 @@ function TransactionDialog(props: TransactionDialogProps) {
     >
       <button
         type="button"
-        className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100 right-2.5 top-2.5 h-8 w-8"
+        className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
         onClick={close}
       >
         <span className="sr-only">Close</span>
@@ -596,7 +596,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             Transaction Data Error
           </h1>
 
-          <div className="text-sm leading-snug text-gray-900 mb-4 flex flex-col gap-1">
+          <div className="mb-4 flex flex-col gap-1 text-gray-900 text-sm leading-snug">
             <p> Error loading transaction data:</p>
             <code className="font-mono text-xs">
               {transactionDataError.message}
@@ -605,7 +605,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
           <button
             type="button"
-            className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1 text-center relative flex items-center justify-center"
+            className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
             onClick={() => refetch()}
           >
             Retry
@@ -621,13 +621,13 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           Review Transaction
         </h1>
 
-        <p className="text-sm leading-snug text-gray-900 mb-4 text-balance">
+        <p className="mb-4 text-balance text-gray-900 text-sm leading-snug">
           Review the following transaction before confirming in your wallet.
         </p>
 
-        <div className="border divide-y rounded-lg mb-4 text-xs">
-          <div className="flex justify-between py-2 px-3">
-            <div className="text-gray-700 font-medium">Address</div>
+        <div className="mb-4 divide-y rounded-lg border text-xs">
+          <div className="flex justify-between px-3 py-2">
+            <div className="font-medium text-gray-700">Address</div>
             <div className="flex gap-1">
               <div title={address} className="text-gray-1000">
                 {address.slice(0, 4)}…{address.slice(-4)}
@@ -648,8 +648,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           {/*   <div className="text-gray-1000">{domain}</div> */}
           {/* </div> */}
 
-          <div className="flex justify-between py-2 px-3">
-            <div className="text-gray-700 font-medium">Chain</div>
+          <div className="flex justify-between px-3 py-2">
+            <div className="font-medium text-gray-700">Chain</div>
             {isTransactionDataLoading ? (
               <div className="self-center">
                 <LoadingDots />
@@ -658,8 +658,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               <div className="text-gray-1000">{transactionChain?.name}</div>
             )}
           </div>
-          <div className="flex justify-between py-2 px-3">
-            <div className="text-gray-700 font-medium">
+          <div className="flex justify-between px-3 py-2">
+            <div className="font-medium text-gray-700">
               {abiFunction ? 'Contract' : 'To'}
             </div>
             {isTransactionDataLoading ? (
@@ -690,8 +690,8 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             )}
           </div>
           {abiFunction && (
-            <div className="flex justify-between py-2 px-3">
-              <div className="text-gray-700 font-medium">Function</div>
+            <div className="flex justify-between px-3 py-2">
+              <div className="font-medium text-gray-700">Function</div>
               {isTransactionDataLoading ? (
                 <div className="self-center">
                   <LoadingDots />
@@ -703,11 +703,11 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           )}
 
           {transactionData?.params.value && (
-            <div className="flex justify-between py-2 px-3">
-              <div className="text-gray-700 font-medium">Value</div>
+            <div className="flex justify-between px-3 py-2">
+              <div className="font-medium text-gray-700">Value</div>
               <div className="text-gray-1000">
                 {transactionData.method.includes('eth') && (
-                  <span className="text-gray-700 select-none mr-1">Ξ</span>
+                  <span className="mr-1 select-none text-gray-700">Ξ</span>
                 )}
                 {formatEther(BigInt(transactionData.params.value))}
               </div>
@@ -717,7 +717,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
         <button
           type="button"
-          className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1 text-center relative flex items-center justify-center"
+          className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           disabled={
             isTransactionDataLoading ||
             switchChainIsPending ||
@@ -739,7 +739,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
         </button>
 
         {sendTransactionError && (
-          <div className="text-xs text-red-900 mt-1">
+          <div className="mt-1 text-red-900 text-xs">
             {'shortMessage' in sendTransactionError
               ? sendTransactionError.shortMessage
               : sendTransactionError.message}
@@ -754,7 +754,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       <>
         <button
           type="button"
-          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100 left-2.5 top-2.5 h-8 w-8"
+          className="absolute top-2.5 left-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
           onClick={() => {
             connectReset()
             setQrUri(undefined)
@@ -768,7 +768,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           Scan with Phone
         </h1>
 
-        <p className="text-sm leading-snug text-gray-900 mb-2 text-balance">
+        <p className="mb-2 text-balance text-gray-900 text-sm leading-snug">
           Scan with your phone's camera to connect your wallet.
         </p>
 
@@ -789,7 +789,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
         <button
           type="button"
-          className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-2 text-center relative flex items-center justify-center"
+          className="relative mt-2 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           onClick={copy}
         >
           {copied ? 'Copied!' : 'Copy to Clipboard'}
@@ -802,7 +802,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       {isSwitchingAccount && (
         <button
           type="button"
-          className="bg-transparent text-gray-800 rounded-full flex items-center justify-center absolute hover:bg-gray-100 left-2.5 top-2.5 h-8 w-8"
+          className="absolute top-2.5 left-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
           onClick={() => setIsSwitchingAccount(false)}
         >
           <span className="sr-only">Back</span>
@@ -812,7 +812,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
       <h1 className="font-semibold text-base text-gray-1000">Connect Wallet</h1>
 
-      <p className="text-sm leading-snug text-gray-900 mb-4 text-balance">
+      <p className="mb-4 text-balance text-gray-900 text-sm leading-snug">
         Connect your wallet to continue with the frame transaction.
       </p>
 
@@ -828,7 +828,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               connect({ chainId: transactionChainId, connector })
             }}
             type="button"
-            className="bg-gray-100 border border-gray-200 p-3 text-gray-1000 font-medium text-sm rounded-xl mt-1 text-center relative flex items-center justify-center"
+            className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           >
             {connector.name}
 
@@ -844,7 +844,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       </div>
 
       {connectError && (
-        <div className="text-xs text-red-900 mt-1">
+        <div className="mt-1 text-red-900 text-xs">
           {'shortMessage' in connectError
             ? connectError.shortMessage
             : connectError.message}

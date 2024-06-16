@@ -7,12 +7,12 @@ import {
   ResetIcon,
 } from '@radix-ui/react-icons'
 import clsx from 'clsx'
-import { FormEventHandler, useCallback, useRef, useState } from 'react'
+import { type FormEventHandler, useCallback, useRef, useState } from 'react'
 
 import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
-import { Data } from '../types/frog.js'
+import type { Data } from '../types/frog.js'
 import { performAction } from '../utils/actions.js'
 import { formatSpeed, formatTime } from '../utils/format.js'
 
@@ -32,11 +32,11 @@ export function Timeline() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="h-timeline flex flex-col justify-between">
-      <div className="border rounded-t-md overflow-hidden flex flex-col h-full">
+    <div className="flex h-timeline flex-col justify-between">
+      <div className="flex h-full flex-col overflow-hidden rounded-t-md border">
         <div className="scrollbars">
           <div
-            className="bg-background-100 w-full flex"
+            className="flex w-full bg-background-100"
             style={{
               flexDirection: 'column-reverse',
               justifyContent: 'flex-end',
@@ -55,12 +55,12 @@ export function Timeline() {
         </div>
       </div>
 
-      <div className="bg-background-100 px-2 py-2 flex justify-between border rounded-b-md border-t-0">
+      <div className="flex justify-between rounded-b-md border border-t-0 bg-background-100 px-2 py-2">
         <div className="flex gap-1.5">
-          <div className="flex border rounded bg-background-200 text-gray-700 divide-x">
+          <div className="flex divide-x rounded border bg-background-200 text-gray-700">
             <button
               aria-label="previous log"
-              className="bg-transparent p-1.5 hover:bg-gray-100 rounded-l-sm"
+              className="rounded-l-sm bg-transparent p-1.5 hover:bg-gray-100"
               type="button"
               onClick={() => {
                 const nextLogIndex =
@@ -82,7 +82,7 @@ export function Timeline() {
 
             <button
               aria-label="next log"
-              className="bg-transparent p-1.5 hover:bg-gray-100 rounded-r-sm"
+              className="rounded-r-sm bg-transparent p-1.5 hover:bg-gray-100"
               type="button"
               onClick={() => {
                 let nextLogIndex =
@@ -177,9 +177,9 @@ function Row(props: RowProps) {
         store.setState((state) => ({ ...state, dataKey, logIndex: index }))
       }}
     >
-      <div className="flex flex-row items-center justify-between w-full">
-        <div className="flex gap-1.5 font-mono text-gray-700 text-xs items-center">
-          <div className="flex items-center border px-1 py-0.5 leading-4 rounded text-gray-900 uppercase">
+      <div className="flex w-full flex-row items-center justify-between">
+        <div className="flex items-center gap-1.5 font-mono text-gray-700 text-xs">
+          <div className="flex items-center rounded border px-1 py-0.5 text-gray-900 uppercase leading-4">
             {log.method}
           </div>
 
@@ -210,11 +210,11 @@ function Row(props: RowProps) {
       </div>
 
       <div
-        className="font-mono text-gray-900 text-xs text-left whitespace-nowrap w-full"
+        className="w-full whitespace-nowrap text-left font-mono text-gray-900 text-xs"
         title={url.toString()}
       >
         <div
-          className="text-ellipsis inline-block md:max-w-[57%]"
+          className="inline-block text-ellipsis md:max-w-[57%]"
           style={{ overflow: 'clip' }}
         >
           {hostname}
@@ -244,7 +244,8 @@ function UserForm(props: UserFormProps) {
   const [overrideUserFid, setOverrideUserFid] = useState(
     user && overrides.userFid !== user.userFid,
   )
-  const editFid = !overrideUserFid && user?.userFid === parseInt(userFid, 10)
+  const editFid =
+    !overrideUserFid && user?.userFid === Number.parseInt(userFid, 10)
 
   const ref = useRef<HTMLFormElement>(null)
   useFocusTrap({
@@ -261,8 +262,8 @@ function UserForm(props: UserFormProps) {
       event.preventDefault()
 
       const nextOverrides = {
-        userFid: parseInt(userFid, 10),
-        castFid: parseInt(castFid, 10),
+        userFid: Number.parseInt(userFid, 10),
+        castFid: Number.parseInt(castFid, 10),
         castHash,
       }
       store.setState((x) => ({ ...x, overrides: nextOverrides }))
@@ -313,7 +314,7 @@ function UserForm(props: UserFormProps) {
   return (
     <form
       ref={ref}
-      className="border bg-background-100 rounded-lg w-full overflow-hidden px-4 pb-4 pt-3 flex flex-col gap-3 absolute"
+      className="absolute flex w-full flex-col gap-3 overflow-hidden rounded-lg border bg-background-100 px-4 pt-3 pb-4"
       style={{
         marginBottom: '4px',
         bottom: '100%',
@@ -325,7 +326,7 @@ function UserForm(props: UserFormProps) {
     >
       <div className="flex flex-col gap-0.5">
         <div
-          className="text-xs text-gray-700 font-medium"
+          className="font-medium text-gray-700 text-xs"
           style={{ paddingLeft: '0.25rem' }}
         >
           User
@@ -335,7 +336,7 @@ function UserForm(props: UserFormProps) {
           <input
             aria-label="User FID"
             autoComplete="off"
-            className="bg-background-200 rounded-md border px-3 py-2 text-sm leading-snug w-full text-xs"
+            className="w-full rounded-md border bg-background-200 px-3 py-2 text-sm text-xs leading-snug"
             data-1p-ignore
             disabled={Boolean(user) && overrideUserFid === false}
             name="userFid"
@@ -353,7 +354,7 @@ function UserForm(props: UserFormProps) {
               {editFid ? (
                 <button
                   aria-label="Edit User FID"
-                  className="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded"
+                  className="absolute rounded bg-transparent p-1 font-medium text-gray-700 text-xs hover:bg-gray-100"
                   type="button"
                   style={{ right: '0.25rem' }}
                   onClick={() => {
@@ -366,7 +367,7 @@ function UserForm(props: UserFormProps) {
               ) : (
                 <button
                   aria-label="Restore User FID"
-                  className="absolute text-xs bg-transparent text-gray-700 font-medium hover:bg-gray-100 p-1 rounded"
+                  className="absolute rounded bg-transparent p-1 font-medium text-gray-700 text-xs hover:bg-gray-100"
                   type="button"
                   style={{ right: '0.25rem' }}
                   onClick={() => {
@@ -384,17 +385,17 @@ function UserForm(props: UserFormProps) {
 
       <div className="flex flex-col gap-0.5">
         <div
-          className="text-xs text-gray-700 font-medium"
+          className="font-medium text-gray-700 text-xs"
           style={{ paddingLeft: '0.25rem' }}
         >
           Cast
         </div>
 
-        <div className="bg-background-200 border rounded-md divide-y">
+        <div className="divide-y rounded-md border bg-background-200">
           <input
             aria-label="Cast FID"
             autoComplete="off"
-            className="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-t-md"
+            className="w-full rounded-t-md bg-transparent px-3 py-2 text-sm text-xs leading-snug"
             name="inputText"
             type="text"
             required
@@ -407,7 +408,7 @@ function UserForm(props: UserFormProps) {
           <input
             aria-label="Cast Hash"
             autoComplete="off"
-            className="bg-transparent px-3 py-2 text-sm leading-snug w-full text-xs rounded-b-md"
+            className="w-full rounded-b-md bg-transparent px-3 py-2 text-sm text-xs leading-snug"
             name="inputText"
             type="text"
             required
@@ -419,9 +420,9 @@ function UserForm(props: UserFormProps) {
         </div>
       </div>
 
-      <div className="flex gap-1.5 mt-1.5">
+      <div className="mt-1.5 flex gap-1.5">
         <button
-          className="bg-background-100 border rounded-md w-full text-xs font-medium py-1.5"
+          className="w-full rounded-md border bg-background-100 py-1.5 font-medium text-xs"
           type="button"
           onClick={close}
         >
@@ -429,7 +430,7 @@ function UserForm(props: UserFormProps) {
         </button>
 
         <button
-          className="bg-gray-200 hover:bg-gray-100 rounded-md w-full text-xs text-bg font-medium py-1.5"
+          className="w-full rounded-md bg-gray-200 py-1.5 font-medium text-bg text-xs hover:bg-gray-100"
           type="submit"
         >
           Update

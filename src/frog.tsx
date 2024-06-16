@@ -1,4 +1,4 @@
-import { type Schema } from 'hono'
+import type { Schema } from 'hono'
 
 import { FrogBase, type FrogConstructorParameters } from './frog-base.js'
 import type { Env } from './types/env.js'
