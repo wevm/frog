@@ -28,9 +28,11 @@ export {
   verifyFrame,
 } from './utils/verifyFrame.js'
 
+export type { CastActionResponse } from './types/castAction.js'
 export type {
   Context,
   FrameContext,
+  ImageContext,
   TransactionContext,
 } from './types/context.js'
 export type { Env } from './types/env.js'
@@ -40,10 +42,12 @@ export type {
   /** @deprecated Use `FrameIntent[]` instead. */
   FrameIntents,
 } from './types/frame.js'
+export type { ImageResponse } from './types/image.js'
 export type { HandlerResponse, TypedResponse } from './types/response.js'
 export type {
   FrameHandler,
   HandlerInterface,
+  ImageHandler,
   MiddlewareHandler,
   MiddlewareHandlerInterface,
   TransactionHandler,
