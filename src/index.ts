@@ -30,6 +30,7 @@ export {
 
 export type { CastActionResponse } from './types/castAction.js'
 export type {
+  CastActionContext,
   Context,
   FrameContext,
   ImageContext,
@@ -45,6 +46,7 @@ export type {
 export type { ImageResponse } from './types/image.js'
 export type { HandlerResponse, TypedResponse } from './types/response.js'
 export type {
+  CastActionHandler,
   FrameHandler,
   HandlerInterface,
   ImageHandler,
