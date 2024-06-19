@@ -40,7 +40,21 @@ export async function handlePost(button: {
         sourceFrameId: dataKey,
       },
     })
-    .then((response) => response.json())
+    // while this async/await seems useless, it fixes typing issues
+    .then(async (response) => await response.json())
+
+  if (json.type === 'error') {
+    store.setState((state) => ({
+      ...state,
+      notification: {
+        key: state.dataKey,
+        type: 'error',
+        title: json.response.error,
+        dismissable: true,
+      },
+    }))
+    return
+  }
 
   const id = json.id
   store.setState((state) => {
@@ -60,6 +74,7 @@ export async function handlePost(button: {
           ? [...state.stack.slice(0, nextStackIndex), id]
           : [...state.stack, id],
       stackIndex: nextStackIndex,
+      notification: null,
     }
   })
 }
@@ -144,7 +159,14 @@ export async function handleTransaction(button: {
         sourceFrameId,
       },
     })
-    .then((response) => response.json())
+    .then(async (response) => await response.json())
+
+  if (json.type === 'error') {
+    return {
+      status: 'error',
+      message: json.response.error,
+    } as const
+  }
 
   const id = json.id
   store.setState((state) => {
@@ -171,7 +193,7 @@ export async function handleTransaction(button: {
     }
   })
 
-  return json.response.data
+  return { status: 'success', data: json.response.data } as const
 }
 
 export async function performAction(data: Data, previousData: Data) {
@@ -182,10 +204,15 @@ export async function performAction(data: Data, previousData: Data) {
       return await client.frames[':url']
         .$get({ param: { url } })
         .then((response) => response.json())
-    case 'action':
-      return await client.frames[':url'].action
+    case 'action': {
+      const json = await client.frames[':url'].action
         .$post({ param: { url }, json: data.body })
-        .then((response) => response.json())
+        .then(async (response) => await response.json())
+
+      if (json.type === 'error') return
+
+      return json
+    }
     case 'redirect':
       return await client.frames[':url'].redirect
         .$post({ param: { url }, json: data.body })
@@ -194,14 +221,19 @@ export async function performAction(data: Data, previousData: Data) {
           const { context, frame } = previousData
           return { context, frame, ...json }
         })
-    case 'tx':
-      return await client.frames[':url'].tx
+    case 'tx': {
+      const json = await client.frames[':url'].tx
         .$post({ param: { url }, json: data.body })
-        .then((response) => response.json())
+        .then(async (response) => await response.json())
         .then((json) => {
           const { context, frame } = previousData
           return { context, frame, ...json }
         })
+
+      if (json.type === 'error') return
+
+      return json
+    }
   }
 }
 
@@ -214,7 +246,10 @@ export async function handleBack() {
   if (!data) return
 
   const json = await performAction(data, dataMap[logs.at(-1) ?? dataKey])
+  if (!json) return
+
   const id = json.id
+
   store.setState((state) => ({
     ...state,
     dataKey: id,
@@ -235,7 +270,10 @@ export async function handleForward() {
   if (!data) return
 
   const json = await performAction(data, dataMap[logs.at(-1) ?? dataKey])
+  if (!json) return
+
   const id = json.id
+
   store.setState((state) => ({
     ...state,
     dataKey: id,
@@ -283,7 +321,10 @@ export async function handleReload(event: MouseEvent) {
   }
 
   const json = await performAction(data, dataMap[logs.at(-1) ?? dataKey])
+  if (!json) return
+
   const id = json.id
+
   store.setState((state) => ({
     ...state,
     dataKey: id,

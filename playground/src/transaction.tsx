@@ -60,7 +60,9 @@ export const app = new Frog({ verify: 'silent' })
     })
   })
   // Custom error
-  .transaction('/error', (c) => c.error({ message: 'bad transaction' }))
+  .transaction('/error', (c) =>
+    c.error({ message: `bad transaction ${Math.random()}` }),
+  )
   // Raw Transaction
   .transaction('/raw-send', (c) => {
     return c.res({

@@ -26,6 +26,7 @@ import { fetchFrame } from './utils/fetchFrame.js'
 import { getHtmlSize } from './utils/getHtmlSize.js'
 import { getImageSize } from './utils/getImageSize.js'
 import { htmlToMetadata } from './utils/htmlToMetadata.js'
+import { responseToBaseErrorMessage } from './utils/responseToBaseErrorMessage.js'
 import { uid } from './utils/uid.js'
 import {
   getSignedKeyRequest,
@@ -109,6 +110,28 @@ export function apiRoutes(
       if (!response) throw new Error('Failed to fetch frame')
 
       const cloned = response.clone()
+
+      if (!response.ok) {
+        const message = await responseToBaseErrorMessage(cloned)
+        return c.json({
+          id: uid(),
+          timestamp: Date.now(),
+          type: 'error',
+          method: 'post',
+          body,
+          metrics: {
+            speed,
+          },
+          response: {
+            success: false,
+            error: message,
+            status: response.status,
+            statusText: response.statusText,
+          },
+          url,
+        } as const)
+      }
+
       const text = await response.text()
       const metadata = htmlToMetadata(text)
       const { context, frame } = metadata
@@ -196,6 +219,29 @@ export function apiRoutes(
       })
       // TODO: Handle errors
       if (!response) throw new Error('Failed to fetch frame')
+
+      const cloned = response.clone()
+
+      if (!response.ok) {
+        const message = await responseToBaseErrorMessage(cloned)
+        return c.json({
+          id: uid(),
+          timestamp: Date.now(),
+          type: 'error',
+          method: 'post',
+          body,
+          metrics: {
+            speed,
+          },
+          response: {
+            success: false,
+            error: message,
+            status: response.status,
+            statusText: response.statusText,
+          },
+          url,
+        } as const)
+      }
 
       const data = (await response.json()) as TransactionResponse
 
@@ -330,10 +376,17 @@ type Client = ReturnType<typeof hc<ApiRoutes>>
 
 export type Data =
   | InferResponseType<Client['frames'][':url']['$get']>
-  | InferResponseType<Client['frames'][':url']['action']['$post']>
+  | Extract<
+      InferResponseType<Client['frames'][':url']['action']['$post']>,
+      { type: 'action' }
+    >
   | (InferResponseType<Client['frames'][':url']['redirect']['$post']> &
       BaseData)
-  | (InferResponseType<Client['frames'][':url']['tx']['$post']> & BaseData)
+  | (Extract<
+      InferResponseType<Client['frames'][':url']['tx']['$post']>,
+      { type: 'tx' }
+    > &
+      BaseData)
 
 type BaseData = Pick<
   InferResponseType<Client['frames'][':url']['$get']>,
