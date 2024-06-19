@@ -295,6 +295,8 @@ function UserForm(props: UserFormProps) {
         },
         dataMap[logs.at(-1) ?? dataKey],
       )
+      if (!json) return
+
       const id = json.id
       store.setState((state) => ({
         ...state,

@@ -53,7 +53,7 @@ export function Preview(props: PreviewProps) {
 
   return (
     <div className="h-full w-full lg:min-h-frame lg:w-frame">
-      <div className="relative relative w-full rounded-md">
+      <div className="relative w-full rounded-md">
         <div className="relative">
           <Img
             aspectRatio={frame.imageAspectRatio}
@@ -461,9 +461,9 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
   const { switchChainAsync, isPending: switchChainIsPending } = useSwitchChain()
 
   const {
-    data: transactionData,
-    error: transactionDataError,
-    isLoading: isTransactionDataLoading,
+    data: transaction,
+    error: transactionError,
+    isSuccess: isTransactionSuccess,
     refetch,
   } = useQuery({
     queryKey: ['tx', { fromAddress: address, index, target }] as const,
@@ -474,10 +474,10 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     retry: 0,
   })
   const transactionChain = useMemo(() => {
-    if (!transactionData) return
-    const { reference } = parseChainId(transactionData.chainId)
+    if (!transaction || transaction.status === 'error') return
+    const { reference } = parseChainId(transaction.data.chainId)
     return config.chains.find((chain) => chain.id === reference)
-  }, [transactionData])
+  }, [transaction])
   const transactionChainId = transactionChain?.id
 
   const {
@@ -551,10 +551,10 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
   })
 
   const handleSend = useCallback(async () => {
-    if (!transactionData) return
+    if (!transaction || transaction.status === 'error') return
     if (!transactionChainId) return
 
-    const { method, params } = transactionData
+    const { method, params } = transaction.data
     if (method !== 'eth_sendTransaction') return
 
     try {
@@ -573,7 +573,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     }
   }, [
     chainId,
-    transactionData,
+    transaction,
     transactionChainId,
     sendTransactionReset,
     sendTransaction,
@@ -581,15 +581,15 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
   ])
 
   const abiFunction = useMemo(() => {
-    if (!transactionData) return
-    const filtered = transactionData.params.abi?.find(
+    if (!transaction || transaction.status === 'error') return
+    const filtered = transaction.data.params.abi?.find(
       (item) => item.type === 'function',
     )
     if (filtered?.type === 'function') return filtered
-  }, [transactionData])
+  }, [transaction])
 
   if (status === 'connected' && !isSwitchingAccount) {
-    if (transactionDataError)
+    if (transactionError)
       return (
         <>
           <h1 className="font-semibold text-base text-gray-1000">
@@ -599,7 +599,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           <div className="mb-4 flex flex-col gap-1 text-gray-900 text-sm leading-snug">
             <p> Error loading transaction data:</p>
             <code className="font-mono text-xs">
-              {transactionDataError.message}
+              {transactionError.message}
             </code>
           </div>
 
@@ -610,6 +610,19 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           >
             Retry
           </button>
+        </>
+      )
+
+    if (transaction?.status === 'error')
+      return (
+        <>
+          <h1 className="font-semibold text-base text-gray-1000">
+            Unable to load
+          </h1>
+
+          <div className="mb-4 flex flex-col gap-1 text-gray-900 text-sm leading-snug">
+            <p>{transaction.message}</p>
+          </div>
         </>
       )
 
@@ -644,13 +657,13 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           </div>
 
           {/* <div className="flex justify-between py-2 px-3"> */}
-          {/*   <div className="text-gray-700 font-medium">Domain</div> */}
+          {/*   <div className="font-medium text-gray-700">Domain</div> */}
           {/*   <div className="text-gray-1000">{domain}</div> */}
           {/* </div> */}
 
           <div className="flex justify-between px-3 py-2">
             <div className="font-medium text-gray-700">Chain</div>
-            {isTransactionDataLoading ? (
+            {!isTransactionSuccess ? (
               <div className="self-center">
                 <LoadingDots />
               </div>
@@ -662,22 +675,22 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             <div className="font-medium text-gray-700">
               {abiFunction ? 'Contract' : 'To'}
             </div>
-            {isTransactionDataLoading ? (
+            {!isTransactionSuccess ? (
               <div className="self-center">
                 <LoadingDots />
               </div>
             ) : (
               <div className="flex gap-1">
                 <div
-                  title={transactionData?.params.to}
+                  title={transaction.data.params.to}
                   className="text-gray-1000"
                 >
-                  {transactionData?.params.to.slice(0, 4)}...
-                  {transactionData?.params.to.slice(-4)}
+                  {transaction.data.params.to.slice(0, 4)}...
+                  {transaction.data.params.to.slice(-4)}
                 </div>
                 {blockExplorer && (
                   <a
-                    href={`${blockExplorer?.url}/address/${transactionData?.params.to}`}
+                    href={`${blockExplorer?.url}/address/${transaction.data.params.to}`}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="text-gray-700"
@@ -692,7 +705,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           {abiFunction && (
             <div className="flex justify-between px-3 py-2">
               <div className="font-medium text-gray-700">Function</div>
-              {isTransactionDataLoading ? (
+              {!isTransactionSuccess ? (
                 <div className="self-center">
                   <LoadingDots />
                 </div>
@@ -702,14 +715,14 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             </div>
           )}
 
-          {transactionData?.params.value && (
+          {transaction?.data?.params.value && (
             <div className="flex justify-between px-3 py-2">
               <div className="font-medium text-gray-700">Value</div>
               <div className="text-gray-1000">
-                {transactionData.method.includes('eth') && (
+                {transaction.data.method.includes('eth') && (
                   <span className="mr-1 select-none text-gray-700">Ξ</span>
                 )}
-                {formatEther(BigInt(transactionData.params.value))}
+                {formatEther(BigInt(transaction.data.params.value))}
               </div>
             </div>
           )}
@@ -719,7 +732,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           type="button"
           className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           disabled={
-            isTransactionDataLoading ||
+            !isTransactionSuccess ||
             switchChainIsPending ||
             sendTransactionIsPending
           }
