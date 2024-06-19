@@ -1,4 +1,4 @@
-import { type Context as Context_hono, type Input } from 'hono'
+import type { Context as Context_hono, Input } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
 import type { Context } from '../types/context.js'
 import type { Env } from '../types/env.js'

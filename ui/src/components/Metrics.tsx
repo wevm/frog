@@ -30,12 +30,12 @@ export function Metrics() {
 
   return (
     <div
-      className="bg-background-100 border rounded-md flex flex-row divide-x"
+      className="flex flex-row divide-x rounded-md border bg-background-100"
       style={{ justifyContent: 'space-around', minHeight: '44.9px' }}
     >
       {metrics.map((metric) => (
         <div
-          className="items-center flex font-mono gap-1.5 text-sm justify-center"
+          className="flex items-center justify-center gap-1.5 font-mono text-sm"
           style={{ flex: '1', padding: '0.685rem' }}
         >
           {metric.icon}

@@ -31,14 +31,14 @@ export function StartForm() {
   return (
     <div className="w-full space-y-6">
       <form
-        className="bg-background-100 border flex rounded-md w-full overflow-hidden items-center focus-within:ring-2 ring-blue-900 h-12"
+        className="flex h-12 w-full items-center overflow-hidden rounded-md border bg-background-100 ring-blue-900 focus-within:ring-2"
         onSubmit={handleSubmit}
       >
         <input
           autoComplete="off"
           name="url"
           ref={inputRef}
-          className="bg-transparent font-sans text-gray-1000 text pl-4 pr-2 w-full h-full"
+          className="text h-full w-full bg-transparent pr-2 pl-4 font-sans text-gray-1000"
           data-1p-ignore
           placeholder="Enter frame address"
           required
@@ -51,7 +51,7 @@ export function StartForm() {
 
         <button
           type="submit"
-          className="bg-background-100 flex items-center justify-center text-gray-700 px-4 h-full hover:bg-gray-100 focus-visible:bg-gray-100"
+          className="flex h-full items-center justify-center bg-background-100 px-4 text-gray-700 focus-visible:bg-gray-100 hover:bg-gray-100"
           style={{ boxShadow: 'none' }}
         >
           <span className="sr-only">Go</span>
@@ -59,7 +59,7 @@ export function StartForm() {
         </button>
       </form>
 
-      <div className="flex gap-6 items-center justify-center font-medium text-sm text-gray-700">
+      <div className="flex items-center justify-center gap-6 font-medium text-gray-700 text-sm">
         <a href="?url=https://frame.frog.fm/api">frame.frog.fm</a>
 
         <a href="https://frog.fm" target="_blank" rel="noreferrer">

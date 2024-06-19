@@ -1,7 +1,7 @@
-import { type JSXNode } from 'hono/jsx'
+import type { JSXNode } from 'hono/jsx'
 
 import { buttonPrefix } from '../components/Button.js'
-import { type FrameIntent } from '../types/frame.js'
+import type { FrameIntent } from '../types/frame.js'
 import { parsePath } from './parsePath.js'
 
 type Counter = { button: number }

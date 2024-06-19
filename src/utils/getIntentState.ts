@@ -1,5 +1,5 @@
 import { buttonPrefix } from '../components/Button.js'
-import { type FrameButtonValue, type FrameData } from '../types/frame.js'
+import type { FrameButtonValue, FrameData } from '../types/frame.js'
 
 type IntentState = {
   buttonValue: string | undefined

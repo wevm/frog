@@ -1,8 +1,8 @@
-import { type MouseEvent } from 'react'
+import type { MouseEvent } from 'react'
 import { baseUrl } from '../constants.js'
 import { client } from '../lib/api.js'
 import { store } from '../lib/store.js'
-import { Data } from '../types/frog.js'
+import type { Data } from '../types/frog.js'
 
 function getBody() {
   const { dataKey, dataMap, inputText, overrides, user } = store.getState()

@@ -16,8 +16,8 @@
     "create-frog": "node --import tsx ./create-frog/bin.ts",
     "docs:dev": "pnpm --filter site dev",
     "docs:build": "pnpm --filter site build",
-    "format": "biome format . --write",
-    "lint": "biome check .",
+    "format": "biome format --write",
+    "lint": "biome check",
     "gen:icons": "bun .scripts/gen-icons.ts",
     "gen:protobufs": "pnpm --filter protobufs generate",
     "postinstall": "pnpm build && pnpm preconstruct",
@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit && pnpm run --r --parallel typecheck"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.5.3",
+    "@biomejs/biome": "^1.8.1",
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.1",
     "@iconify/json": "^2.2.196",

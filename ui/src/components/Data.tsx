@@ -1,5 +1,5 @@
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons'
-import { Data as DataType, Frame } from '../types/frog'
+import type { Data as DataType, Frame } from '../types/frog'
 import { formatFileSize } from '../utils/format'
 
 type DataProps = {
@@ -110,7 +110,7 @@ export function Data(props: DataProps) {
     <div
       role="grid"
       aria-colcount={validations.length}
-      className="bg-background-100 border rounded-md overflow-hidden"
+      className="overflow-hidden rounded-md border bg-background-100"
       style={{ height: 'min-content' }}
     >
       <div className="sr-only" role="rowgroup">
@@ -127,15 +127,15 @@ export function Data(props: DataProps) {
         </div>
       </div>
 
-      <div role="rowgroup" className="overflow-hidden divide-y">
+      <div role="rowgroup" className="divide-y overflow-hidden">
         {validations.map((row) => (
           <div role="row" className="flex flex-col">
             <div
-              className="items-center flex flex-row"
+              className="flex flex-row items-center"
               style={{ fontSize: '0.8125rem' }}
             >
               <div
-                className="text-gray-700 p-3 font-medium"
+                className="p-3 font-medium text-gray-700"
                 style={{ minWidth: '10rem' }}
                 role="gridcell"
                 aria-colindex={1}
@@ -146,7 +146,7 @@ export function Data(props: DataProps) {
               <div
                 role="gridcell"
                 aria-colindex={2}
-                className="bg-transparent text-gray-1000 p-3 text-ellipsis overflow-hidden whitespace-nowrap font-mono text-xs"
+                className="overflow-hidden text-ellipsis whitespace-nowrap bg-transparent p-3 font-mono text-gray-1000 text-xs"
                 title={row.value}
               >
                 {row.value}
@@ -155,7 +155,7 @@ export function Data(props: DataProps) {
               <div
                 role="gridcell"
                 aria-colindex={3}
-                className="flex p-3 gap-3"
+                className="flex gap-3 p-3"
                 style={{
                   justifyContent: 'flex-end',
                   flex: '1',
@@ -177,7 +177,7 @@ export function Data(props: DataProps) {
                 className="p-3"
                 style={{ paddingTop: '0', paddingLeft: '10.75rem' }}
               >
-                <div className="text-red-900 text-xs rounded-lg leading-snug font-mono">
+                <div className="rounded-lg font-mono text-red-900 text-xs leading-snug">
                   <span style={{ textWrap: 'balance' }}>{row.message}</span>
                 </div>
               </div>

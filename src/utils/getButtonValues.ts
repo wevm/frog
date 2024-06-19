@@ -1,5 +1,5 @@
-import { type JSXNode } from 'hono/jsx'
-import { type FrameButtonValue } from '../types/frame.js'
+import type { JSXNode } from 'hono/jsx'
+import type { FrameButtonValue } from '../types/frame.js'
 
 export function getButtonValues(
   intents: readonly JSXNode[] | null,

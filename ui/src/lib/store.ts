@@ -2,7 +2,7 @@ import lz from 'lz-string'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { createStore } from 'zustand/vanilla'
 
-import { Bootstrap, Data, User } from '../types/frog'
+import type { Bootstrap, Data, User } from '../types/frog'
 import { deepEqual } from '../utils/deepEqual'
 
 export type State = {

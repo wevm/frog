@@ -8,7 +8,7 @@ import {
   ReloadIcon,
 } from '@radix-ui/react-icons'
 import {
-  FormEventHandler,
+  type FormEventHandler,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -20,7 +20,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useStore } from '../hooks/useStore.js'
 import { client } from '../lib/api.js'
 import { store } from '../lib/store.js'
-import { User } from '../types/frog.js'
+import type { User } from '../types/frog.js'
 import {
   handleBack,
   handleForward,
@@ -45,11 +45,11 @@ export function Navigator(props: NavigatorProps) {
   )
 
   return (
-    <div className="flex gap-2 items-center w-full" style={{ height: '2rem' }}>
+    <div className="flex w-full items-center gap-2" style={{ height: '2rem' }}>
       <div className="flex h-full rounded-md border">
         <button
           aria-label="back"
-          className="px-2 text-gray-700 rounded-l-md bg-background-100"
+          className="rounded-l-md bg-background-100 px-2 text-gray-700"
           type="button"
           disabled={stackIndex === 0}
           onClick={handleBack}
@@ -63,7 +63,7 @@ export function Navigator(props: NavigatorProps) {
 
         <button
           aria-label="forward"
-          className="px-2 text-gray-700 rounded-r-md bg-background-100"
+          className="rounded-r-md bg-background-100 px-2 text-gray-700"
           type="button"
           onClick={handleForward}
         >
@@ -75,7 +75,7 @@ export function Navigator(props: NavigatorProps) {
 
       <button
         aria-label="refresh"
-        className="px-2 h-full text-gray-700 rounded-md border bg-background-100"
+        className="h-full rounded-md border bg-background-100 px-2 text-gray-700"
         type="button"
         onClick={handleReload}
       >
@@ -150,7 +150,7 @@ function AuthButton() {
     <>
       <button
         type="button"
-        className="overflow-hidden text-gray-700 rounded-md border bg-background-100"
+        className="overflow-hidden rounded-md border bg-background-100 text-gray-700"
         onClick={() => setOpen(true)}
       >
         <div style={{ height: '30px', width: '30px' }}>
@@ -188,11 +188,11 @@ function UserButton(props: UserButtonProps) {
   })
 
   return (
-    <div className="grid relative h-full">
+    <div className="relative grid h-full">
       <button
         aria-label="open user menu"
         type="button"
-        className="overflow-hidden text-gray-700 rounded-md border bg-background-100"
+        className="overflow-hidden rounded-md border bg-background-100 text-gray-700"
         onClick={() => setOpen(true)}
       >
         {user.pfp ? (
@@ -207,7 +207,7 @@ function UserButton(props: UserButtonProps) {
       {open && (
         <div
           ref={ref}
-          className="overflow-hidden absolute w-full rounded-xl border bg-background-100"
+          className="absolute w-full overflow-hidden rounded-xl border bg-background-100"
           style={{
             marginTop: '4px',
             top: '100%',
@@ -229,7 +229,7 @@ function UserButton(props: UserButtonProps) {
             {user.username && (
               <a
                 type="button"
-                className="flex justify-between items-center py-2 px-4 w-full font-sans text-sm text-left text-gray-700 bg-transparent hover:bg-gray-100"
+                className="flex w-full items-center justify-between bg-transparent px-4 py-2 text-left font-sans text-gray-700 text-sm hover:bg-gray-100"
                 style={{ textDecoration: 'none' }}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -242,7 +242,7 @@ function UserButton(props: UserButtonProps) {
 
             <button
               type="button"
-              className="py-2 px-4 w-full font-sans text-sm text-left text-gray-700 bg-transparent hover:bg-gray-100 display-block"
+              className="display-block w-full bg-transparent px-4 py-2 text-left font-sans text-gray-700 text-sm hover:bg-gray-100"
               onClick={() =>
                 client.auth.logout
                   .$post()
@@ -299,18 +299,18 @@ function AddressBar(props: AddressBarProps) {
 
   return (
     <div
-      className="grid relative h-full"
+      className="relative grid h-full"
       style={{ flex: '1' }}
       ref={containerRef}
     >
       {open ? (
         <form
-          className="flex overflow-hidden w-full h-full rounded-md border bg-background-100"
+          className="flex h-full w-full overflow-hidden rounded-md border bg-background-100"
           onSubmit={handleSubmit}
           style={{ paddingLeft: '0.5rem' }}
         >
           <GlobeIcon
-            className="flex items-center h-full text-gray-700"
+            className="flex h-full items-center text-gray-700"
             style={{ minWidth: '15px' }}
           />
 
@@ -318,7 +318,7 @@ function AddressBar(props: AddressBarProps) {
             defaultValue={url}
             name="url"
             ref={inputRef}
-            className="px-2 w-full font-sans bg-transparent text-gray-1000"
+            className="w-full bg-transparent px-2 font-sans text-gray-1000"
             data-1p-ignore
             placeholder="Enter address"
             autoComplete="off"
@@ -332,7 +332,7 @@ function AddressBar(props: AddressBarProps) {
           />
           <button
             type="submit"
-            className="flex justify-center items-center px-2 text-gray-700 hover:bg-gray-100 bg-background-100"
+            className="flex items-center justify-center bg-background-100 px-2 text-gray-700 hover:bg-gray-100"
           >
             <span className="sr-only">Go</span>
             <ArrowRightIcon />
@@ -341,7 +341,7 @@ function AddressBar(props: AddressBarProps) {
       ) : (
         <button
           type="button"
-          className="overflow-hidden relative w-full h-full rounded-md border bg-background-100"
+          className="relative h-full w-full overflow-hidden rounded-md border bg-background-100"
           style={{
             paddingLeft: '1.75rem',
             paddingRight: '1.75rem',
@@ -349,11 +349,11 @@ function AddressBar(props: AddressBarProps) {
           onClick={() => setOpen(true)}
         >
           <GlobeIcon
-            className="flex absolute items-center h-full text-gray-700"
+            className="absolute flex h-full items-center text-gray-700"
             style={{ left: '0.5rem' }}
           />
 
-          <div className="overflow-hidden h-full whitespace-nowrap text-ellipsis">
+          <div className="h-full overflow-hidden text-ellipsis whitespace-nowrap">
             <span
               className="font-sans text-gray-1000"
               style={{ lineHeight: '1.9rem', fontSize: '13px' }}
@@ -366,7 +366,7 @@ function AddressBar(props: AddressBarProps) {
 
       {open && Boolean(frameUrls.length) && (
         <div
-          className="overflow-hidden absolute py-1 w-full rounded-lg border bg-background-100"
+          className="absolute w-full overflow-hidden rounded-lg border bg-background-100 py-1"
           style={{
             marginTop: '4px',
             top: '100%',
@@ -376,7 +376,7 @@ function AddressBar(props: AddressBarProps) {
           {frameUrls.map((frameUrl) => (
             <button
               type="button"
-              className="overflow-hidden py-2 px-3 w-full font-sans text-sm text-left text-gray-900 whitespace-nowrap bg-transparent rounded-lg hover:bg-gray-100 display-block text-ellipsis"
+              className="display-block w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-lg bg-transparent px-3 py-2 text-left font-sans text-gray-900 text-sm hover:bg-gray-100"
               onClick={() =>
                 handleSelectNewFrame(frameUrl).finally(() => setOpen(false))
               }

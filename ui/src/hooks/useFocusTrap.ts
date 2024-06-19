@@ -1,7 +1,7 @@
 import { type Options, createFocusTrap } from 'focus-trap'
 import { type RefObject, useEffect } from 'react'
 
-import { Pretty } from '../types/utils'
+import type { Pretty } from '../types/utils'
 
 type UseFocusTrapParameters = Pretty<
   {

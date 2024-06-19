@@ -1,7 +1,7 @@
 import { useStore as zustand_useStore } from 'zustand'
 
 import { store } from '../lib/store'
-import { Data } from '../types/frog'
+import type { Data } from '../types/frog'
 
 export function useStore<slice>(
   selector: (state: ExtractState<typeof store>) => slice,

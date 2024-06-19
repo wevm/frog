@@ -1,6 +1,6 @@
 // modified version of `@vite/client`
 // https://github.com/vitejs/vite/blob/main/packages/vite/src/client/client.ts
-import { HMRPayload } from 'vite/types/hmrPayload.js'
+import type { HMRPayload } from 'vite/types/hmrPayload.js'
 
 import { client } from './lib/api'
 import { store } from './lib/store'

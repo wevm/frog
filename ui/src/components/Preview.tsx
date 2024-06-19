@@ -23,7 +23,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap.js'
 import { useNotification, useStore } from '../hooks/useStore.js'
 import { store } from '../lib/store.js'
 import { config } from '../lib/wagmi.js'
-import { Frame } from '../types/frog.js'
+import type { Frame } from '../types/frog.js'
 import {
   handlePost,
   handlePostRedirect,
@@ -52,7 +52,7 @@ export function Preview(props: PreviewProps) {
   const notification = useNotification()
 
   return (
-    <div className="w-full h-full lg:w-frame lg:min-h-frame">
+    <div className="h-full w-full lg:min-h-frame lg:w-frame">
       <div className="relative w-full rounded-md">
         <div className="relative">
           <Img
@@ -62,14 +62,14 @@ export function Preview(props: PreviewProps) {
             title={frame.title}
           />
           {notification && (
-            <div className="absolute bottom-2 inset-x-4">
+            <div className="absolute inset-x-4 bottom-2">
               <Toast {...notification} />
             </div>
           )}
         </div>
 
         {hasIntents && (
-          <div className="flex flex-col gap-2 py-2 px-4 rounded-br-md rounded-bl-md border border-t-0 bg-background-100">
+          <div className="flex flex-col gap-2 rounded-br-md rounded-bl-md border border-t-0 bg-background-100 px-4 py-2">
             {frame.input && <Input placeholder={frame.input.text} />}
 
             {frame.buttons && (
@@ -103,7 +103,7 @@ export function Preview(props: PreviewProps) {
         )}
       </div>
 
-      <div className="mt-1 text-xs text-right">
+      <div className="mt-1 text-right text-xs">
         <a className="font-medium text-gray-700" href={url}>
           {domain}
         </a>
@@ -156,7 +156,7 @@ function Input(props: InputProps) {
     <input
       aria-label={placeholder}
       autoComplete="off"
-      className="py-2.5 px-3 w-full text-sm leading-snug rounded-md border bg-background-200"
+      className="w-full rounded-md border bg-background-200 px-3 py-2.5 text-sm leading-snug"
       data-1p-ignore
       name="inputText"
       placeholder={placeholder}
@@ -320,7 +320,7 @@ function LeavingAppPrompt(props: {
 
   return (
     <div
-      className="flex absolute flex-col gap-1.5 p-4 text-center rounded-lg border bg-background-100"
+      className="absolute flex flex-col gap-1.5 rounded-lg border bg-background-100 p-4 text-center"
       style={{
         marginTop: '4px',
         width: '20rem',
@@ -328,20 +328,20 @@ function LeavingAppPrompt(props: {
       }}
       ref={ref}
     >
-      <h1 className="text-base font-semibold text-gray-1000">
+      <h1 className="font-semibold text-base text-gray-1000">
         Leaving Warpcast
       </h1>
 
-      <div className="font-mono text-sm text-gray-700 line-clamp-2">{url}</div>
+      <div className="line-clamp-2 font-mono text-gray-700 text-sm">{url}</div>
 
-      <p className="text-sm leading-snug text-gray-900">
+      <p className="text-gray-900 text-sm leading-snug">
         If you connect your wallet and the site is malicious, you may lose
         funds.
       </p>
 
-      <div className="flex gap-1.5 mt-1.5">
+      <div className="mt-1.5 flex gap-1.5">
         <button
-          className="py-2 w-full text-sm font-medium rounded-md border bg-background-100"
+          className="w-full rounded-md border bg-background-100 py-2 font-medium text-sm"
           type="button"
           onClick={close}
         >
@@ -349,7 +349,7 @@ function LeavingAppPrompt(props: {
         </button>
 
         <button
-          className="py-2 w-full text-sm font-medium bg-red-400 rounded-md hover:bg-red-300 text-bg"
+          className="w-full rounded-md bg-red-400 py-2 font-medium text-bg text-sm hover:bg-red-300"
           type="button"
           onClick={() => {
             close()
@@ -389,7 +389,7 @@ function TransactionDialog(props: TransactionDialogProps) {
 
   return (
     <div
-      className="flex absolute flex-col gap-1.5 p-4 text-center rounded-lg border bg-background-100"
+      className="absolute flex flex-col gap-1.5 rounded-lg border bg-background-100 p-4 text-center"
       style={{
         marginTop: '4px',
         width: '20rem',
@@ -399,7 +399,7 @@ function TransactionDialog(props: TransactionDialogProps) {
     >
       <button
         type="button"
-        className="flex absolute top-2.5 right-2.5 justify-center items-center w-8 h-8 text-gray-800 bg-transparent rounded-full hover:bg-gray-100"
+        className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
         onClick={close}
       >
         <span className="sr-only">Close</span>
@@ -592,11 +592,11 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     if (transactionError)
       return (
         <>
-          <h1 className="text-base font-semibold text-gray-1000">
+          <h1 className="font-semibold text-base text-gray-1000">
             Transaction Data Error
           </h1>
 
-          <div className="flex flex-col gap-1 mb-4 text-sm leading-snug text-gray-900">
+          <div className="mb-4 flex flex-col gap-1 text-gray-900 text-sm leading-snug">
             <p> Error loading transaction data:</p>
             <code className="font-mono text-xs">
               {transactionError.message}
@@ -605,7 +605,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
           <button
             type="button"
-            className="flex relative justify-center items-center p-3 mt-1 text-sm font-medium text-center bg-gray-100 rounded-xl border border-gray-200 text-gray-1000"
+            className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
             onClick={() => refetch()}
           >
             Retry
@@ -616,11 +616,11 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
     if (transaction?.status === 'error')
       return (
         <>
-          <h1 className="text-base font-semibold text-gray-1000">
+          <h1 className="font-semibold text-base text-gray-1000">
             Unable to load
           </h1>
 
-          <div className="flex flex-col gap-1 mb-4 text-sm leading-snug text-gray-900">
+          <div className="mb-4 flex flex-col gap-1 text-gray-900 text-sm leading-snug">
             <p>{transaction.message}</p>
           </div>
         </>
@@ -630,16 +630,16 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
     return (
       <>
-        <h1 className="text-base font-semibold text-gray-1000">
+        <h1 className="font-semibold text-base text-gray-1000">
           Review Transaction
         </h1>
 
-        <p className="mb-4 text-sm leading-snug text-gray-900 text-balance">
+        <p className="mb-4 text-balance text-gray-900 text-sm leading-snug">
           Review the following transaction before confirming in your wallet.
         </p>
 
-        <div className="mb-4 text-xs rounded-lg border divide-y">
-          <div className="flex justify-between py-2 px-3">
+        <div className="mb-4 divide-y rounded-lg border text-xs">
+          <div className="flex justify-between px-3 py-2">
             <div className="font-medium text-gray-700">Address</div>
             <div className="flex gap-1">
               <div title={address} className="text-gray-1000">
@@ -661,7 +661,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           {/*   <div className="text-gray-1000">{domain}</div> */}
           {/* </div> */}
 
-          <div className="flex justify-between py-2 px-3">
+          <div className="flex justify-between px-3 py-2">
             <div className="font-medium text-gray-700">Chain</div>
             {!isTransactionSuccess ? (
               <div className="self-center">
@@ -671,7 +671,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               <div className="text-gray-1000">{transactionChain?.name}</div>
             )}
           </div>
-          <div className="flex justify-between py-2 px-3">
+          <div className="flex justify-between px-3 py-2">
             <div className="font-medium text-gray-700">
               {abiFunction ? 'Contract' : 'To'}
             </div>
@@ -703,7 +703,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
             )}
           </div>
           {abiFunction && (
-            <div className="flex justify-between py-2 px-3">
+            <div className="flex justify-between px-3 py-2">
               <div className="font-medium text-gray-700">Function</div>
               {!isTransactionSuccess ? (
                 <div className="self-center">
@@ -716,11 +716,11 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           )}
 
           {transaction?.data?.params.value && (
-            <div className="flex justify-between py-2 px-3">
+            <div className="flex justify-between px-3 py-2">
               <div className="font-medium text-gray-700">Value</div>
               <div className="text-gray-1000">
                 {transaction.data.method.includes('eth') && (
-                  <span className="mr-1 text-gray-700 select-none">Ξ</span>
+                  <span className="mr-1 select-none text-gray-700">Ξ</span>
                 )}
                 {formatEther(BigInt(transaction.data.params.value))}
               </div>
@@ -730,7 +730,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
         <button
           type="button"
-          className="flex relative justify-center items-center p-3 mt-1 text-sm font-medium text-center bg-gray-100 rounded-xl border border-gray-200 text-gray-1000"
+          className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           disabled={
             !isTransactionSuccess ||
             switchChainIsPending ||
@@ -752,7 +752,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
         </button>
 
         {sendTransactionError && (
-          <div className="mt-1 text-xs text-red-900">
+          <div className="mt-1 text-red-900 text-xs">
             {'shortMessage' in sendTransactionError
               ? sendTransactionError.shortMessage
               : sendTransactionError.message}
@@ -767,7 +767,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       <>
         <button
           type="button"
-          className="flex absolute top-2.5 left-2.5 justify-center items-center w-8 h-8 text-gray-800 bg-transparent rounded-full hover:bg-gray-100"
+          className="absolute top-2.5 left-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
           onClick={() => {
             connectReset()
             setQrUri(undefined)
@@ -777,11 +777,11 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
           <ChevronLeftIcon />
         </button>
 
-        <h1 className="text-base font-semibold text-gray-1000">
+        <h1 className="font-semibold text-base text-gray-1000">
           Scan with Phone
         </h1>
 
-        <p className="mb-2 text-sm leading-snug text-gray-900 text-balance">
+        <p className="mb-2 text-balance text-gray-900 text-sm leading-snug">
           Scan with your phone's camera to connect your wallet.
         </p>
 
@@ -802,7 +802,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
 
         <button
           type="button"
-          className="flex relative justify-center items-center p-3 mt-2 text-sm font-medium text-center bg-gray-100 rounded-xl border border-gray-200 text-gray-1000"
+          className="relative mt-2 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           onClick={copy}
         >
           {copied ? 'Copied!' : 'Copy to Clipboard'}
@@ -815,7 +815,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       {isSwitchingAccount && (
         <button
           type="button"
-          className="flex absolute top-2.5 left-2.5 justify-center items-center w-8 h-8 text-gray-800 bg-transparent rounded-full hover:bg-gray-100"
+          className="absolute top-2.5 left-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-transparent text-gray-800 hover:bg-gray-100"
           onClick={() => setIsSwitchingAccount(false)}
         >
           <span className="sr-only">Back</span>
@@ -823,9 +823,9 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
         </button>
       )}
 
-      <h1 className="text-base font-semibold text-gray-1000">Connect Wallet</h1>
+      <h1 className="font-semibold text-base text-gray-1000">Connect Wallet</h1>
 
-      <p className="mb-4 text-sm leading-snug text-gray-900 text-balance">
+      <p className="mb-4 text-balance text-gray-900 text-sm leading-snug">
         Connect your wallet to continue with the frame transaction.
       </p>
 
@@ -841,7 +841,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
               connect({ chainId: transactionChainId, connector })
             }}
             type="button"
-            className="flex relative justify-center items-center p-3 mt-1 text-sm font-medium text-center bg-gray-100 rounded-xl border border-gray-200 text-gray-1000"
+            className="relative mt-1 flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-3 text-center font-medium text-gray-1000 text-sm"
           >
             {connector.name}
 
@@ -857,7 +857,7 @@ function TransactionDialogContent(props: Omit<TransactionDialogProps, 'open'>) {
       </div>
 
       {connectError && (
-        <div className="mt-1 text-xs text-red-900">
+        <div className="mt-1 text-red-900 text-xs">
           {'shortMessage' in connectError
             ? connectError.shortMessage
             : connectError.message}

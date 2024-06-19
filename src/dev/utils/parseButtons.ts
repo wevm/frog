@@ -1,5 +1,5 @@
-import { type FrameMetadata } from '../../utils/getFrameMetadata.js'
-import { type FrameButton } from '../types.js'
+import type { FrameMetadata } from '../../utils/getFrameMetadata.js'
+import type { FrameButton } from '../types.js'
 
 // https://regexr.com/7rlm0
 const buttonRegex = /fc:frame:button:(1|2|3|4)(?::(action|post_url|target))?$/
@@ -26,7 +26,7 @@ export function parseButtons(metadata: FrameMetadata) {
       string,
       string | undefined,
     ]
-    const index = parseInt(matchArray[1], 10) as FrameButton['index']
+    const index = Number.parseInt(matchArray[1], 10) as FrameButton['index']
     const type = matchArray[2]
 
     const content = meta.content ?? ''

@@ -1,6 +1,6 @@
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { PropsWithChildren } from 'react'
+import type { PropsWithChildren } from 'react'
 import { WagmiProvider, deserialize, serialize } from 'wagmi'
 
 import { config, queryClient } from '../lib/wagmi'

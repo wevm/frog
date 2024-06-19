@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { IconifyJSONIconsData } from '@iconify/types'
+import type { IconifyJSONIconsData } from '@iconify/types'
 import { camelize, getIconData, iconToHTML, iconToSVG } from '@iconify/utils'
 import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'

@@ -1,8 +1,5 @@
 import type { FrameContext } from '../types/context.js'
-import {
-  type FrameImageAspectRatio,
-  type FrameVersion,
-} from '../types/frame.js'
+import type { FrameImageAspectRatio, FrameVersion } from '../types/frame.js'
 
 export type RequestBody = {
   buttonIndex: number
