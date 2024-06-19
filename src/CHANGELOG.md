@@ -1,5 +1,13 @@
 # frog
 
+## 0.11.10
+
+### Patch Changes
+
+- [#374](https://github.com/wevm/frog/pull/374) [`b5d43d8`](https://github.com/wevm/frog/commit/b5d43d8e7fa9d3c3f0c1ed59419a68666fb97f7a) Thanks [@dalechyn](https://github.com/dalechyn)! - Added previously missed type exports for `CastActionContext`, `CastActionHandler`, `CastActionResponse`, `ImageContext`, `ImageResponse` and `ImageHandler`
+
+- [#366](https://github.com/wevm/frog/pull/366) [`bbe3e09`](https://github.com/wevm/frog/commit/bbe3e09d9208222f8f47b209f146c52ff21c34bd) Thanks [@dalechyn](https://github.com/dalechyn)! - Added support of `c.error` responses in `.frame` and `.transaction` handlers in DevTools.
+
 ## 0.11.9
 
 ### Patch Changes
