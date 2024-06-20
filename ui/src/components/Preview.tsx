@@ -103,10 +103,56 @@ export function Preview(props: PreviewProps) {
         )}
       </div>
 
-      <div className="mt-1 text-right text-xs">
+      <div className="mt-1 mb-4 text-right text-xs">
         <a className="font-medium text-gray-700" href={url}>
           {domain}
         </a>
+      </div>
+
+      <CondensedFrame
+        domain={domain}
+        imgSrc={frame.imageUrl}
+        title={frame.title}
+      />
+    </div>
+  )
+}
+
+type CondensedFrameProps = {
+  domain: string
+  imgSrc: string
+  title: string
+}
+
+function CondensedFrame(props: CondensedFrameProps) {
+  const { imgSrc, domain, title } = props
+
+  return (
+    <div className="relative flex w-full flex-row place-items-center justify-center rounded-lg border bg-background-100 p-3 text-inherit text-sm">
+      <div className="flex max-h-[48px] min-h-[48px] min-w-[48px] max-w-[48px] items-center justify-center rounded-lg border border-faint dark:bg-gray-alpha-100">
+        <img
+          className="max-h-[48px] min-h-[48px] min-w-[48px] max-w-[48px] rounded-lg object-cover"
+          src={imgSrc}
+          alt={title}
+        />
+      </div>
+
+      <div className="flex max-h-24 flex-col justify-center overflow-hidden rounded-lg p-2">
+        <div className="line-clamp-1 font-semibold">{title}</div>
+        <div className="line-clamp-1 font-medium text-gray-700 text-xs">
+          {domain}
+        </div>
+      </div>
+
+      <div className="flex grow">
+        <div className="flex grow" />
+        <button
+          type="button"
+          className="rounded-lg bg-gray-alpha-100 px-4 py-2 font-semibold text-sm"
+          disabled
+        >
+          View
+        </button>
       </div>
     </div>
   )

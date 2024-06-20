@@ -14,7 +14,7 @@ const echoMiddleware: MiddlewareHandler<{
   await next()
 }
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Middleware' })
   .use(echoMiddleware)
   .frame('/', (c) => {
     return c.res({

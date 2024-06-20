@@ -3,6 +3,7 @@ import { Heading, VStack, vars } from './ui.js'
 
 export const app = new Frog({
   ui: { vars },
+  title: 'Fonts',
 }).frame('/', (c) => {
   return c.res({
     image: (

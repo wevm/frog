@@ -57,129 +57,130 @@ export type FrogConstructorParameters<
   basePath extends string = '/',
   //
   _state = env['State'],
-> = Pick<FrameResponse, 'browserLocation'> & {
-  /**
-   * The base path for assets.
-   *
-   * @example '/' (commonly for Vercel Serverless Functions)
-   */
-  assetsPath?: basePath | string | undefined
-  /**
-   * The base path for the server instance.
-   *
-   * @example '/api' (commonly for Vercel Serverless Functions)
-   */
-  basePath?: basePath | string | undefined
-  /**
-   * @deprecated Use `devtools` from `'frog/dev'` instead.
-   *
-   * Options for built-in devtools.
-   */
-  dev?:
-    | {
-        /** @deprecated */
-        enabled?: boolean | undefined
-        /** @deprecated */
-        appFid?: number | undefined
-        /** @deprecated */
-        appMnemonic?: string | undefined
-      }
-    | undefined
-  /**
-   * HTTP response headers.
-   */
-  headers?: Record<string, string> | undefined
-  /**
-   * Options to forward to the `Hono` instance.
-   */
-  honoOptions?: HonoOptions<env> | undefined
-  /**
-   * @deprecated Use `hub` instead.
-   *
-   * Farcaster Hub API URL.
-   */
-  hubApiUrl?: string | undefined
-  /**
-   * Farcaster Hub API configuration.
-   */
-  hub?: Hub | undefined
-  /**
-   * Default image options.
-   *
-   * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
-   * @see https://vercel.com/docs/functions/og-image-generation/og-image-examples#using-a-custom-font
-   *
-   * @example
-   * { width: 1200, height: 630 }
-   *
-   * @example
-   * async () => {
-   *   const fontData = await fetch(
-   *     new URL('./assets/inter.ttf', import.meta.url),
-   *   ).then((res) => res.arrayBuffer());
-   *
-   *   return { fonts: [{ name: 'Inter', data: fontData, style: 'normal'}] }
-   * }
-   */
-  imageOptions?: ImageOptions | (() => Promise<ImageOptions>) | undefined
-  /**
-   * Default image aspect ratio.
-   *
-   * @default '1.91:1'
-   */
-  imageAspectRatio?: FrameImageAspectRatio | undefined
-  /**
-   * Initial state for the frames.
-   *
-   * @example
-   * ```ts
-   * initialState: {
-   *   index: 0,
-   *   todos: [],
-   * }
-   * ```
-   */
-  initialState?: _state | undefined
-  /**
-   * Origin URL of the server instance.
-   *
-   * @link https://developer.mozilla.org/en-US/docs/Web/API/URL/origin
-   */
-  origin?: string | undefined
-  /**
-   * Key used to sign secret data.
-   *
-   * It is used for:
-   *   - Signing frame state, and
-   *   - Signing auth session cookies in the devtools.
-   *
-   * It's strongly recommended to add a strong secret key before deploying to production.
-   *
-   * @example
-   * '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz'
-   */
-  secret?: string | undefined
-  /**
-   * FrogUI configuration.
-   */
-  ui?: { vars: Vars | undefined } | undefined
-  /**
-   * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
-   *
-   * - When `true`, the frame will go through verification and throw an error if it fails.
-   * - When `"silent"`, the frame will go through verification, but not throw an error if it fails.
-   * Instead, the frame will receive `verified: false` in its context.
-   * - When `false`, the frame will not go through verification.
-   *
-   * @default true.
-   */
-  verify?: boolean | 'silent' | undefined
+> = Pick<FrameResponse, 'browserLocation'> &
+  Required<Pick<FrameResponse, 'title'>> & {
+    /**
+     * The base path for assets.
+     *
+     * @example '/' (commonly for Vercel Serverless Functions)
+     */
+    assetsPath?: basePath | string | undefined
+    /**
+     * The base path for the server instance.
+     *
+     * @example '/api' (commonly for Vercel Serverless Functions)
+     */
+    basePath?: basePath | string | undefined
+    /**
+     * @deprecated Use `devtools` from `'frog/dev'` instead.
+     *
+     * Options for built-in devtools.
+     */
+    dev?:
+      | {
+          /** @deprecated */
+          enabled?: boolean | undefined
+          /** @deprecated */
+          appFid?: number | undefined
+          /** @deprecated */
+          appMnemonic?: string | undefined
+        }
+      | undefined
+    /**
+     * HTTP response headers.
+     */
+    headers?: Record<string, string> | undefined
+    /**
+     * Options to forward to the `Hono` instance.
+     */
+    honoOptions?: HonoOptions<env> | undefined
+    /**
+     * @deprecated Use `hub` instead.
+     *
+     * Farcaster Hub API URL.
+     */
+    hubApiUrl?: string | undefined
+    /**
+     * Farcaster Hub API configuration.
+     */
+    hub?: Hub | undefined
+    /**
+     * Default image options.
+     *
+     * @see https://vercel.com/docs/functions/og-image-generation/og-image-api
+     * @see https://vercel.com/docs/functions/og-image-generation/og-image-examples#using-a-custom-font
+     *
+     * @example
+     * { width: 1200, height: 630 }
+     *
+     * @example
+     * async () => {
+     *   const fontData = await fetch(
+     *     new URL('./assets/inter.ttf', import.meta.url),
+     *   ).then((res) => res.arrayBuffer());
+     *
+     *   return { fonts: [{ name: 'Inter', data: fontData, style: 'normal'}] }
+     * }
+     */
+    imageOptions?: ImageOptions | (() => Promise<ImageOptions>) | undefined
+    /**
+     * Default image aspect ratio.
+     *
+     * @default '1.91:1'
+     */
+    imageAspectRatio?: FrameImageAspectRatio | undefined
+    /**
+     * Initial state for the frames.
+     *
+     * @example
+     * ```ts
+     * initialState: {
+     *   index: 0,
+     *   todos: [],
+     * }
+     * ```
+     */
+    initialState?: _state | undefined
+    /**
+     * Origin URL of the server instance.
+     *
+     * @link https://developer.mozilla.org/en-US/docs/Web/API/URL/origin
+     */
+    origin?: string | undefined
+    /**
+     * Key used to sign secret data.
+     *
+     * It is used for:
+     *   - Signing frame state, and
+     *   - Signing auth session cookies in the devtools.
+     *
+     * It's strongly recommended to add a strong secret key before deploying to production.
+     *
+     * @example
+     * '1zN3Uvl5QQd7OprLfp83IU96W6ip6KNPQ+l0MECPIZh8FBLYKQ+mPXE1CTxfwXGz'
+     */
+    secret?: string | undefined
+    /**
+     * FrogUI configuration.
+     */
+    ui?: { vars: Vars | undefined } | undefined
+    /**
+     * Whether or not to verify frame data via the Farcaster Hub's `validateMessage` API.
+     *
+     * - When `true`, the frame will go through verification and throw an error if it fails.
+     * - When `"silent"`, the frame will go through verification, but not throw an error if it fails.
+     * Instead, the frame will receive `verified: false` in its context.
+     * - When `false`, the frame will not go through verification.
+     *
+     * @default true.
+     */
+    verify?: boolean | 'silent' | undefined
 
-  /**
-   * Additional meta tags for the instance.
-   */
-  unstable_metaTags?: { property: string; content: string }[] | undefined
-}
+    /**
+     * Additional meta tags for the instance.
+     */
+    unstable_metaTags?: { property: string; content: string }[] | undefined
+  }
 
 export type RouteOptions<
   method extends string = string,
@@ -271,6 +272,8 @@ export class FrogBase<
   post: Hono<env, schema, basePath>['post']
   /** Key used to sign secret data. */
   secret: FrogConstructorParameters['secret'] | undefined
+  /** Title of the frame to be set at `og:title` **/
+  title: FrogConstructorParameters['title']
   /** FrogUI configuration. */
   ui: { vars: Vars | undefined } | undefined
   /** Whether or not frames should be verified. */
@@ -281,9 +284,7 @@ export class FrogBase<
   _dev: string | undefined
   version = version
 
-  constructor(
-    parameters: FrogConstructorParameters<env, basePath, _state> = {},
-  ) {
+  constructor(parameters: FrogConstructorParameters<env, basePath, _state>) {
     const {
       assetsPath,
       basePath,
@@ -298,6 +299,7 @@ export class FrogBase<
       initialState,
       origin,
       secret,
+      title,
       ui,
       unstable_metaTags,
       verify,
@@ -314,6 +316,7 @@ export class FrogBase<
     if (unstable_metaTags) this.metaTags = unstable_metaTags
     if (origin) this.origin = origin
     if (secret) this.secret = secret
+    this.title = title
     if (ui) this.ui = ui
     if (typeof verify !== 'undefined') this.verify = verify
 
@@ -513,7 +516,7 @@ export class FrogBase<
         imageOptions: imageOptions_ = this.imageOptions,
         intents,
         ogImage,
-        title = 'Frog Frame',
+        title = this.title,
       } = response.data
 
       const buttonValues = getButtonValues(

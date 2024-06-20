@@ -3,7 +3,8 @@ import { createNeynar } from 'frog/middlewares'
 
 export const neynar = createNeynar({ apiKey: 'NEYNAR_FROG_FM' })
 
-export const app = new Frog({ hub: neynar.hub() })
+export const app = new Frog({ hub: neynar.hub(), title: 'Neynar' })
+
   .frame('/', (c) => {
     return c.res({
       action: '/guess',
