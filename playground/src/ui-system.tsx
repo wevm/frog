@@ -21,7 +21,7 @@ import {
 
 export const app = new Frog({
   ui: { vars },
-  title: 'Playground',
+  title: 'UI System',
 })
   .use('/*', serveStatic({ root: './public' }))
   .frame('/', (c) => {

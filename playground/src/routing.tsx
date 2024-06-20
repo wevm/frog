@@ -1,6 +1,6 @@
 import { Button, Frog } from 'frog'
 
-export const app = new Frog({ title: 'Playground' })
+export const app = new Frog({ title: 'Routing' })
 
 app
   .frame('/jump-to-root', (c) => {

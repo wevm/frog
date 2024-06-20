@@ -3,7 +3,7 @@ import { Heading, VStack, vars } from './ui.js'
 
 export const app = new Frog({
   ui: { vars },
-  title: 'Playground',
+  title: 'Initial',
 })
   .frame('/', (c) => {
     return c.res({
