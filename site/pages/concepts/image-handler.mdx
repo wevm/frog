@@ -59,3 +59,38 @@ app.image('/img', (c) => {
   })
 })
 ```
+
+### Bonus: Passing data to Image Handler
+Image handlers don't have an access to `c.frameData` nor to `c.previousState`, meaning that serialization has to be done by the Frame Server itself.
+In this example, `superjson` is used to serialize and deserialize data to be passed as a path parameter to Image Handler:
+
+```tsx twoslash
+// @noErrors
+import { type FrameData, Frog } from 'frog'
+import SuperJson from 'superjson'
+ 
+export const app = new Frog()
+
+app.frame('/', (c) => {
+  if (c.frameData !== undefined) 
+    return c.res({
+      image: `/img/${SuperJson.stringify(c.frameData)}`
+      /* ... */
+    })
+  return c.res({
+    image: '/img'
+    /* ... */
+  })
+})
+
+app.image('/img/:frameData?', (c) => {
+  const frameDataSerialized = c.req.param('frameData')
+  const frameData = frameDataSerialized ? SuperJson.parse<FrameData>(frameDataSerialized) : undefined
+  return c.res({
+    headers: { // [!code focus]
+        'Cache-Control': 'max-age=0' // [!code focus]
+    }, // [!code focus]
+    /* ... */
+  })
+})
+```
