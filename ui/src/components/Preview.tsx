@@ -129,7 +129,7 @@ function CondensedFrame(props: CondensedFrameProps) {
 
   return (
     <div className="relative flex w-full flex-row place-items-center justify-center rounded-lg border bg-background-100 p-3 text-inherit text-sm">
-      <div className="flex max-h-[48px] min-h-[48px] min-w-[48px] max-w-[48px] items-center justify-center rounded-lg border border-faint bg-[#efefef] dark:bg-gray-alpha-100">
+      <div className="flex max-h-[48px] min-h-[48px] min-w-[48px] max-w-[48px] items-center justify-center rounded-lg border border-faint dark:bg-gray-alpha-100">
         <img
           className="max-h-[48px] min-h-[48px] min-w-[48px] max-w-[48px] rounded-lg object-cover"
           src={imgSrc}
