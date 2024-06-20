@@ -4,6 +4,7 @@ import { Box, Heading, vars } from './ui.js'
 
 export const app = new Frog({
   ui: { vars },
+  title: 'Playground',
 })
   .frame('/', (c) =>
     c.res({

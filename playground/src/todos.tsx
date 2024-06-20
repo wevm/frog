@@ -11,6 +11,7 @@ export const app = new Frog<{
     todos: [],
   },
   verify: 'silent',
+  title: 'Playground',
 })
   .frame('/', (c) => {
     const { buttonValue, deriveState, inputText } = c

@@ -1,6 +1,6 @@
 import { Button, Frog } from 'frog'
 
-export const app = new Frog({ verify: 'silent' })
+export const app = new Frog({ verify: 'silent', title: 'Playground' })
   .frame('/', (c) => {
     const transactionId = c.transactionId
     return c.res({

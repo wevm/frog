@@ -18,6 +18,7 @@ export const app = new Frog({
   hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }),
   ui: { vars },
   verify: 'silent',
+  title: 'Playground',
 })
   .frame('/', (c) => {
     const { buttonValue, inputText, status } = c
