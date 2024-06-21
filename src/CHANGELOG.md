@@ -1,5 +1,20 @@
 # frog
 
+## 0.12.0
+
+### Minor Changes
+
+- [#376](https://github.com/wevm/frog/pull/376) [`3a67a9e`](https://github.com/wevm/frog/commit/3a67a9e539a507a81cb77721e0391175b0a7bcdb) Thanks [@dalechyn](https://github.com/dalechyn)! - **Breaking change.** Added `title` as a required parameter to `Frog` constructor.
+
+  ```diff
+  - const app = new Frog()
+  + const app = new Frog({ title: 'My Title' })
+  ```
+
+### Patch Changes
+
+- [#376](https://github.com/wevm/frog/pull/376) [`3a67a9e`](https://github.com/wevm/frog/commit/3a67a9e539a507a81cb77721e0391175b0a7bcdb) Thanks [@dalechyn](https://github.com/dalechyn)! - Added condensed frame preview to Devtools.
+
 ## 0.11.10
 
 ### Patch Changes
