@@ -168,7 +168,7 @@ export function routes(
       }
 
       let user: User | undefined = undefined
-      const cookie = getCookie(c, 'user')
+      const cookie = getCookie(c, 'frog_user') ?? getCookie(c, 'user')
       if (cookie)
         try {
           const parsed = JSON.parse(cookie)
