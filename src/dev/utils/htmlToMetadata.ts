@@ -12,7 +12,15 @@ import { parseButtons } from './parseButtons.js'
 
 export function htmlToMetadata(html: string) {
   const dom = parseFromString(
-    html.replace(/<!doctype html>/i, '').replaceAll(/amp;/gm, ''),
+    html
+      .replace(/<!doctype html>/i, '')
+      // @TODO: consider using `lodash.unescape`
+      .replaceAll(/&amp;/gm, '&')
+      .replaceAll(/&lt;/gm, '<')
+      .replaceAll(/&gt;/gm, '>')
+      .replaceAll(/&quot;/gm, '"')
+      .replaceAll(/&#39;/gm, "'")
+      .replaceAll(/&#96;/gm, '`'),
   )
   const nodes = dom.getElementsByTagName('meta')
 
