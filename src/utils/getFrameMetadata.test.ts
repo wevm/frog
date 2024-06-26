@@ -24,7 +24,7 @@ test('default', async () => {
         "property": "og:image",
       },
       {
-        "content": "Frog Frame",
+        "content": "Frog – Framework for Farcaster Frames",
         "property": "og:title",
       },
       {

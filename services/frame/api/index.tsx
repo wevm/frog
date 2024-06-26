@@ -15,6 +15,7 @@ export const app = new Frog<{ State: State }>({
   assetsPath: '/',
   basePath: '/api',
   browserLocation: 'https://frog.fm',
+  title: 'Frog – Framework for Farcaster Frames',
   initialState: {
     featureIndex: 0,
   },
