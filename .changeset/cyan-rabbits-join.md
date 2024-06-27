@@ -1,5 +1,5 @@
 ---
-"frog": minor
+"frog": patch
 ---
 
-Read frog_user cookie to prevent session logout.
+Fixed an issue with session logouts by reading `frog_user` cookie.
