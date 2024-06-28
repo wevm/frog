@@ -1,5 +1,15 @@
 # frog
 
+## 0.12.1
+
+### Patch Changes
+
+- [#380](https://github.com/wevm/frog/pull/380) [`6ab441b`](https://github.com/wevm/frog/commit/6ab441b2b2d9c19756755d7d4273c7e811f19926) Thanks [@crebsy](https://github.com/crebsy)! - Fixed an issue with session logouts by reading `frog_user` cookie.
+
+- [#383](https://github.com/wevm/frog/pull/383) [`dac1d21`](https://github.com/wevm/frog/commit/dac1d211e6da969511e398b363d48df35b3fee36) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed incorrectly unescaped HTML entities in Frame Preview Buttons leading to incorrect UI shown.
+
+- [#385](https://github.com/wevm/frog/pull/385) [`38a1d45`](https://github.com/wevm/frog/commit/38a1d45ddf7834da4bae640b13a8789004c01a9c) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where a Component returning `null` would crash the image rendering process.
+
 ## 0.12.0
 
 ### Minor Changes
