@@ -12,6 +12,7 @@ import type { BaseErrorResponseFn } from './response.js'
 import type {
   ContractTransactionResponseFn,
   SendTransactionParameters,
+  SignTypedDataResponseFn,
   TransactionParameters,
   TransactionResponseFn,
 } from './transaction.js'
@@ -230,6 +231,10 @@ export type TransactionContext<
    * This is a convenience method for "eth_sendTransaction" requests as defined in the [Transaction Spec](https://www.notion.so/warpcast/Frame-Transactions-Public-Draft-v2-9d9f9f4f527249519a41bd8d16165f73?pvs=4#1b69c268f0684c978fbdf4d331ab8869).
    */
   send: TransactionResponseFn<SendTransactionParameters>
+  /**
+   * Signs typed data.
+   */
+  signTypedData: SignTypedDataResponseFn
 }
 
 export type ImageContext<
