@@ -20,7 +20,14 @@ export async function parseImage(
     return (await Promise.all(
       node_.map(async (e) => await parseImage(e, { assetsUrl, ui })),
     )) as Child
+
   if (node_ instanceof Promise) return await node_
+
+  // Handle Fragment `<></>`
+  if (node_.tag === '')
+    return (await Promise.all(
+      node_.children.map(async (e) => await parseImage(e, { assetsUrl, ui })),
+    )) as Child
 
   let node = node_
   const direction =
