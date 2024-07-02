@@ -32,7 +32,7 @@ export function App() {
       }}
     >
       <aside
-        className="order-1 w-full space-y-4 md:min-w-sidebar md:max-w-sidebar lg:min-w-sidebar lg:max-w-sidebar"
+        className="order-1 w-full space-y-4 lg:min-w-sidebar md:min-w-sidebar lg:max-w-sidebar md:max-w-sidebar"
         style={{
           position: 'sticky',
           top: '1.5rem',
