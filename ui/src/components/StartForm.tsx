@@ -51,7 +51,7 @@ export function StartForm() {
 
         <button
           type="submit"
-          className="flex h-full items-center justify-center bg-background-100 px-4 text-gray-700 focus-visible:bg-gray-100 hover:bg-gray-100"
+          className="flex h-full items-center justify-center bg-background-100 px-4 text-gray-700 hover:bg-gray-100 focus-visible:bg-gray-100"
           style={{ boxShadow: 'none' }}
         >
           <span className="sr-only">Go</span>
