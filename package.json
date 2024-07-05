@@ -12,6 +12,8 @@
     "changeset": "changeset",
     "changeset:release": "pnpm build && changeset publish",
     "changeset:version": "changeset version && pnpm install --lockfile-only && bun .scripts/postversion.ts",
+    "changeset:prerelease:version": "changeset version --no-git-tag --snapshot canary",
+    "changeset:prerelease:release": "pnpm build && changeset publish --no-git-tag --snapshot canary --tag canary",
     "clean": "rimraf src/_lib src/protobufs/generated src/ui/icons/index.ts src/ui/icons/**/index.ts src/ui/icons/**/package.json src/ui/.frog src/tsconfig.build.tsbuildinfo",
     "create-frog": "node --import tsx ./create-frog/bin.ts",
     "docs:dev": "pnpm --filter site dev",
