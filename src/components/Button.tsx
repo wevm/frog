@@ -8,6 +8,7 @@ export const buttonPrefix = {
   redirect: '_r',
   reset: '_c',
   transaction: '_t',
+  signature: '_s',
 }
 
 export type ButtonProps = {
@@ -182,6 +183,33 @@ export function ButtonTransaction({
   ] as unknown as HtmlEscapedString
 }
 
+export type ButtonSignatureProps = ButtonProps & {
+  action?: string | undefined
+  target: string
+}
+
+ButtonSignature.__type = 'button'
+export function ButtonSignature({
+  action,
+  children,
+  // @ts-ignore - private
+  index = 1,
+  target,
+}: ButtonSignatureProps): JSX.Element {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={normalizeChildren(children)}
+      data-value={buttonPrefix.signature}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="tx" />,
+    <meta property={`fc:frame:button:${index}:target`} content={target} />,
+    action && (
+      <meta property={`fc:frame:button:${index}:post_url`} content={action} />
+    ),
+  ] as unknown as HtmlEscapedString
+}
+
 export const Button = Object.assign(ButtonRoot, {
   AddCastAction: ButtonAddCastAction,
   Link: ButtonLink,
@@ -189,6 +217,7 @@ export const Button = Object.assign(ButtonRoot, {
   Redirect: ButtonRedirect,
   Reset: ButtonReset,
   Transaction: ButtonTransaction,
+  Signature: ButtonSignature,
 })
 
 function normalizeChildren(children: string | string[]) {

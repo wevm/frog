@@ -10,6 +10,11 @@ import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type { ImageResponseFn } from './image.js'
 import type { BaseErrorResponseFn } from './response.js'
 import type {
+  SignTypedDataResponseFn,
+  SignatureParameters,
+  SignatureResponseFn,
+} from './signature.js'
+import type {
   ContractTransactionResponseFn,
   SendTransactionParameters,
   TransactionParameters,
@@ -266,4 +271,38 @@ export type ImageContext<
    * @see https://hono.dev/api/context#var
    */
   var: Context_hono<env, path, input>['var']
+}
+
+export type SignatureContext<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+  //
+  _state = env['State'],
+> = Context<env, path, input, _state> & {
+  /**
+   * Address of the account that is signing a message (if any). Maps to:
+   * - Ethereum: 20-byte address string.
+   */
+  address: string
+  /**
+   * Data from the frame that was passed via the POST body.
+   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   */
+  frameData?: Pretty<FrameData>
+  /** Error response that includes message and statusCode. */
+  error: BaseErrorResponseFn
+  /**
+   * Raw signature request.
+   *
+   * @see https://warpcast.notion.site/Frames-Wallet-Signatures-debe97a82e2643d094d4088f1badd791
+   */
+  res: SignatureResponseFn<SignatureParameters>
+  /**
+   * Signs typed data.
+   *
+   * This is a convenience method for "eth_signTypedData_v4" requests as defined in the [Wallet Signatures Spec](https://warpcast.notion.site/Frames-Wallet-Signatures-debe97a82e2643d094d4088f1badd791)
+).
+   */
+  signTypedData: SignTypedDataResponseFn
 }
