@@ -12,6 +12,7 @@ import lz from 'lz-string'
 import { default as p } from 'path-browserify'
 
 import type { CastActionOptions } from './types/castAction.js'
+import type { ComposerActionOptions } from './types/composerAction.js'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
@@ -22,6 +23,7 @@ import type { Hub } from './types/hub.js'
 import type {
   BlankInput,
   CastActionHandler,
+  ComposerActionHandler,
   FrameHandler,
   H,
   HandlerInterface,
@@ -35,6 +37,7 @@ import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getCastActionContext } from './utils/getCastActionContext.js'
+import { getComposerActionContext } from './utils/getComposerActionContext.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getImageContext } from './utils/getImageContext.js'
 import { getImagePaths } from './utils/getImagePaths.js'
@@ -206,7 +209,19 @@ export type RouteOptions<
                 c: Context<E, P, I>,
               ) => Promise<CastActionOptions> | CastActionOptions
             }
-      : {})
+      : method extends 'composerAction'
+        ?
+            | ComposerActionOptions
+            | {
+                /**
+                 * Custom handler for Composer Action `GET` response.
+                 * One can use that if something needs to be derived from the `Context`.
+                 */
+                handler: (
+                  c: Context<E, P, I>,
+                ) => Promise<ComposerActionOptions> | ComposerActionOptions
+              }
+        : {})
 
 /**
  * A Frog instance.
@@ -424,6 +439,77 @@ export class FrogBase<
 
       const { message, link } = response.data
       return c.json({ message, link, type: 'message' })
+    })
+
+    return this
+  }
+
+  composerAction: HandlerInterface<env, 'composerAction', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options] = getRouteParameters<
+      env,
+      ComposerActionHandler<env>,
+      'composerAction'
+    >(...parameters)
+
+    const { verify = this.verify } = options
+
+    // Composer Action Route (implements GET).
+    if ('handler' in options) {
+      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+        const url = getRequestUrl(c.req)
+
+        const { aboutUrl, name, description, icon } = await options.handler(c)
+        return c.json({
+          aboutUrl,
+          action: {
+            type: 'post',
+          },
+          name,
+          description,
+          icon,
+          postUrl: url,
+        })
+      })
+    } else {
+      const { aboutUrl, name, description, icon } = options
+
+      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+        const url = getRequestUrl(c.req)
+        return c.json({
+          aboutUrl,
+          action: {
+            type: 'post',
+          },
+          name,
+          description,
+          icon,
+          postUrl: url,
+        })
+      })
+    }
+    // Composer Action Route (implements POST).
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+      const { context } = getComposerActionContext<env, string>({
+        context: await requestBodyToContext(c, {
+          hub:
+            this.hub ||
+            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
+          secret: this.secret,
+          verify,
+        }),
+      })
+
+      const response = await handler(context)
+      if (response instanceof Response) return response
+      if (response.status === 'error') {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
+
+      const { url: formUrl } = response.data
+      return c.json({ url: formUrl, type: 'form' })
     })
 
     return this

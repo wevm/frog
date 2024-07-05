@@ -6,7 +6,13 @@ export type BaseError = { message: string; statusCode?: ClientErrorStatusCode }
 export type BaseErrorResponseFn = (response: BaseError) => TypedResponse<never>
 
 export type TypedResponse<data> = {
-  format: 'castAction' | 'frame' | 'transaction' | 'image' | 'signature'
+  format:
+    | 'castAction'
+    | 'composerAction'
+    | 'frame'
+    | 'transaction'
+    | 'image'
+    | 'signature'
 } & OneOf<
   { data: data; status: 'success' } | { error: BaseError; status: 'error' }
 >
