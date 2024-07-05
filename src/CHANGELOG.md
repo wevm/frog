@@ -1,5 +1,11 @@
 # frog
 
+## 0.12.2
+
+### Patch Changes
+
+- [#389](https://github.com/wevm/frog/pull/389) [`c1abdbd`](https://github.com/wevm/frog/commit/c1abdbd7a53a6d3436d145294a4d72d977821b3c) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where Fragment (`<>...</>`) was handled as a separate node. Now it simply unwraps children.
+
 ## 0.12.1
 
 ### Patch Changes
