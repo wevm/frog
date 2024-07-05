@@ -1,6 +1,6 @@
-import type { TypedDataDefinition, TypedData } from 'viem'
+import type { TypedData, TypedDataDefinition } from 'viem'
 
-import type { ChainNamespace, ChainIdEip155 } from './transaction.js'
+import type { ChainIdEip155, ChainNamespace } from './transaction.js'
 
 import type { TypedResponse } from './response.js'
 

@@ -28,8 +28,8 @@ import type {
   ImageHandler,
   Input,
   MiddlewareHandlerInterface,
-  TransactionHandler,
   SignatureHandler,
+  TransactionHandler,
 } from './types/routes.js'
 import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
@@ -40,8 +40,8 @@ import { getImageContext } from './utils/getImageContext.js'
 import { getImagePaths } from './utils/getImagePaths.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
-import { getTransactionContext } from './utils/getTransactionContext.js'
 import { getSignatureContext } from './utils/getSignatureContext.js'
+import { getTransactionContext } from './utils/getTransactionContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseFonts } from './utils/parseFonts.js'

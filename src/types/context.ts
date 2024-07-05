@@ -10,16 +10,16 @@ import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type { ImageResponseFn } from './image.js'
 import type { BaseErrorResponseFn } from './response.js'
 import type {
+  SignTypedDataResponseFn,
+  SignatureParameters,
+  SignatureResponseFn,
+} from './signature.js'
+import type {
   ContractTransactionResponseFn,
   SendTransactionParameters,
   TransactionParameters,
   TransactionResponseFn,
 } from './transaction.js'
-import type {
-  SignatureParameters,
-  SignatureResponseFn,
-  SignTypedDataResponseFn,
-} from './signature.js'
 import type { Pretty } from './utils.js'
 
 export type CastActionContext<

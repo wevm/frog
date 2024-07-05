@@ -10,9 +10,9 @@ import { app as initial } from './initial.js'
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
 import { app as routingApp } from './routing.js'
+import { app as signatureApp } from './signature.js'
 import { app as todoApp } from './todos.js'
 import { app as transactionApp } from './transaction.js'
-import { app as signatureApp } from './signature.js'
 import { app as uiSystemApp } from './ui-system.js'
 
 export const app = new Frog({
