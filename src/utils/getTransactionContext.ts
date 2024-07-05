@@ -141,7 +141,8 @@ export function getTransactionContext<
               domain,
               types,
               primaryType,
-              message,
+              // @TODO: fix typing
+              message: message!,
             },
           }
 

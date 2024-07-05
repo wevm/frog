@@ -4,14 +4,12 @@ import type {
   ContractFunctionName,
   GetValue,
   Hex,
-  SignTypedDataParameters as viem_SignTypedDataParameters,
+  TypedDataDefinition,
   TypedData,
 } from 'viem'
-import type { TypedDataToPrimitiveTypes } from 'abitype'
 
 import type { TypedResponse } from './response.js'
 import type { UnionWiden, Widen } from './utils.js'
-import type { Simplify } from 'hono/utils/types'
 
 //////////////////////////////////////////////////////
 // Raw Transaction
@@ -62,36 +60,17 @@ export type TransactionResponse = Pick<
 
 export type EthSignTypedDataV4Parameters<
   typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData,
-  ///
-  schema extends Record<string, unknown> = typedData extends TypedData
-    ? TypedDataToPrimitiveTypes<typedData>
-    : { [_: string]: any },
-  message extends schema[keyof schema] = schema[primaryType extends keyof schema
-    ? primaryType
-    : keyof schema],
-> = Simplify<
-  Omit<
-    viem_SignTypedDataParameters<typedData, primaryType, undefined, message>,
-    'account'
-  >
->
+  primaryType extends keyof typedData | 'EIP712Domain',
+> = TypedDataDefinition<typedData, primaryType>
 
 export type EthSignTypedDataV4Schema<
   typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData,
-  ///
-  schema extends Record<string, unknown> = typedData extends TypedData
-    ? TypedDataToPrimitiveTypes<typedData>
-    : { [_: string]: any },
-  message extends schema[keyof schema] = schema[primaryType extends keyof schema
-    ? primaryType
-    : keyof schema],
+  primaryType extends keyof typedData | 'EIP712Domain',
 > = {
   /** A method ID to identify the type of transaction request. */
   method: 'eth_signTypedData_v4'
   /** Signature calldata. */
-  params: EthSignTypedDataV4Parameters<typedData, primaryType, schema, message>
+  params: EthSignTypedDataV4Parameters<typedData, primaryType>
 }
 
 export type EthSendTransactionSchema<quantity = string> = {
@@ -177,27 +156,13 @@ export type ContractTransactionResponseFn = <
 
 export type SignTypedDataParameters<
   typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData,
-  ///
-  schema extends Record<string, unknown> = typedData extends TypedData
-    ? TypedDataToPrimitiveTypes<typedData>
-    : { [_: string]: any },
-  message extends schema[keyof schema] = schema[primaryType extends keyof schema
-    ? primaryType
-    : keyof schema],
+  primaryType extends keyof typedData | 'EIP712Domain',
 > = Pick<TransactionParameters, 'chainId'> &
-  EthSignTypedDataV4Parameters<typedData, primaryType, schema, message>
+  EthSignTypedDataV4Parameters<typedData, primaryType>
 
 export type SignTypedDataResponseFn = <
-  typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData,
-  ///
-  schema extends Record<string, unknown> = typedData extends TypedData
-    ? TypedDataToPrimitiveTypes<typedData>
-    : { [_: string]: any },
-  message extends schema[keyof schema] = schema[primaryType extends keyof schema
-    ? primaryType
-    : keyof schema],
+  const typedData extends TypedData | Record<string, unknown>,
+  primaryType extends keyof typedData | 'EIP712Domain',
 >(
-  response: SignTypedDataParameters<typedData, primaryType, schema, message>,
+  response: SignTypedDataParameters<typedData, primaryType>,
 ) => TypedResponse<TransactionResponse>
