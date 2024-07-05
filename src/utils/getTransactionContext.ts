@@ -116,39 +116,20 @@ export function getTransactionContext<
       req,
       res(parameters) {
         const { attribution, chainId, method, params } = parameters
-        if (method === 'eth_sendTransaction') {
-          const { abi, data, gas, to, value } = params
-          const response: TransactionResponse = {
-            attribution,
-            chainId,
-            method,
-            params: {
-              abi,
-              data,
-              to,
-            },
-          }
-          if (gas) response.params.gas = gas.toString()
-          if (value) response.params.value = value.toString()
-          return { data: response, format: 'transaction', status: 'success' }
-        } else if (method === 'eth_signTypedData_v4') {
-          const { domain, types, primaryType, message } = params
-          const response: TransactionResponse = {
-            attribution,
-            chainId,
-            method,
-            params: {
-              domain,
-              types,
-              primaryType,
-              // @TODO: fix typing
-              message: message!,
-            },
-          }
-
-          return { data: response, format: 'transaction', status: 'success' }
+        const { abi, data, gas, to, value } = params
+        const response: TransactionResponse = {
+          attribution,
+          chainId,
+          method,
+          params: {
+            abi,
+            data,
+            to,
+          },
         }
-        throw new Error(`Unexpected Error: Unknown method ${method}`)
+        if (gas) response.params.gas = gas.toString()
+        if (value) response.params.value = value.toString()
+        return { data: response, format: 'transaction', status: 'success' }
       },
       send(parameters) {
         return this.res({
@@ -156,13 +137,6 @@ export function getTransactionContext<
           chainId: parameters.chainId,
           method: 'eth_sendTransaction',
           params: parameters,
-        })
-      },
-      signTypedData(parameters) {
-        return this.res({
-          params: parameters as any,
-          chainId: parameters.chainId,
-          method: 'eth_signTypedData_v4',
         })
       },
       status,

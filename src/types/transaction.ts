@@ -4,8 +4,6 @@ import type {
   ContractFunctionName,
   GetValue,
   Hex,
-  TypedDataDefinition,
-  TypedData,
 } from 'viem'
 
 import type { TypedResponse } from './response.js'
@@ -50,28 +48,13 @@ export type TransactionParameters = {
   chainId: `${ChainNamespace}:${ChainIdEip155}`
   /** Includes client calldata attribution suffix */
   attribution?: boolean | undefined
-} & (EthSendTransactionSchema<bigint> | EthSignTypedDataV4Schema<any, any>)
+} & EthSendTransactionSchema<bigint>
 
 export type TransactionResponse = Pick<
   TransactionParameters,
   'chainId' | 'attribution'
 > &
-  (EthSendTransactionSchema | EthSignTypedDataV4Schema<any, any>)
-
-export type EthSignTypedDataV4Parameters<
-  typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData | 'EIP712Domain',
-> = TypedDataDefinition<typedData, primaryType>
-
-export type EthSignTypedDataV4Schema<
-  typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData | 'EIP712Domain',
-> = {
-  /** A method ID to identify the type of transaction request. */
-  method: 'eth_signTypedData_v4'
-  /** Signature calldata. */
-  params: EthSignTypedDataV4Parameters<typedData, primaryType>
-}
+  EthSendTransactionSchema
 
 export type EthSendTransactionSchema<quantity = string> = {
   /** A method ID to identify the type of transaction request. */
@@ -149,20 +132,4 @@ export type ContractTransactionResponseFn = <
   >,
 >(
   response: ContractTransactionParameters<abi, functionName, args>,
-) => TypedResponse<TransactionResponse>
-
-//////////////////////////////////////////////////////
-// Sign Typed Data
-
-export type SignTypedDataParameters<
-  typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData | 'EIP712Domain',
-> = Pick<TransactionParameters, 'chainId'> &
-  EthSignTypedDataV4Parameters<typedData, primaryType>
-
-export type SignTypedDataResponseFn = <
-  const typedData extends TypedData | Record<string, unknown>,
-  primaryType extends keyof typedData | 'EIP712Domain',
->(
-  response: SignTypedDataParameters<typedData, primaryType>,
 ) => TypedResponse<TransactionResponse>

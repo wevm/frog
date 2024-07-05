@@ -29,6 +29,7 @@ import type {
   Input,
   MiddlewareHandlerInterface,
   TransactionHandler,
+  SignatureHandler,
 } from './types/routes.js'
 import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
@@ -40,6 +41,7 @@ import { getImagePaths } from './utils/getImagePaths.js'
 import { getRequestUrl } from './utils/getRequestUrl.js'
 import { getRouteParameters } from './utils/getRouteParameters.js'
 import { getTransactionContext } from './utils/getTransactionContext.js'
+import { getSignatureContext } from './utils/getSignatureContext.js'
 import * as jws from './utils/jws.js'
 import { parseBrowserLocation } from './utils/parseBrowserLocation.js'
 import { parseFonts } from './utils/parseFonts.js'
@@ -996,6 +998,41 @@ export class FrogBase<
 
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = getTransactionContext<env, string, {}, _state>({
+        context: await requestBodyToContext(c, {
+          hub:
+            this.hub ||
+            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
+          secret: this.secret,
+          verify,
+        }),
+        req: c.req,
+      })
+      const response = await handler(context)
+      if (response instanceof Response) return response
+      if (response.status === 'error') {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
+
+      return c.json(response.data)
+    })
+
+    return this
+  }
+
+  signature: HandlerInterface<env, 'signature', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      SignatureHandler<env>,
+      'signature'
+    >(...parameters)
+
+    const { verify = this.verify } = options
+
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+      const { context } = getSignatureContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||

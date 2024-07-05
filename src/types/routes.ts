@@ -15,12 +15,14 @@ import type {
   FrameContext,
   ImageContext,
   TransactionContext,
+  SignatureContext,
 } from './context.js'
 import type { Env } from './env.js'
 import type { FrameResponse } from './frame.js'
 import type { ImageResponse } from './image.js'
 import type { HandlerResponse } from './response.js'
 import type { TransactionResponse } from './transaction.js'
+import type { SignatureResponse } from './signature.js'
 
 ////////////////////////////////////////
 //////                            //////
@@ -68,6 +70,12 @@ export type TransactionHandler<
   I extends Input = BlankInput,
 > = (c: TransactionContext<E, P, I>) => HandlerResponse<TransactionResponse>
 
+export type SignatureHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: SignatureContext<E, P, I>) => HandlerResponse<SignatureResponse>
+
 export type Handler<
   E extends Env = any,
   P extends string = any,
@@ -96,7 +104,9 @@ export type H<
       ? CastActionHandler<E, P, I>
       : M extends 'image'
         ? ImageHandler<E, P, I>
-        : Handler<E, P, I, R>
+        : M extends 'signature'
+          ? SignatureHandler<E, P, I>
+          : Handler<E, P, I, R>
 
 ////////////////////////////////////////
 //////                            //////
