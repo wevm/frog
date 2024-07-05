@@ -1,5 +1,11 @@
 # frog
 
+## 0.12.3
+
+### Patch Changes
+
+- [#388](https://github.com/wevm/frog/pull/388) [`120449f`](https://github.com/wevm/frog/commit/120449f5953d75351015ba8e2c199877c80416a6) Thanks [@dalechyn](https://github.com/dalechyn)! - Added support for Wallet Signatures. [See more](https://warpcast.notion.site/Frames-Wallet-Signatures-debe97a82e2643d094d4088f1badd791).
+
 ## 0.12.2
 
 ### Patch Changes
