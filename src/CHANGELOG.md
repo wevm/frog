@@ -1,5 +1,22 @@
 # frog
 
+## 0.13.0
+
+### Minor Changes
+
+- [#398](https://github.com/wevm/frog/pull/398) [`88b5361`](https://github.com/wevm/frog/commit/88b5361dc0b11b7130f527d69ce3c3045189a7c8) Thanks [@dalechyn](https://github.com/dalechyn)! - Removed `chainId` property from the `.signature` handler response. [See more](https://warpcast.notion.site/Frames-Wallet-Signatures-debe97a82e2643d094d4088f1badd791).
+  ```diff
+  app.signature('/sign', (c) =>
+    c.signTypedData({
+  -   chainId: 'eip155:8543',
+      /**/
+    })
+  ```
+
+### Patch Changes
+
+- [#398](https://github.com/wevm/frog/pull/398) [`88b5361`](https://github.com/wevm/frog/commit/88b5361dc0b11b7130f527d69ce3c3045189a7c8) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed a bug where `Button.Signature` would not set a correct `post_url`.
+
 ## 0.12.3
 
 ### Patch Changes
