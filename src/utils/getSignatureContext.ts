@@ -70,11 +70,10 @@ export function getSignatureContext<
       previousState,
       req,
       res(parameters) {
-        const { chainId, method, params } = parameters
+        const { method, params } = parameters
 
         const { domain, types, primaryType, message } = params
         const response: SignatureResponse = {
-          chainId,
           method,
           params: {
             domain,
@@ -90,7 +89,6 @@ export function getSignatureContext<
       signTypedData(parameters) {
         return this.res({
           params: parameters as any,
-          chainId: parameters.chainId,
           method: 'eth_signTypedData_v4',
         })
       },
