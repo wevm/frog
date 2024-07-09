@@ -29,6 +29,7 @@ export const app = new Frog({ verify: 'silent', title: 'Signature' })
         Person: [
           { name: 'name', type: 'string' },
           { name: 'wallet', type: 'address' },
+          { name: 'balance', type: 'uint256' },
         ],
         Mail: [
           { name: 'from', type: 'Person' },
@@ -41,10 +42,12 @@ export const app = new Frog({ verify: 'silent', title: 'Signature' })
         from: {
           name: 'Cow',
           wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+          balance: 0n,
         },
         to: {
           name: 'Bob',
           wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+          balance: 1n,
         },
         contents: 'Hello, Bob!',
       },
