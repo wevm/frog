@@ -1049,7 +1049,13 @@ export class FrogBase<
         return c.json({ message: response.error.message })
       }
 
-      return c.json(response.data)
+      return c.text(
+        JSON.stringify(response.data, (_, value) =>
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
+        200,
+        { 'Content-Type': 'application/json' },
+      )
     })
 
     return this
