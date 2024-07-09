@@ -1,5 +1,11 @@
 # frog
 
+## 0.13.1
+
+### Patch Changes
+
+- [#401](https://github.com/wevm/frog/pull/401) [`5cd9839`](https://github.com/wevm/frog/commit/5cd9839c65165eb5ef793612f08ea856c9f15fa9) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with serializing typed data messages that have `bigint` fields.
+
 ## 0.13.0
 
 ### Minor Changes
