@@ -573,6 +573,7 @@ export class FrogBase<
       const nextFrameStateSearch = toSearchParams({
         initialPath: context.initialPath,
         previousButtonValues: buttonValues,
+        previousState,
       })
       const nextFrameStateMeta = serializeJson({
         initialPath: context.initialPath,
