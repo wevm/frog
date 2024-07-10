@@ -42,7 +42,7 @@ jobs:
         with:
           title: 'chore: version packages'
           commit: 'chore: version packages'
-          publish: pnpm changeset:release
+          publish: pnpm changeset:publish
           version: pnpm changeset:version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,4 +59,5 @@ jobs:
           git reset --hard origin/main
           pnpm clean
           pnpm changeset version --no-git-tag --snapshot canary
+          pnpm changeset:prepublish
           pnpm changeset publish --no-git-tag --snapshot canary --tag canary
