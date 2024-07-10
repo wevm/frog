@@ -1,5 +1,19 @@
 # frog
 
+## 0.14.0
+
+### Minor Changes
+
+- [#407](https://github.com/wevm/frog/pull/407) [`902f03d`](https://github.com/wevm/frog/commit/902f03dbcfa77afa027b94c90d755f09cb2380e4) Thanks [@dalechyn](https://github.com/dalechyn)! - **Breaking Change**. Added `chainId` back as a parameter to `.signature` handler's `c.signTypedData` response.
+
+  ```diff
+  app.signature('/sign', (c) =>
+    c.signTypedData({
+  +   chainId: 'eip155:8543',
+      /**/
+    })
+  ```
+
 ## 0.13.1
 
 ### Patch Changes
