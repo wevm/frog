@@ -19,6 +19,7 @@ export const app = new Frog({ verify: 'silent', title: 'Signature' })
   // Sign Typed Data
   .signature('/sign', (c) =>
     c.signTypedData({
+      chainId: 'eip155:84532',
       domain: {
         name: 'Ether Mail',
         version: '1',

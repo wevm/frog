@@ -1,10 +1,15 @@
 import type { TypedData, TypedDataDefinition } from 'viem'
+import type { ChainIdEip155, ChainNamespace } from './transaction.js'
 
 import type { TypedResponse } from './response.js'
 
-export type SignatureParameters = EthSignTypedDataV4Schema<any, any>
+export type SignatureParameters = {
+  /** A CAIP-2 Chain ID to identify the signature network. */
+  chainId: `${ChainNamespace}:${ChainIdEip155}`
+} & EthSignTypedDataV4Schema<any, any>
 
-export type SignatureResponse = EthSignTypedDataV4Schema<any, any>
+export type SignatureResponse = Pick<SignatureParameters, 'chainId'> &
+  EthSignTypedDataV4Schema<any, any>
 
 export type EthSignTypedDataV4Parameters<
   typedData extends TypedData | Record<string, unknown>,
@@ -31,7 +36,8 @@ export type SignatureResponseFn<parameters> = (
 export type SignTypedDataParameters<
   typedData extends TypedData | Record<string, unknown>,
   primaryType extends keyof typedData | 'EIP712Domain',
-> = EthSignTypedDataV4Parameters<typedData, primaryType>
+> = Pick<SignatureParameters, 'chainId'> &
+  EthSignTypedDataV4Parameters<typedData, primaryType>
 
 export type SignTypedDataResponseFn = <
   const typedData extends TypedData | Record<string, unknown>,
