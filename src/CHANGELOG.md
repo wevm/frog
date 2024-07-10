@@ -1,5 +1,11 @@
 # frog
 
+## 0.14.1
+
+### Patch Changes
+
+- [#409](https://github.com/wevm/frog/pull/409) [`9304567`](https://github.com/wevm/frog/commit/930456770370cd0f553d78e05071a07149cebda4) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `c.deriveState` would not modify state in initial frame handler.
+
 ## 0.14.0
 
 ### Minor Changes
