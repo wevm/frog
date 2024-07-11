@@ -1,5 +1,11 @@
 # frog
 
+## 0.14.2
+
+### Patch Changes
+
+- [#412](https://github.com/wevm/frog/pull/412) [`10e522d`](https://github.com/wevm/frog/commit/10e522d1a0b5bf05090a5f829993f44495412afc) Thanks [@dalechyn](https://github.com/dalechyn)! - Reverted the changes introduced in 0.14.1.
+
 ## 0.14.1
 
 ### Patch Changes
