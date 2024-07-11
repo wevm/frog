@@ -1,31 +1,7 @@
 import { Box, type BoxProps } from './Box.js'
 import type { DefaultVars, Vars } from './vars.js'
 
-export type VStackProps<vars extends Vars = DefaultVars> = Pick<
-  BoxProps<vars>,
-  | 'bottom'
-  | 'children'
-  | 'flex'
-  | 'flexBasis'
-  | 'flexFlow'
-  | 'flexShrink'
-  | 'gap'
-  | 'grow'
-  | 'height'
-  | 'left'
-  | 'maxHeight'
-  | 'maxWidth'
-  | 'maxWidth'
-  | 'minWidth'
-  | 'padding'
-  | 'paddingBottom'
-  | 'paddingLeft'
-  | 'paddingRight'
-  | 'paddingTop'
-  | 'right'
-  | 'top'
-  | 'width'
-> & {
+export type VStackProps<vars extends Vars = DefaultVars> = BoxProps<vars> & {
   /** Horizontally aligns the contents. */
   alignHorizontal?: 'left' | 'center' | 'right'
   /** Vertically aligns the contents. */
