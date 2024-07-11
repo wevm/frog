@@ -63,6 +63,7 @@ export function getFrameContext<
   function deriveState(
     derive?: (state: _state) => void | Promise<void>,
   ): _state | Promise<_state> {
+    if (status !== 'response') return previousState as _state
     if (!derive) return previousState as _state
 
     const clone = structuredClone(previousState)
