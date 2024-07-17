@@ -12,7 +12,6 @@ import lz from 'lz-string'
 import { default as p } from 'path-browserify'
 
 import type { CastActionOptions } from './types/castAction.js'
-import type { ComposerActionOptions } from './types/composerAction.js'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
@@ -435,7 +434,7 @@ export class FrogBase<
   composerAction: HandlerInterface<env, 'composerAction', schema, basePath> = (
     ...parameters: any[]
   ) => {
-    const [path, middlewares, handler, options] = getRouteParameters<
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
       env,
       ComposerActionHandler<env>,
       'composerAction'
@@ -443,40 +442,6 @@ export class FrogBase<
 
     const { verify = this.verify } = options
 
-    // Composer Action Route (implements GET).
-    if ('handler' in options) {
-      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
-        const url = getRequestUrl(c.req)
-
-        const { aboutUrl, name, description, icon } = await options.handler(c)
-        return c.json({
-          aboutUrl,
-          action: {
-            type: 'post',
-          },
-          name,
-          description,
-          icon,
-          postUrl: url,
-        })
-      })
-    } else {
-      const { aboutUrl, name, description, icon } = options
-
-      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
-        const url = getRequestUrl(c.req)
-        return c.json({
-          aboutUrl,
-          action: {
-            type: 'post',
-          },
-          name,
-          description,
-          icon,
-          postUrl: url,
-        })
-      })
-    }
     // Composer Action Route (implements POST).
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = getComposerActionContext<env, string>({
@@ -496,8 +461,8 @@ export class FrogBase<
         return c.json({ message: response.error.message })
       }
 
-      const { url: formUrl } = response.data
-      return c.json({ url: formUrl, type: 'form' })
+      const { url: formUrl, title } = response.data
+      return c.json({ url: formUrl, title, type: 'form' })
     })
 
     return this

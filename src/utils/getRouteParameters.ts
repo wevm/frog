@@ -12,11 +12,11 @@ export function getRouteParameters<
   string,
   MiddlewareHandler<env>[],
   handler,
-  method extends 'castAction' | 'composerAction'
+  method extends 'castAction'
     ? RouteOptions<method>
     : RouteOptions<method> | undefined,
 ] {
-  const options: method extends 'castAction' | 'composerAction'
+  const options: method extends 'castAction'
     ? RouteOptions<method>
     : RouteOptions<method> | undefined =
     typeof parameters[parameters.length - 1] === 'object'

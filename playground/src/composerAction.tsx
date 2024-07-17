@@ -11,9 +11,9 @@ export const app = new Frog({
       c.actionData.fid
     }`,
   )
-  if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
+  // if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
   return c.res({
     title: 'Some Composer Action',
-    url: 'https://somewhere.com/some-form',
+    url: 'https://example.com',
   })
 })
