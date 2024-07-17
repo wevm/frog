@@ -68,32 +68,6 @@ export function ButtonAddCastAction({
   ] as unknown as HtmlEscapedString
 }
 
-export type ButtonAddComposerActionProps = ButtonProps & {
-  /** Action path */
-  action: string
-}
-
-ButtonAddComposerAction.__type = 'button'
-export function ButtonAddComposerAction({
-  action,
-  children,
-  // @ts-ignore - private
-  index = 1,
-}: ButtonAddComposerActionProps) {
-  return [
-    <meta
-      property={`fc:frame:button:${index}`}
-      content={normalizeChildren(children)}
-      data-value={buttonPrefix.addComposerAction}
-    />,
-    <meta property={`fc:frame:button:${index}:action`} content="link" />,
-    <meta
-      property={`fc:frame:button:${index}:target`}
-      content={`https://warpcast.com/~/add-cast-action?url=${action}`}
-    />,
-  ] as unknown as HtmlEscapedString
-}
-
 export type ButtonLinkProps = ButtonProps & {
   href: string
 }
@@ -239,7 +213,6 @@ export function ButtonSignature({
 
 export const Button = Object.assign(ButtonRoot, {
   AddCastAction: ButtonAddCastAction,
-  AddComposerAction: ButtonAddComposerAction,
   Link: ButtonLink,
   Mint: ButtonMint,
   Redirect: ButtonRedirect,

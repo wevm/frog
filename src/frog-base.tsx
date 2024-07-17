@@ -209,19 +209,7 @@ export type RouteOptions<
                 c: Context<E, P, I>,
               ) => Promise<CastActionOptions> | CastActionOptions
             }
-      : method extends 'composerAction'
-        ?
-            | ComposerActionOptions
-            | {
-                /**
-                 * Custom handler for Composer Action `GET` response.
-                 * One can use that if something needs to be derived from the `Context`.
-                 */
-                handler: (
-                  c: Context<E, P, I>,
-                ) => Promise<ComposerActionOptions> | ComposerActionOptions
-              }
-        : {})
+      : {})
 
 /**
  * A Frog instance.

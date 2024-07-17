@@ -30,6 +30,8 @@ export function getComposerActionContext<
 
   if (!frameData)
     throw new Error('Frame data must be present for action handlers.')
+  if (!frameData.state)
+    throw new Error('State must be present for composer action handler.')
 
   return {
     context: {
@@ -40,6 +42,7 @@ export function getComposerActionContext<
         network: frameData.network,
         messageHash: frameData.messageHash,
         timestamp: frameData.timestamp,
+        state: JSON.parse(decodeURIComponent(frameData.state)),
         url: frameData.url,
       },
       env,
