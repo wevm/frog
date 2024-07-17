@@ -26,9 +26,13 @@ export type ComposerActionData = {
   timestamp: number
   url: string
   state: {
-    parent?: string | undefined
-    text: string
-    embeds: string[]
+    requestId: string
+    cast: {
+      parent?: string | undefined
+      text: string
+      embeds: string[]
+      castDistribution: string
+    }
   }
 }
 
