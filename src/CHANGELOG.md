@@ -1,5 +1,13 @@
 # frog
 
+## 0.14.3
+
+### Patch Changes
+
+- [#414](https://github.com/wevm/frog/pull/414) [`51f5678`](https://github.com/wevm/frog/commit/51f567877c8b8c6775e91d8e4ec5c066056830b7) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `Box` props weren't accessible in `HStack` and `VStack` components.
+
+- [#417](https://github.com/wevm/frog/pull/417) [`24e7fd0`](https://github.com/wevm/frog/commit/24e7fd04a3fda767442f0b43e2fd1fd16d5f28c1) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `verify` value would be the same as the parent's Frog instance even if `false` is passed.
+
 ## 0.14.2
 
 ### Patch Changes
