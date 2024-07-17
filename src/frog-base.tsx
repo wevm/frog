@@ -978,7 +978,7 @@ export class FrogBase<
     if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
     if (!frog.ui) frog.ui = this.ui
-    if (!frog.verify) frog.verify = this.verify
+    if (typeof frog.verify === 'undefined') frog.verify = this.verify
 
     this.hono.route(path, frog.hono)
 
