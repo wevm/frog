@@ -1,5 +1,11 @@
 # frog
 
+## 0.14.4
+
+### Patch Changes
+
+- [#420](https://github.com/wevm/frog/pull/420) [`6114139`](https://github.com/wevm/frog/commit/6114139cb7b56ca5bc95ae2af7722f9ba0ec7f80) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `TextInput` component was unnecessarily unwrapped causing an issue with getting button values.
+
 ## 0.14.3
 
 ### Patch Changes
