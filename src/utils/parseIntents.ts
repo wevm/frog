@@ -95,7 +95,8 @@ function parseIntent(
 
   if (typeof intent?.tag === 'function' && typeof node.tag === 'function') {
     if (intent.children.length > 1) throw new InvalidIntentComponentError()
-    return parseIntent(node.tag(node.props), options, counter)
+    if (intent.tag.name !== 'meta')
+      return parseIntent(node.tag(node.props), options, counter)
   }
   return intent
 }
