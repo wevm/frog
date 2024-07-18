@@ -1,5 +1,68 @@
 # frog
 
+## 0.14.4
+
+### Patch Changes
+
+- [#420](https://github.com/wevm/frog/pull/420) [`6114139`](https://github.com/wevm/frog/commit/6114139cb7b56ca5bc95ae2af7722f9ba0ec7f80) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `TextInput` component was unnecessarily unwrapped causing an issue with getting button values.
+
+## 0.14.3
+
+### Patch Changes
+
+- [#414](https://github.com/wevm/frog/pull/414) [`51f5678`](https://github.com/wevm/frog/commit/51f567877c8b8c6775e91d8e4ec5c066056830b7) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `Box` props weren't accessible in `HStack` and `VStack` components.
+
+- [#417](https://github.com/wevm/frog/pull/417) [`24e7fd0`](https://github.com/wevm/frog/commit/24e7fd04a3fda767442f0b43e2fd1fd16d5f28c1) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `verify` value would be the same as the parent's Frog instance even if `false` is passed.
+
+## 0.14.2
+
+### Patch Changes
+
+- [#412](https://github.com/wevm/frog/pull/412) [`10e522d`](https://github.com/wevm/frog/commit/10e522d1a0b5bf05090a5f829993f44495412afc) Thanks [@dalechyn](https://github.com/dalechyn)! - Reverted the changes introduced in 0.14.1.
+
+## 0.14.1
+
+### Patch Changes
+
+- [#409](https://github.com/wevm/frog/pull/409) [`9304567`](https://github.com/wevm/frog/commit/930456770370cd0f553d78e05071a07149cebda4) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `c.deriveState` would not modify state in initial frame handler.
+
+## 0.14.0
+
+### Minor Changes
+
+- [#407](https://github.com/wevm/frog/pull/407) [`902f03d`](https://github.com/wevm/frog/commit/902f03dbcfa77afa027b94c90d755f09cb2380e4) Thanks [@dalechyn](https://github.com/dalechyn)! - **Breaking Change**. Added `chainId` back as a parameter to `.signature` handler's `c.signTypedData` response.
+
+  ```diff
+  app.signature('/sign', (c) =>
+    c.signTypedData({
+  +   chainId: 'eip155:8543',
+      /**/
+    })
+  ```
+
+## 0.13.1
+
+### Patch Changes
+
+- [#401](https://github.com/wevm/frog/pull/401) [`5cd9839`](https://github.com/wevm/frog/commit/5cd9839c65165eb5ef793612f08ea856c9f15fa9) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with serializing typed data messages that have `bigint` fields.
+
+## 0.13.0
+
+### Minor Changes
+
+- [#398](https://github.com/wevm/frog/pull/398) [`88b5361`](https://github.com/wevm/frog/commit/88b5361dc0b11b7130f527d69ce3c3045189a7c8) Thanks [@dalechyn](https://github.com/dalechyn)! - Removed `chainId` property from the `.signature` handler response. [See more](https://warpcast.notion.site/Frames-Wallet-Signatures-debe97a82e2643d094d4088f1badd791).
+  ```diff
+  app.signature('/sign', (c) =>
+    c.signTypedData({
+  -   chainId: 'eip155:8543',
+      /**/
+    })
+  ```
+
+### Patch Changes
+
+- [#398](https://github.com/wevm/frog/pull/398) [`88b5361`](https://github.com/wevm/frog/commit/88b5361dc0b11b7130f527d69ce3c3045189a7c8) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed a bug where `Button.Signature` would not set a correct `post_url`.
+
 ## 0.12.3
 
 ### Patch Changes

@@ -1017,7 +1017,7 @@ export class FrogBase<
     if (!frog.origin) frog.origin = this.origin
     if (!frog.secret) frog.secret = this.secret
     if (!frog.ui) frog.ui = this.ui
-    if (!frog.verify) frog.verify = this.verify
+    if (typeof frog.verify === 'undefined') frog.verify = this.verify
 
     this.hono.route(path, frog.hono)
 
@@ -1088,7 +1088,13 @@ export class FrogBase<
         return c.json({ message: response.error.message })
       }
 
-      return c.json(response.data)
+      return c.text(
+        JSON.stringify(response.data, (_, value) =>
+          typeof value === 'bigint' ? value.toString() : value,
+        ),
+        200,
+        { 'Content-Type': 'application/json' },
+      )
     })
 
     return this

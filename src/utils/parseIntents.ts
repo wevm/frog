@@ -67,7 +67,11 @@ function parseIntent(
         index: counter.button++,
       }
 
-      if (value?.startsWith(buttonPrefix.transaction) && node.props.target) {
+      if (
+        (value?.startsWith(buttonPrefix.transaction) ||
+          value?.startsWith(buttonPrefix.signature)) &&
+        node.props.target
+      ) {
         const search = (node.props.target ?? '').split('?')[1]
         buttonProps.target = node.props.target?.startsWith('http')
           ? node.props.target
@@ -91,7 +95,8 @@ function parseIntent(
 
   if (typeof intent?.tag === 'function' && typeof node.tag === 'function') {
     if (intent.children.length > 1) throw new InvalidIntentComponentError()
-    return parseIntent(node.tag(node.props), options, counter)
+    if (intent.tag.name !== 'meta')
+      return parseIntent(node.tag(node.props), options, counter)
   }
   return intent
 }

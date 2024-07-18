@@ -88,9 +88,10 @@ export function getSignatureContext<
         return { data: response, format: 'signature', status: 'success' }
       },
       signTypedData(parameters) {
+        const { chainId, ...params } = parameters
         return this.res({
-          params: parameters as any,
-          chainId: parameters.chainId,
+          params: params as any,
+          chainId,
           method: 'eth_signTypedData_v4',
         })
       },

@@ -1,5 +1,4 @@
 import type { TypedData, TypedDataDefinition } from 'viem'
-
 import type { ChainIdEip155, ChainNamespace } from './transaction.js'
 
 import type { TypedResponse } from './response.js'
