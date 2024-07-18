@@ -42,7 +42,7 @@ function parseIntent(
 ): JSXNode | JSXNode[] {
   // Check if the node is a "falsy" node (ie. `null`, `undefined`, `false`, etc).
   const node = (
-    !node_ ? { children: [], props: {}, tag() {} } : node_
+    !node_ ? { children: [], props: {}, tag() { } } : node_
   ) as JSXNode
 
   const props = (() => {
@@ -55,13 +55,13 @@ function parseIntent(
           ? node.props.action.startsWith('http')
             ? node.props.action
             : parsePath(
-                node.props.action.startsWith('~')
-                  ? options.initialBaseUrl + node.props.action.slice(1)
-                  : options.baseUrl + node.props.action,
-              ) +
-              (options.search && !value?.startsWith(buttonPrefix.addCastAction)
-                ? `?${options.search}`
-                : '')
+              node.props.action.startsWith('~')
+                ? options.initialBaseUrl + node.props.action.slice(1)
+                : options.baseUrl + node.props.action,
+            ) +
+            (options.search && !value?.startsWith(buttonPrefix.addCastAction)
+              ? `?${options.search}`
+              : '')
           : undefined,
         children: node.children,
         index: counter.button++,
@@ -76,7 +76,7 @@ function parseIntent(
         buttonProps.target = node.props.target?.startsWith('http')
           ? node.props.target
           : parsePath(options.baseUrl + node.props.target) +
-            (search ? `?${search}` : '')
+          (search ? `?${search}` : '')
       }
 
       return buttonProps
@@ -95,7 +95,8 @@ function parseIntent(
 
   if (typeof intent?.tag === 'function' && typeof node.tag === 'function') {
     if (intent.children.length > 1) throw new InvalidIntentComponentError()
-    return parseIntent(node.tag(node.props), options, counter)
+    if (intent.tag.name !== 'meta')
+      return parseIntent(node.tag(node.props), options, counter)
   }
   return intent
 }
