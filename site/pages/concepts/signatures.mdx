@@ -1,0 +1,97 @@
+# Signatures
+
+Farcaster Frames have the ability to instruct an App to invoke and sign [EIP-712](https://eips.ethereum.org/EIPS/eip-712) signatures (see the [spec](https://warpcast.notion.site/Frames-Wallet-Signatures-debe97a82e2643d094d4088f1badd791)).
+
+## Overview
+
+At a glance:
+
+1. A Frame has a `<Button.Signature>{:jsx}` element with a specified target `.signature` route.
+2. When the user presses the button in the App, the App will make a `POST` request to the `.signature` route.
+3. The App uses the response to forward the transaction data to the user's wallet for signing.
+4. Once the user has signed the data, the App will perform a `POST` request to the frame.
+
+## Example
+
+Here is a trivial example on how to expose a signature interface in a frame. We will break it down below.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.frame('/', (c) => {
+  return c.res({
+    action: '/finish',
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Sign data
+      </div>
+    ),
+    intents: [
+      <Button.Signature target="/sign">Sign</Button.Signature>,
+    ]
+  })
+})
+
+app.frame('/finish', (c) => {
+  const { transactionId } = c
+  return c.res({
+    image: (
+      <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
+        Signature: {transactionId}
+      </div>
+    )
+  })
+})
+
+app.signature('/sign', (c) => {
+  return c.signTypedData({
+    chainId: 'eip155:84532',
+    domain: {
+      name: 'Ether Mail',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    },
+    types: {
+      Person: [
+        { name: 'name', type: 'string' },
+        { name: 'wallet', type: 'address' },
+        { name: 'balance', type: 'uint256' },
+      ],
+      Mail: [
+        { name: 'from', type: 'Person' },
+        { name: 'to', type: 'Person' },
+        { name: 'contents', type: 'string' },
+      ],
+    },
+    primaryType: 'Mail',
+    message: {
+      from: {
+        name: 'Cow',
+        wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+        balance: 0n,
+      },
+      to: {
+        name: 'Bob',
+        wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+        balance: 1n,
+      },
+      contents: 'Hello, Bob!',
+    },
+  })
+})
+```
+
+## Bonus: Learn the API
+
+You can learn more about the signature APIs here:
+
+- [`Frog.signature` Reference](/reference/frog-signature)
+- [`Frog.signature` Context Reference](/reference/frog-signature-context)
+- [`Frog.signature` Response Reference](/reference/frog-signature-response)
+

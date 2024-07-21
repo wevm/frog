@@ -3,7 +3,7 @@ import { version } from '../src/package.json'
 import { getFrameMetadata } from '../src/utils/getFrameMetadata.js'
 
 export default defineConfig({
-  banner: '🖼️Introducing [Image Handler](/concepts/image-handler).',
+  banner: 'Introducing [✍️ Signatures](/concepts/signatures).',
   description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
   async head({ path }) {
@@ -145,6 +145,10 @@ export default defineConfig({
             link: '/concepts/transactions',
           },
           {
+            text: 'Signatures',
+            link: '/concepts/signatures',
+          },
+          {
             text: 'Cast Actions',
             link: '/concepts/cast-actions',
           },
@@ -253,6 +257,17 @@ export default defineConfig({
               {
                 text: 'Response',
                 link: '/reference/frog-transaction-response',
+              },
+            ],
+          },
+          {
+            text: 'Frog.signature',
+            link: '/reference/frog-signature',
+            items: [
+              { text: 'Context', link: '/reference/frog-signature-context' },
+              {
+                text: 'Response',
+                link: '/reference/frog-signature-response',
               },
             ],
           },
