@@ -52,6 +52,7 @@ import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
 import { requestBodyToContext } from './utils/requestBodyToContext.js'
+import { requestBodyToImageContext } from './utils/requestBodyToImageContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
@@ -711,7 +712,15 @@ export class FrogBase<
           return nonMiddlewareMatchedRoutes.length !== 0
         })()
 
-        if (isHandlerPresentOnImagePath) return `${baseUrl + parsePath(image)}`
+        if (isHandlerPresentOnImagePath)
+          return `${baseUrl + parsePath(image)}${
+            context.status !== 'initial'
+              ? `?${toSearchParams({
+                  previousState,
+                  previousButtonValues: buttonValues,
+                }).toString()}`
+              : ''
+          }`
         return `${assetsUrl + parsePath(image)}`
       })()
 
@@ -928,7 +937,10 @@ export class FrogBase<
       const assetsUrl = origin + parsePath(this.assetsPath)
 
       const { context } = getImageContext<env, string>({
-        context: c,
+        context: await requestBodyToImageContext(c, {
+          secret: this.secret,
+        }),
+        initialState: this._initialState,
       })
 
       const response = await handler(context)

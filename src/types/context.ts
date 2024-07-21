@@ -294,6 +294,8 @@ export type ImageContext<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
+  //
+  _state = env['State'],
 > = {
   /**
    * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
@@ -308,6 +310,14 @@ export type ImageContext<
    * @see https://hono.dev/api/context#env
    */
   env: Context_hono<env, path>['env']
+  /**
+   * Button values from the previous frame.
+   */
+  previousButtonValues?: FrameButtonValue[] | undefined
+  /**
+   * State from the previous frame.
+   */
+  previousState: _state
   /**
    * Hono request object.
    *

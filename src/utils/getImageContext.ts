@@ -1,5 +1,5 @@
-import type { Context as Context_hono, Input } from 'hono'
-import type { ImageContext } from '../types/context.js'
+import type { Input } from 'hono'
+import type { Context, ImageContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 
 type GetImageContextParameters<
@@ -9,7 +9,11 @@ type GetImageContextParameters<
   //
   _state = env['State'],
 > = {
-  context: Context_hono<env, path, input>
+  context: Omit<
+    Context<env, path, input, _state>,
+    'frameData' | 'verified' | 'status' | 'initialPath'
+  >
+  initialState?: _state
 }
 
 type GetImageContextReturnType<
@@ -19,7 +23,7 @@ type GetImageContextReturnType<
   //
   _state = env['State'],
 > = {
-  context: ImageContext<env, path, input>
+  context: ImageContext<env, path, input, _state>
 }
 
 export function getImageContext<
@@ -31,12 +35,13 @@ export function getImageContext<
 >(
   parameters: GetImageContextParameters<env, path, input, _state>,
 ): GetImageContextReturnType<env, path, input, _state> {
-  const { context } = parameters
-  const { env, req } = context || {}
+  const { context, initialState } = parameters
+  const { env, previousState, req } = context || {}
 
   return {
     context: {
       env,
+      previousState: previousState ?? (initialState as _state),
       req,
       res: (data) => ({ data, format: 'image', status: 'success' }),
       var: context.var,
