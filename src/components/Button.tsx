@@ -3,6 +3,7 @@ import type { HtmlEscapedString } from 'hono/utils/html'
 
 export const buttonPrefix = {
   addCastAction: '_a',
+  addComposerAction: '_b',
   link: '_l',
   mint: '_m',
   redirect: '_r',

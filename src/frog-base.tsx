@@ -22,6 +22,7 @@ import type { Hub } from './types/hub.js'
 import type {
   BlankInput,
   CastActionHandler,
+  ComposerActionHandler,
   FrameHandler,
   H,
   HandlerInterface,
@@ -35,6 +36,7 @@ import type { Vars } from './ui/vars.js'
 import { fromQuery } from './utils/fromQuery.js'
 import { getButtonValues } from './utils/getButtonValues.js'
 import { getCastActionContext } from './utils/getCastActionContext.js'
+import { getComposerActionContext } from './utils/getComposerActionContext.js'
 import { getFrameContext } from './utils/getFrameContext.js'
 import { getImageContext } from './utils/getImageContext.js'
 import { getImagePaths } from './utils/getImagePaths.js'
@@ -424,6 +426,43 @@ export class FrogBase<
 
       const { message, link } = response.data
       return c.json({ message, link, type: 'message' })
+    })
+
+    return this
+  }
+
+  composerAction: HandlerInterface<env, 'composerAction', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler, options = {}] = getRouteParameters<
+      env,
+      ComposerActionHandler<env>,
+      'composerAction'
+    >(...parameters)
+
+    const { verify = this.verify } = options
+
+    // Composer Action Route (implements POST).
+    this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
+      const { context } = getComposerActionContext<env, string>({
+        context: await requestBodyToContext(c, {
+          hub:
+            this.hub ||
+            (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
+          secret: this.secret,
+          verify,
+        }),
+      })
+
+      const response = await handler(context)
+      if (response instanceof Response) return response
+      if (response.status === 'error') {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
+
+      const { url: formUrl, title } = response.data
+      return c.json({ url: formUrl, title, type: 'form' })
     })
 
     return this

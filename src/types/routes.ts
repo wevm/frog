@@ -9,8 +9,10 @@ import type {
 } from 'hono/utils/types'
 import type { FrogBase, RouteOptions } from '../frog-base.js'
 import type { CastActionResponse } from './castAction.js'
+import type { ComposerActionResponse } from './composerAction.js'
 import type {
   CastActionContext,
+  ComposerActionContext,
   Context,
   FrameContext,
   ImageContext,
@@ -51,6 +53,14 @@ export type CastActionHandler<
   P extends string = any,
   I extends Input = BlankInput,
 > = (c: CastActionContext<E, P, I>) => HandlerResponse<CastActionResponse>
+
+export type ComposerActionHandler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (
+  c: ComposerActionContext<E, P, I>,
+) => HandlerResponse<ComposerActionResponse>
 
 export type FrameHandler<
   E extends Env = any,
@@ -102,11 +112,13 @@ export type H<
     ? TransactionHandler<E, P, I>
     : M extends 'castAction'
       ? CastActionHandler<E, P, I>
-      : M extends 'image'
-        ? ImageHandler<E, P, I>
-        : M extends 'signature'
-          ? SignatureHandler<E, P, I>
-          : Handler<E, P, I, R>
+      : M extends 'composerAction'
+        ? ComposerActionHandler<E, P, I>
+        : M extends 'image'
+          ? ImageHandler<E, P, I>
+          : M extends 'signature'
+            ? SignatureHandler<E, P, I>
+            : Handler<E, P, I, R>
 
 ////////////////////////////////////////
 //////                            //////

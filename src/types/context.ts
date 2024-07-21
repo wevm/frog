@@ -5,6 +5,10 @@ import type {
   CastActionMessageResponseFn,
   CastActionResponseFn,
 } from './castAction.js'
+import type {
+  ComposerActionData,
+  ComposerActionResponseFn,
+} from './composerAction.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
 import type { ImageResponseFn } from './image.js'
@@ -71,6 +75,55 @@ export type CastActionContext<
    * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
    * */
   res: CastActionResponseFn
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path, input>['var']
+  /**
+   * Whether or not the {@link Context`actionData`} was verified by the Farcaster Hub API.
+   */
+  verified: boolean
+}
+
+export type ComposerActionContext<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+> = {
+  /**
+   * Data from the action that was passed via the POST body.
+   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   */
+  actionData: Pretty<ComposerActionData>
+  /**
+   * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
+   *
+   * @example
+   * ```ts
+   * // Environment object for Cloudflare Workers
+   * app.castAction('/', async c => {
+   *   const counter = c.env.COUNTER
+   * })
+   * ```
+   * @see https://hono.dev/api/context#env
+   */
+  env: Context_hono<env, path>['env']
+  /** Error response that includes message and statusCode. */
+  error: BaseErrorResponseFn
+  /**
+   * Hono request object.
+   *
+   * @see https://hono.dev/api/context#req
+   */
+  req: Context_hono<env, path, input>['req']
+  /**
+   * Raw action response that includes action properties such as: message, statusCode.
+   *
+   * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
+   * */
+  res: ComposerActionResponseFn
   /**
    * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
    *
