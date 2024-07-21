@@ -7,6 +7,7 @@ import { serveStatic } from 'frog/serve-static'
 export const app = new Frog({
   // Supply a Hub to enable frame verification.
   // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }),
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
