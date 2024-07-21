@@ -153,6 +153,10 @@ export default defineConfig({
             link: '/concepts/cast-actions',
           },
           {
+            text: 'Composer Actions',
+            link: '/concepts/composer-actions',
+          },
+          {
             text: 'Multi-step Cast Actions',
             link: '/concepts/multi-step-cast-actions',
           },
@@ -224,6 +228,20 @@ export default defineConfig({
               {
                 text: 'Response',
                 link: '/reference/frog-cast-action-response',
+              },
+            ],
+          },
+          {
+            text: 'Frog.composerAction',
+            link: '/reference/frog-composer-action',
+            items: [
+              {
+                text: 'Context',
+                link: '/reference/frog-composer-action-context',
+              },
+              {
+                text: 'Response',
+                link: '/reference/frog-composer-action-response',
               },
             ],
           },

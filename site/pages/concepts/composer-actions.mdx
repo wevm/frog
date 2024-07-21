@@ -1,0 +1,48 @@
+# Composer Actions
+
+Composer Actions let developers integrate into the cast creation interface, allowing users to modify their casts through various actions like creating polls, inserting GIFs, or checking grammar.
+When a Composer Action is triggered, it opens a Composer Form, a customizable web form that collects user input and sends modification instructions back to Warpcast. These actions enhance user interaction by simplifying the addition of complex elements to their casts.
+
+## Overview
+
+At a glance:
+
+1. User selects a Composer Action in the App client's cast creation UI.
+2. When the user presses the Composer Action button in the App, the App will make a `POST` request to the `.composerAction` route.
+3. Server performs any action and returns a response to the App which is shown as a form.
+
+## Example
+
+Here is a trivial example of how to expose an action with a frame. We will break it down below.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Frog, TextInput } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/',
+  (c) => {
+    console.log(
+      `Cast Action to ${JSON.stringify(c.actionData.castId)} from ${
+        c.actionData.fid
+      }`,
+    )
+    return c.res({
+      title: 'My Composer Action',
+      url: 'https://example.com' 
+    })
+  }
+)
+```
+
+### Bonus: Learn the API
+
+You can learn more about the transaction APIs here:
+
+- [`Frog.composerAction` Reference](/reference/frog-composer-action)
+- [`Frog.composerAction` Context Reference](/reference/frog-composer-action-context)
+- [`Frog.composerAction` Response Reference](/reference/frog-composer-action-response)

@@ -1,0 +1,84 @@
+# Frog.composerAction
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction('/', (c) => { // [!code focus]
+  return c.res({
+    title: 'My Composr Action', // [!code focus]
+    url: 'https://example.com' // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/', // [!code focus]
+  (c) => {
+    return c.res({
+      title: 'My Composr Action',
+      url: 'https://example.com'
+    })
+  }
+)
+```
+
+### handler
+
+- **Type:** `(c: Context) => ComposerActionResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Frog } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/',
+  (c) => { // [!code focus]
+    return c.res({ // [!code focus]
+      title: 'My Composr Action', // [!code focus]
+      url: 'https://example.com' // [!code focus]
+    }) // [!code focus]
+  } // [!code focus]
+)
+```
+
+#### Context Parameter
+
+[See the Composer Action Context API.](/reference/frog-composer-action-context)
+
+#### Action Response
+
+[See the Composer Action Response API.](/reference/frog-composer-action-response)
