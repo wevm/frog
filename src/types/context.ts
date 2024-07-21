@@ -119,7 +119,7 @@ export type ComposerActionContext<
    */
   req: Context_hono<env, path, input>['req']
   /**
-   * Raw action response that includes action properties such as: message, statusCode.
+   * Composer action response.
    *
    * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
    * */
