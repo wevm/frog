@@ -48,6 +48,7 @@ import { Button, Frog, TextInput } from 'frog'
 
 const app = new Frog({ 
   basePath: '/api',
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -91,6 +92,7 @@ import { handle } from 'frog/next' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',
+  title: 'Frog Frame',
 })
 
 // Uncomment to use Edge Runtime // [!code focus]
@@ -148,6 +150,7 @@ import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -224,6 +227,7 @@ import { handle } from 'frog/next'
 const app = new Frog({ 
   basePath: '/api',
   browserLocation: '/:path', // [!code focus]
+  title: 'Frog Frame',
 })
 
 // Uncomment to use Edge Runtime

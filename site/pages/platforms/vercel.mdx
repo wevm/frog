@@ -51,6 +51,7 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog({ 
   basePath: '/api',
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -99,6 +100,7 @@ import { handle } from 'frog/vercel' // [!code focus]
 
 export const app = new Frog({ 
   basePath: '/api',
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -139,6 +141,7 @@ import { serveStatic } from 'frog/serve-static' // [!code focus]
 
 export const app = new Frog({ 
   basePath: '/api',
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -217,6 +220,7 @@ import { handle } from 'frog/vercel'
 export const app = new Frog({ 
   basePath: '/api',
   browserLocation: '/:path' // [!code focus]
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => { // [!code focus]

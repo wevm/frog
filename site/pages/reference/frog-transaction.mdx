@@ -14,7 +14,7 @@ import { Frog } from 'frog'
 // ---cut---
 import { Button, Frog, parseEther } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => { // [!code focus]
   // Send transaction response. // [!code focus]
@@ -53,7 +53,7 @@ Path of the route.
 // ---cut---
 import { Button, Frog, parseEther } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction(
   '/send-ether', // [!code focus] 
@@ -80,7 +80,7 @@ Handler function for the route.
 // ---cut---
 import { Button, Frog, parseEther } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction(
   '/send-ether',

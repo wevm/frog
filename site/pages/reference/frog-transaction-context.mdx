@@ -6,7 +6,7 @@ The `c` object is the parameter of the route handlers. It contains context for t
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => { // [!code focus]
   return c.send({/* ... */})
@@ -31,7 +31,7 @@ This is the wallet address the user executes the transaction with.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   const { address } = c // [!code focus]
@@ -53,7 +53,7 @@ For example, if the user clicked `"Banana"`, then `buttonIndex` will be `2`.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -99,7 +99,7 @@ For example, if the user clicked `"Banana"`, then `buttonValue` will be `"banana
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -143,7 +143,7 @@ Contract transaction response. [See more.](/reference/frog-transaction-response#
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/mint', (c) => {
   return c.contract({/* ... */}) // [!code focus]
@@ -162,7 +162,7 @@ Error response.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/', (c) => {
   return c.error({/* ... */}) // [!code focus]
@@ -181,7 +181,7 @@ Data from the frame that was passed via the `POST` body from a Farcaster Client.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   const { frameData } = c
@@ -204,7 +204,7 @@ If the user clicks `<Button.Reset>{:jsx}`, they will be directed to this URL.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   const { initialPath } = c // [!code focus]
@@ -226,7 +226,7 @@ For example, if the user typed `"Banana"`, then `inputText` will be `"Banana"`.
 // ---cut---
 import { Button, Frog, TextInput } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -260,7 +260,7 @@ The data of the previous intents.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -353,7 +353,7 @@ app.transaction('/send-ether', (c) => {
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   const { req } = c // [!code focus]
@@ -373,7 +373,7 @@ Raw transaction response. [See more.](/reference/frog-transaction-response#raw-t
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   return c.res({/* ... */}) // [!code focus]
@@ -392,7 +392,7 @@ Send transaction response. [See more.](/reference/frog-transaction-response#send
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   return c.send({/* ... */}) // [!code focus]
@@ -411,7 +411,7 @@ Extract a context value that was previously set via [`set`](#set) in [Middleware
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.use(async (c, next) => {
   c.set('message', 'Frog is cool!!')
@@ -436,7 +436,7 @@ Whether or not the [`frameData`](#framedata) (and [`buttonIndex`](#buttonindex),
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   const { verified } = c // [!code focus]
@@ -456,7 +456,7 @@ Current URL.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/send-ether', (c) => {
   const { url } = c // [!code focus]

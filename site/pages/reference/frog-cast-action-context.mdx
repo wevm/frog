@@ -6,7 +6,7 @@ The `c` object is the parameter of the route handlers. It contains context about
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.castAction('/', (c) => { // [!code focus]
   return c.res({/* ... */})
@@ -29,7 +29,7 @@ Data from the action that was passed via the `POST` body from a Farcaster Client
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   const { actionData } = c
@@ -50,7 +50,7 @@ Error response.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   return c.error({/* ... */}) // [!code focus]
@@ -69,7 +69,7 @@ Shorthand for [`c.res(...)`](/reference/frog-cast-action-context#res) response w
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   return c.message({/* ... */}) // [!code focus]
@@ -88,7 +88,7 @@ Shorthand for [`c.res(...)`](/reference/frog-cast-action-context#res) response w
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   return c.frame({/* ... */}) // [!code focus]
@@ -107,7 +107,7 @@ app.castAction('/', (c) => {
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   const { req } = c // [!code focus]
@@ -127,7 +127,7 @@ The action response.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   return c.res({/* ... */}) // [!code focus]
@@ -146,7 +146,7 @@ Extract a context value that was previously set via [`set`](#set) in [Middleware
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.use(async (c, next) => {
   c.set('message', 'Frog is cool!!')
@@ -171,7 +171,7 @@ Whether or not the [`actionData`](#actiondata) (and [`buttonIndex`](#buttonindex
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   const { verified } = c // [!code focus]

@@ -13,7 +13,7 @@ import { Frog } from 'frog'
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.castAction('/', (c) => { // [!code focus]
     return c.message({ message: 'Action Succeeded' }) // [!code focus]
@@ -40,7 +40,7 @@ Path of the route.
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.castAction(
   '/foo/bar', // [!code focus]
@@ -65,7 +65,7 @@ Handler function for the route.
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.castAction(
   '/foo/bar',
@@ -90,7 +90,7 @@ Options for a Cast Action
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.castAction(
   '/foo/bar',

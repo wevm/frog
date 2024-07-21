@@ -22,7 +22,7 @@ We can inject middleware on the `app` level using the `.use` method. This means 
 import { Button, Frog } from 'frog'
 import { neynar, type NeynarVariables } from 'frog/middlewares'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // @log:    ↓ 1. Inject middleware onto the app.
   .use(
     neynar({
@@ -50,7 +50,7 @@ const neynarMiddleware = neynar({
   features: ['interactor', 'cast'],
 })
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 // @log:                ↓ Inject middleware onto the route.
 app.frame('/', neynarMiddleware, (c) => {
@@ -90,7 +90,7 @@ Frog comes with a built-in middleware for [Neynar](https://neynar.com) which all
 import { Button, Frog } from 'frog'
 import { neynar } from 'frog/middlewares'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // @log:    ↓ 1. Inject `neynar` middleware onto the app.
   .use(
     neynar({
@@ -139,7 +139,7 @@ You can write your own Frog middleware. This is great if you want to share commo
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 // Custom logger // [!code focus]
 app.use(async (c, next) => { // [!code focus]

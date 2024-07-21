@@ -6,7 +6,9 @@ The response returned from the `.image` handler.
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({
+  title: 'Frog Frame',
+})
 
 app.image('/', (c) => {
   return c.res({ // [!code focus]
@@ -27,7 +29,10 @@ HTTP response headers to set for the image.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({
+  title: 'Frog Frame',
+})
+
  
 app.image('/image/foo', (c) => {
   return c.res({
@@ -54,7 +59,9 @@ The Image to render for the image. Must be a JSX element.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({
+  title: 'Frog Frame',
+})
  
 app.image('/', (c) => {
   return c.res({
@@ -78,7 +85,9 @@ app.image('/', (c) => {
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({
+  title: 'Frog Frame',
+})
  
 app.image('/', (c) => {
   return c.res({
@@ -98,7 +107,7 @@ app.image('/', (c) => {
 :::warning
 The `fonts` property is not available on the `imageOptions` passed to `c.res`. If you would like to add custom fonts, either:
 
-1. Add it to `imageOptions.fonts` on the `new Frog(){:js}` instance:
+1. Add it to `imageOptions.fonts` on the `new Frog({ title: 'Frog Frame' }){:js}` instance:
 
 ```tsx twoslash
 /** @jsxImportSource frog/jsx */
@@ -106,7 +115,8 @@ The `fonts` property is not available on the `imageOptions` passed to `c.res`. I
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  imageOptions: { fonts: [/* ... */] } // [!code focus]
+  imageOptions: { fonts: [/* ... */] }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -119,6 +129,7 @@ import { Frog } from 'frog'
  
 export const app = new Frog({
   imageOptions: { fonts: [/* ... */] }
+  title: 'Frog Frame',
 })
 // ---cut---
 app.image('/', (c) => {

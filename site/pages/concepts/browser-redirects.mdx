@@ -25,7 +25,8 @@ they will be redirected to the `/` path as `browserLocation` is set on the `Frog
 import { Button, Frog } from 'frog'
  
 export const app = new Frog({
-  browserLocation: '/' // [!code hl]
+  browserLocation: '/', // [!code hl]
+  title: 'Frog Frame',
 })
  
 app.frame('/frame', (c) => {
@@ -44,7 +45,7 @@ they will be redirected to the `/` path as `browserLocation` is set on the retur
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/frame', (c) => {
   return c.res({
@@ -69,6 +70,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({
   browserLocation: '/:foo/:bar' // [!code hl]
+  title: 'Frog Frame',
 })
  
 app.frame('/frame/:foo/:bar', (c) => { // [!code hl]
@@ -92,6 +94,7 @@ import { Button, Frog } from 'frog'
 export const app = new Frog({
   basePath: '/api', // [!code hl]
   browserLocation: '/:path', // [!code hl]
+  title: 'Frog Frame',
 })
  
 app.frame('/foo', (c) => { // [!code hl]
@@ -117,6 +120,7 @@ import { Button, Frog } from 'frog'
 export const app = new Frog({
   basePath: '/api', // [!code hl]
   browserLocation: '/:basePath/:path/dev', // [!code hl]
+  title: 'Frog Frame',
 })
  
 app.frame('/foo', (c) => { // [!code hl]

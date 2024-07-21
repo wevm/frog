@@ -6,7 +6,7 @@ The `c` object is the parameter of the route handlers.
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.image('/', (c) => { // [!code focus]
   return c.res({/* ... */})
@@ -29,7 +29,7 @@ An image handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.image('/', (c) => {
   const { req } = c // [!code focus]
@@ -49,7 +49,7 @@ The image response.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.image('/', (c) => {
   return c.res({/* ... */}) // [!code focus]
@@ -68,7 +68,7 @@ Extract a context value that was previously set via [`set`](#set) in [Middleware
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.use(async (c, next) => {
   c.set('message', 'Frog is cool!!')

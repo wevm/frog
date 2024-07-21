@@ -20,7 +20,7 @@ user that interacted with it.
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 // ---cut---
 app.frame('/', (c) => {
@@ -53,7 +53,8 @@ import { Frog } from 'frog'
 import { neynar } from 'frog/hubs' // [!code focus]
  
 export const app = new Frog({
-  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }), // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -73,7 +74,8 @@ You can also supply your own Hub API URL:
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  hub: { apiUrl: 'https://myhub.com' } // [!code focus]
+  hub: { apiUrl: 'https://myhub.com' }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -95,7 +97,8 @@ The `"silent"` flag is an inversion of control to the consumer. Only use `"silen
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  verify: 'silent' // [!code focus]
+  verify: 'silent', // [!code focus]
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -121,7 +124,8 @@ If a `secret` is provided to the `Frog` instance, then state will be signed auto
 import { Frog } from 'frog'
 
 const app = new Frog({
-  secret: process.env.FROG_SECRET // [!code focus]
+  secret: process.env.FROG_SECRET, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 

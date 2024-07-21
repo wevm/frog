@@ -52,6 +52,7 @@ import { Button, Frog } from 'frog'
 export const app = new Frog({
   // Supply a Hub to enable frame verification.
   // hub: neynar({ apiKey: '' }),
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -92,7 +93,9 @@ After that, we will append a Bun server to the file.
 // ---cut---
 import { Button, Frog } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({
+  title: 'Frog Frame',
+})
 
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -133,7 +136,9 @@ import { Button, Frog } from 'frog'
 import { devtools } from 'frog/dev' // [!code focus]
 import { serveStatic } from 'hono/bun' // [!code focus]
 
-export const app = new Frog()
+export const app = new Frog({
+  title: 'Frog Frame',
+})
 
 app.frame('/', (c) => {
   ...
@@ -202,6 +207,7 @@ import { Button, Frog } from 'frog'
 
 export const app = new Frog({
   browserLocation: '/:path', // [!code focus]
+  title: 'Frog Frame',
 })
 
 app.frame('/frame/:path', (c) => { // [!code focus]

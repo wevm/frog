@@ -22,7 +22,7 @@ In **Frog**, an **Image** can be rendered via the `image` return property:
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -57,7 +57,7 @@ You can also specify an image URL:
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -81,7 +81,7 @@ app.frame('/', (c) => {
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -114,7 +114,8 @@ You can also pass a set of default options to the `Frog` constructor:
 import { Button, Frog } from 'frog'
  
 export const app = new Frog({
-  imageOptions: { height: 600, width: 600 }
+  imageOptions: { height: 600, width: 600 },
+  title: 'Frog Frame',
 })
 ```
 
@@ -160,6 +161,7 @@ export const app = new Frog({
       },
     ],
   },
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -228,6 +230,7 @@ export const app = new Frog({
       },
     ],
   },
+  title: 'Frog Frame',
 })
 
 app.frame('/', (c) => {
@@ -282,7 +285,7 @@ In **Frog**, **Intents** are rendered via the `intent` return property:
 // ---cut---
 import { Button, Frog, TextInput } from 'frog' // [!code focus]
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonValue, inputText, status } = c

@@ -13,7 +13,7 @@ Let's start by building a couple of frames below: one that asks the user for the
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 // Frame to capture user's favorite fruit.
 app.frame('/', (c) => {
@@ -58,7 +58,7 @@ You can think of the `action` property as an alias for [`post_url` in the Frame 
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 // ---cut---
 // Frame to capture user's favorite fruit.
@@ -90,7 +90,7 @@ Now, when a user clicks on a button in the first frame, the `POST` request will 
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 // Frame to capture user's favorite fruit.
 app.frame('/', (c) => {
@@ -137,7 +137,7 @@ We can also set actions on individual buttons via the `action` prop on `<Button>
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({

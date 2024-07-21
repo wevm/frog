@@ -22,7 +22,7 @@ Frog supports error messages for [frames](/reference/frog-frame-context#error), 
 // ---cut---
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.error({/* ... */})
@@ -34,7 +34,7 @@ app.frame('/', (c) => {
 // ---cut---
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.transaction('/', (c) => {
   return c.error({/* ... */})
@@ -46,7 +46,7 @@ app.transaction('/', (c) => {
 // ---cut---
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
   return c.error({/* ... */})

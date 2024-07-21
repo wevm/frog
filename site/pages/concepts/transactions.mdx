@@ -24,7 +24,7 @@ Here is a trivial example on how to expose a transaction interface in a frame. W
 import { Button, Frog, TextInput, parseEther } from 'frog'
 import { abi } from './abi'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({
@@ -107,7 +107,7 @@ In the example above, we are rendering three transaction intents:
 import { Button, Frog, parseEther } from 'frog'
 import { abi } from './abi'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   return c.res({
@@ -140,7 +140,7 @@ Firstly, let's define a `/send-ether` route to handle the "Send Ether" button:
 import { Button, Frog, parseEther } from 'frog'
 import { abi } from './abi'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   return c.res({
@@ -192,7 +192,7 @@ We can also utilize the context to extract things like [frame data](/reference/f
 import { Button, Frog, parseEther } from 'frog'
 import { abi } from './abi'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.transaction('/send-ether', (c) => { 
   const { buttonValue, inputText, frameData } = c // [!code focus]
@@ -216,7 +216,7 @@ Secondly, let's define a `/mint` route to handle the "Mint" button:
 /** @jsxImportSource hono/jsx */
 import { Button, Frog, parseEther } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 import { abi } from './abi'
 
@@ -296,7 +296,7 @@ Note that if you don't specify an [`action` on the frame](/reference/frog-frame-
 import { Button, Frog, parseEther } from 'frog'
 import { abi } from './abi'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   return c.res({

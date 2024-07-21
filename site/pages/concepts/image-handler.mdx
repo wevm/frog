@@ -13,7 +13,7 @@ In order to mitigate that, **Frog** has `.image` handler that can be used to ser
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => { // [!code focus]
   return c.res({
@@ -41,7 +41,7 @@ Thus, if you're overriding the `Cache-Control` header and can't see the changes 
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({

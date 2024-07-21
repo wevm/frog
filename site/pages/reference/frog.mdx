@@ -11,7 +11,7 @@ import { Frog } from 'frog'
 ```tsx twoslash
 import { Frog } from 'frog'
 
-const app = new Frog() // [!code focus]
+const app = new Frog({ title: 'Frog Frame' }) // [!code focus]
 ```
 
 ## Constructor Parameters
@@ -28,7 +28,8 @@ For instance, if you are deploying your server to Vercel Serverless, you probabl
 import { Frog } from 'frog'
 
 const app = new Frog({
-  basePath: '/api' // [!code focus]
+  basePath: '/api', // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -51,7 +52,8 @@ import { Frog } from 'frog'
 
 const app = new Frog({
   basePath: '/api',
-  browserLocation: '/:path' // [!code focus]
+  browserLocation: '/:path', // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -68,7 +70,8 @@ import { Frog } from 'frog'
 const app = new Frog({
   headers: { // [!code focus]
     'cache-control': 'max-age=0', // [!code focus]
-  } // [!code focus]
+  }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -84,7 +87,8 @@ import { Frog } from 'frog'
 const app = new Frog({
   honoOptions: { // [!code focus]
     getPath: (req) => '/' + req.headers.get('host') + req.url.replace(/^https?:\/\/[^/]+(\/[^?]*)/, '$1'), // [!code focus]
-  } // [!code focus]
+  }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -100,7 +104,8 @@ import { Frog } from 'frog'
 const app = new Frog({
   hub: { // [!code focus]
     apiUrl: 'https://api.hub.wevm.dev' // [!code focus]
-  } // [!code focus]
+  }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -111,7 +116,8 @@ import { Frog } from 'frog'
 import { neynar } from 'frog/hubs' // [!code focus]
 
 const app = new Frog({
-  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }), // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -132,7 +138,8 @@ Aspect ratio clients should use to display images in frames.
 import { Frog } from 'frog'
 
 const app = new Frog({
-  imageAspectRatio: '1:1' // [!code focus]
+  imageAspectRatio: '1:1', // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -150,6 +157,7 @@ const app = new Frog({
     height: 600, // [!code focus]
     width: 600, // [!code focus]
   }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -183,7 +191,8 @@ Origin URL for the server instance.
 import { Frog } from 'frog'
 
 const app = new Frog({
-  origin: 'https://sweetframe.com' // [!code focus]
+  origin: 'https://sweetframe.com', // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -208,7 +217,8 @@ It's strongly recommended to add a strong secret key before deploying to product
 import { Frog } from 'frog'
 
 const app = new Frog({
-  secret: process.env.FROG_SECRET // [!code focus]
+  secret: process.env.FROG_SECRET, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -233,7 +243,8 @@ Whether or not to verify frame data via the Farcaster Hub's `validateMessage` AP
 import { Frog } from 'frog'
 
 const app = new Frog({
-  verify: 'silent' // [!code focus]
+  verify: 'silent', // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 

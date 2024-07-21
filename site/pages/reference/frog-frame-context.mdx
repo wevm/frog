@@ -6,7 +6,7 @@ The `c` object is the parameter of the route handlers. It contains context about
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => { // [!code focus]
   return c.res({/* ... */})
@@ -30,7 +30,7 @@ For example, if the user clicked `"Banana"`, then `buttonIndex` will be `2`.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -62,7 +62,7 @@ For example, if the user clicked `"Banana"`, then `buttonValue` will be `"banana
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonValue } = c
@@ -137,7 +137,7 @@ Error response.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.error({/* ... */}) // [!code focus]
@@ -156,7 +156,7 @@ Data from the frame that was passed via the `POST` body from a Farcaster Client.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { frameData } = c
@@ -179,7 +179,7 @@ If the user clicks `<Button.Reset>{:jsx}`, they will be directed to this URL.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { initialPath } = c // [!code focus]
@@ -201,7 +201,7 @@ For example, if the user typed `"Banana"`, then `inputText` will be `"Banana"`.
 // ---cut---
 import { Button, Frog, TextInput } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { inputText } = c  // [!code focus]
@@ -231,7 +231,7 @@ The data of the previous intents.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -320,7 +320,7 @@ app.frame('/', (c) => {
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { req } = c // [!code focus]
@@ -340,7 +340,7 @@ The frame response.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({/* ... */}) // [!code focus]
@@ -363,7 +363,7 @@ Status of the frame in the frame lifecycle.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { status } = c // [!code focus]
@@ -383,7 +383,7 @@ The chain-specific transaction ID. Defined at the `action` frame of `transaction
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -424,7 +424,7 @@ Extract a context value that was previously set via [`set`](#set) in [Middleware
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.use(async (c, next) => {
   c.set('message', 'Frog is cool!!')
@@ -449,7 +449,7 @@ Whether or not the [`frameData`](#framedata) (and [`buttonIndex`](#buttonindex),
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { verified } = c // [!code focus]
@@ -469,7 +469,7 @@ URL of the frame.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { url } = c // [!code focus]

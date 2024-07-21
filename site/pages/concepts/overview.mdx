@@ -14,7 +14,7 @@ At a high-level, the most basic **Frog** application looks like this:
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -50,7 +50,7 @@ Before we can instantiate an application, we need to import the `Frog` class.
 ```tsx twoslash
 import { Button, Frog } from 'frog' // [!code focus]
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 // ...
 ```
@@ -67,7 +67,7 @@ We instantiate a new **Frog** application by calling the `Frog` class.
 // @noErrors
 import { Button, Frog } from 'frog'
  
-export const app = new Frog() // [!code focus]
+export const app = new Frog({ title: 'Frog Frame' }) // [!code focus]
 
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -80,7 +80,7 @@ app.frame('/', (c) => {
 We export `app` so that the [Dev Server](/getting-started#add-scripts-to-packagejson) (`frog dev`) can use it.
 :::
 
-You can pass optional [constructor parameters](/reference/frog#constructor-parameters) to `new Frog(){:js}` to:
+You can pass optional [constructor parameters](/reference/frog#constructor-parameters) to `new Frog({ title: 'Frog Frame' }){:js}` to:
 
 - Set a [Base Path](/reference/frog#basepath) for your application,
 - Set a [Redirect URL](/reference/frog#browserlocation) if the user is coming from a browser,
@@ -101,7 +101,7 @@ get frame metadata.
 import { Button, Frog } from 'frog'
  
 // ---cut---
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => { // [!code focus]
   return c.res({/* ... */})
@@ -119,7 +119,7 @@ You can also define multiple routes by specifying alternative paths.
 import { Button, Frog } from 'frog'
  
 // ---cut---
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => { // [!code focus]
   return c.res({/* ... */})
@@ -141,7 +141,7 @@ You can also define `GET`, `POST`, etc routes via the [Hono](https://hono.dev) i
 import { Button, Frog } from 'frog'
  
 // ---cut---
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({/* ... */})
@@ -170,7 +170,7 @@ The `c` parameter in the frame route contains properties about the frame, such a
 import { Button, Frog } from 'frog'
  
 // ---cut---
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => { // [!code focus]
   const { buttonValue, inputText, status, verified } = c // [!code focus]
@@ -193,7 +193,7 @@ We can represent this in the **Frog** API via the `image` and `intents` properti
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   const { buttonValue, status } = c
@@ -229,7 +229,7 @@ To get a live preview of our frames, we can attach the Frog Devtools to our app.
 import { devtools } from 'frog/dev' // [!code focus]
 import { serveStatic } from 'frog/serve-static' // [!code focus]
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => { ... })
 
