@@ -6,6 +6,7 @@ import { devtools } from 'frog/dev'
 export const app = new Frog({
   // Supply a Hub to enable frame verification.
   // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
+  title: 'Frog Frame',
 })
 
 app.use('/*', serveStatic({ root: './public' }))
