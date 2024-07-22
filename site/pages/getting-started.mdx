@@ -8,7 +8,7 @@ Frog enables you to build frames with [JSX](https://hono.dev/guides/jsx), integr
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   return c.res({
@@ -102,7 +102,7 @@ import { Button, Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'frog/serve-static'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   const { buttonValue, status } = c

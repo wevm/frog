@@ -6,7 +6,7 @@ The response returned from the `.castAction` handler.
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.castAction('/', (c) => {
     return c.res({ // [!code focus]
@@ -31,7 +31,7 @@ Message to show in the toast in the App that sent the action.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
     return c.res({
@@ -63,7 +63,7 @@ If present, clients must display the message as an external link to this URL.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.castAction('/', (c) => {
     return c.res({

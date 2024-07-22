@@ -13,7 +13,7 @@ import type { Env } from './types/env.js'
  * ```
  * import { Frog } from 'frog'
  *
- * const app = new Frog()
+ * const app = new Frog({ title: 'Frog Frame' })
  *
  * app.frame('/', (c) => {
  *   const { buttonValue, inputText, status } = c

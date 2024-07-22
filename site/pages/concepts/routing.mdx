@@ -11,7 +11,7 @@ get frame metadata.
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => { // [!code focus]
   return c.res({/* ... */})
@@ -41,7 +41,7 @@ You can group routes by using the `app.route` method.
 import { Frog } from 'frog'
 import { app as exampleApp } from './example' // [!code focus]
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({/* ... */})
@@ -54,7 +54,7 @@ app.route('/example', exampleApp) // [!code focus]
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({/* ... */})
@@ -81,7 +81,7 @@ You can extract path parameters using `context.req.param(){:js}`
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/user/:name', (c) => { // [!code focus]
   const name = c.req.param('name') // [!code focus]
@@ -100,7 +100,7 @@ You can extract all parameters at once:
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/posts/:id/comment/:commentId', (c) => { // [!code focus]
   const { id, commentId } = c.req.param() // [!code focus]
@@ -113,7 +113,7 @@ You can specify optional parameters:
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 // @log: Matches `/api/animal` and `/api/animal/:type`
 app.frame('/api/animal/:type?', (c) => { // [!code focus]
@@ -127,7 +127,7 @@ app.frame('/api/animal/:type?', (c) => { // [!code focus]
 ```tsx twoslash
 // @noErrors
 import { Frog } from 'frog'
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/post/:date{[0-9]+}/:title{[a-z]+}', (c) => { // [!code focus]
   const { date, title } = c.req.param() // [!code focus]
@@ -144,7 +144,7 @@ You can also define `GET`, `POST`, etc routes via the [Hono](https://hono.dev) i
 import { Button, Frog } from 'frog'
  
 // ---cut---
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({/* ... */})

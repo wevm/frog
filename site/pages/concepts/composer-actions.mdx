@@ -1,0 +1,68 @@
+# Composer Actions
+
+Composer Actions let developers integrate into the cast creation interface, allowing users to modify their casts through various actions like creating polls, inserting GIFs, or checking grammar.
+
+When a Composer Action is triggered, it opens a Composer Form, a customizable web form that collects user input and sends modification instructions back to Warpcast. These actions enhance user interaction by simplifying the addition of complex elements to their casts.
+
+See the [spec](https://warpcast.notion.site/Draft-Composer-Actions-7f2b8739ee8447cc8a6b518c234b1eeb).
+
+## Overview
+
+At a glance:
+
+1. User selects a Composer Action in the App client's cast creation UI.
+2. When the user presses the Composer Action button in the App, the App will make a `POST` request to the `.composerAction` route.
+3. Server performs any action and returns a response to the App which is shown as a form.
+
+:::warning
+Since Frog is not a Client-Side Framework, we recommend using a separate Frontend for the actual Composer Form.
+
+If you want to keep both Frog and Composer Form in one project, we recommend starting with [Next.JS](/platforms/next).
+:::
+
+## Example
+
+Here is a trivial example of how to expose an action with a frame. We will break it down below.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Frog, TextInput } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction(
+  '/',
+  (c) => {
+    return c.res({
+      title: 'My Composer Action',
+      url: 'https://example.com' 
+    })
+  }
+)
+```
+
+### Client-Side Helpers
+Frog exports `postComposerCreateCastActionMessage` helper to post the message to the `window.parent`.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+import { postComposerCreateCastActionMessage } from 'frog/next'
+
+function App() {
+  return (
+    <button onClick={() => postComposerCreateCastActionMessage({/**/})}>
+      Button
+    </button>
+  )
+}
+```
+
+### Bonus: Learn the API
+
+You can learn more about the transaction APIs here:
+
+- [`Frog.composerAction` Reference](/reference/frog-composer-action)
+- [`Frog.composerAction` Context Reference](/reference/frog-composer-action-context)
+- [`Frog.composerAction` Response Reference](/reference/frog-composer-action-response)

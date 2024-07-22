@@ -20,7 +20,7 @@ Once you've [set up your Frog project](/getting-started), you can attach the dev
 import { devtools } from 'frog/dev' // [!code focus]
 import { serveStatic } from 'frog/serve-static' // [!code focus]
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => { ... })
 

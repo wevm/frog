@@ -6,7 +6,7 @@ The response returned from the `.frame` handler.
 // @noErrors
 import { Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({ // [!code focus]
@@ -26,7 +26,7 @@ Path of the next frame to perform a `POST` request.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -65,7 +65,7 @@ when they arrive via their browser.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/frame/foo', (c) => {
   const { buttonIndex } = c
@@ -97,7 +97,7 @@ HTTP response headers to set for the frame.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/frame/foo', (c) => {
   const { buttonIndex } = c
@@ -130,7 +130,7 @@ The Image to render for the frame. Can either be a JSX element, or URL.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -156,7 +156,7 @@ app.frame('/', (c) => {
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -183,7 +183,7 @@ The aspect ratio of the image to render for the frame.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -214,7 +214,7 @@ app.frame('/', (c) => {
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -240,7 +240,7 @@ app.frame('/', (c) => {
 :::warning
 The `fonts` property is not available on the `imageOptions` passed to `c.res`. If you would like to add custom fonts, either:
 
-1. Add it to `imageOptions.fonts` on the `new Frog(){:js}` instance:
+1. Add it to `imageOptions.fonts` on the `new Frog({ title: 'Frog Frame' }){:js}` instance:
 
 ```tsx twoslash
 /** @jsxImportSource frog/jsx */
@@ -248,7 +248,8 @@ The `fonts` property is not available on the `imageOptions` passed to `c.res`. I
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  imageOptions: { fonts: [/* ... */] } // [!code focus]
+  imageOptions: { fonts: [/* ... */] }, // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -260,7 +261,8 @@ export const app = new Frog({
 import { Frog } from 'frog'
  
 export const app = new Frog({
-  imageOptions: { fonts: [/* ... */] }
+  imageOptions: { fonts: [/* ... */] },
+  title: 'Frog Frame',
 })
 // ---cut---
 app.frame('/', (c) => {
@@ -282,7 +284,7 @@ A set of intents (ie. buttons, text inputs, etc) to render for the frame
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -314,7 +316,7 @@ Path or URI of the OG image.
 // ---cut---
 import { Button, Frog } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c
@@ -340,7 +342,7 @@ Title of the frame (added as `og:title`).
 /** @jsxImportSource frog/jsx */
 import { Button, Frog } from 'frog'
 // ---cut---
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
  
 app.frame('/', (c) => {
   const { buttonIndex } = c

@@ -3,7 +3,8 @@ import { version } from '../src/package.json'
 import { getFrameMetadata } from '../src/utils/getFrameMetadata.js'
 
 export default defineConfig({
-  banner: '🖼️Introducing [Image Handler](/concepts/image-handler).',
+  banner:
+    'Introducing [✍️ Signatures](/concepts/signatures) and [🖥️ Composer Actions](/concepts/composer-actions)',
   description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
   async head({ path }) {
@@ -145,8 +146,16 @@ export default defineConfig({
             link: '/concepts/transactions',
           },
           {
+            text: 'Signatures',
+            link: '/concepts/signatures',
+          },
+          {
             text: 'Cast Actions',
             link: '/concepts/cast-actions',
+          },
+          {
+            text: 'Composer Actions',
+            link: '/concepts/composer-actions',
           },
           {
             text: 'Multi-step Cast Actions',
@@ -224,6 +233,20 @@ export default defineConfig({
             ],
           },
           {
+            text: 'Frog.composerAction',
+            link: '/reference/frog-composer-action',
+            items: [
+              {
+                text: 'Context',
+                link: '/reference/frog-composer-action-context',
+              },
+              {
+                text: 'Response',
+                link: '/reference/frog-composer-action-response',
+              },
+            ],
+          },
+          {
             text: 'Frog.frame',
             link: '/reference/frog-frame',
             items: [
@@ -253,6 +276,17 @@ export default defineConfig({
               {
                 text: 'Response',
                 link: '/reference/frog-transaction-response',
+              },
+            ],
+          },
+          {
+            text: 'Frog.signature',
+            link: '/reference/frog-signature',
+            items: [
+              { text: 'Context', link: '/reference/frog-signature-context' },
+              {
+                text: 'Response',
+                link: '/reference/frog-signature-response',
               },
             ],
           },

@@ -13,7 +13,7 @@ import { Frog } from 'frog'
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.image('/', (c) => { // [!code focus]
   return c.res({ // [!code focus]
@@ -41,7 +41,7 @@ Path of the route.
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.image(
   '/foo/bar', // [!code focus]
@@ -68,7 +68,7 @@ Handler function for the route.
 // ---cut---
 import { Button, Frog } from 'frog'
 
-const app = new Frog()
+const app = new Frog({ title: 'Frog Frame' })
 
 app.image(
   '/foo/bar',

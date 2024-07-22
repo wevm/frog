@@ -1,6 +1,6 @@
-# Frog.transaction Context
+# Frog.signature Context
 
-The `c` object is the parameter of the route handlers. It contains context for the transaction route.
+The `c` object is the parameter of the route handlers. It contains context for the signature route.
 
 ```tsx twoslash
 // @noErrors
@@ -8,22 +8,22 @@ import { Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
 
-app.transaction('/send-ether', (c) => { // [!code focus]
-  return c.send({/* ... */})
+app.signature('/sign', (c) => { // [!code focus]
+  return c.signTypedData({/* ... */})
 })
 ```
 
 :::tip[Tip]
-A transaction handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
+A signature handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
 :::
 
 ## address
 
 - **Type**: `string | undefined`
 
-The address of the wallet connected by the user after pressing the button to do the transaction.
+The address of the wallet connected by the user after pressing the button to do the signature.
 
-This is the wallet address the user executes the transaction with.
+This is the wallet address the user executes the signature with.
 
 ```tsx twoslash
 // @noErrors
@@ -33,9 +33,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { address } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -63,25 +63,25 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.Transaction // [!code focus]
-        target="/send-ether" // [!code focus]
+      <Button.Signature // [!code focus]
+        target="/sign" // [!code focus]
         value="apple" // [!code focus]
       > // [!code focus]
         Apple // [!code focus]
-      </Button.Transaction>, // [!code focus]
-      <Button.Transaction // [!code focus]
-        target="/send-ether" // [!code focus]
+      </Button.Signature>, // [!code focus]
+      <Button.Signature // [!code focus]
+        target="/sign" // [!code focus]
         value="banana" // [!code focus]
       > // [!code focus]
         Banana // [!code focus]
-      </Button.Transaction>, // [!code focus]
+      </Button.Signature>, // [!code focus]
     ]
   })
 })
 
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { buttonIndex } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -109,33 +109,33 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.Transaction // [!code focus]
-        target="/send-ether" // [!code focus]
+      <Button.Signature // [!code focus]
+        target="/sign" // [!code focus]
         value="apple" // [!code focus]
       > // [!code focus]
         Apple // [!code focus]
-      </Button.Transaction>, // [!code focus]
-      <Button.Transaction // [!code focus]
-        target="/send-ether" // [!code focus]
+      </Button.Signature>, // [!code focus]
+      <Button.Signature // [!code focus]
+        target="/sign" // [!code focus]
         value="banana" // [!code focus]
       > // [!code focus]
         Banana // [!code focus]
-      </Button.Transaction>, // [!code focus]
+      </Button.Signature>, // [!code focus]
     ]
   })
 })
 
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { buttonValue } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
 ## contract
 
-- **Type**: `TransactionResponseFn<ContractTransactionParameters>`
+- **Type**: `SignatureResponseFn<ContractSignatureParameters>`
 
-Contract transaction response. [See more.](/reference/frog-transaction-response#contract-transaction-ccontract)
+Contract signature response. [See more.](/reference/frog-signature-response#contract-signature-ccontract)
 
 ```tsx twoslash
 // @noErrors
@@ -145,7 +145,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/mint', (c) => {
+app.signature('/mint', (c) => {
   return c.contract({/* ... */}) // [!code focus]
 })
 ```
@@ -164,7 +164,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/', (c) => {
+app.signature('/', (c) => {
   return c.error({/* ... */}) // [!code focus]
 })
 ```
@@ -183,10 +183,10 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { frameData } = c
   const { castId, fid, messageHash, network, timestamp, url } = frameData // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -206,9 +206,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { initialPath } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -224,7 +224,7 @@ For example, if the user typed `"Banana"`, then `inputText` will be `"Banana"`.
 // @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
-import { Button, Frog, TextInput } from 'frog'
+import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
@@ -232,19 +232,17 @@ app.frame('/', (c) => {
   return c.res({
     image: (
       <div style={{ color: 'white', display: 'flex', fontSize: 60 }}>
-        Send Ether
+        Sign
       </div>
     ),
     intents: [
-      <TextInput placeholder="Value (ETH)" />, // [!code focus]
-      <Button target="/send-ether">Send</Button>,
+      <Button target="/sign">Sign</Button>,
     ]
   })
 })
 
-app.transaction('/send-ether', (c) => {
-  const { inputText } = c // [!code focus]
-  return c.send({/* ... */})
+app.signature('/sign', (c) => {
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -270,27 +268,27 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button.Transaction // [!code focus]
-        target="/send-ether" // [!code focus]
+      <Button.Signature // [!code focus]
+        target="/sign" // [!code focus]
         value="apple" // [!code focus]
       > // [!code focus]
         Apple // [!code focus]
-      </Button.Transaction>, // [!code focus]
-      <Button.Transaction // [!code focus]
-        target="/send-ether" // [!code focus]
+      </Button.Signature>, // [!code focus]
+      <Button.Signature // [!code focus]
+        target="/sign" // [!code focus]
         value="banana" // [!code focus]
       > // [!code focus]
         Banana // [!code focus]
-      </Button.Transaction>, // [!code focus]
+      </Button.Signature>, // [!code focus]
     ]
   })
 })
 
-app.transaction('/send-ether', (c) => { // [!code focus]
+app.signature('/sign', (c) => { // [!code focus]
   const { buttonValue, previousButtonValues } = c
   console.log(previousButtonValues) // [!code focus]
 // @log:   ['apple', 'banana']
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -330,14 +328,14 @@ app.frame('/', (c) => {
     intents: [
       <Button value="apple">Apple</Button>, 
       <Button value="banana">Banana</Button>,
-      <Button.Transaction target="/send-ether">Send</Button.Transaction>,
+      <Button.Signature target="/sign">Sign</Button.Signature>,
     ]
   })
 })
 
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { previousState } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -355,7 +353,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { req } = c // [!code focus]
   return c.res({/* ... */})
 })
@@ -363,9 +361,9 @@ app.transaction('/send-ether', (c) => {
 
 ## res
 
-- **Type**: `TransactionResponseFn<TransactionParameters>`
+- **Type**: `SignatureResponseFn<SignatureParameters>`
 
-Raw transaction response. [See more.](/reference/frog-transaction-response#raw-transaction-cres)
+Raw signature response. [See more.](/reference/frog-signature-response#raw-signature-cres)
 
 ```tsx twoslash
 // @noErrors
@@ -375,16 +373,16 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   return c.res({/* ... */}) // [!code focus]
 })
 ```
 
-## send
+## signTypedData
 
-- **Type**: `TransactionResponseFn<SendTransactionParameters>`
+- **Type**: `SignTypedDataResponseFn`
 
-Send transaction response. [See more.](/reference/frog-transaction-response#send-transaction-csend)
+Sign Typed Data response. [See more.](/reference/frog-signature-response#signTypedData-signature-csignTypedData)
 
 ```tsx twoslash
 // @noErrors
@@ -394,8 +392,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
-  return c.send({/* ... */}) // [!code focus]
+app.signature('/sign', (c) => {
+  return c.signTypedData({/* ... */}) // [!code focus]
 })
 ```
 
@@ -418,9 +416,9 @@ app.use(async (c, next) => {
   await next()
 })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const message = c.var.message // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -438,9 +436,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { verified } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```
 
@@ -458,8 +456,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.transaction('/send-ether', (c) => {
+app.signature('/sign', (c) => {
   const { url } = c // [!code focus]
-  return c.send({/* ... */})
+  return c.signTypedData({/* ... */})
 })
 ```

@@ -1,0 +1,190 @@
+# Frog.signature Response
+
+The response returned from the `.signature` handler.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return c.signTypedData({ // [!code focus] 
+    chainId: 'eip155:84532', // [!code focus] 
+    types: { // [!code focus] 
+      Swamp: [{ name: 'frog', type: 'string' }], // [!code focus] 
+    }, // [!code focus] 
+    primaryType: 'Swamp', // [!code focus] 
+    message: { // [!code focus] 
+      frog: 'Robert', // [!code focus] 
+    }, // [!code focus] 
+  }) // [!code focus] 
+})
+```
+
+:::tip
+Frog also supports [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects as a return value of the `.signature` handler. Useful for returning error responses.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return new Response('dang', { status: 400 }) // [!code focus]
+})
+```
+:::
+
+## Sign Typed Data (`c.signTypedData`)
+
+### chainId
+
+- **Type:** `"eip155:${number}"`
+
+A CAIP-2 Chain ID to identify the signature network.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return c.send({ 
+    chainId: 'eip155:10', // [!code focus]
+    types: {
+      Swamp: [{ name: 'frog', type: 'string' }],
+    },
+    primaryType: 'Swamp',
+    message: {
+      frog: 'Robert',
+    },
+  }) 
+})
+```
+
+### domain (optional)
+
+- **Type:** `TypedDataDomain`
+
+The typed data domain.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return c.signTypedData({
+    chainId: 'eip155:84532',
+    domain: { // [!code focus]
+      name: 'Frog Swamp', // [!code focus]
+      version: '1', // [!code focus]
+      chainId: 1, // [!code focus]
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC', // [!code focus]
+    }, // [!code focus]
+    types: {
+      Swamp: [{ name: 'frog', type: 'string' }],
+    },
+    primaryType: 'Swamp',
+    message: {
+      frog: 'Robert',
+    },
+  }) 
+})
+```
+
+### types
+
+The type definitions for the typed data.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return c.signTypedData({
+    chainId: 'eip155:84532',
+    domain: {
+      name: 'Frog Swamp',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    },
+    types: { // [!code focus]
+      Swamp: [{ name: 'frog', type: 'string' }], // [!code focus]
+    }, // [!code focus]
+    primaryType: 'Swamp',
+    message: {
+      frog: 'Robert',
+    },
+  }) 
+})
+```
+
+### primaryType
+
+- **Type:** Inferred `string`.
+
+The primary type to extract from `types` and use in `value`.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return c.signTypedData({
+    chainId: 'eip155:84532',
+    domain: {
+      name: 'Frog Swamp',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    },
+    types: {
+      Swamp: [{ name: 'frog', type: 'string' }],
+    },
+    primaryType: 'Swamp', // [!code focus]
+    message: {
+      frog: 'Robert',
+    },
+  }) 
+})
+```
+
+### message
+
+- **Type:** Inferred from `types` & `primaryType`.
+
+```tsx twoslash
+// @noErrors
+import { Frog, parseEther } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => {
+  return c.signTypedData({
+    chainId: 'eip155:84532',
+    domain: {
+      name: 'Frog Swamp',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+    },
+    types: {
+      Swamp: [{ name: 'frog', type: 'string' }],
+    },
+    primaryType: 'Swamp',
+    message: { // [!code focus]
+      frog: 'Robert', // [!code focus]
+    }, // [!code focus]
+  }) 
+})
+```

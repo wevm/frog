@@ -17,7 +17,7 @@ import { neynar } from 'frog/middlewares'
 import { Frog } from 'frog'
 import { neynar } from 'frog/middlewares' // [!code focus]
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
   .use( // [!code focus]
     neynar({ // [!code focus]
       apiKey: 'NEYNAR_FROG_FM', // [!code focus]
@@ -48,7 +48,7 @@ Neynar API key.
 import { Frog } from 'frog'
 import { neynar } from 'frog/middlewares'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
   .use(
     neynar({
       apiKey: 'NEYNAR_FROG_FM', // [!code focus]
@@ -73,7 +73,7 @@ Set of features to enable and inject into context.
 import { Frog } from 'frog'
 import { neynar } from 'frog/middlewares'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
   .use(
     neynar({
       apiKey: 'NEYNAR_FROG_FM',
@@ -107,6 +107,7 @@ const neynar = createNeynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
  
 export const app = new Frog({
   hub: neynar.hub(), // [!code focus]
+  title: 'Frog Frame',
 })
   .use(
     neynar.middleware({ features: ['interactor', 'cast'] }), // [!code focus]

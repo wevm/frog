@@ -18,7 +18,7 @@ import { Frog } from 'frog'
 import { devtools } from 'frog/dev' // [!code focus]
 import { serveStatic } from 'frog/serve-static' // [!code focus]
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 app.frame('/', (c) => { ... })
 
@@ -44,7 +44,7 @@ Custom Farcaster application FID for the devtools instance.
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 app.frame('/', (c) => { ... })
 
@@ -66,7 +66,7 @@ Custom Farcaster application mnemonic for the devtools instance.
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 app.frame('/', (c) => { ... })
 
@@ -88,7 +88,7 @@ The base path for devtools' assets.
 import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 app.frame('/', (c) => { ... })
 
@@ -112,7 +112,7 @@ import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'frog/serve-static'
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 app.frame('/', (c) => { ... })
 
@@ -135,7 +135,7 @@ import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'frog/serve-static' // [!code focus]
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 devtools(app, {
   serveStatic, // [!code focus]
@@ -147,7 +147,7 @@ import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'hono/bun' // [!code focus]
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 devtools(app, {
   serveStatic, // [!code focus]
@@ -160,7 +160,7 @@ import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'hono/cloudflare-workers' // [!code focus]
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 devtools(app, {
   serveStatic, // [!code focus]
@@ -189,7 +189,7 @@ import { Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'hono/cloudflare-workers'
 
-export const app = new Frog() 
+export const app = new Frog({ title: 'Frog Frame' }) 
 
 devtools(app, {
   serveStatic, 

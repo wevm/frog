@@ -20,10 +20,9 @@ Here is a trivial example of how to expose an action with a frame. We will break
 // @noErrors
 /** @jsxImportSource hono/jsx */
 // ---cut---
-import { Button, Frog, TextInput, parseEther } from 'frog'
-import { abi } from './abi'
+import { Button, Frog, TextInput } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.frame('/', (c) => {
   return c.res({
@@ -67,10 +66,9 @@ In the example above, we are rendering Add Action intent:
 ```tsx twoslash [src/index.tsx]
 // @noErrors
 /** @jsxImportSource hono/jsx */
-import { Button, Frog, parseEther } from 'frog'
-import { abi } from './abi'
+import { Button, Frog } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   return c.res({
@@ -106,10 +104,9 @@ Let's define a `/log-this` route to handle the Cast Action:
 ```tsx twoslash [src/index.tsx]
 // @noErrors
 /** @jsxImportSource hono/jsx */
-import { Button, Frog, parseEther } from 'frog'
-import { abi } from './abi'
+import { Button, Frog } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 // ---cut---
 app.frame('/', (c) => {
   return c.res({

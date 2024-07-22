@@ -1,4 +1,4 @@
-# Frog.castAction Context
+# Frog.composerAction Context
 
 The `c` object is the parameter of the route handlers. It contains context about the current cast action.
 
@@ -8,7 +8,7 @@ import { Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
 
-app.castAction('/', (c) => { // [!code focus]
+app.composerAction('/', (c) => { // [!code focus]
   return c.res({/* ... */})
 }, {/**/})
 ```
@@ -19,7 +19,7 @@ An action handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
 
 ## actionData
 
-- **Type**: `CastActionData`
+- **Type**: `ComposerActionData`
 
 Data from the action that was passed via the `POST` body from a Farcaster Client. [See more.](https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa)
 
@@ -31,9 +31,9 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.castAction('/', (c) => {
+app.composerAction('/', (c) => {
   const { actionData } = c
-  const { castId, fid, messageHash, network, timestamp, url } = actionData // [!code focus]
+  const { castId, fid, messageHash, network, timestamp, url, state: { cast: { text } } } = actionData // [!code focus]
   return c.res({/* ... */})
 }, {/**/})
 ```
@@ -52,46 +52,8 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.castAction('/', (c) => {
+app.composerAction('/', (c) => {
   return c.error({/* ... */}) // [!code focus]
-})
-```
-
-## message
-
-- **Type**: `(response: CastActionMessageResponse) => CastActionResponse`
-
-Shorthand for [`c.res(...)`](/reference/frog-cast-action-context#res) response with `"type": "message"`
-
-```tsx twoslash
-// @noErrors
-/** @jsxImportSource frog/jsx */
-// ---cut---
-import { Button, Frog } from 'frog'
- 
-export const app = new Frog({ title: 'Frog Frame' })
- 
-app.castAction('/', (c) => {
-  return c.message({/* ... */}) // [!code focus]
-})
-```
-
-## frame
-
-- **Type**: `(response: CastActionFrameResponse) => CastActionResponse`
-
-Shorthand for [`c.res(...)`](/reference/frog-cast-action-context#res) response with `"type": "frame"`
-
-```tsx twoslash
-// @noErrors
-/** @jsxImportSource frog/jsx */
-// ---cut---
-import { Button, Frog } from 'frog'
- 
-export const app = new Frog({ title: 'Frog Frame' })
- 
-app.castAction('/', (c) => {
-  return c.frame({/* ... */}) // [!code focus]
 })
 ```
 
@@ -109,7 +71,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.castAction('/', (c) => {
+app.composerAction('/', (c) => {
   const { req } = c // [!code focus]
   return c.res({/* ... */})
 }, {/**/})
@@ -117,7 +79,7 @@ app.castAction('/', (c) => {
 
 ## res
 
-- **Type**: `(response: CastActionResponse) => CastActionResponse`
+- **Type**: `(response: ComposerActionResponse) => ComposerActionResponse`
 
 The action response.
 
@@ -129,7 +91,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.castAction('/', (c) => {
+app.composerAction('/', (c) => {
   return c.res({/* ... */}) // [!code focus]
 }, {/**/})
 ```
@@ -153,7 +115,7 @@ app.use(async (c, next) => {
   await next()
 })
  
-app.castAction('/', (c) => {
+app.composerAction('/', (c) => {
   const message = c.var.message // [!code focus]
   return c.res({/* ... */})
 }, {/**/})
@@ -173,7 +135,7 @@ import { Button, Frog } from 'frog'
  
 export const app = new Frog({ title: 'Frog Frame' })
  
-app.castAction('/', (c) => {
+app.composerAction('/', (c) => {
   const { verified } = c // [!code focus]
   return c.res({/* ... */})
 }, {/**/})

@@ -1,0 +1,132 @@
+# Frog.signature
+
+## Import
+
+```tsx twoslash
+import { Frog } from 'frog'
+```
+
+## Usage
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, parseEther } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.signature('/sign', (c) => { // [!code focus]
+  // Sign Typed Data. // [!code focus]
+  return c.signTypedData({ // [!code focus]
+    chainId: 'eip155:84532', // [!code focus]
+    domain: { // [!code focus]
+      name: 'Ether Mail', // [!code focus]
+      version: '1', // [!code focus]
+      chainId: 1, // [!code focus]
+      verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC', // [!code focus]
+    }, // [!code focus]
+    types: { // [!code focus]
+      Person: [ // [!code focus]
+        { name: 'name', type: 'string' }, // [!code focus]
+        { name: 'wallet', type: 'address' }, // [!code focus]
+        { name: 'balance', type: 'uint256' }, // [!code focus]
+      ], // [!code focus]
+      Mail: [ // [!code focus]
+        { name: 'from', type: 'Person' }, // [!code focus]
+        { name: 'to', type: 'Person' }, // [!code focus]
+        { name: 'contents', type: 'string' }, // [!code focus]
+      ], // [!code focus]
+    }, // [!code focus]
+    primaryType: 'Mail', // [!code focus]
+    message: { // [!code focus]
+      from: { // [!code focus]
+        name: 'Cow', // [!code focus]
+        wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826', // [!code focus]
+        balance: 0n, // [!code focus]
+      }, // [!code focus]
+      to: { // [!code focus]
+        name: 'Bob', // [!code focus]
+        wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', // [!code focus]
+        balance: 1n, // [!code focus]
+      }, // [!code focus]
+      contents: 'Hello, Bob!', // [!code focus]
+    }, // [!code focus]
+  }) // [!code focus]
+}) // [!code focus]
+```
+
+## Parameters
+
+### path
+
+- **Type:** `string`
+
+Path of the route.
+
+[Read more.](/concepts/routing)
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, parseEther } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.signature(
+  '/sign', // [!code focus] 
+  (c) => { 
+    // Send signature response. 
+    return c.signTypedData({
+      chainId: 'eip155:84532',
+      types: {
+        Swamp: [{ name: 'frog', type: 'string' }],
+      },
+      primaryType: 'Swamp',
+      message: {
+        frog: 'Robert',
+      },
+    }) 
+  }
+) 
+```
+
+### handler
+
+- **Type:** `(c: Context) => SignatureResponse`
+
+Handler function for the route.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog, parseEther } from 'frog'
+
+const app = new Frog({ title: 'Frog Frame' })
+
+app.signature(
+  '/sign',
+  (c) => { // [!code focus] 
+    return c.signTypedData({ // [!code focus] 
+      chainId: 'eip155:84532', // [!code focus] 
+      types: { // [!code focus] 
+        Swamp: [{ name: 'frog', type: 'string' }], // [!code focus] 
+      }, // [!code focus] 
+      primaryType: 'Swamp', // [!code focus] 
+      message: { // [!code focus] 
+        frog: 'Robert', // [!code focus] 
+      }, // [!code focus] 
+    }) // [!code focus] 
+  } // [!code focus] 
+) 
+```
+
+#### Context Parameter
+
+[See the Context API.](/reference/frog-signature-context)
+
+#### signature Response
+
+[See the signature Response API.](/reference/frog-signature-response)

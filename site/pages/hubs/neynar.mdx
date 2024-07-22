@@ -18,7 +18,8 @@ import { Frog } from 'frog'
 import { neynar } from 'frog/hubs' // [!code focus]
  
 export const app = new Frog({
-  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }) // [!code focus]
+  hub: neynar({ apiKey: 'NEYNAR_FROG_FM' }), // [!code focus]
+  title: 'Frog Frame',
 })
 ```
 
@@ -46,6 +47,7 @@ import { neynar } from 'frog/hubs'
 export const app = new Frog({
   hub: neynar({ 
     apiKey: 'MY_API_KEY' // [!code focus]
-  })
+  }),
+  title: 'Frog Frame',
 })
 ```

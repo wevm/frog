@@ -1,0 +1,61 @@
+# Frog.composerAction Response
+
+The response returned from the `.composerAction` handler.
+
+```tsx twoslash
+// @noErrors
+import { Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.composerAction('/', (c) => {
+    return c.res({ // [!code focus]
+      // ... // [!code focus]
+    }) // [!code focus]
+  },
+)
+```
+
+## title
+
+- **Type:** `string`
+
+Title of your action which will be shown in the footer of the Composer Form.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+ 
+app.composerAction('/', (c) => {
+    return c.res({
+      title: 'My Composr Action', // [!code focus]
+      url: 'https://example.com'
+    })
+  },
+)
+```
+
+## url
+
+- **Type:** `string`
+
+Composer Form URL. Must be http:// or https:// protocol.
+
+```tsx twoslash
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+ 
+export const app = new Frog({ title: 'Frog Frame' })
+ 
+app.composerAction('/', (c) => {
+    return c.res({
+      title: 'My Composr Action',
+      url: 'https://example.com' // [!code focus]
+    })
+  },
+)
+```

@@ -12,7 +12,7 @@ There are three types of responses:
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ // [!code focus]
@@ -50,7 +50,7 @@ Frog also supports [`Response`](https://developer.mozilla.org/en-US/docs/Web/API
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return new Response('dang', { status: 400 }) // [!code focus]
@@ -70,7 +70,7 @@ A CAIP-2 Chain ID to identify the transaction network.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -91,7 +91,7 @@ Gas limit of the transaction to send.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -113,7 +113,7 @@ Transaction recipient.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -134,7 +134,7 @@ Value (in wei) to send with the transaction.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -155,7 +155,7 @@ The ABI of the contract.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -177,7 +177,7 @@ Includes client [calldata suffix](https://warpcast.notion.site/Frame-Transaction
 // @noErrors
 import { Frog, parseEther } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -199,7 +199,7 @@ Calldata to send with the transaction
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/send-ether', (c) => {
   return c.send({ 
@@ -222,7 +222,7 @@ The ABI of the contract.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -244,7 +244,7 @@ A CAIP-2 Chain ID to identify the transaction network.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -266,7 +266,7 @@ Function to invoke on the contract.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -288,7 +288,7 @@ Gas limit of the transaction to send.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -311,7 +311,7 @@ Args to pass to the contract function.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -334,7 +334,7 @@ The address of the contract.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -358,7 +358,7 @@ Includes client [calldata suffix](https://warpcast.notion.site/Frame-Transaction
 // @noErrors
 import { Frog, parseEther } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -381,7 +381,7 @@ Value to send with the transaction.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/mint', (c) => {
   return c.contract({ 
@@ -407,7 +407,7 @@ A CAIP-2 Chain ID to identify the transaction network.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/raw-send', (c) => {
   return c.res({ 
@@ -431,7 +431,7 @@ A method ID to identify the type of transaction request.
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/raw-send', (c) => {
   return c.res({ 
@@ -455,7 +455,7 @@ Transaction parameters
 // @noErrors
 import { Frog, parseEther } from 'frog'
  
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/raw-send', (c) => {
   return c.res({ 
@@ -480,7 +480,7 @@ Includes client [calldata suffix](https://warpcast.notion.site/Frame-Transaction
 // @noErrors
 import { Frog, parseEther } from 'frog'
 
-export const app = new Frog()
+export const app = new Frog({ title: 'Frog Frame' })
 
 app.transaction('/raw-send', (c) => {
   return c.res({ 
