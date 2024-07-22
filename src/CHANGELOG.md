@@ -1,5 +1,32 @@
 # frog
 
+## 0.15.0
+
+### Minor Changes
+
+- [#431](https://github.com/wevm/frog/pull/431) [`c1f5be4`](https://github.com/wevm/frog/commit/c1f5be456b8e8f74622df1b07bf578170f1f2b94) Thanks [@dalechyn](https://github.com/dalechyn)! - **Breaking Change**. Composer Action Handlers now require a third argument to define metadata.
+
+  ```diff
+  export const app = new Frog({
+    title: 'Composer Action',
+  }).composerAction(
+    '/',
+    async (c) => {
+      if (Math.random() > 0.5) return c.error({ message: 'Action failed :(' })
+      return c.res({
+        title: 'Some Composer Action',
+        url: 'https://example.com',
+      })
+    },
+  + {
+  +   name: 'Some Composer Action',
+  +   description: 'Cool Composer Action',
+  +   icon: 'image',
+  +   imageUrl: 'https://frog.fm/logo-light.svg',
+  + },
+  )
+  ```
+
 ## 0.14.5
 
 ### Patch Changes
