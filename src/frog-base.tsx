@@ -282,7 +282,8 @@ export class FrogBase<
   /** FrogUI configuration. */
   ui: { vars: Vars | undefined } | undefined
   /** Whether or not frames should be verified. */
-  verify: FrogConstructorParameters['verify'] = true
+  verify: FrogConstructorParameters['verify'] =
+    process.env.NODE_ENV === 'production'
 
   metaTags: FrogConstructorParameters['unstable_metaTags'] | undefined
 
