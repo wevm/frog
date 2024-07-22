@@ -17,6 +17,57 @@ app.image('/', (c) => { // [!code focus]
 An image handler can also be asynchronous (ie. `async (c) => { ... }{:js}`).
 :::
 
+## previousButtonValues
+
+- **Type**: `string[]`
+
+The data of the previous intents.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+export const app = new Frog({ 
+  title: 'Frog Frame'
+}) 
+ 
+app.frame('/', (c) => {
+  const { previousButtonValues } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
+## previousState
+
+- **Type**: `State`
+
+The state of the previous frame.
+
+```tsx twoslash
+// @noErrors
+/** @jsxImportSource frog/jsx */
+// ---cut---
+import { Button, Frog } from 'frog'
+
+type State = {     
+  values: string[] 
+} 
+ 
+export const app = new Frog<{ State: State }>({ 
+  initialState: { 
+    values: [] 
+  },
+  title: 'Frog Frame',
+}) 
+ 
+app.frame('/', (c) => {
+  const { previousState } = c // [!code focus]
+  return c.res({/* ... */})
+})
+```
+
 ## req
 
 - **Type**: `Request`

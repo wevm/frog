@@ -23,6 +23,7 @@ app.frame('/', (c) => { // [!code focus]
 })
 
 app.image('/img', (c) => { // [!code focus]
+  /* Access frame's state via `c.previousState` */
   return c.res({/* ... */})
 })
 ```
@@ -51,6 +52,7 @@ app.frame('/', (c) => {
 })
 
 app.image('/img', (c) => {
+  /* Access frame's state via `c.previousState` */
   return c.res({
     headers: { // [!code focus]
         'Cache-Control': 'max-age=0' // [!code focus]
