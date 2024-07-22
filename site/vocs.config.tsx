@@ -3,7 +3,8 @@ import { version } from '../src/package.json'
 import { getFrameMetadata } from '../src/utils/getFrameMetadata.js'
 
 export default defineConfig({
-  banner: 'Introducing [✍️ Signatures](/concepts/signatures).',
+  banner:
+    'Introducing [✍️ Signatures](/concepts/signatures) and [🖥️ Composer Actions](/concepts/composer-actions)',
   description: 'Framework for Farcaster Frames',
   iconUrl: '/icon.png',
   async head({ path }) {
