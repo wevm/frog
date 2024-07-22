@@ -12,6 +12,7 @@ import lz from 'lz-string'
 import { default as p } from 'path-browserify'
 
 import type { CastActionOptions } from './types/castAction.js'
+import type { ComposerActionOptions } from './types/composerAction.js'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
@@ -209,7 +210,19 @@ export type RouteOptions<
                 c: Context<E, P, I>,
               ) => Promise<CastActionOptions> | CastActionOptions
             }
-      : {})
+      : method extends 'composerAction'
+        ?
+            | ComposerActionOptions
+            | {
+                /**
+                 * Custom handler for Composer Action `GET` response.
+                 * One can use that if something needs to be derived from the `Context`.
+                 */
+                handler: (
+                  c: Context<E, P, I>,
+                ) => Promise<ComposerActionOptions> | ComposerActionOptions
+              }
+        : {})
 
 /**
  * A Frog instance.
@@ -436,13 +449,46 @@ export class FrogBase<
   composerAction: HandlerInterface<env, 'composerAction', schema, basePath> = (
     ...parameters: any[]
   ) => {
-    const [path, middlewares, handler, options = {}] = getRouteParameters<
+    const [path, middlewares, handler, options] = getRouteParameters<
       env,
       ComposerActionHandler<env>,
       'composerAction'
     >(...parameters)
 
     const { verify = this.verify } = options
+
+    // Composer Action Route (implements GET).
+    if ('handler' in options) {
+      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+        const { aboutUrl, name, description, icon, imageUrl } =
+          await options.handler(c)
+        return c.json({
+          aboutUrl,
+          action: {
+            type: 'post',
+          },
+          description,
+          icon,
+          imageUrl,
+          name,
+        })
+      })
+    } else {
+      const { aboutUrl, name, description, icon, imageUrl } = options
+
+      this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+        return c.json({
+          aboutUrl,
+          action: {
+            type: 'post',
+          },
+          description,
+          icon,
+          imageUrl,
+          name,
+        })
+      })
+    }
 
     // Composer Action Route (implements POST).
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {

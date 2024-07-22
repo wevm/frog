@@ -1,9 +1,11 @@
-import { Frog } from 'frog'
+---
+"frog": minor
+---
 
-import { vars } from './ui.js'
+**Breaking Change**. Composer Action Handlers now require a third argument to define metadata.
 
+```diff
 export const app = new Frog({
-  ui: { vars },
   title: 'Composer Action',
 }).composerAction(
   '/',
@@ -14,10 +16,11 @@ export const app = new Frog({
       url: 'https://example.com',
     })
   },
-  {
-    name: 'Some Composer Action',
-    description: 'Cool Composer Action',
-    icon: 'image',
-    imageUrl: 'https://frog.fm/logo-light.svg',
-  },
++ {
++   name: 'Some Composer Action',
++   description: 'Cool Composer Action',
++   icon: 'image',
++   imageUrl: 'https://frog.fm/logo-light.svg',
++ },
 )
+```
