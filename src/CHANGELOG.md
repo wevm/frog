@@ -1,5 +1,15 @@
 # frog
 
+## 0.14.5
+
+### Patch Changes
+
+- [#430](https://github.com/wevm/frog/pull/430) [`0016cc2`](https://github.com/wevm/frog/commit/0016cc2bac752350b7538f21b67032776ef90a88) Thanks [@dalechyn](https://github.com/dalechyn)! - Changed default value for `verify` to be `process.env.NODE_ENV === 'production'` as many newcomers have been hitting issues with that, and in fact nobody wants to pay warps for frame tests.
+
+- [#427](https://github.com/wevm/frog/pull/427) [`ae57791`](https://github.com/wevm/frog/commit/ae57791dc15260f11746916ebb568450f1ef0a83) Thanks [@dalechyn](https://github.com/dalechyn)! - Added access to `previousState` and `previousButtonValues` in Image Handler.
+
+- [#396](https://github.com/wevm/frog/pull/396) [`d763d1a`](https://github.com/wevm/frog/commit/d763d1a8289790447c5e26813c25a3a87eb9be8a) Thanks [@dalechyn](https://github.com/dalechyn)! - Added support for Composer Actions. [See More](https://warpcast.notion.site/Draft-Composer-Actions-7f2b8739ee8447cc8a6b518c234b1eeb).
+
 ## 0.14.4
 
 ### Patch Changes

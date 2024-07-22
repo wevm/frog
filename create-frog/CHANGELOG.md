@@ -1,5 +1,11 @@
 # create-frog
 
+## 0.1.8
+
+### Patch Changes
+
+- [#425](https://github.com/wevm/frog/pull/425) [`ab1a969`](https://github.com/wevm/frog/commit/ab1a969659f3d9d170f2f463ab6e51a286f3973f) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with absent `title` in templates that led to a typing error.
+
 ## 0.1.7
 
 ### Patch Changes
