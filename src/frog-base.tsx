@@ -12,6 +12,7 @@ import lz from 'lz-string'
 import { default as p } from 'path-browserify'
 
 import type { CastActionOptions } from './types/castAction.js'
+import type { ComposerActionOptions } from './types/composerAction.js'
 import type { Env } from './types/env.js'
 import type {
   FrameImageAspectRatio,
@@ -56,7 +57,6 @@ import { requestBodyToImageContext } from './utils/requestBodyToImageContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
-import type { ComposerActionOptions } from './types/composerAction.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
