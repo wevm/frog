@@ -471,6 +471,7 @@ export class FrogBase<
           icon,
           imageUrl,
           name,
+          type: 'composer',
         })
       })
     } else {
@@ -486,6 +487,7 @@ export class FrogBase<
           icon,
           imageUrl,
           name,
+          type: 'composer',
         })
       })
     }
