@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.1
+
+### Patch Changes
+
+- [#433](https://github.com/wevm/frog/pull/433) [`2d6a951`](https://github.com/wevm/frog/commit/2d6a95191702cf6fbdb438d4d8319a96172f69b4) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with missing `"type": "composer"` in Composer Action Metadata Response that resulted in incorrect behaviour.
+
 ## 0.15.0
 
 ### Minor Changes
