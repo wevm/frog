@@ -11,6 +11,7 @@ export type VerifyFrameParameters = {
   hub: Hub
   trustedData: TrustedData
   url: string
+  verifyOrigin?: boolean
 }
 
 export type VerifyFrameReturnType = {
@@ -22,6 +23,7 @@ export async function verifyFrame({
   hub,
   trustedData,
   url,
+  verifyOrigin = true,
 }: VerifyFrameParameters): Promise<VerifyFrameReturnType> {
   const body = hexToBytes(`0x${trustedData.messageBytes}`)
 
@@ -42,7 +44,7 @@ export async function verifyFrame({
       `message is invalid. ${response.details || response.message}`,
     )
 
-  if (new URL(url).origin !== new URL(frameUrl).origin)
+  if (verifyOrigin && new URL(url).origin !== new URL(frameUrl).origin)
     throw new Error(`Invalid frame url: ${frameUrl}. Expected: ${url}.`)
 
   const message = Message.fromBinary(body)

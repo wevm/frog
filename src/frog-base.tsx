@@ -178,9 +178,15 @@ export type FrogConstructorParameters<
      * Instead, the frame will receive `verified: false` in its context.
      * - When `false`, the frame will not go through verification.
      *
-     * @default true.
+     * @default process.env.NODE_ENV === 'production'.
      */
     verify?: boolean | 'silent' | undefined
+    /**
+     * Whether or not to verify frame origin.
+     *
+     * @default process.env.NODE_ENV === 'production'.
+     */
+    verifyOrigin?: boolean | undefined
 
     /**
      * Additional meta tags for the instance.
@@ -297,6 +303,8 @@ export class FrogBase<
   /** Whether or not frames should be verified. */
   verify: FrogConstructorParameters['verify'] =
     process.env.NODE_ENV === 'production'
+  verifyOrigin: FrogConstructorParameters['verifyOrigin'] =
+    process.env.NODE_ENV === 'production'
 
   metaTags: FrogConstructorParameters['unstable_metaTags'] | undefined
 
@@ -322,6 +330,7 @@ export class FrogBase<
       ui,
       unstable_metaTags,
       verify,
+      verifyOrigin,
     } = parameters
 
     this.hono = new Hono<env, schema, basePath>(honoOptions)
@@ -338,6 +347,7 @@ export class FrogBase<
     this.title = title
     if (ui) this.ui = ui
     if (typeof verify !== 'undefined') this.verify = verify
+    if (typeof verifyOrigin !== 'undefined') this.verifyOrigin = verifyOrigin
 
     this.basePath = basePath ?? '/'
     // @ts-ignore - private
@@ -419,6 +429,7 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
+          verifyOrigin: this.verifyOrigin,
         }),
       })
 
