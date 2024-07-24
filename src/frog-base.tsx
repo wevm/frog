@@ -146,7 +146,10 @@ export type FrogConstructorParameters<
      * }
      * ```
      */
-    initialState?: ((c: Context<env>) => _state) | _state | undefined
+    initialState?:
+      | ((c: Context<env>) => _state | Promise<_state>)
+      | _state
+      | undefined
     /**
      * Origin URL of the server instance.
      *
@@ -264,7 +267,10 @@ export class FrogBase<
 > {
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
-  _initialState: ((c: Context<env>) => _state) | _state | undefined = undefined
+  _initialState:
+    | ((c: Context<env>) => _state | Promise<_state>)
+    | _state
+    | undefined = undefined
   /** Path for assets. */
   assetsPath: string
   /** Base path of the server instance. */
@@ -587,7 +593,7 @@ export class FrogBase<
         }),
         initialState:
           typeof this._initialState === 'function'
-            ? (this._initialState as any)(c)
+            ? await (this._initialState as any)(c)
             : this._initialState,
         origin,
       })
@@ -994,7 +1000,7 @@ export class FrogBase<
         }),
         initialState:
           typeof this._initialState === 'function'
-            ? (this._initialState as any)(c)
+            ? await (this._initialState as any)(c)
             : this._initialState,
       })
 
