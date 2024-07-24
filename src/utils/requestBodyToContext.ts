@@ -13,6 +13,7 @@ type RequestBodyToContextOptions = {
   hub?: Hub | undefined
   secret?: FrogConstructorParameters['secret']
   verify?: FrogConstructorParameters['verify']
+  verifyOrigin?: FrogConstructorParameters['verifyOrigin']
 }
 
 type RequestBodyToContextReturnType<
@@ -31,7 +32,12 @@ export async function requestBodyToContext<
   _state = env['State'],
 >(
   c: Context_hono<env, path>,
-  { hub, secret, verify = true }: RequestBodyToContextOptions,
+  {
+    hub,
+    secret,
+    verify = true,
+    verifyOrigin = true,
+  }: RequestBodyToContextOptions,
 ): Promise<RequestBodyToContextReturnType<env, path, input, _state>> {
   const { trustedData, untrustedData } =
     (await c.req.json().catch(() => {})) || {}
@@ -61,6 +67,7 @@ export async function requestBodyToContext<
         frameUrl: untrustedData.url,
         trustedData,
         url: url.href,
+        verifyOrigin,
       })
       return { ...frameData, state: frameData.state || untrustedData.state }
     } catch (err) {
