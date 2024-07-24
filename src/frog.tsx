@@ -40,7 +40,7 @@ export class Frog<
   //
   _state = env['State'],
 > extends FrogBase<env, schema, basePath, _state> {
-  constructor(params: FrogConstructorParameters) {
+  constructor(params: FrogConstructorParameters<env, basePath, _state>) {
     super(params as any)
 
     const frame = this.frame

@@ -146,7 +146,10 @@ export type FrogConstructorParameters<
      * }
      * ```
      */
-    initialState?: _state | undefined
+    initialState?:
+      | ((c: Context<env>) => _state | Promise<_state>)
+      | _state
+      | undefined
     /**
      * Origin URL of the server instance.
      *
@@ -270,7 +273,10 @@ export class FrogBase<
 > {
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
-  _initialState: env['State'] = undefined as env['State']
+  _initialState:
+    | ((c: Context<env>) => _state | Promise<_state>)
+    | _state
+    | undefined = undefined
   /** Path for assets. */
   assetsPath: string
   /** Base path of the server instance. */
@@ -596,7 +602,10 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
-        initialState: this._initialState,
+        initialState:
+          typeof this._initialState === 'function'
+            ? await (this._initialState as any)(c)
+            : this._initialState,
         origin,
       })
 
@@ -1000,7 +1009,10 @@ export class FrogBase<
         context: await requestBodyToImageContext(c, {
           secret: this.secret,
         }),
-        initialState: this._initialState,
+        initialState:
+          typeof this._initialState === 'function'
+            ? await (this._initialState as any)(c)
+            : this._initialState,
       })
 
       const response = await handler(context)
