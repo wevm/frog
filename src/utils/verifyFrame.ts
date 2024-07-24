@@ -11,7 +11,7 @@ export type VerifyFrameParameters = {
   hub: Hub
   trustedData: TrustedData
   url: string
-  verifyOrigin: boolean
+  verifyOrigin?: boolean
 }
 
 export type VerifyFrameReturnType = {
