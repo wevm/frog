@@ -178,13 +178,13 @@ export type FrogConstructorParameters<
      * Instead, the frame will receive `verified: false` in its context.
      * - When `false`, the frame will not go through verification.
      *
-     * @default true.
+     * @default process.env.NODE_ENV === 'production'.
      */
     verify?: boolean | 'silent' | undefined
     /**
      * Whether or not to verify frame origin.
      *
-     * @default true.
+     * @default process.env.NODE_ENV === 'production'.
      */
     verifyOrigin?: boolean | undefined
 
