@@ -1,5 +1,16 @@
 # frog
 
+## 0.15.2
+
+### Patch Changes
+
+- [#436](https://github.com/wevm/frog/pull/436) [`6ff12c3`](https://github.com/wevm/frog/commit/6ff12c37fff90a0c122401c9cae74b79aeed6143) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `verifyOrigin` flag to `Frog` constructor.
+
+- [#435](https://github.com/wevm/frog/pull/435) [`43f4205`](https://github.com/wevm/frog/commit/43f4205df9c5962c816d6779e9ea8c196c82810b) Thanks [@dalechyn](https://github.com/dalechyn)! - Implemented a feature where `initialState` can be a callback receiving Hono's `Context`.
+
+  This is particularly useful when dealing with path parameters to dynamically initiate state.
+  This state will also be accessible in `c.previousState` in the Image Handler.
+
 ## 0.15.1
 
 ### Patch Changes
