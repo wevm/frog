@@ -19,6 +19,7 @@ export type ChainNamespace = 'eip155'
  * - 1: Ethereum
  * - 10: Optimism
  * - 100: Gnosis
+ * - 137: Polygon
  * - 8453: Base
  * - 42161: Arbitrum One
  * - 42170: Arbitrum Nova
@@ -33,6 +34,7 @@ export type ChainIdEip155 =
   | 1
   | 10
   | 100
+  | 137
   | 8453
   | 42161
   | 42170

@@ -11,6 +11,7 @@ import {
   mainnet,
   optimism,
   optimismSepolia,
+  polygon,
   sepolia,
   zora,
 } from 'wagmi/chains'
@@ -29,6 +30,7 @@ export const config = createConfig({
     optimism,
     optimismSepolia,
     sepolia,
+    polygon,
     zora,
   ],
   connectors: [
@@ -51,6 +53,7 @@ export const config = createConfig({
     [optimism.id]: http(),
     [optimismSepolia.id]: http(),
     [sepolia.id]: http(),
+    [polygon.id]: http(),
     [zora.id]: http(),
   },
 })
