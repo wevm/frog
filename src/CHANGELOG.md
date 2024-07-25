@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.4
+
+### Patch Changes
+
+- [#445](https://github.com/wevm/frog/pull/445) [`b52f5d2`](https://github.com/wevm/frog/commit/b52f5d2bf8155d1a2777c99dae6754fece5111b6) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with Vercel/Next.JS deployments where "property" could not be read from intent as the "props" was missing.
+
 ## 0.15.3
 
 ### Patch Changes
