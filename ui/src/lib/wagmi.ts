@@ -11,8 +11,8 @@ import {
   mainnet,
   optimism,
   optimismSepolia,
-  sepolia,
   polygon,
+  sepolia,
   zora,
 } from 'wagmi/chains'
 import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
