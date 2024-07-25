@@ -12,6 +12,7 @@ import {
   optimism,
   optimismSepolia,
   sepolia,
+  polygon,
   zora,
 } from 'wagmi/chains'
 import { coinbaseWallet, walletConnect } from 'wagmi/connectors'
@@ -29,6 +30,7 @@ export const config = createConfig({
     optimism,
     optimismSepolia,
     sepolia,
+    polygon,
     zora,
   ],
   connectors: [
@@ -51,6 +53,7 @@ export const config = createConfig({
     [optimism.id]: http(),
     [optimismSepolia.id]: http(),
     [sepolia.id]: http(),
+    [polygon.id]: http(),
     [zora.id]: http(),
   },
 })
