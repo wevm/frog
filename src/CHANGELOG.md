@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.3
+
+### Patch Changes
+
+- [#442](https://github.com/wevm/frog/pull/442) [`a6c1438`](https://github.com/wevm/frog/commit/a6c14383b6c4b89da677e903b0a6dab5621c62de) Thanks [@dalechyn](https://github.com/dalechyn)! - Added support for Polygon in Frame Transactions.
+
 ## 0.15.2
 
 ### Patch Changes
