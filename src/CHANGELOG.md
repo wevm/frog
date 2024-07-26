@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.7
+
+### Patch Changes
+
+- [#449](https://github.com/wevm/frog/pull/449) [`0fb3dee`](https://github.com/wevm/frog/commit/0fb3deed620068d5d0b4e0b0734d832bd6957e00) Thanks [@dalechyn](https://github.com/dalechyn)! - Added `initialState` as a fallback to `c.previousState` in handlers that depend on the state but cannot retrieve one.
+
 ## 0.15.6
 
 ### Patch Changes
