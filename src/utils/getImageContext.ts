@@ -39,7 +39,7 @@ export async function getImageContext<
 >(
   parameters: GetImageContextParameters<env, path, input, _state>,
 ): GetImageContextReturnType<env, path, input, _state> {
-  const { context, contextHono, initialState } = parameters
+  const { context, contextHono } = parameters
   const { env, previousState, req } = context || {}
 
   return {
@@ -47,9 +47,10 @@ export async function getImageContext<
       env,
       previousState: await (async () => {
         if (previousState) return previousState
-        if (typeof initialState === 'function')
-          return await (initialState as any)(contextHono)
-        return initialState
+
+        if (typeof parameters.initialState === 'function')
+          return await (parameters.initialState as any)(contextHono)
+        return parameters.initialState
       })(),
       req,
       res: (data) => ({ data, format: 'image', status: 'success' }),

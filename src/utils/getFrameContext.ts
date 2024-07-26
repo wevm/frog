@@ -60,12 +60,11 @@ export async function getFrameContext<
   const url = parsePath(reset ? `${origin}${initialPath}` : context.url)
 
   let previousState = await (async () => {
-    if (context.status === 'initial') {
-      if (typeof parameters.initialState === 'function')
-        return await (parameters.initialState as any)(contextHono)
-      return parameters.initialState
-    }
-    return context?.previousState
+    if (context.previousState) return context.previousState
+
+    if (typeof parameters.initialState === 'function')
+      return await (parameters.initialState as any)(contextHono)
+    return parameters.initialState
   })()
 
   function deriveState(
