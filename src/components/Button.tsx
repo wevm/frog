@@ -147,14 +147,14 @@ export function ButtonReset({
   // @ts-ignore - private
   index = 1,
 }: ButtonResetProps): JSX.Element {
-  return (
+  return [
     <meta
       property={`fc:frame:button:${index}`}
       content={normalizeChildren(children)}
       data-value={buttonPrefix.reset}
       data-type="reset"
-    />
-  )
+    />,
+  ] as unknown as HtmlEscapedString
 }
 
 export type ButtonTransactionProps = ButtonProps & {
