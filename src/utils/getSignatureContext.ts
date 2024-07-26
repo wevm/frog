@@ -52,7 +52,7 @@ export async function getSignatureContext<
   } = context || {}
 
   const previousState = await (async () => {
-    if (context.status === 'initial') {
+    if (context?.previousState === undefined) {
       if (typeof parameters.initialState === 'function')
         return await (parameters.initialState as any)(contextHono)
       return parameters.initialState

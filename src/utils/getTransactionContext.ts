@@ -60,12 +60,12 @@ export async function getTransactionContext<
   } = context || {}
 
   const previousState = await (async () => {
-    if (context.status === 'initial') {
+    if (context?.previousState === undefined) {
       if (typeof parameters.initialState === 'function')
         return await (parameters.initialState as any)(contextHono)
       return parameters.initialState
     }
-    return context?.previousState
+    return context.previousState
   })()
 
   const { buttonValue, inputText } = getIntentState({
