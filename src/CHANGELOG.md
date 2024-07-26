@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.6
+
+### Patch Changes
+
+- [#450](https://github.com/wevm/frog/pull/450) [`368a2a9`](https://github.com/wevm/frog/commit/368a2a92f82713fe0dd109b2543fcd952eb195d5) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where using `Button.Reset` would lead to "Cannot destructure property 'property' of 'intent.props' as it is undefined." error.
+
 ## 0.15.5
 
 ### Patch Changes
