@@ -1,4 +1,4 @@
-import type { HonoRequest, Input, Context as Context_Hono } from 'hono'
+import type { Context as Context_Hono, HonoRequest, Input } from 'hono'
 import type { Context, SignatureContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import type { SignatureResponse } from '../types/signature.js'

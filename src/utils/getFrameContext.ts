@@ -1,4 +1,4 @@
-import type { Input, Context as Context_Hono } from 'hono'
+import type { Context as Context_Hono, Input } from 'hono'
 import type { Context, FrameContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
