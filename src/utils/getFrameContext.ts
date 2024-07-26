@@ -1,4 +1,4 @@
-import type { Input } from 'hono'
+import type { Context as Context_Hono, Input } from 'hono'
 import type { Context, FrameContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
@@ -12,7 +12,11 @@ type GetFrameContextParameters<
   _state = env['State'],
 > = {
   context: Context<env, path, input>
-  initialState?: _state
+  contextHono: Context_Hono<env, path, input>
+  initialState?:
+    | ((c: Context<env>) => _state | Promise<_state>)
+    | _state
+    | undefined
   origin: string
 }
 
@@ -22,12 +26,12 @@ type GetFrameContextReturnType<
   input extends Input = {},
   //
   _state = env['State'],
-> = {
+> = Promise<{
   context: FrameContext<env, path, input>
   getState: () => _state
-}
+}>
 
-export function getFrameContext<
+export async function getFrameContext<
   env extends Env,
   path extends string,
   input extends Input = {},
@@ -36,7 +40,7 @@ export function getFrameContext<
 >(
   parameters: GetFrameContextParameters<env, path, input, _state>,
 ): GetFrameContextReturnType<env, path, input, _state> {
-  const { context, origin } = parameters
+  const { context, contextHono, origin } = parameters
   const { env, frameData, initialPath, previousButtonValues, req, verified } =
     context || {}
 
@@ -55,9 +59,12 @@ export function getFrameContext<
   // initial URL.
   const url = parsePath(reset ? `${origin}${initialPath}` : context.url)
 
-  let previousState = (() => {
-    if (context.status === 'initial') return parameters.initialState
-    return context?.previousState || parameters.initialState
+  let previousState = await (async () => {
+    if (context.previousState) return context.previousState
+
+    if (typeof parameters.initialState === 'function')
+      return await (parameters.initialState as any)(contextHono)
+    return parameters.initialState
   })()
 
   function deriveState(

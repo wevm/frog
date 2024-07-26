@@ -593,8 +593,7 @@ export class FrogBase<
           // @ts-ignore - private
           this.initialBasePath,
         )
-
-      const { context, getState } = getFrameContext<env, string>({
+      const { context, getState } = await getFrameContext<env, string>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -602,10 +601,8 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
-        initialState:
-          typeof this._initialState === 'function'
-            ? await (this._initialState as any)(c)
-            : this._initialState,
+        contextHono: c,
+        initialState: this._initialState,
         origin,
       })
 
@@ -1005,14 +1002,12 @@ export class FrogBase<
       const origin = this.origin ?? url.origin
       const assetsUrl = origin + parsePath(this.assetsPath)
 
-      const { context } = getImageContext<env, string>({
+      const { context } = await getImageContext<env, string>({
         context: await requestBodyToImageContext(c, {
           secret: this.secret,
         }),
-        initialState:
-          typeof this._initialState === 'function'
-            ? await (this._initialState as any)(c)
-            : this._initialState,
+        contextHono: c,
+        initialState: this._initialState,
       })
 
       const response = await handler(context)
@@ -1120,7 +1115,7 @@ export class FrogBase<
     const { verify = this.verify } = options
 
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
-      const { context } = getTransactionContext<env, string, {}, _state>({
+      const { context } = await getTransactionContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -1128,6 +1123,8 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
+        contextHono: c,
+        initialState: this._initialState,
         req: c.req,
       })
       const response = await handler(context)
@@ -1155,7 +1152,7 @@ export class FrogBase<
     const { verify = this.verify } = options
 
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
-      const { context } = getSignatureContext<env, string, {}, _state>({
+      const { context } = await getSignatureContext<env, string, {}, _state>({
         context: await requestBodyToContext(c, {
           hub:
             this.hub ||
@@ -1163,6 +1160,8 @@ export class FrogBase<
           secret: this.secret,
           verify,
         }),
+        contextHono: c,
+        initialState: this._initialState,
         req: c.req,
       })
       const response = await handler(context)
