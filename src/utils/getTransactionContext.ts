@@ -1,4 +1,4 @@
-import type { HonoRequest, Input } from 'hono'
+import type { HonoRequest, Input, Context as Context_Hono } from 'hono'
 import {
   type Abi,
   AbiFunctionNotFoundError,
@@ -20,6 +20,11 @@ type GetTransactionContextParameters<
   _state = env['State'],
 > = {
   context: Context<env, path, input, _state>
+  contextHono: Context_Hono<env, path, input>
+  initialState:
+    | ((c: Context_Hono<env>) => _state | Promise<_state>)
+    | _state
+    | undefined
   req: HonoRequest
 }
 
@@ -29,11 +34,11 @@ type GetTransactionContextReturnType<
   input extends Input = {},
   //
   _state = env['State'],
-> = {
+> = Promise<{
   context: TransactionContext<env, path, input, _state>
-}
+}>
 
-export function getTransactionContext<
+export async function getTransactionContext<
   env extends Env,
   path extends string,
   input extends Input,
@@ -42,18 +47,26 @@ export function getTransactionContext<
 >(
   parameters: GetTransactionContextParameters<env, path, input, _state>,
 ): GetTransactionContextReturnType<env, path, input, _state> {
-  const { context } = parameters
+  const { context, contextHono } = parameters
   const {
     env,
     frameData,
     initialPath,
     previousButtonValues,
-    previousState,
     req,
     status,
     verified,
     url,
   } = context || {}
+
+  const previousState = await (async () => {
+    if (context.status === 'initial') {
+      if (typeof parameters.initialState === 'function')
+        return await (parameters.initialState as any)(contextHono)
+      return parameters.initialState
+    }
+    return context?.previousState
+  })()
 
   const { buttonValue, inputText } = getIntentState({
     buttonValues: previousButtonValues || [],
@@ -112,7 +125,7 @@ export function getTransactionContext<
       initialPath,
       inputText,
       previousButtonValues,
-      previousState,
+      previousState: previousState as any,
       req,
       res(parameters) {
         const { attribution, chainId, method, params } = parameters
