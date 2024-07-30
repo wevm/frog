@@ -405,6 +405,30 @@ export default defineConfig({
       ],
     },
   },
+  sponsors: [
+    {
+      name: 'Small Enterprise',
+      height: 40,
+      items: [
+        [
+          {
+            name: 'Limitless',
+            link: 'https://warpcast.com/~/channel/limitless',
+            image:
+              'https://raw.githubusercontent.com/wevm/frog/main/.github/content/sponsors/limitless-light.svg',
+          },
+        ],
+        [
+          {
+            name: 'Unofficial',
+            link: 'https://warpcast.com/unofficial',
+            image:
+              'https://raw.githubusercontent.com/wevm/frog/main/.github/content/sponsors/unofficial-light.svg',
+          },
+        ],
+      ],
+    },
+  ],
   title: 'Frog',
   topNav: [
     {
