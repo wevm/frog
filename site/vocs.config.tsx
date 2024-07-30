@@ -415,7 +415,7 @@ export default defineConfig({
             name: 'Limitless',
             link: 'https://warpcast.com/~/channel/limitless',
             image:
-              'https://raw.githubusercontent.com/wevm/frog/main/.github/content/sponsors/limitless-light.svg',
+              'https://raw.githubusercontent.com/wevm/frog/chore/sponsors/.github/content/sponsors/limitless-light.svg',
           },
         ],
         [
@@ -423,7 +423,7 @@ export default defineConfig({
             name: 'Unofficial',
             link: 'https://warpcast.com/unofficial',
             image:
-              'https://raw.githubusercontent.com/wevm/frog/main/.github/content/sponsors/unofficial-light.svg',
+              'https://raw.githubusercontent.com/wevm/frog/chore/sponsors/.github/content/sponsors/unofficial-light.svg',
           },
         ],
       ],
