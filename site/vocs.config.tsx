@@ -412,12 +412,6 @@ export default defineConfig({
       items: [
         [
           {
-            name: 'Limitless',
-            link: 'https://warpcast.com/~/channel/limitless',
-            image:
-              'https://raw.githubusercontent.com/wevm/frog/chore/sponsors/.github/content/sponsors/limitless-light.svg',
-          },
-          {
             name: 'Unofficial',
             link: 'https://warpcast.com/unofficial',
             image:
