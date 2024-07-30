@@ -417,8 +417,6 @@ export default defineConfig({
             image:
               'https://raw.githubusercontent.com/wevm/frog/chore/sponsors/.github/content/sponsors/limitless-light.svg',
           },
-        ],
-        [
           {
             name: 'Unofficial',
             link: 'https://warpcast.com/unofficial',
