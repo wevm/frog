@@ -147,7 +147,7 @@ export type FrogConstructorParameters<
      * ```
      */
     initialState?:
-      | ((c: Context<env>) => _state | Promise<_state>)
+      | ((c: Context<env, basePath>) => _state | Promise<_state>)
       | _state
       | undefined
     /**
@@ -273,18 +273,21 @@ export class FrogBase<
 > {
   // Note: not using native `private` fields to avoid tslib being injected
   // into bundled code.
-  _initialState:
-    | ((c: Context<env>) => _state | Promise<_state>)
-    | _state
-    | undefined = undefined
+  _initialState: FrogConstructorParameters<
+    env,
+    basePath,
+    _state
+  >['initialState'] = undefined
   /** Path for assets. */
   assetsPath: string
   /** Base path of the server instance. */
   basePath: string
   /** URL to redirect to when the user is coming to the page via a browser. */
   browserLocation: string | undefined
-  dev: FrogConstructorParameters['dev'] | undefined
-  headers: FrogConstructorParameters['headers'] | undefined
+  dev: FrogConstructorParameters<env, basePath, _state>['dev'] | undefined
+  headers:
+    | FrogConstructorParameters<env, basePath, _state>['headers']
+    | undefined
   /** Hono instance. */
   hono: Hono<env, schema, basePath>
   /** Farcaster Hub API URL. */
@@ -301,18 +304,23 @@ export class FrogBase<
   get: Hono<env, schema, basePath>['get']
   post: Hono<env, schema, basePath>['post']
   /** Key used to sign secret data. */
-  secret: FrogConstructorParameters['secret'] | undefined
+  secret: FrogConstructorParameters<env, basePath, _state>['secret'] | undefined
   /** Title of the frame to be set at `og:title` **/
-  title: FrogConstructorParameters['title']
+  title: FrogConstructorParameters<env, basePath, _state>['title']
   /** FrogUI configuration. */
   ui: { vars: Vars | undefined } | undefined
   /** Whether or not frames should be verified. */
-  verify: FrogConstructorParameters['verify'] =
+  verify: FrogConstructorParameters<env, basePath, _state>['verify'] =
     process.env.NODE_ENV === 'production'
-  verifyOrigin: FrogConstructorParameters['verifyOrigin'] =
-    process.env.NODE_ENV === 'production'
+  verifyOrigin: FrogConstructorParameters<
+    env,
+    basePath,
+    _state
+  >['verifyOrigin'] = process.env.NODE_ENV === 'production'
 
-  metaTags: FrogConstructorParameters['unstable_metaTags'] | undefined
+  metaTags:
+    | FrogConstructorParameters<env, basePath, _state>['unstable_metaTags']
+    | undefined
 
   _dev: string | undefined
   version = version
