@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.9
+
+### Patch Changes
+
+- [#457](https://github.com/wevm/frog/pull/457) [`56f4be4`](https://github.com/wevm/frog/commit/56f4be4350922498b7f86e8ad8478be504129fc2) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `verifyOrigin` constructor parameter was not populated in some of the handlers.
+
 ## 0.15.8
 
 ### Patch Changes
