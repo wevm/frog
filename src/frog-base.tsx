@@ -526,6 +526,7 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
+          verifyOrigin: this.verifyOrigin,
         }),
       })
 
@@ -608,6 +609,7 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
+          verifyOrigin: this.verifyOrigin,
         }),
         contextHono: c,
         initialState: this._initialState,
@@ -1130,6 +1132,7 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
+          verifyOrigin: this.verifyOrigin,
         }),
         contextHono: c,
         initialState: this._initialState,
@@ -1167,6 +1170,7 @@ export class FrogBase<
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
           secret: this.secret,
           verify,
+          verifyOrigin: this.verifyOrigin,
         }),
         contextHono: c,
         initialState: this._initialState,
