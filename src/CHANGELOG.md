@@ -1,5 +1,11 @@
 # frog
 
+## 0.15.8
+
+### Patch Changes
+
+- [#455](https://github.com/wevm/frog/pull/455) [`e1c8689`](https://github.com/wevm/frog/commit/e1c86893802e6c5391702770ef508f5ceb64269c) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `basePath` was not provided to the callback used in `initialState` parameter.
+
 ## 0.15.7
 
 ### Patch Changes
