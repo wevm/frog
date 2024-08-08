@@ -22,16 +22,39 @@ export {
 } from './utils/getFrameMetadata.js'
 
 export {
+  messageToCastActionData,
+  type VerifyCastActionParameters,
+  type VerifyCastActionReturnType,
+  verifyCastAction,
+} from './utils/verifyCastAction.js'
+
+export {
+  messageToComposerActionData,
+  type VerifyComposerActionParameters,
+  type VerifyComposerActionReturnType,
+  verifyComposerAction,
+} from './utils/verifyComposerAction.js'
+
+export {
   messageToFrameData,
   type VerifyFrameParameters,
   type VerifyFrameReturnType,
   verifyFrame,
 } from './utils/verifyFrame.js'
 
+export {
+  type VerifyMessageParameters,
+  type VerifyMessageReturnType,
+  verifyMessage,
+} from './utils/verifyMessage.js'
+
 export type { CastActionResponse } from './types/castAction.js'
 export type {
+  CastActionBaseContext,
   CastActionContext,
-  FrameBaseContext as Context,
+  ComposerActionBaseContext,
+  ComposerActionContext,
+  FrameBaseContext,
   FrameContext,
   ImageContext,
   TransactionContext,
@@ -47,6 +70,7 @@ export type { ImageResponse } from './types/image.js'
 export type { HandlerResponse, TypedResponse } from './types/response.js'
 export type {
   CastActionHandler,
+  ComposerActionHandler,
   FrameHandler,
   HandlerInterface,
   ImageHandler,
@@ -60,3 +84,9 @@ export type {
   SendTransactionParameters,
   TransactionParameters,
 } from './types/transaction.js'
+
+export type {
+  SignatureResponse,
+  SignatureParameters,
+  SignTypedDataParameters,
+} from './types/signature.js'
