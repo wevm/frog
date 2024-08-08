@@ -13,7 +13,7 @@ import type { ComposerActionResponse } from './composerAction.js'
 import type {
   CastActionContext,
   ComposerActionContext,
-  Context,
+  FrameBaseContext,
   FrameContext,
   ImageContext,
   SignatureContext,
@@ -91,7 +91,7 @@ export type Handler<
   P extends string = any,
   I extends Input = BlankInput,
   R extends HandlerResponse<any> = any,
-> = (c: Context<E, P, I>) => R
+> = (c: FrameBaseContext<E, P, I>) => R
 
 export type MiddlewareHandler<
   E extends Env = any,

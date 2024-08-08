@@ -1,5 +1,8 @@
 import type { Input } from 'hono'
-import type { CastActionContext, Context } from '../types/context.js'
+import type {
+  CastActionBaseContext,
+  CastActionContext,
+} from '../types/context.js'
 import type { Env } from '../types/env.js'
 
 type GetCastActionContextParameters<
@@ -7,7 +10,7 @@ type GetCastActionContextParameters<
   path extends string = string,
   input extends Input = {},
 > = {
-  context: Context<env, path, input>
+  context: CastActionBaseContext<env, path, input>
 }
 
 type GetCastActionContextReturnType<
@@ -26,21 +29,21 @@ export function getCastActionContext<
   parameters: GetCastActionContextParameters<env, path, input>,
 ): GetCastActionContextReturnType<env, path, input> {
   const { context } = parameters
-  const { env, frameData, req, verified } = context || {}
+  const { env, actionData, req, verified } = context || {}
 
-  if (!frameData)
-    throw new Error('Frame data must be present for action handlers.')
+  if (!actionData)
+    throw new Error('Action data must be present for action handlers.')
 
   return {
     context: {
       actionData: {
         buttonIndex: 1,
-        castId: frameData.castId,
-        fid: frameData.fid,
-        network: frameData.network,
-        messageHash: frameData.messageHash,
-        timestamp: frameData.timestamp,
-        url: frameData.url,
+        castId: actionData.castId,
+        fid: actionData.fid,
+        network: actionData.network,
+        messageHash: actionData.messageHash,
+        timestamp: actionData.timestamp,
+        url: actionData.url,
       },
       env,
       error: (data) => ({

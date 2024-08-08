@@ -1,5 +1,5 @@
 import type { Context as Context_Hono, HonoRequest, Input } from 'hono'
-import type { Context, SignatureContext } from '../types/context.js'
+import type { FrameBaseContext, SignatureContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import type { SignatureResponse } from '../types/signature.js'
 import { getIntentState } from './getIntentState.js'
@@ -11,7 +11,7 @@ type GetSignatureContextParameters<
   //
   _state = env['State'],
 > = {
-  context: Context<env, path, input, _state>
+  context: FrameBaseContext<env, path, input, _state>
   contextHono: Context_Hono<env, path, input>
   initialState:
     | ((c: Context_Hono<env>) => _state | Promise<_state>)
