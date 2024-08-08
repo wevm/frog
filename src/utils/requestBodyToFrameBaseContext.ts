@@ -1,6 +1,6 @@
 import type { Context as Context_hono, Input } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
-import type { Context } from '../types/context.js'
+import type { FrameBaseContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import type { Hub } from '../types/hub.js'
 import { deserializeJson } from './deserializeJson.js'
@@ -9,22 +9,22 @@ import { getRequestUrl } from './getRequestUrl.js'
 import * as jws from './jws.js'
 import { verifyFrame } from './verifyFrame.js'
 
-type RequestBodyToContextOptions = {
+type RequestBodyToFrameBaseContextOptions = {
   hub?: Hub | undefined
   secret?: FrogConstructorParameters['secret']
   verify?: FrogConstructorParameters['verify']
   verifyOrigin?: FrogConstructorParameters['verifyOrigin']
 }
 
-type RequestBodyToContextReturnType<
+type RequestBodyToFrameBaseContextReturnType<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, input, _state>
+> = FrameBaseContext<env, path, input, _state>
 
-export async function requestBodyToContext<
+export async function requestBodyToFrameBaseContext<
   env extends Env,
   path extends string,
   input extends Input,
@@ -37,8 +37,8 @@ export async function requestBodyToContext<
     secret,
     verify = true,
     verifyOrigin = true,
-  }: RequestBodyToContextOptions,
-): Promise<RequestBodyToContextReturnType<env, path, input, _state>> {
+  }: RequestBodyToFrameBaseContextOptions,
+): Promise<RequestBodyToFrameBaseContextReturnType<env, path, input, _state>> {
   const { trustedData, untrustedData } =
     (await c.req.json().catch(() => {})) || {}
   const { initialPath, previousState, previousButtonValues } =

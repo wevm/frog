@@ -1,5 +1,5 @@
 import type { Context as Context_Hono, Input } from 'hono'
-import type { Context, ImageContext } from '../types/context.js'
+import type { FrameBaseContext, ImageContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 
 type GetImageContextParameters<
@@ -10,12 +10,12 @@ type GetImageContextParameters<
   _state = env['State'],
 > = {
   context: Omit<
-    Context<env, path, input, _state>,
+    FrameBaseContext<env, path, input, _state>,
     'frameData' | 'verified' | 'status' | 'initialPath'
   >
   contextHono: Context_Hono<env, path, input>
   initialState?:
-    | ((c: Context<env>) => _state | Promise<_state>)
+    | ((c: FrameBaseContext<env>) => _state | Promise<_state>)
     | _state
     | undefined
 }

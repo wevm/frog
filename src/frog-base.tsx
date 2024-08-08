@@ -52,7 +52,9 @@ import { parseHonoPath } from './utils/parseHonoPath.js'
 import { parseImage } from './utils/parseImage.js'
 import { parseIntents } from './utils/parseIntents.js'
 import { parsePath } from './utils/parsePath.js'
-import { requestBodyToContext } from './utils/requestBodyToContext.js'
+import { requestBodyToCastActionBaseContext } from './utils/requestBodyToCastActionBaseContext.js'
+import { requestBodyToComposerActionBaseContext } from './utils/requestBodyToComposerActionBaseContext.js'
+import { requestBodyToFrameBaseContext } from './utils/requestBodyToFrameBaseContext.js'
 import { requestBodyToImageContext } from './utils/requestBodyToImageContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
@@ -437,11 +439,10 @@ export class FrogBase<
       const baseUrl = origin + parsePath(this.basePath)
 
       const { context } = getCastActionContext<env, string>({
-        context: await requestBodyToContext(c, {
+        context: await requestBodyToCastActionBaseContext(c, {
           hub:
             this.hub ||
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
-          secret: this.secret,
           verify,
           verifyOrigin: this.verifyOrigin,
         }),
@@ -520,11 +521,10 @@ export class FrogBase<
     // Composer Action Route (implements POST).
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = getComposerActionContext<env, string>({
-        context: await requestBodyToContext(c, {
+        context: await requestBodyToComposerActionBaseContext(c, {
           hub:
             this.hub ||
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
-          secret: this.secret,
           verify,
           verifyOrigin: this.verifyOrigin,
         }),
@@ -603,7 +603,7 @@ export class FrogBase<
           this.initialBasePath,
         )
       const { context, getState } = await getFrameContext<env, string>({
-        context: await requestBodyToContext(c, {
+        context: await requestBodyToFrameBaseContext(c, {
           hub:
             this.hub ||
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
@@ -1126,7 +1126,7 @@ export class FrogBase<
 
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = await getTransactionContext<env, string, {}, _state>({
-        context: await requestBodyToContext(c, {
+        context: await requestBodyToFrameBaseContext(c, {
           hub:
             this.hub ||
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),
@@ -1164,7 +1164,7 @@ export class FrogBase<
 
     this.hono.post(parseHonoPath(path), ...middlewares, async (c) => {
       const { context } = await getSignatureContext<env, string, {}, _state>({
-        context: await requestBodyToContext(c, {
+        context: await requestBodyToFrameBaseContext(c, {
           hub:
             this.hub ||
             (this.hubApiUrl ? { apiUrl: this.hubApiUrl } : undefined),

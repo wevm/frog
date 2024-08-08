@@ -1,6 +1,6 @@
 import type { Context as Context_hono, Input } from 'hono'
 import type { FrogConstructorParameters } from '../frog-base.js'
-import type { Context } from '../types/context.js'
+import type { FrameBaseContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import { fromQuery } from './fromQuery.js'
 import { getRequestUrl } from './getRequestUrl.js'
@@ -17,7 +17,7 @@ type RequestBodyToImageContextReturnType<
   //
   _state = env['State'],
 > = Omit<
-  Context<env, path, input, _state>,
+  FrameBaseContext<env, path, input, _state>,
   'frameData' | 'verified' | 'status' | 'initialPath'
 >
 

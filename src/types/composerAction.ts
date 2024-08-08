@@ -51,7 +51,6 @@ export type ComposerActionResponseFn = (
 
 export type ComposerActionData = {
   buttonIndex: 1
-  castId: { fid: number; hash: string }
   fid: number
   messageHash: string
   network: number

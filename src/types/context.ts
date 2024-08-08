@@ -26,14 +26,14 @@ import type {
 } from './transaction.js'
 import type { Pretty } from './utils.js'
 
-export type CastActionContext<
+export type CastActionBaseContext<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
 > = {
   /**
    * Data from the action that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   * The {@link FrameBaseContext`verified`} flag indicates whether the data is trusted or not.
    */
   actionData: Pretty<CastActionData>
   /**
@@ -49,6 +49,29 @@ export type CastActionContext<
    * @see https://hono.dev/api/context#env
    */
   env: Context_hono<env, path>['env']
+  /**
+   * Hono request object.
+   *
+   * @see https://hono.dev/api/context#req
+   */
+  req: Context_hono<env, path, input>['req']
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path, input>['var']
+  /**
+   * Whether or not the {@link FrameBaseContext`actionData`} was verified by the Farcaster Hub API.
+   */
+  verified: boolean
+}
+
+export type CastActionContext<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+> = CastActionBaseContext<env, path, input> & {
   /** Error response that includes message and statusCode. */
   error: BaseErrorResponseFn
   /**
@@ -64,37 +87,21 @@ export type CastActionContext<
    */
   message: CastActionMessageResponseFn
   /**
-   * Hono request object.
-   *
-   * @see https://hono.dev/api/context#req
-   */
-  req: Context_hono<env, path, input>['req']
-  /**
    * Raw action response that includes action properties such as: message, statusCode.
    *
    * @see https://warpcast.notion.site/Spec-Farcaster-Actions-84d5a85d479a43139ea883f6823d8caa
    * */
   res: CastActionResponseFn
-  /**
-   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
-   *
-   * @see https://hono.dev/api/context#var
-   */
-  var: Context_hono<env, path, input>['var']
-  /**
-   * Whether or not the {@link Context`actionData`} was verified by the Farcaster Hub API.
-   */
-  verified: boolean
 }
 
-export type ComposerActionContext<
+export type ComposerActionBaseContext<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
 > = {
   /**
    * Data from the action that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   * The {@link ComposerActionBaseContext`verified`} flag indicates whether the data is trusted or not.
    */
   actionData: Pretty<ComposerActionData>
   /**
@@ -110,14 +117,31 @@ export type ComposerActionContext<
    * @see https://hono.dev/api/context#env
    */
   env: Context_hono<env, path>['env']
-  /** Error response that includes message and statusCode. */
-  error: BaseErrorResponseFn
   /**
    * Hono request object.
    *
    * @see https://hono.dev/api/context#req
    */
   req: Context_hono<env, path, input>['req']
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path, input>['var']
+  /**
+   * Whether or not the {@link ComposerActionBaseContext`actionData`} was verified by the Farcaster Hub API.
+   */
+  verified: boolean
+}
+
+export type ComposerActionContext<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+> = ComposerActionBaseContext<env, path, input> & {
+  /** Error response that includes message and statusCode. */
+  error: BaseErrorResponseFn
   /**
    * Composer action response.
    *
@@ -130,13 +154,9 @@ export type ComposerActionContext<
    * @see https://hono.dev/api/context#var
    */
   var: Context_hono<env, path, input>['var']
-  /**
-   * Whether or not the {@link Context`actionData`} was verified by the Farcaster Hub API.
-   */
-  verified: boolean
 }
 
-export type Context<
+export type FrameBaseContext<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
@@ -166,7 +186,7 @@ export type Context<
   env: Context_hono<env, path>['env']
   /**
    * Data from the frame that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   * The {@link FrameBaseContext`verified`} flag indicates whether the data is trusted or not.
    */
   frameData?: Pretty<FrameData>
   /**
@@ -205,7 +225,7 @@ export type Context<
    */
   var: Context_hono<env, path, input>['var']
   /**
-   * Whether or not the {@link Context`frameData`} was verified by the Farcaster Hub API.
+   * Whether or not the {@link FrameBaseContext`frameData`} was verified by the Farcaster Hub API.
    */
   verified: boolean
   /**
@@ -220,7 +240,7 @@ export type FrameContext<
   input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, input, _state> & {
+> = FrameBaseContext<env, path, input, _state> & {
   /**
    * @deprecated As of `v0.5.0`, this property is redundant (there is now only one render cycle) and will be removed in a future version.
    *
@@ -256,7 +276,7 @@ export type TransactionContext<
   input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, input, _state> & {
+> = FrameBaseContext<env, path, input, _state> & {
   /**
    * Address of the account that is executing a transaction (if any). Maps to:
    * - Ethereum: 20-byte address string.
@@ -264,7 +284,7 @@ export type TransactionContext<
   address: string
   /**
    * Data from the frame that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   * The {@link FrameBaseContext`verified`} flag indicates whether the data is trusted or not.
    */
   frameData?: Pretty<FrameData>
   /**
@@ -342,7 +362,7 @@ export type SignatureContext<
   input extends Input = {},
   //
   _state = env['State'],
-> = Context<env, path, input, _state> & {
+> = FrameBaseContext<env, path, input, _state> & {
   /**
    * Address of the account that is signing a message (if any). Maps to:
    * - Ethereum: 20-byte address string.
@@ -350,7 +370,7 @@ export type SignatureContext<
   address: string
   /**
    * Data from the frame that was passed via the POST body.
-   * The {@link Context`verified`} flag indicates whether the data is trusted or not.
+   * The {@link FrameBaseContext`verified`} flag indicates whether the data is trusted or not.
    */
   frameData?: Pretty<FrameData>
   /** Error response that includes message and statusCode. */

@@ -31,7 +31,7 @@ export {
 export type { CastActionResponse } from './types/castAction.js'
 export type {
   CastActionContext,
-  Context,
+  FrameBaseContext as Context,
   FrameContext,
   ImageContext,
   TransactionContext,

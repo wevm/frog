@@ -1,5 +1,8 @@
 import type { Input } from 'hono'
-import type { ComposerActionContext, Context } from '../types/context.js'
+import type {
+  ComposerActionBaseContext,
+  ComposerActionContext,
+} from '../types/context.js'
 import type { Env } from '../types/env.js'
 
 type GetComposerActionContextParameters<
@@ -7,7 +10,7 @@ type GetComposerActionContextParameters<
   path extends string = string,
   input extends Input = {},
 > = {
-  context: Context<env, path, input>
+  context: ComposerActionBaseContext<env, path, input>
 }
 
 type GetComposerActionContextReturnType<
@@ -26,24 +29,23 @@ export function getComposerActionContext<
   parameters: GetComposerActionContextParameters<env, path, input>,
 ): GetComposerActionContextReturnType<env, path, input> {
   const { context } = parameters
-  const { env, frameData, req, verified } = context || {}
+  const { env, actionData, req, verified } = context || {}
 
-  if (!frameData)
-    throw new Error('Frame data must be present for action handlers.')
-  if (!frameData.state)
+  if (!actionData)
+    throw new Error('Action data must be present for action handlers.')
+  if (!actionData.state)
     throw new Error('State must be present for composer action handler.')
 
   return {
     context: {
       actionData: {
         buttonIndex: 1,
-        castId: frameData.castId,
-        fid: frameData.fid,
-        network: frameData.network,
-        messageHash: frameData.messageHash,
-        timestamp: frameData.timestamp,
-        state: JSON.parse(decodeURIComponent(frameData.state)),
-        url: frameData.url,
+        fid: actionData.fid,
+        network: actionData.network,
+        messageHash: actionData.messageHash,
+        timestamp: actionData.timestamp,
+        state: actionData.state,
+        url: actionData.url,
       },
       env,
       error: (data) => ({

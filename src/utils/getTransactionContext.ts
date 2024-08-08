@@ -7,7 +7,7 @@ import {
   encodeFunctionData,
   getAbiItem,
 } from 'viem'
-import type { Context, TransactionContext } from '../types/context.js'
+import type { FrameBaseContext, TransactionContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import type { TransactionResponse } from '../types/transaction.js'
 import { getIntentState } from './getIntentState.js'
@@ -19,7 +19,7 @@ type GetTransactionContextParameters<
   //
   _state = env['State'],
 > = {
-  context: Context<env, path, input, _state>
+  context: FrameBaseContext<env, path, input, _state>
   contextHono: Context_Hono<env, path, input>
   initialState:
     | ((c: Context_Hono<env>) => _state | Promise<_state>)
