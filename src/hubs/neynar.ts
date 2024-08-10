@@ -15,7 +15,7 @@ export const neynar = createHub((parameters: NeynarHubParameters) => {
         api_key: apiKey,
       },
     },
-    verifyFrame: async ({ trustedData }: { trustedData: TrustedData }) => {
+    verifyMessage: async ({ trustedData }: { trustedData: TrustedData }) => {
       return await fetch('https://api.neynar.com/v2/farcaster/frame/validate', {
         method: 'POST',
         headers: {

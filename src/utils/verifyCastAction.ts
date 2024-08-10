@@ -3,32 +3,29 @@ import type {
   FrameActionBody,
   Message,
 } from '../protobufs/generated/message_pb.js'
-import type { FrameData } from '../types/frame.js'
+import type { CastActionData } from '../types/castAction.js'
 import { type VerifyMessageParameters, verifyMessage } from './verifyMessage.js'
 
-export type VerifyFrameParameters = VerifyMessageParameters
+export type VerifyCastActionParameters = VerifyMessageParameters
 
-export type VerifyFrameReturnType = {
-  frameData: FrameData
+export type VerifyCastActionReturnType = {
+  castActionData: CastActionData
 }
 
-export async function verifyFrame(
-  parameters: VerifyFrameParameters,
-): Promise<VerifyFrameReturnType> {
+export async function verifyCastAction(
+  parameters: VerifyCastActionParameters,
+): Promise<VerifyCastActionReturnType> {
   const { message } = await verifyMessage(parameters)
-  const frameData = messageToFrameData(message)
-  return { frameData }
+  const castActionData = messageToCastActionData(message)
+  return { castActionData }
 }
 
 ////////////////////////////////////////////////////////////////////
 // Utilties
 
-export function messageToFrameData(message: Message): FrameData {
+export function messageToCastActionData(message: Message): CastActionData {
   const frameActionBody = message.data?.body.value as FrameActionBody
-  const frameData: FrameData = {
-    address: frameActionBody.address
-      ? bytesToHex(frameActionBody.address)
-      : undefined,
+  const castActionData: CastActionData = {
     castId: {
       fid: Number(frameActionBody.castId?.fid),
       hash: bytesToHex(frameActionBody.castId?.hash!),
@@ -39,12 +36,7 @@ export function messageToFrameData(message: Message): FrameData {
     timestamp: message.data?.timestamp!,
     url: bytesToString(frameActionBody.url),
     buttonIndex: frameActionBody.buttonIndex as any,
-    inputText: bytesToString(frameActionBody.inputText),
-    state: bytesToString(frameActionBody.state),
-    transactionId: frameActionBody.transactionId
-      ? bytesToHex(frameActionBody.transactionId)
-      : undefined,
   }
 
-  return frameData
+  return castActionData
 }

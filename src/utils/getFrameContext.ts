@@ -1,5 +1,5 @@
 import type { Context as Context_Hono, Input } from 'hono'
-import type { Context, FrameContext } from '../types/context.js'
+import type { FrameBaseContext, FrameContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import { getIntentState } from './getIntentState.js'
 import { parsePath } from './parsePath.js'
@@ -11,10 +11,10 @@ type GetFrameContextParameters<
   //
   _state = env['State'],
 > = {
-  context: Context<env, path, input>
+  context: FrameBaseContext<env, path, input>
   contextHono: Context_Hono<env, path, input>
   initialState?:
-    | ((c: Context<env>) => _state | Promise<_state>)
+    | ((c: FrameBaseContext<env>) => _state | Promise<_state>)
     | _state
     | undefined
   origin: string
