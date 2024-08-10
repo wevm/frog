@@ -1,5 +1,17 @@
 # frog
 
+## 0.16.0
+
+### Minor Changes
+
+- [#466](https://github.com/wevm/frog/pull/466) [`d4899ab`](https://github.com/wevm/frog/commit/d4899abcc802d48b5f6f5867f526f35e86a28818) Thanks [@dalechyn](https://github.com/dalechyn)! - **Breaking Change:** Renamed exported `Context` type to `FrameBaseContext`.
+  Fixed an issue where frame message was parsed incorrectly and was expecting `cast_id` in Composer Action Handler.
+  Exported previously forgotten types.
+
+### Patch Changes
+
+- [#471](https://github.com/wevm/frog/pull/471) [`24d3bec`](https://github.com/wevm/frog/commit/24d3bec61bc403bb68bfa3fe5a3ef94045d58964) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where defining fonts in multiple places would override each other. Now all defined fonts are grouped altogether.
+
 ## 0.15.9
 
 ### Patch Changes
