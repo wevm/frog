@@ -565,20 +565,32 @@ export class FrogBase<
           return this.imageOptions
         })()
 
-        const fonts = await (async () => {
-          if (this.ui?.vars?.fonts)
-            return Object.values(this.ui?.vars.fonts).flat()
-          if (typeof options?.fonts === 'function') return await options.fonts()
-          if (options?.fonts) return options.fonts
-          return defaultImageOptions?.fonts
-        })()
-
         const {
           headers = this.headers,
           image,
           imageOptions = defaultImageOptions,
         } = fromQuery<any>(c.req.query())
         const image_ = JSON.parse(lz.decompressFromEncodedURIComponent(image))
+
+        const fonts = await (async () => {
+          const uiFonts = this.ui?.vars?.fonts
+            ? Object.values(this.ui?.vars?.fonts).flat()
+            : []
+          const optionsFonts =
+            (typeof options?.fonts === 'function'
+              ? await options.fonts()
+              : options?.fonts) ?? []
+          const defaultImageOptionsFonts = defaultImageOptions?.fonts ?? []
+          const imageOptionsFonts =
+            (imageOptions as ImageOptions | undefined)?.fonts ?? []
+          return [
+            ...uiFonts,
+            ...optionsFonts,
+            ...defaultImageOptionsFonts,
+            ...imageOptionsFonts,
+          ]
+        })()
+
         return new ImageResponse(image_, {
           width: 1200,
           height: 630,
@@ -631,11 +643,17 @@ export class FrogBase<
         headers = this.headers,
         imageAspectRatio = this.imageAspectRatio,
         image,
-        imageOptions: imageOptions_ = this.imageOptions,
+        imageOptions,
         intents,
         ogImage,
         title = this.title,
       } = response.data
+
+      const defaultImageOptions = await (async () => {
+        if (typeof this.imageOptions === 'function')
+          return await this.imageOptions()
+        return this.imageOptions
+      })()
 
       const buttonValues = getButtonValues(
         parseIntents(intents, {
@@ -695,11 +713,6 @@ export class FrogBase<
         previousButtonValues: buttonValues,
         previousState,
       })
-
-      const imageOptions = await (async () => {
-        if (typeof imageOptions_ === 'function') return await imageOptions_()
-        return imageOptions_
-      })()
 
       const imageUrl = await (async () => {
         if (typeof image !== 'string') {
@@ -836,19 +849,29 @@ export class FrogBase<
         const __html = image.toString().replace(/tw=/g, 'class=')
 
         const fonts = await (async () => {
-          if (this.ui?.vars?.fonts)
-            return Object.values(this.ui.vars.fonts).flat()
-          if (typeof options?.fonts === 'function') return await options.fonts()
-          if (options?.fonts) return options.fonts
-          return (imageOptions as ImageOptions | undefined)?.fonts
+          const uiFonts = this.ui?.vars?.fonts
+            ? Object.values(this.ui?.vars?.fonts).flat()
+            : []
+          const optionsFonts =
+            (typeof options?.fonts === 'function'
+              ? await options.fonts()
+              : options?.fonts) ?? []
+          const defaultImageOptionsFonts = defaultImageOptions?.fonts ?? []
+          const imageOptionsFonts =
+            (imageOptions as ImageOptions | undefined)?.fonts ?? []
+          return [
+            ...uiFonts,
+            ...optionsFonts,
+            ...defaultImageOptionsFonts,
+            ...imageOptionsFonts,
+          ]
         })()
         const groupedFonts = new Map<string, NonNullable<typeof fonts>>()
-        if (fonts)
-          for (const font of fonts) {
-            const key = `${font.source ? `${font.source}:` : ''}${font.name}`
-            if (groupedFonts.has(key)) groupedFonts.get(key)?.push(font)
-            else groupedFonts.set(key, [font])
-          }
+        for (const font of fonts) {
+          const key = `${font.source ? `${font.source}:` : ''}${font.name}`
+          if (groupedFonts.has(key)) groupedFonts.get(key)?.push(font)
+          else groupedFonts.set(key, [font])
+        }
         const googleFonts = []
         for (const item of groupedFonts) {
           const [, fonts] = item
@@ -1034,11 +1057,22 @@ export class FrogBase<
       })()
 
       const fonts = await (async () => {
-        if (this.ui?.vars?.fonts)
-          return Object.values(this.ui?.vars.fonts).flat()
-        if (typeof options?.fonts === 'function') return await options.fonts()
-        if (options?.fonts) return options.fonts
-        return defaultImageOptions?.fonts
+        const uiFonts = this.ui?.vars?.fonts
+          ? Object.values(this.ui?.vars?.fonts).flat()
+          : []
+        const optionsFonts =
+          (typeof options?.fonts === 'function'
+            ? await options.fonts()
+            : options?.fonts) ?? []
+        const defaultImageOptionsFonts = defaultImageOptions?.fonts ?? []
+        const imageOptionsFonts = response.data.imageOptions?.fonts ?? []
+
+        return [
+          ...uiFonts,
+          ...optionsFonts,
+          ...defaultImageOptionsFonts,
+          ...imageOptionsFonts,
+        ]
       })()
 
       const {
