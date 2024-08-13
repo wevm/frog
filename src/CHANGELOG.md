@@ -1,5 +1,11 @@
 # frog
 
+## 0.16.1
+
+### Patch Changes
+
+- [#472](https://github.com/wevm/frog/pull/472) [`8529049`](https://github.com/wevm/frog/commit/85290498040e98d7d406f17e3668455a42372eed) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where a frame without any fonts passed would crash the render process.
+
 ## 0.16.0
 
 ### Minor Changes
