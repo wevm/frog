@@ -583,12 +583,14 @@ export class FrogBase<
           const defaultImageOptionsFonts = defaultImageOptions?.fonts ?? []
           const imageOptionsFonts =
             (imageOptions as ImageOptions | undefined)?.fonts ?? []
-          return [
+          const fonts = [
             ...uiFonts,
             ...optionsFonts,
             ...defaultImageOptionsFonts,
             ...imageOptionsFonts,
           ]
+          if (fonts.length === 0) return undefined
+          return fonts
         })()
 
         return new ImageResponse(image_, {
@@ -859,19 +861,23 @@ export class FrogBase<
           const defaultImageOptionsFonts = defaultImageOptions?.fonts ?? []
           const imageOptionsFonts =
             (imageOptions as ImageOptions | undefined)?.fonts ?? []
-          return [
+          const fonts = [
             ...uiFonts,
             ...optionsFonts,
             ...defaultImageOptionsFonts,
             ...imageOptionsFonts,
           ]
+
+          if (fonts.length === 0) return undefined
+          return fonts
         })()
         const groupedFonts = new Map<string, NonNullable<typeof fonts>>()
-        for (const font of fonts) {
-          const key = `${font.source ? `${font.source}:` : ''}${font.name}`
-          if (groupedFonts.has(key)) groupedFonts.get(key)?.push(font)
-          else groupedFonts.set(key, [font])
-        }
+        if (fonts)
+          for (const font of fonts) {
+            const key = `${font.source ? `${font.source}:` : ''}${font.name}`
+            if (groupedFonts.has(key)) groupedFonts.get(key)?.push(font)
+            else groupedFonts.set(key, [font])
+          }
         const googleFonts = []
         for (const item of groupedFonts) {
           const [, fonts] = item
@@ -1067,12 +1073,15 @@ export class FrogBase<
         const defaultImageOptionsFonts = defaultImageOptions?.fonts ?? []
         const imageOptionsFonts = response.data.imageOptions?.fonts ?? []
 
-        return [
+        const fonts = [
           ...uiFonts,
           ...optionsFonts,
           ...defaultImageOptionsFonts,
           ...imageOptionsFonts,
         ]
+
+        if (fonts.length === 0) return undefined
+        return fonts
       })()
 
       const {
