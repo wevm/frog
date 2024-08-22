@@ -2,7 +2,7 @@
 "frog": minor
 ---
 
-**Breaking Change**: `parent` is deprecated in `ComposerActionMessage`
+**Breaking Change**: `parent` and `channelKey` are deprecated in `ComposerActionMessage`
 
 ```diff
 import { postComposerActionMessage } from 'frog/next'
@@ -14,6 +14,7 @@ postComposerActionMessage({
       embeds: [/*...*/];
       text: 'Hi';
 -     parent: '0x...'
+-     channelKey: '...'
     };
   };
 })
@@ -26,6 +27,7 @@ postComposerCreateCastActionMessage({
   embeds: [/*...*/];
   text: 'Hi';
 - parent: '0x...'
+- channelKey: '...'
 })
 ```
 

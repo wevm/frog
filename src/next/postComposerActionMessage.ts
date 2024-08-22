@@ -2,7 +2,6 @@ export type ComposerActionMessage = {
   type: 'createCast'
   data: {
     cast: {
-      channelKey?: string | undefined
       embeds: string[]
       text: string
     }
