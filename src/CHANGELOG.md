@@ -1,5 +1,40 @@
 # frog
 
+## 0.17.0
+
+### Minor Changes
+
+- [#476](https://github.com/wevm/frog/pull/476) [`4539665`](https://github.com/wevm/frog/commit/453966543df5c3b3eb8afa011f8895b5018aa000) Thanks [@dalechyn](https://github.com/dalechyn)! - **Breaking Change**: `parent` and `channelKey` are deprecated in `ComposerActionMessage`
+
+  ```diff
+  import { postComposerActionMessage } from 'frog/next'
+
+  postComposerActionMessage({
+    type: "createCast",
+    data: {
+      cast: {
+        embeds: [/*...*/];
+        text: 'Hi';
+  -     parent: '0x...'
+  -     channelKey: '...'
+      };
+    };
+  })
+  ```
+
+  ```diff
+  import { postComposerCreateCastActionMessage } from 'frog/next'
+
+  postComposerCreateCastActionMessage({
+    embeds: [/*...*/];
+    text: 'Hi';
+  - parent: '0x...'
+  - channelKey: '...'
+  })
+  ```
+
+  [See More](https://warpcast.com/horsefacts.eth/0x98185a2f).
+
 ## 0.16.1
 
 ### Patch Changes
