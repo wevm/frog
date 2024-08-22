@@ -4,7 +4,6 @@ export type ComposerActionMessage = {
     cast: {
       channelKey?: string | undefined
       embeds: string[]
-      parent?: string | undefined
       text: string
     }
   }
