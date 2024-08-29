@@ -1,5 +1,11 @@
 # frog
 
+## 0.17.1
+
+### Patch Changes
+
+- [#478](https://github.com/wevm/frog/pull/478) [`0f482cd`](https://github.com/wevm/frog/commit/0f482cdb3d93500dbf4888c6030462bb93a8d0cb) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where `getFrameMetadata` would return escaped symbols.
+
 ## 0.17.0
 
 ### Minor Changes
