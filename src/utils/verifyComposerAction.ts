@@ -21,7 +21,13 @@ export async function verifyComposerAction(
 }
 
 ////////////////////////////////////////////////////////////////////
-// Utilties
+// Utilities
+
+export function parseComposerActionDataState(
+  state: string,
+): ComposerActionData['state'] {
+  return JSON.parse(decodeURIComponent(state))
+}
 
 export function messageToComposerActionData(
   message: Message,
@@ -32,7 +38,7 @@ export function messageToComposerActionData(
     messageHash: bytesToHex(message.hash),
     network: message.data?.network!,
     timestamp: message.data?.timestamp!,
-    state: JSON.parse(decodeURIComponent(bytesToString(frameActionBody.state))),
+    state: parseComposerActionDataState(bytesToString(frameActionBody.state)),
     url: bytesToString(frameActionBody.url),
     buttonIndex: frameActionBody.buttonIndex as any,
   }
