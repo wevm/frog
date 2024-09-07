@@ -227,6 +227,10 @@ function getBoxProps<vars extends Vars>({
   const marginBottom = resolveUnitToken(units, rest.marginBottom, vmax)
   const marginLeft = resolveUnitToken(units, rest.marginLeft, vmax)
   const marginRight = resolveUnitToken(units, rest.marginRight, vmax)
+  const maxHeight = resolveUnitToken(units, rest.maxHeight, vmax)
+  const maxWidth = resolveUnitToken(units, rest.maxWidth, vmax)
+  const minHeight = resolveUnitToken(units, rest.minHeight, vmax)
+  const minWidth = resolveUnitToken(units, rest.minWidth, vmax)
   const padding = resolveUnitToken(units, rest.padding, vmax)
   const paddingTop = resolveUnitToken(units, rest.paddingTop, vmax)
   const paddingBottom = resolveUnitToken(units, rest.paddingBottom, vmax)
@@ -305,6 +309,10 @@ function getBoxProps<vars extends Vars>({
     marginBottom,
     marginLeft,
     marginRight,
+    maxHeight,
+    maxWidth,
+    minHeight,
+    minWidth,
     padding,
     paddingTop,
     paddingBottom,
