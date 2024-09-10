@@ -1,5 +1,13 @@
 # frog
 
+## 0.17.2
+
+### Patch Changes
+
+- [#484](https://github.com/wevm/frog/pull/484) [`34cfb2a`](https://github.com/wevm/frog/commit/34cfb2ade3e7d6db0612389d02e047b9c9da8979) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with parsing Composer Action data when verified is `false`.
+
+- [#483](https://github.com/wevm/frog/pull/483) [`84c4330`](https://github.com/wevm/frog/commit/84c433077bab712c7a8a4c0b3e4e3c72dc5a2c67) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where min/max height/width would not handle custom values.
+
 ## 0.17.1
 
 ### Patch Changes
