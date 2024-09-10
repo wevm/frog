@@ -4,7 +4,10 @@ import type { ComposerActionBaseContext } from '../types/context.js'
 import type { Env } from '../types/env.js'
 import type { Hub } from '../types/hub.js'
 import { getRequestUrl } from './getRequestUrl.js'
-import { verifyComposerAction } from './verifyComposerAction.js'
+import {
+  parseComposerActionDataState,
+  verifyComposerAction,
+} from './verifyComposerAction.js'
 
 type RequestBodyToComposerActionBaseContextOptions = {
   hub?: Hub | undefined
@@ -35,6 +38,11 @@ export async function requestBodyToComposerActionBaseContext<
 
   const url = getRequestUrl(c.req)
 
+  const untrustedComposerActionData = (() => {
+    const state = parseComposerActionDataState(untrustedData.state)
+    return { ...untrustedData, state }
+  })()
+
   const trustedComposerActionData = await (async () => {
     if (verify === false) return null
     if (!trustedData) return null
@@ -56,7 +64,7 @@ export async function requestBodyToComposerActionBaseContext<
 
   return {
     env: c.env,
-    actionData: trustedComposerActionData || untrustedData,
+    actionData: trustedComposerActionData || untrustedComposerActionData,
     req: c.req,
     var: c.var,
     verified: Boolean(trustedComposerActionData),
