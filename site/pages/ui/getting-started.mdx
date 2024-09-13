@@ -57,7 +57,7 @@ After that, we can then consume our components to build our frame UI.
 
 ```tsx twoslash [src/index.ts]
 import { Frog } from 'frog'
-import { Box, Heading, Text, VStack, vars } from './ui.js'
+import { Box, Heading, Text, VStack, vars } from './ui.ts'
 
 export const app = new Frog({
   ui: { vars }, // [!code focus]
@@ -83,7 +83,7 @@ export const app = new Frog({
 })
 ```
 
-```tsx twoslash [src/ui.ts] filename="./ui.js"
+```tsx twoslash [src/ui.ts] filename="./ui.ts"
 import { createSystem } from 'frog/ui'
 
 export const { Box, Heading, Text, VStack, vars } = createSystem()
