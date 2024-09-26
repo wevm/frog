@@ -214,8 +214,8 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       hono-og:
-        specifier: 0.0.27
-        version: 0.0.27(hono@4.4.4)
+        specifier: 0.0.28
+        version: 0.0.28(hono@4.4.4)
       jose:
         specifier: ^5.2.2
         version: 5.2.2
@@ -4899,8 +4899,8 @@ packages:
       - supports-color
     dev: true
 
-  /@vercel/og@0.6.2:
-    resolution: {integrity: sha512-OTe0KE37F5Y2eTys6eMnfopC+P4qr2ooXUTFyFPTplYSPwowmFk/HLD1FXtbKLjqsIH0SgekcJWad+C5uX4nkg==}
+  /@vercel/og@0.6.3:
+    resolution: {integrity: sha512-aoCrC9FqkeA+WEEb9CwSmjD0rGlFeNqbUsI41JPmKWR9Hx6FFn86tvH96O5HZMF6VAXTGHxa3nPH3BokROpdgA==}
     engines: {node: '>=16'}
     dependencies:
       '@resvg/resvg-wasm': 2.4.0
@@ -8110,12 +8110,12 @@ packages:
       minimalistic-crypto-utils: 1.0.1
     dev: true
 
-  /hono-og@0.0.27(hono@4.4.4):
-    resolution: {integrity: sha512-FtsUmDCG7xKXD8InxzHcdzX5IIe9MrDPFHih0CUd6Hog0NcDV6tksc1cZ1sAAuftSTedmC4LV6Oi1uK6VXvZgQ==}
+  /hono-og@0.0.28(hono@4.4.4):
+    resolution: {integrity: sha512-UN5KSkL7igeW1qWgGrTB85UqnARE1sDPEmio9EYqM5zkmLYCcwbj8TLgo0PW1hYHsfx1xf2ntoK1H0oyaFgKeg==}
     peerDependencies:
       hono: 4.4.4
     dependencies:
-      '@vercel/og': 0.6.2
+      '@vercel/og': 0.6.3
       hono: 4.4.4
       workers-og: 0.0.23
     dev: false
