@@ -110,7 +110,7 @@
     "dom-parser": "^1.1.5",
     "fast-glob": "3.3.2",
     "fs-extra": "^11.2.0",
-    "hono-og": "0.0.27",
+    "hono-og": "0.0.28",
     "jose": "^5.2.2",
     "lz-string": "^1.5.0",
     "path-browserify": "^1.0.1",
