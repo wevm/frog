@@ -1,5 +1,11 @@
 # frog
 
+## 0.17.3
+
+### Patch Changes
+
+- [#491](https://github.com/wevm/frog/pull/491) [`3581ee6`](https://github.com/wevm/frog/commit/3581ee6043fc58fe64e67f1656420d07888c3099) Thanks [@dalechyn](https://github.com/dalechyn)! - Bumped `hono-og` to `0.0.28` which has a fix for constant memory leak issue.
+
 ## 0.17.2
 
 ### Patch Changes
