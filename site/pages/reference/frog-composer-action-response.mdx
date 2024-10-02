@@ -24,6 +24,7 @@ app.composerAction('/', (c) => {
 Title of your action which will be shown in the footer of the Composer Form.
 
 ```tsx twoslash
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
@@ -32,7 +33,7 @@ export const app = new Frog({ title: 'Frog Frame' })
  
 app.composerAction('/', (c) => {
     return c.res({
-      title: 'My Composr Action', // [!code focus]
+      title: 'My Composer Action', // [!code focus]
       url: 'https://example.com'
     })
   },
@@ -47,6 +48,7 @@ app.composerAction('/', (c) => {
 Composer Form URL. Must be http:// or https:// protocol.
 
 ```tsx twoslash
+// @noErrors
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
