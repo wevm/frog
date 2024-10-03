@@ -214,8 +214,8 @@ importers:
         specifier: ^11.2.0
         version: 11.2.0
       hono-og:
-        specifier: 0.0.28
-        version: 0.0.28(hono@4.4.4)
+        specifier: 0.0.29
+        version: 0.0.29(hono@4.4.4)
       jose:
         specifier: ^5.2.2
         version: 5.2.2
@@ -8110,8 +8110,8 @@ packages:
       minimalistic-crypto-utils: 1.0.1
     dev: true
 
-  /hono-og@0.0.28(hono@4.4.4):
-    resolution: {integrity: sha512-UN5KSkL7igeW1qWgGrTB85UqnARE1sDPEmio9EYqM5zkmLYCcwbj8TLgo0PW1hYHsfx1xf2ntoK1H0oyaFgKeg==}
+  /hono-og@0.0.29(hono@4.4.4):
+    resolution: {integrity: sha512-j/rWd4c9o8bSysOWnc4CiLaTX79DF8uTxHG9g/J+FeVYDND17uXL7sgmMcRZZXP6QjsrqTFf/Vpmyk1OfJwhTg==}
     peerDependencies:
       hono: 4.4.4
     dependencies:
