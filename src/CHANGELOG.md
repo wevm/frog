@@ -1,5 +1,14 @@
 # frog
 
+## 0.17.4
+
+### Patch Changes
+
+- [#495](https://github.com/wevm/frog/pull/495) [`8201ed3`](https://github.com/wevm/frog/commit/8201ed3fac70f6edc131e6f1cd57a55efa9095b9) Thanks [@dalechyn](https://github.com/dalechyn)! - Bumped `hono-og` to `0.0.28` which has a fix for constant memory leak issue.
+
+- [#495](https://github.com/wevm/frog/pull/495) [`8201ed3`](https://github.com/wevm/frog/commit/8201ed3fac70f6edc131e6f1cd57a55efa9095b9) Thanks [@dalechyn](https://github.com/dalechyn)! - Bumped `hono-og` to the latest version which should solve the memory leak
+  issue for those who don't use Vercel as the deployment platform.
+
 ## 0.17.3
 
 ### Patch Changes
