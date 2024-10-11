@@ -683,7 +683,7 @@ export class FrogBase<
         basePath: this.basePath,
         path,
       })
-      if (!renderAsHTML && browser?.name && browserLocation_)
+      if (!renderAsHTML && browser?.type === 'browser' && browserLocation_)
         return c.redirect(
           browserLocation_.startsWith('http')
             ? browserLocation_
