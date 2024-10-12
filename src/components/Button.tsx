@@ -6,6 +6,7 @@ export const buttonPrefix = {
   addComposerAction: '_b',
   link: '_l',
   mint: '_m',
+  miniApp: '_n',
   redirect: '_r',
   reset: '_c',
   transaction: '_t',
@@ -87,6 +88,33 @@ export function ButtonLink({
     />,
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta property={`fc:frame:button:${index}:target`} content={href} />,
+  ] as unknown as HtmlEscapedString
+}
+
+export type ButtonMiniAppProps = ButtonProps & {
+  href: string
+  prompt?: boolean
+}
+
+ButtonMiniApp.__type = 'button'
+export function ButtonMiniApp({
+  children,
+  // @ts-ignore - private
+  index = 1,
+  href,
+  prompt,
+}: ButtonMiniAppProps) {
+  return [
+    <meta
+      property={`fc:frame:button:${index}`}
+      content={normalizeChildren(children)}
+      data-value={buttonPrefix.miniApp}
+    />,
+    <meta property={`fc:frame:button:${index}:action`} content="link" />,
+    <meta
+      property={`fc:frame:button:${index}:target`}
+      content={`https://warpcast.com/~/composer-action?url=${encodeURIComponent(href)}${prompt ? '&view=prompt' : ''}`}
+    />,
   ] as unknown as HtmlEscapedString
 }
 
@@ -214,6 +242,7 @@ export function ButtonSignature({
 export const Button = Object.assign(ButtonRoot, {
   AddCastAction: ButtonAddCastAction,
   Link: ButtonLink,
+  MiniApp: ButtonMiniApp,
   Mint: ButtonMint,
   Redirect: ButtonRedirect,
   Reset: ButtonReset,
