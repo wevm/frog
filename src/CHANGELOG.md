@@ -1,5 +1,13 @@
 # frog
 
+## 0.17.5
+
+### Patch Changes
+
+- [#499](https://github.com/wevm/frog/pull/499) [`4e7d5e3`](https://github.com/wevm/frog/commit/4e7d5e318e2b049a9ef326bcaf94a189f8b1e154) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with `browserLocation` redirects misleadingly redirecting Twitterbot due to incorrect check.
+
+- [#500](https://github.com/wevm/frog/pull/500) [`753c8fd`](https://github.com/wevm/frog/commit/753c8fd87ebc3661bdebc0062957f4f2f4ae3c75) Thanks [@dalechyn](https://github.com/dalechyn)! - Added a `Button.MiniApp` to deeplink to a mini-app.
+
 ## 0.17.4
 
 ### Patch Changes
