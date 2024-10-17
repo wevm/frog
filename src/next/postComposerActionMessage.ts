@@ -1,19 +1,19 @@
 import {
-  getAbiItem,
   type Abi,
+  AbiFunctionNotFoundError,
   type ContractFunctionArgs,
   type ContractFunctionName,
-  type GetAbiItemParameters,
-  AbiFunctionNotFoundError,
-  encodeFunctionData,
   type EncodeFunctionDataParameters,
+  type GetAbiItemParameters,
   type TypedData,
+  encodeFunctionData,
+  getAbiItem,
 } from 'viem'
+import type { SignTypedDataParameters } from '../types/signature.js'
 import type {
   ContractTransactionParameters,
   SendTransactionParameters,
 } from '../types/transaction.js'
-import type { SignTypedDataParameters } from '../types/signature.js'
 
 export type ComposerActionMessageData = {
   cast: {
