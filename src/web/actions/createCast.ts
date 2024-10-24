@@ -1,9 +1,9 @@
 import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
-import type { FcCreateCastSuccessBody } from './internal/waitForCreateCastResponse.js'
 import {
   type CreateCastRequestMessageParameters,
   postCreateCastRequestMessage,
 } from './internal/postCreateCastRequestMessage.js'
+import type { FcCreateCastSuccessBody } from './internal/waitForCreateCastResponse.js'
 import { waitForCreateCastResponse } from './internal/waitForCreateCastResponse.js'
 
 type CreateCastParameters = CreateCastRequestMessageParameters

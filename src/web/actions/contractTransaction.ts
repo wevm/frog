@@ -10,11 +10,11 @@ import {
 } from 'viem'
 import type { ContractTransactionParameters } from '../../types/transaction.js'
 import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
+import { postSendTransactionRequestMessage } from './internal/postSendTransactionRequestMessage.js'
 import {
   type EthSendTransactionSuccessBody,
   waitForSendTransactionResponse,
 } from './internal/waitForSendTransactionResponse.js'
-import { postSendTransactionRequestMessage } from './internal/postSendTransactionRequestMessage.js'
 
 type ContractTransactionReturnType = EthSendTransactionSuccessBody
 type ContractTransactionErrorType = JsonRpcResponseError
