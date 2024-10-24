@@ -268,7 +268,7 @@ This leverages the [`generateMetadata`](https://nextjs.org/docs/app/api-referenc
 
 ```tsx twoslash [app/page.tsx]
 // @noErrors
-import { getFrameMetadata } from 'frog/next'
+import { getFrameMetadata } from 'frog/web'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -291,7 +291,7 @@ If you use suspended components in a page, route Next.js will stream the respons
 // @noErrors
 import { headers } from 'next/headers'
 import type { Metadata } from 'next'
-import { getFrameMetadata, isFrameRequest } from 'frog/next'
+import { getFrameMetadata, isFrameRequest } from 'frog/web'
 
 import { SuspendedComponent } from './suspense-component'
 

@@ -1,5 +1,0 @@
-{
-  "type": "module",
-  "types": "../_lib/vercel/index.d.ts",
-  "module": "../_lib/vercel/index.js"
-}
