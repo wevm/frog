@@ -52,15 +52,15 @@ app.composerAction(
 ```
 
 ### Client-Side Helpers
-Frog exports `postComposerCreateCastActionMessage` helper to post the message to the `window.parent`.
+Frog exports `createCast` helper to post the message to the `window.parent`.
 
 ```tsx twoslash [src/index.tsx]
 // @noErrors
-import { postComposerCreateCastActionMessage } from 'frog/next'
+import { createCast } from 'frog/web'
 
 function App() {
   return (
-    <button onClick={() => postComposerCreateCastActionMessage({/**/})}>
+    <button onClick={() => createCast({/**/})}>
       Button
     </button>
   )

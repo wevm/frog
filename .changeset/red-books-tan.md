@@ -2,7 +2,8 @@
 "frog": minor
 ---
 
-**Breaking Change**: `postCreateCastActionMessage` from `frog/next` was deleted.
+**Breaking Change**: `frog/next` was deleted.
+If you have used `handle` function, please import it from `frog/vercel` now.
 
 Introduced `frog/web` for client-side related logic in favor of `frog/next`.
 For backwards compatibility, all the previous exports are kept, but will be

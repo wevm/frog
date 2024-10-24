@@ -1,5 +1,0 @@
-{
-  "type": "module",
-  "types": "../_lib/next/index.d.ts",
-  "module": "../_lib/next/index.js"
-}

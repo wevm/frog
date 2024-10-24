@@ -3,7 +3,7 @@
 import { Button, Frog, TextInput } from 'frog'
 import { devtools } from 'frog/dev'
 // import { neynar } from 'frog/hubs'
-import { handle } from 'frog/next'
+import { handle } from 'frog/vercel'
 import { serveStatic } from 'frog/serve-static'
 
 const app = new Frog({

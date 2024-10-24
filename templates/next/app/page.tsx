@@ -1,4 +1,4 @@
-import { getFrameMetadata } from 'frog/next'
+import { getFrameMetadata } from 'frog/web'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 

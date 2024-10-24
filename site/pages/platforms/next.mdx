@@ -88,7 +88,7 @@ After that, we will add handlers to handle requests in the `api/` route:
 // ---cut---
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/next' // [!code focus]
+import { handle } from 'frog/vercel' // [!code focus]
 
 const app = new Frog({ 
   basePath: '/api',
@@ -144,7 +144,7 @@ Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way t
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import { handle } from 'frog/next'
+import { handle } from 'frog/vercel'
 import { devtools } from 'frog/dev' // [!code focus]
 import { serveStatic } from 'frog/serve-static' // [!code focus]
 
@@ -222,7 +222,7 @@ they will be redirected to the `/foo` path (ie. `/app/foo/page.tsx` in your Next
 // ---cut---
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from 'frog'
-import { handle } from 'frog/next'
+import { handle } from 'frog/vercel'
 
 const app = new Frog({ 
   basePath: '/api',
@@ -268,7 +268,7 @@ This leverages the [`generateMetadata`](https://nextjs.org/docs/app/api-referenc
 
 ```tsx twoslash [app/page.tsx]
 // @noErrors
-import { getFrameMetadata } from 'frog/next'
+import { getFrameMetadata } from 'frog/web'
 import type { Metadata } from 'next'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -291,7 +291,7 @@ If you use suspended components in a page, route Next.js will stream the respons
 // @noErrors
 import { headers } from 'next/headers'
 import type { Metadata } from 'next'
-import { getFrameMetadata, isFrameRequest } from 'frog/next'
+import { getFrameMetadata, isFrameRequest } from 'frog/web'
 
 import { SuspendedComponent } from './suspense-component'
 
