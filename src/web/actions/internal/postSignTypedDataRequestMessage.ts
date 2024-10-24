@@ -1,8 +1,8 @@
 import type { TypedData } from 'viem'
 import type { SignTypedDataParameters } from '../../../types/signature.js'
 import {
-  postJsonRpcRequestMessage,
   type PostJsonRpcRequestMessageReturnType,
+  postJsonRpcRequestMessage,
 } from './jsonRpc/postJsonRpcRequestMessage.js'
 
 export type SignTypedDataRequestMessageParameters<

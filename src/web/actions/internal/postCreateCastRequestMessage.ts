@@ -1,6 +1,6 @@
 import {
-  postJsonRpcRequestMessage,
   type PostJsonRpcRequestMessageReturnType,
+  postJsonRpcRequestMessage,
 } from './jsonRpc/postJsonRpcRequestMessage.js'
 
 export type CreateCastRequestMessageParameters = {

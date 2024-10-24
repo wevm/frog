@@ -1,7 +1,7 @@
 import type { SendTransactionParameters } from '../../../types/transaction.js'
 import {
-  postJsonRpcRequestMessage,
   type PostJsonRpcRequestMessageReturnType,
+  postJsonRpcRequestMessage,
 } from './jsonRpc/postJsonRpcRequestMessage.js'
 
 export type SendTransactionRequestMessageParameters = SendTransactionParameters

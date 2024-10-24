@@ -1,11 +1,11 @@
 import type { TypedData } from 'viem'
 import type { SignTypedDataParameters } from '../../types/signature.js'
+import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
 import {
-  listenForSignTypedDataResponseMessage,
   type EthSignTypedDataSuccessBody,
+  listenForSignTypedDataResponseMessage,
 } from './internal/listenForSignTypedDataResponseMessage.js'
 import { postSignTypedDataRequestMessage } from './internal/postSignTypedDataRequestMessage.js'
-import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
 
 type SignTypedDataReturnType = EthSignTypedDataSuccessBody
 type SignTypedDataErrorType = JsonRpcResponseError

@@ -1,8 +1,8 @@
 import type { SendTransactionParameters } from '../../types/transaction.js'
 import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
 import {
-  listenForSendTransactionResponseMessage,
   type EthSendTransactionSuccessBody,
+  listenForSendTransactionResponseMessage,
 } from './internal/listenForSendTransactionResponseMessage.js'
 import { postSendTransactionRequestMessage } from './internal/postSendTransactionRequestMessage.js'
 

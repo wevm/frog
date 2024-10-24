@@ -1,7 +1,7 @@
 import { listenForJsonRpcResponseMessage } from './jsonRpc/listenForJsonRpcResponseMessage.js'
 import type {
-  JsonRpcResponseSuccess,
   JsonRpcResponseFailure,
+  JsonRpcResponseSuccess,
 } from './jsonRpc/types.js'
 
 export type CreateCastResponse =
