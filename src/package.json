@@ -87,6 +87,10 @@
     "./vercel": {
       "types": "./_lib/vercel/index.d.ts",
       "default": "./_lib/vercel/index.js"
+    },
+    "./web": {
+      "types": "./_lib/web/index.d.ts",
+      "default": "./_lib/web/index.js"
     }
   },
   "peerDependencies": {

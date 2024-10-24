@@ -1,4 +1,4 @@
-import { getFrameMetadata as getFrameMetadata_ } from '../utils/getFrameMetadata.js'
+import { getFrameMetadata as getFrameMetadata_ } from '../../utils/getFrameMetadata.js'
 
 /**
  * Extracts frame metadata from a given URL, designed to be used with Next.js' `generateMetadata` export function.
