@@ -1,11 +1,11 @@
 import type { TypedData } from 'viem'
 import type { SignTypedDataParameters } from '../../types/signature.js'
-import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
 import {
+  waitForSignTypedDataResponse,
   type EthSignTypedDataSuccessBody,
-  listenForSignTypedDataResponseMessage,
-} from './internal/listenForSignTypedDataResponseMessage.js'
+} from './internal/waitForSignTypedDataResponse.js'
 import { postSignTypedDataRequestMessage } from './internal/postSignTypedDataRequestMessage.js'
+import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
 
 type SignTypedDataReturnType = EthSignTypedDataSuccessBody
 type SignTypedDataErrorType = JsonRpcResponseError
@@ -26,13 +26,5 @@ export async function signTypedData<
     parameters,
     requestIdOverride,
   )
-  return new Promise((resolve, reject) => {
-    listenForSignTypedDataResponseMessage((message) => {
-      if ('result' in message) {
-        resolve(message.result)
-        return
-      }
-      reject(message.error)
-    }, requestId)
-  })
+  return waitForSignTypedDataResponse(requestId)
 }

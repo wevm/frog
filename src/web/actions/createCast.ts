@@ -1,15 +1,13 @@
 import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
-import {
-  type CreateCastSuccessBody,
-  listenForCreateCastResponseMessage,
-} from './internal/listenForCreateCastResponseMessage.js'
+import type { FcCreateCastSuccessBody } from './internal/waitForCreateCastResponse.js'
 import {
   type CreateCastRequestMessageParameters,
   postCreateCastRequestMessage,
 } from './internal/postCreateCastRequestMessage.js'
+import { waitForCreateCastResponse } from './internal/waitForCreateCastResponse.js'
 
 type CreateCastParameters = CreateCastRequestMessageParameters
-type CreateCastReturnType = CreateCastSuccessBody
+type CreateCastReturnType = FcCreateCastSuccessBody
 type CreateCastErrorType = JsonRpcResponseError
 export type { CreateCastParameters, CreateCastReturnType, CreateCastErrorType }
 
@@ -18,13 +16,5 @@ export async function createCast(
   requestIdOverride?: string,
 ): Promise<CreateCastReturnType> {
   const requestId = postCreateCastRequestMessage(parameters, requestIdOverride)
-  return new Promise((resolve, reject) => {
-    listenForCreateCastResponseMessage((message) => {
-      if ('result' in message) {
-        resolve(message.result)
-        return
-      }
-      reject(message.error)
-    }, requestId)
-  })
+  return waitForCreateCastResponse(requestId)
 }

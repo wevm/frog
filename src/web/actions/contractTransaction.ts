@@ -12,8 +12,8 @@ import type { ContractTransactionParameters } from '../../types/transaction.js'
 import type { JsonRpcResponseError } from './internal/jsonRpc/types.js'
 import {
   type EthSendTransactionSuccessBody,
-  listenForSendTransactionResponseMessage,
-} from './internal/listenForSendTransactionResponseMessage.js'
+  waitForSendTransactionResponse,
+} from './internal/waitForSendTransactionResponse.js'
 import { postSendTransactionRequestMessage } from './internal/postSendTransactionRequestMessage.js'
 
 type ContractTransactionReturnType = EthSendTransactionSuccessBody
@@ -64,13 +64,5 @@ export async function contractTransaction<
     },
     requestIdOverride,
   )
-  return new Promise((resolve, reject) => {
-    listenForSendTransactionResponseMessage((message) => {
-      if ('result' in message) {
-        resolve(message.result)
-        return
-      }
-      reject(message.error)
-    }, requestId)
-  })
+  return waitForSendTransactionResponse(requestId)
 }
