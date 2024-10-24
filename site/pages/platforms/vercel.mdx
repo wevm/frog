@@ -91,7 +91,7 @@ After that, we will append Vercel handlers to the file.
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import { handle } from 'frog/vercel' // [!code focus]
+import { handle } from 'frog/next' // [!code focus]
 
 // Uncomment to use Edge Runtime.
 // export const config = {
@@ -135,7 +135,7 @@ Add Frog [Devtools](/concepts/devtools) after all frames are defined. This way t
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import { handle } from 'frog/vercel'
+import { handle } from 'frog/next'
 import { devtools } from 'frog/dev' // [!code focus]
 import { serveStatic } from 'frog/serve-static' // [!code focus]
 
@@ -210,7 +210,7 @@ they will be redirected to the `/` path.
 /** @jsxImportSource frog/jsx */
 // ---cut---
 import { Button, Frog } from 'frog'
-import { handle } from 'frog/vercel' 
+import { handle } from 'frog/next' 
 
 // Uncomment to use Edge Runtime.
 // export const config = {

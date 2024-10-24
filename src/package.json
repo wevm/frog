@@ -52,6 +52,10 @@
       "types": "./_lib/middlewares/index.d.ts",
       "default": "./_lib/middlewares/index.js"
     },
+    "./next": {
+      "types": "./_lib/next/index.d.ts",
+      "default": "./_lib/next/index.js"
+    },
     "./serve-static": {
       "types": "./_lib/serve-static/index.d.ts",
       "bun": "./_lib/serve-static/bun.js",
@@ -79,10 +83,6 @@
     "./ui/icons/radix-icons": {
       "types": "./_lib/ui/icons/radix-icons/index.d.ts",
       "default": "./_lib/ui/icons/radix-icons/index.js"
-    },
-    "./vercel": {
-      "types": "./_lib/vercel/index.d.ts",
-      "default": "./_lib/vercel/index.js"
     },
     "./web": {
       "types": "./_lib/web/index.d.ts",

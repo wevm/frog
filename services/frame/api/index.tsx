@@ -1,7 +1,7 @@
 import { Button, Frog } from 'frog'
 import { devtools } from 'frog/dev'
 import { serveStatic } from 'frog/serve-static'
-import { handle } from 'frog/vercel'
+import { handle } from 'frog/next'
 
 type State = {
   featureIndex: number
