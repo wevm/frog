@@ -3,6 +3,7 @@
 ---
 
 **Breaking Change**: `postCreateCastActionMessage` from `frog/next` was deleted.
+
 Introduced `frog/web` for client-side related logic in favor of `frog/next`.
 For backwards compatibility, all the previous exports are kept, but will be
 deprecated in future, except for NextJS related `handle` function.
