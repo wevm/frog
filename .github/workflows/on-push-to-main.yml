@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
+      - name: Format package.json
+        run: pnpm format src/package.json
+
       - name: Create version pull request or publish to npm
         uses: changesets/action@v1
         with:
