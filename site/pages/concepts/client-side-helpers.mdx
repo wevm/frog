@@ -1,0 +1,98 @@
+# Client-Side Helpers
+
+As you may know, Frog was initially built as a backend-only library.
+With the recent features in Farcaster, Composer Actions and Mini Apps were introduced.
+
+To keep up with the changes, Frog adds helpers for your web application to communicate with the parent iFrame.
+
+[See the spec](https://warpcast.notion.site/Miniapp-Transactions-1216a6c0c10180b7b9f4eec58ec51e55)
+
+## Creating a Cast (Composer Actions)
+
+```tsx twoslash
+// @noErrors
+import { createCast } from 'frog/web'
+ 
+export function App() {
+  return (
+    <button
+      onClick={() =>
+        createCast({
+          text: 'Hi!',
+          embeds: []
+        })
+      }
+    >
+      create cast
+    </button>
+  )
+}
+```
+
+## Requesting a transaction
+
+```tsx twoslash
+// @noErrors
+import { contractTransaction, sendTransaction } from 'frog/web'
+import { erc20Abi } from 'viem'
+ 
+export function ContractTransactionApp() {
+  return (
+    <button
+      onClick={() =>
+        contractTransaction({
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: ['0x0000000000000000000000000000000000000000', 1n],
+          address: '0x0000000000000000000000000000000000000000'
+        })
+      }
+    >
+      contract tx
+    </button>
+  )
+}
+
+export function SendTransactionApp() {
+  return (
+    <button
+      onClick={() =>
+        sendTransaction({
+          to: '0x0000000000000000000000000000000000000000',
+          value: 1n
+        })
+      }
+    >
+      send tx
+    </button>
+  )
+}
+```
+
+## Requesting a signature
+
+```tsx twoslash
+// @noErrors
+import { signTypedData } from 'frog/web'
+ 
+export function SignTypedDataApp() {
+  return (
+    <button
+      onClick={() =>
+        signTypedData({
+          chainId: 'eip155:84532',
+          types: {
+            Swamp: [{ name: 'frog', type: 'string' }],
+          },
+          primaryType: 'Swamp',
+          message: {
+            frog: 'Robert',
+          },
+        })
+      }
+    >
+      sign data
+    </button>
+  )
+}
+```

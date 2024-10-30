@@ -1,0 +1,66 @@
+# Mini-Apps
+
+Mini-Apps act the same as [Composer Actions](/concepts/composer-actions), with a difference
+that such can be linked in a frame via deeplink.
+
+## Overview
+
+At a glance:
+
+1. User sees a frame in the App client's feed or direct message.
+2. The frame has a deeplink button that shows the Mini-App on click.
+
+:::warning
+Since Frog is not a Client-Side Framework, we recommend using a separate Frontend for the actual Mini-App.
+
+If you want to keep both Frog and Mini-App in one project, we recommend starting with [Next.JS](/platforms/next).
+:::
+
+## Example
+
+Here is a trivial example of how to expose a Mini-App with a frame. We will break it down below.
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+/** @jsxImportSource hono/jsx */
+// ---cut---
+import { Frog, Button } from 'frog'
+
+export const app = new Frog({ title: 'Frog Frame' })
+
+app.frame((c) => {
+  return c.res({
+    image: '...',
+    intents: [<Button.MiniApp href="https://link-to-my-mini-app"/>]
+  })
+})
+```
+
+You can also add `prompt` param to the props to hint the App Client to render the Mini-App without opening
+it in full-scren in-app browser, but as a drawer.
+
+### Client-Side Helpers
+Frog exports various helper to post the message to the `window.parent`.
+
+Check other helpers [here](/concepts/client-side-helpers).
+
+```tsx twoslash [src/index.tsx]
+// @noErrors
+import { sendTransaction, contractTransaction, signTypedData } from 'frog/web'
+
+function App() {
+  return (
+    <>
+      <button onClick={() => sendTransaction({/**/})}>
+        Send Tx
+      </button>
+      <button onClick={() => contractTransaction({/**/})}>
+        Contract Tx
+      </button>
+      <button onClick={() => signTypedData({/**/})}>
+        Sign typed data
+      </button>
+    </>
+  )
+}
+```

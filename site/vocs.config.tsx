@@ -154,12 +154,20 @@ export default defineConfig({
             link: '/concepts/cast-actions',
           },
           {
+            text: 'Client-Side Helpers',
+            link: '/concepts/client-side-helpers',
+          },
+          {
             text: 'Composer Actions',
             link: '/concepts/composer-actions',
           },
           {
             text: 'Multi-step Cast Actions',
             link: '/concepts/multi-step-cast-actions',
+          },
+          {
+            text: 'Mini-Apps',
+            link: '/concepts/mini-apps',
           },
           {
             text: 'Error Handling',
