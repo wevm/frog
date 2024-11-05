@@ -13,23 +13,28 @@ export function postJsonRpcRequestMessage(
     )
 
   const requestId = requestIdOverride ?? crypto.randomUUID()
+  const message = {
+    jsonrpc: '2.0',
+    id: requestId,
+    method,
+    params: parameters,
+  }
 
   // ref: https://github.com/react-native-webview/react-native-webview/blob/master/docs/Guide.md#the-windowreactnativewebviewpostmessage-method-and-onmessage-prop
-  const ambigiousPostMessage =
+  if (
     (
       window as {
-        ReactNativeWebView?: { postMessage: typeof window.postMessage }
+        ReactNativeWebView?: any
       }
-    ).ReactNativeWebView?.postMessage ?? window.parent.postMessage
-
-  ambigiousPostMessage(
-    {
-      jsonrpc: '2.0',
-      id: requestId,
-      method,
-      params: parameters,
-    },
-    '*',
-  )
+    ).ReactNativeWebView
+  ) {
+    ;(
+      window as {
+        ReactNativeWebView?: { postMessage: (msg: string) => void }
+      }
+    ).ReactNativeWebView?.postMessage(JSON.stringify(message))
+  } else {
+    window.parent.postMessage(message, '*')
+  }
   return requestId
 }
