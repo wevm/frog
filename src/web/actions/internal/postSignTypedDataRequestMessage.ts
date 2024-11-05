@@ -19,9 +19,16 @@ export function postSignTypedDataRequestMessage<
   parameters: SignTypedDataRequestMessageParameters<typedData, primaryType>,
   requestIdOverride?: string,
 ) {
+  const { chainId, ...restParameters } = parameters
   return postJsonRpcRequestMessage(
     'fc_requestWalletAction',
-    parameters,
+    {
+      action: {
+        method: 'eth_signTypedData_v4',
+        chainId,
+        params: restParameters,
+      },
+    },
     requestIdOverride,
   )
 }

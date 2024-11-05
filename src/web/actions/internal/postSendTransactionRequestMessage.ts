@@ -12,9 +12,17 @@ export function postSendTransactionRequestMessage(
   parameters: SendTransactionRequestMessageParameters,
   requestIdOverride?: string,
 ) {
+  const { chainId, attribution, ...restParameters } = parameters
   return postJsonRpcRequestMessage(
     'fc_requestWalletAction',
-    parameters,
+    {
+      action: {
+        method: 'eth_sendTransaction',
+        attribution,
+        chainId,
+        params: restParameters,
+      },
+    },
     requestIdOverride,
   )
 }
