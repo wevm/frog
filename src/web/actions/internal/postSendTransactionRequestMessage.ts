@@ -1,6 +1,6 @@
 import type {
-  SendTransactionParameters,
   EthSendTransactionParameters,
+  SendTransactionParameters,
 } from '../../../types/transaction.js'
 import {
   type PostJsonRpcRequestMessageReturnType,
