@@ -28,12 +28,24 @@ import { Frog, Button } from 'frog'
 
 export const app = new Frog({ title: 'Frog Frame' })
 
-app.frame((c) => {
-  return c.res({
-    image: '...',
-    intents: [<Button.MiniApp href="https://link-to-my-mini-app"/>]
+app
+  .frame((c) => {
+    return c.res({
+      image: '...',
+      intents: [<Button.MiniApp action="/miniapp"/>]
+    })
   })
-})
+  // or .composerAction
+	.miniApp(
+		"/miniapp",
+		(c) => c.res({ title: "Mini-App", url: `${process.env.VERCEL_URL ?? 'http://localhost:3000'}/your-mini-app-page` }),
+		{
+			name: "Mini-App",
+			description: "Mini-App",
+			imageUrl: "",
+			icon: "log",
+		},
+	);
 ```
 
 You can also add `prompt` param to the props to hint the App Client to render the Mini-App without opening
