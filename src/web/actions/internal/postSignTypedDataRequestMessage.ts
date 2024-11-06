@@ -19,14 +19,23 @@ export function postSignTypedDataRequestMessage<
   parameters: SignTypedDataRequestMessageParameters<typedData, primaryType>,
   requestIdOverride?: string,
 ) {
-  const { chainId, ...restParameters } = parameters
+  const { chainId, domain, message, types, primaryType } = parameters
   return postJsonRpcRequestMessage(
     'fc_requestWalletAction',
     {
       action: {
         method: 'eth_signTypedData_v4',
         chainId,
-        params: restParameters,
+        params: {
+          domain,
+          message: JSON.parse(
+            JSON.stringify(message, (_, v) =>
+              typeof v === 'bigint' ? v.toString() : v,
+            ),
+          ),
+          types,
+          primaryType,
+        },
       },
     },
     requestIdOverride,
