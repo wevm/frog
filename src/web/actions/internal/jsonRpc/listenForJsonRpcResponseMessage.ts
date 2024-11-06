@@ -16,12 +16,15 @@ export function listenForJsonRpcResponseMessage<resultType>(
       JsonRpcResponseSuccess<resultType> | JsonRpcResponseFailure
     >,
   ) => {
-    if (event.data.id !== requestId) return
-
+    if (
+      event.data.id !== requestId ||
+      !('result' in event.data || 'error' in event.data)
+    )
+      return
     handler(event.data)
   }
 
-  window.parent.addEventListener('message', listener)
+  window.addEventListener('message', listener)
 
-  return () => window.parent.removeEventListener('message', listener)
+  return () => window.removeEventListener('message', listener)
 }

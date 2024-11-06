@@ -1129,6 +1129,9 @@ export class FrogBase<
     return this
   }
 
+  miniApp: HandlerInterface<env, 'composerAction', schema, basePath> =
+    this.composerAction
+
   route<
     subPath extends string,
     subSchema extends Schema,

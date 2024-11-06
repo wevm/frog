@@ -92,8 +92,11 @@ export async function getSignatureContext<
             domain,
             types,
             primaryType,
-            // @TODO: fix typing
-            message: message!,
+            message: JSON.parse(
+              JSON.stringify(message, (_, v) =>
+                typeof v === 'bigint' ? v.toString() : v,
+              ),
+            ),
           },
         }
 
