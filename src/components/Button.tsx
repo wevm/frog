@@ -92,7 +92,7 @@ export function ButtonLink({
 }
 
 export type ButtonMiniAppProps = ButtonProps & {
-  href: string
+  action: string
   prompt?: boolean
 }
 
@@ -101,7 +101,7 @@ export function ButtonMiniApp({
   children,
   // @ts-ignore - private
   index = 1,
-  href,
+  action,
   prompt,
 }: ButtonMiniAppProps) {
   return [
@@ -113,7 +113,7 @@ export function ButtonMiniApp({
     <meta property={`fc:frame:button:${index}:action`} content="link" />,
     <meta
       property={`fc:frame:button:${index}:target`}
-      content={`https://warpcast.com/~/composer-action?url=${encodeURIComponent(href)}${prompt ? '&view=prompt' : ''}`}
+      content={`https://warpcast.com/~/composer-action?url=${encodeURIComponent(action)}${prompt ? '&view=prompt' : ''}`}
     />,
   ] as unknown as HtmlEscapedString
 }
