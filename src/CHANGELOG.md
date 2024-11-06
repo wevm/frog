@@ -1,5 +1,11 @@
 # frog
 
+## 0.18.1
+
+### Patch Changes
+
+- [#514](https://github.com/wevm/frog/pull/514) [`f99498d`](https://github.com/wevm/frog/commit/f99498d2075203a2205609ba4e0526043f46c7f0) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue with incorrect JSON-RPC parameters sent for `sendTransaction` and `signTypedDate` for mini-apps. Also fixed and improved communication between the mini-app and the parent.
+
 ## 0.18.0
 
 ### Minor Changes
