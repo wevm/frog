@@ -1,5 +1,11 @@
 # frog
 
+## 0.18.2
+
+### Patch Changes
+
+- [#518](https://github.com/wevm/frog/pull/518) [`afbedb0`](https://github.com/wevm/frog/commit/afbedb04d5b5b7bf5632ac2aac19a3874b419aa8) Thanks [@dalechyn](https://github.com/dalechyn)! - Fixed an issue where Composer Actions from mobile would not work. Got myself nerdsniped in a wrong direction.
+
 ## 0.18.1
 
 ### Patch Changes
