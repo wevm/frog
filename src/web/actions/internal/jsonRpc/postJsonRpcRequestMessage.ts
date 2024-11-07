@@ -20,21 +20,6 @@ export function postJsonRpcRequestMessage(
     params: parameters,
   }
 
-  // ref: https://github.com/react-native-webview/react-native-webview/blob/master/docs/Guide.md#the-windowreactnativewebviewpostmessage-method-and-onmessage-prop
-  if (
-    (
-      window as {
-        ReactNativeWebView?: any
-      }
-    ).ReactNativeWebView
-  ) {
-    ;(
-      window as {
-        ReactNativeWebView?: { postMessage: (msg: string) => void }
-      }
-    ).ReactNativeWebView?.postMessage(JSON.stringify(message))
-  } else {
-    window.parent.postMessage(message, '*')
-  }
+  window.parent.postMessage(message, '*')
   return requestId
 }
