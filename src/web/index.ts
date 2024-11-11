@@ -1,3 +1,4 @@
+export * from './app-frames/types.js'
 export { getFrameMetadata } from './frames/getFrameMetadata.js'
 export { isFrameRequest } from './frames/isFrameRequest.js'
 
