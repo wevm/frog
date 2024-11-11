@@ -4,7 +4,7 @@
  * @example
  * import { Suspense } from 'react'
  * import { headers } from 'next/headers'
- * import { isFrameRequest } from 'frog/next'
+ * import { isFrameRequest } from 'frog/web'
  *
  * export default function Page() {
  *   if (isFrameRequest(headers())) return null
