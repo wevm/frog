@@ -1,5 +1,11 @@
 # create-frog
 
+## 0.1.9
+
+### Patch Changes
+
+- [#521](https://github.com/wevm/frog/pull/521) [`7f58250`](https://github.com/wevm/frog/commit/7f582508cff307df15242ed0be27175b5482f66b) Thanks [@dalechyn](https://github.com/dalechyn)! - Changed imports due to package name refactoring.
+
 ## 0.1.8
 
 ### Patch Changes
