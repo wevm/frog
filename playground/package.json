@@ -9,7 +9,7 @@
   "dependencies": {
     "@hono/node-server": "^1.8.2",
     "frog": "workspace:*",
-    "hono": "^4"
+    "hono": "^4.6.13"
   },
   "devDependencies": {
     "tsx": "^4.7.1"

@@ -186,21 +186,21 @@ export function apiRoutes(
           speed,
         },
         response: response?.redirected
-          ? {
+          ? ({
               success: true,
               location: response.url,
               error: undefined,
               status: 302,
               statusText: 'Found',
-            }
-          : {
+            } as const)
+          : ({
               success: false,
               error: error?.cause
                 ? `${error.cause}`.replace('Error: ', '')
                 : error?.message,
               status: response?.status ?? 500,
               statusText: response?.statusText ?? 'Internal Server Error',
-            },
+            } as const),
         sourceFrameId: json.sourceFrameId,
         url,
       } as const)

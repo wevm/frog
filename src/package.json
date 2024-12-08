@@ -90,7 +90,7 @@
     }
   },
   "peerDependencies": {
-    "hono": "^4.4.4",
+    "hono": "^4.6.13",
     "typescript": ">=5.0.4"
   },
   "peerDependenciesMeta": {

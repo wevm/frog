@@ -32,12 +32,12 @@ export type FrameButton = {
 } & (
   | {
       type: 'link'
-      postUrl: undefined
+      postUrl?: undefined
       target: `http://${string}` | `https://${string}`
     }
   | {
       type: 'mint'
-      postUrl: undefined
+      postUrl?: undefined
       target: `eip155:${string}`
     }
   | {
