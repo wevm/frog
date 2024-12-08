@@ -105,6 +105,8 @@ export async function handlePostRedirect(button: {
     })
     .then((response) => response.json())
 
+  if (!json.response.success) throw new Error('Post redirect did not suceed.')
+
   const id = json.id
   store.setState((state) => {
     const nextStackIndex = state.stackIndex + 1
