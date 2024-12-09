@@ -88,7 +88,7 @@ export function Tabs(props: TabsProps) {
     <div className="rounded-md border bg-background-100">
       <ul
         role="tablist"
-        className="flex flex-row text-sm rounded-t-md border bg-background-200"
+        className="flex flex-row rounded-t-md border bg-background-200 text-sm"
         style={{
           borderLeft: '0',
           borderRight: '0',
@@ -250,7 +250,7 @@ export function Tabs(props: TabsProps) {
         id="request-section"
         role="tabpanel"
         aria-labelledby="request"
-        className="flex-col divide-y lg:flex-row lg:divide-y-0 lg:divide-x scrollbars"
+        className="scrollbars flex-col divide-y lg:flex-row lg:divide-x lg:divide-y-0"
         style={{
           fontSize: '0.8125rem',
           display: tab === 'request' ? 'flex' : 'none',
@@ -264,7 +264,7 @@ export function Tabs(props: TabsProps) {
           id="transaction-section"
           role="tabpanel"
           aria-labelledby="transaction"
-          className="flex-col divide-y lg:flex-row lg:divide-y-0 lg:divide-x"
+          className="flex-col divide-y lg:flex-row lg:divide-x lg:divide-y-0"
           style={{
             fontSize: '0.8125rem',
             display: tab === 'tx' ? 'flex' : 'none',
@@ -283,7 +283,7 @@ export function Tabs(props: TabsProps) {
           id="context-section"
           role="tabpanel"
           aria-labelledby="context"
-          className="p-4 scrollbars"
+          className="scrollbars p-4"
           style={{
             fontSize: '0.8125rem',
             display: tab === 'context' ? 'flex' : 'none',
@@ -314,9 +314,9 @@ export function Tabs(props: TabsProps) {
             display: tab === 'state' ? 'block' : 'none',
           }}
         >
-          <div className="flex flex-col divide-y lg:flex-row lg:divide-y-0 lg:divide-x scrollbars">
-            <div className="flex flex-col gap-2 p-4 lg:w-1/2 scrollbars">
-              <div className="text-xs font-medium text-gray-700 uppercase">
+          <div className="scrollbars flex flex-col divide-y lg:flex-row lg:divide-x lg:divide-y-0">
+            <div className="scrollbars flex flex-col gap-2 p-4 lg:w-1/2">
+              <div className="font-medium text-gray-700 text-xs uppercase">
                 Current
               </div>
               {/* TODO: Handle non-JSON state from non-Frog frames */}
@@ -330,8 +330,8 @@ export function Tabs(props: TabsProps) {
               />
             </div>
 
-            <div className="flex flex-col gap-2 p-4 lg:w-1/2 scrollbars">
-              <div className="text-xs font-medium text-gray-700 uppercase">
+            <div className="scrollbars flex flex-col gap-2 p-4 lg:w-1/2">
+              <div className="font-medium text-gray-700 text-xs uppercase">
                 Previous
               </div>
               <CodeToHtml
@@ -407,7 +407,7 @@ function TransactionReceiptContent(props: {
           href={`${blockExplorer?.url}/tx/${transactionId}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="inline-block items-center mb-2 font-medium text-gray-700 w-fit"
+          className="mb-2 inline-block w-fit items-center font-medium text-gray-700"
         >
           <span>View on {blockExplorer.name}</span>
         </a>
@@ -455,7 +455,7 @@ function TransactionContent(props: {
 
   return (
     <>
-      <div className="flex flex-col py-2 px-4 divide-y lg:w-1/2">
+      <div className="flex flex-col divide-y px-4 py-2 lg:w-1/2">
         <div className={rowClass}>
           <div className={labelClass}>Method</div>
           <div className={valueClass}>{data.method}</div>
@@ -496,7 +496,7 @@ function TransactionContent(props: {
             <div className={labelClass}>Value</div>
             <div className={valueClass}>
               {data.method.includes('eth') && (
-                <span className="mr-1 text-gray-700 select-none">Ξ</span>
+                <span className="mr-1 select-none text-gray-700">Ξ</span>
               )}
               {formatEther(BigInt(data.params.value))}
             </div>
@@ -530,7 +530,7 @@ function TransactionContent(props: {
           </div>
         )}
       </div>
-      <div className="flex flex-col p-4 lg:w-1/2 scrollbars">
+      <div className="scrollbars flex flex-col p-4 lg:w-1/2">
         <CodeToHtml code={JSON.stringify(data, null, 2)} lang="json" />
       </div>
     </>
@@ -549,10 +549,10 @@ function RequestContent(props: {
 
   return (
     <>
-      <div className="flex flex-col py-2 px-4 divide-y lg:w-1/2">
+      <div className="flex flex-col divide-y px-4 py-2 lg:w-1/2">
         <div className={rowClass}>
           <div className={labelClass}>Method</div>
-          <div className="flex items-center py-0.5 px-1 font-mono leading-4 text-gray-900 uppercase rounded border">
+          <div className="flex items-center rounded border px-1 py-0.5 font-mono text-gray-900 uppercase leading-4">
             {data.method}
           </div>
         </div>
@@ -598,7 +598,7 @@ function RequestContent(props: {
         )}
       </div>
 
-      <div className="flex flex-col py-2 px-4 divide-y lg:w-1/2">
+      <div className="flex flex-col divide-y px-4 py-2 lg:w-1/2">
         <div className={rowClass}>
           <div className={labelClass}>Status Code</div>
           <div
@@ -750,7 +750,7 @@ function MetaTagsContent(props: MetaTagsContentProps) {
         style={{ right: '0.5rem', top: '0.5rem' }}
       >
         <button
-          className="p-1.5 text-gray-600 bg-transparent rounded hover:bg-gray-100"
+          className="rounded bg-transparent p-1.5 text-gray-600 hover:bg-gray-100"
           aria-label={copied ? 'copied' : 'copy to clipboard'}
           type="button"
           onClick={copy}
@@ -759,7 +759,7 @@ function MetaTagsContent(props: MetaTagsContentProps) {
         </button>
       </div>
 
-      <div className="p-4 scrollbars">
+      <div className="scrollbars p-4">
         <CodeToHtml code={metaTags} lang="html" />
       </div>
     </>
