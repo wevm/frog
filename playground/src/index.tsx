@@ -13,6 +13,7 @@ import { app as neynarApp } from './neynar.js'
 import { app as routingApp } from './routing.js'
 import { app as signatureApp } from './signature.js'
 import { app as todoApp } from './todos.js'
+import { app as frameV2App } from './frameV2.js'
 import { app as transactionApp } from './transaction.js'
 import { app as uiSystemApp } from './ui-system.js'
 
@@ -204,6 +205,7 @@ export const app = new Frog({
   .route('/transaction', transactionApp)
   .route('/todos', todoApp)
   .route('/signature', signatureApp)
+  .route('/frame-v2', frameV2App)
   .frame('/:dynamic', (c) => {
     const dynamic = c.req.param('dynamic')
     return c.res({

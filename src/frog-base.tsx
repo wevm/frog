@@ -25,6 +25,7 @@ import type {
   CastActionHandler,
   ComposerActionHandler,
   FrameHandler,
+  FrameV2Handler,
   H,
   HandlerInterface,
   ImageHandler,
@@ -59,6 +60,8 @@ import { requestBodyToImageContext } from './utils/requestBodyToImageContext.js'
 import { serializeJson } from './utils/serializeJson.js'
 import { toSearchParams } from './utils/toSearchParams.js'
 import { version } from './version.js'
+import { requestBodyToFrameV2Context } from './utils/requestBodyToFrameV2Context.js'
+import { getFrameV2Context } from './utils/getFrameV2Context.js'
 
 export type FrogConstructorParameters<
   env extends Env = Env,
@@ -1008,6 +1011,180 @@ export class FrogBase<
                   })}
                 />
               )}
+
+              {metaTags.map((tag) => (
+                <meta property={tag.property} content={tag.content} />
+              ))}
+            </head>
+            <body />
+          </html>
+        </>,
+      )
+    })
+
+    return this
+  }
+
+  frameV2: HandlerInterface<env, 'frame-v2', schema, basePath> = (
+    ...parameters: any[]
+  ) => {
+    const [path, middlewares, handler] = getRouteParameters<
+      env,
+      FrameV2Handler<env>,
+      'frame-v2'
+    >(...parameters)
+    // Frame V2 Route (implements GET).
+    this.hono.get(parseHonoPath(path), ...middlewares, async (c) => {
+      const url = getRequestUrl(c.req)
+      const origin = this.origin ?? url.origin
+      const assetsUrl = origin + parsePath(this.assetsPath)
+      const baseUrl = origin + parsePath(this.basePath)
+
+      const { context } = await getFrameV2Context({
+        context: await requestBodyToFrameV2Context(c, {
+          secret: this.secret,
+        }),
+        contextHono: c,
+        initialState: this._initialState,
+      })
+
+      const response = await handler(context)
+      if (response instanceof Response) return response
+      if (response.status === 'error') {
+        c.status(response.error.statusCode ?? 400)
+        return c.json({ message: response.error.message })
+      }
+
+      const {
+        action,
+        buttonTitle,
+        headers = this.headers,
+        image,
+        ogTitle,
+        ogImage,
+      } = response.data
+
+      const imageUrl = await (async () => {
+        if (image.startsWith('http') || image.startsWith('data')) return image
+
+        const isHandlerPresentOnImagePath = (() => {
+          const routes = inspectRoutes(this.hono)
+          const matchesWithoutParamsStash = this.hono.router
+            .match(
+              'GET',
+              // `this.initialBasePath` and `this.basePath` are equal only when this handler is triggered at
+              // the top `Frog` instance.
+              //
+              // However, such are not equal when an instance of `Frog` is routed to another one via `.route`,
+              // and since we not expect one to set `basePath` to the instance which is being routed to, we can
+              // safely assume it's only set at the top level, as doing otherwise is irrational.
+              //
+              // Since `this.basePath` is set at the top instance, we have to account for that while looking for a match.
+              //
+              // @ts-ignore - accessing a private field
+              this.initialBasePath === this.basePath
+                ? this.basePath + parsePath(image)
+                : parsePath(image),
+            )
+            .filter(
+              (routeOrParams) => typeof routeOrParams[0] !== 'string',
+            ) as unknown as (
+            | [[H, RouterRoute], Params][]
+            | [[H, RouterRoute], ParamIndexMap][]
+          )[]
+
+          const matchedRoutes = matchesWithoutParamsStash
+            .flat(1)
+            .map((matchedRouteWithoutParams) => matchedRouteWithoutParams[0][1])
+
+          const nonMiddlewareMatchedRoutes = matchedRoutes.filter(
+            (matchedRoute) => {
+              const routeWithAdditionalInfo = routes.find(
+                (route) =>
+                  route.path === matchedRoute.path &&
+                  route.method === matchedRoute.method,
+              )
+              if (!routeWithAdditionalInfo)
+                throw new Error(
+                  'Unexpected error: Matched a route that is not in the list of all routes.',
+                )
+              return !routeWithAdditionalInfo.isMiddleware
+            },
+          )
+          return nonMiddlewareMatchedRoutes.length !== 0
+        })()
+
+        if (isHandlerPresentOnImagePath) return `${baseUrl + parsePath(image)}`
+        return `${assetsUrl + parsePath(image)}`
+      })()
+
+      const ogImageUrl = (() => {
+        if (!ogImage) return undefined
+        if (ogImage.startsWith('http')) return ogImage
+        return baseUrl + parsePath(ogImage)
+      })()
+
+      // Set response headers provided by consumer.
+      for (const [key, value] of Object.entries(headers ?? {}))
+        c.header(key, value)
+
+      const metaTagsMap = new Map<string, string>()
+      for (const tag of [
+        ...(response.data.unstable_metaTags ?? []),
+        ...(this.metaTags ?? []),
+      ]) {
+        if (metaTagsMap.has(tag.property)) continue
+        metaTagsMap.set(tag.property, tag.content)
+      }
+      const metaTags =
+        metaTagsMap.size === 0
+          ? []
+          : Array.from(metaTagsMap).map((x) => ({
+              property: x[0],
+              content: x[1],
+            }))
+
+      return c.render(
+        <>
+          {html`<!DOCTYPE html>`}
+          <html lang="en">
+            <head>
+              <meta
+                property="fc:frame"
+                content={JSON.stringify({
+                  version: 'next',
+                  imageUrl,
+                  button: {
+                    title: buttonTitle,
+                    action: {
+                      type: 'launch_frame',
+                      ...action,
+                    },
+                  },
+                })}
+              />
+              <meta property="og:image" content={ogImageUrl ?? imageUrl} />
+              <meta property="og:title" content={ogTitle} />
+
+              <meta property="frog:version" content={version} />
+              {/* The devtools needs a serialized context. */}
+              {/* {c.req.header('x-frog-dev') !== undefined && ( */}
+              {/*   <meta */}
+              {/*     property="frog:context" */}
+              {/*     content={serializeJson({ */}
+              {/*       ...context, */}
+              {/*       // note: unserializable entities are undefined. */}
+              {/*       env: context.env */}
+              {/*         ? Object.assign(context.env, { */}
+              {/*             incoming: undefined, */}
+              {/*             outgoing: undefined, */}
+              {/*           }) */}
+              {/*         : undefined, */}
+              {/*       req: undefined, */}
+              {/*       state: getState(), */}
+              {/*     })} */}
+              {/*   /> */}
+              {/* )} */}
 
               {metaTags.map((tag) => (
                 <meta property={tag.property} content={tag.content} />

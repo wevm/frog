@@ -15,6 +15,7 @@ import type {
   ComposerActionContext,
   FrameBaseContext,
   FrameContext,
+  FrameV2Context,
   ImageContext,
   SignatureContext,
   TransactionContext,
@@ -25,6 +26,7 @@ import type { ImageResponse } from './image.js'
 import type { HandlerResponse } from './response.js'
 import type { SignatureResponse } from './signature.js'
 import type { TransactionResponse } from './transaction.js'
+import type { FrameV2Response } from './frameV2.js'
 
 ////////////////////////////////////////
 //////                            //////
@@ -68,6 +70,12 @@ export type FrameHandler<
   I extends Input = BlankInput,
 > = (c: FrameContext<E, P, I>) => HandlerResponse<FrameResponse>
 
+export type FrameV2Handler<
+  E extends Env = any,
+  P extends string = any,
+  I extends Input = BlankInput,
+> = (c: FrameV2Context<E, P, I>) => HandlerResponse<FrameV2Response>
+
 export type ImageHandler<
   E extends Env = any,
   P extends string = any,
@@ -108,17 +116,19 @@ export type H<
   M extends string = string,
 > = M extends 'frame'
   ? FrameHandler<E, P, I>
-  : M extends 'transaction'
-    ? TransactionHandler<E, P, I>
-    : M extends 'castAction'
-      ? CastActionHandler<E, P, I>
-      : M extends 'composerAction'
-        ? ComposerActionHandler<E, P, I>
-        : M extends 'image'
-          ? ImageHandler<E, P, I>
-          : M extends 'signature'
-            ? SignatureHandler<E, P, I>
-            : Handler<E, P, I, R>
+  : M extends 'frame-v2'
+    ? FrameV2Handler<E, P, I>
+    : M extends 'transaction'
+      ? TransactionHandler<E, P, I>
+      : M extends 'castAction'
+        ? CastActionHandler<E, P, I>
+        : M extends 'composerAction'
+          ? ComposerActionHandler<E, P, I>
+          : M extends 'image'
+            ? ImageHandler<E, P, I>
+            : M extends 'signature'
+              ? SignatureHandler<E, P, I>
+              : Handler<E, P, I, R>
 
 ////////////////////////////////////////
 //////                            //////
