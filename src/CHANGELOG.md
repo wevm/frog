@@ -1,5 +1,11 @@
 # frog
 
+## 0.18.3
+
+### Patch Changes
+
+- [#529](https://github.com/wevm/frog/pull/529) [`c8a86d3`](https://github.com/wevm/frog/commit/c8a86d3e4a1158f4f45fa8baa885d8aaea7c10a8) Thanks [@dalechyn](https://github.com/dalechyn)! - Bumped hono to the latest version.
+
 ## 0.18.2
 
 ### Patch Changes
