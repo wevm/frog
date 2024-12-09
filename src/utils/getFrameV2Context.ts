@@ -1,46 +1,43 @@
 import type { Context as Context_Hono, Input } from 'hono'
-import type { FrameBaseContext, ImageContext } from '../types/context.js'
+import type { FrameV2Context } from '../types/context.js'
 import type { Env } from '../types/env.js'
 
-type GetImageContextParameters<
+type GetFrameV2ContextParameters<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
   state = env['State'],
 > = {
-  context: Omit<
-    FrameBaseContext<env, path, input, state>,
-    'frameData' | 'verified' | 'status' | 'initialPath'
+  context: Pick<
+    FrameV2Context<env, path, input, state>,
+    'env' | 'previousState' | 'previousButtonValues' | 'req' | 'var'
   >
   contextHono: Context_Hono<env, path, input>
   initialState?:
-    | ((c: FrameBaseContext<env>) => state | Promise<state>)
+    | ((c: FrameV2Context<env>) => state | Promise<state>)
     | state
     | undefined
 }
 
-type GetImageContextReturnType<
+type GetFrameV2ContextReturnType<
   env extends Env = Env,
   path extends string = string,
   input extends Input = {},
-  //
-  _state = env['State'],
+  state = env['State'],
 > = Promise<{
-  context: ImageContext<env, path, input, _state>
+  context: FrameV2Context<env, path, input, state>
 }>
 
-export async function getImageContext<
+export async function getFrameV2Context<
   env extends Env,
   path extends string,
   input extends Input = {},
-  //
-  _state = env['State'],
+  state = env['State'],
 >(
-  parameters: GetImageContextParameters<env, path, input, _state>,
-): GetImageContextReturnType<env, path, input, _state> {
+  parameters: GetFrameV2ContextParameters<env, path, input, state>,
+): GetFrameV2ContextReturnType<env, path, input, state> {
   const { context, contextHono } = parameters
   const { env, previousState, req } = context || {}
-
   return {
     context: {
       env,
@@ -52,7 +49,7 @@ export async function getImageContext<
         return parameters.initialState
       })(),
       req,
-      res: (data) => ({ data, format: 'image', status: 'success' }),
+      res: (data) => ({ data, format: 'frame', status: 'success' }),
       var: context.var,
     },
   }
