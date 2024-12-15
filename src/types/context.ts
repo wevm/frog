@@ -11,6 +11,7 @@ import type {
 } from './composerAction.js'
 import type { Env } from './env.js'
 import type { FrameButtonValue, FrameData, FrameResponseFn } from './frame.js'
+import type { FrameV2ResponseFn } from './frameV2.js'
 import type { ImageResponseFn } from './image.js'
 import type { BaseErrorResponseFn } from './response.js'
 import type {
@@ -268,6 +269,50 @@ export type FrameContext<
    * - Ethereum: a transaction hash
    */
   transactionId?: FrameData['transactionId'] | undefined
+}
+
+export type FrameV2Context<
+  env extends Env = Env,
+  path extends string = string,
+  input extends Input = {},
+  //
+  _state = env['State'],
+> = {
+  /**
+   * `.env` can get bindings (environment variables, secrets, KV namespaces, D1 database, R2 bucket etc.) in Cloudflare Workers.
+   *
+   * @example
+   * ```ts
+   * // Environment object for Cloudflare Workers
+   * app.frame('/', async c => {
+   *   const counter = c.env.COUNTER
+   * })
+   * ```
+   * @see https://hono.dev/api/context#env
+   */
+  env: Context_hono<env, path>['env']
+  /**
+   * Button values from the previous frame.
+   */
+  previousButtonValues?: FrameButtonValue[] | undefined
+  /**
+   * State from the previous frame.
+   */
+  previousState: _state
+  /**
+   * Hono request object.
+   *
+   * @see https://hono.dev/api/context#req
+   */
+  req: Context_hono<env, path, input>['req']
+  /** Frame response that includes frame properties such as: image, action, etc */
+  res: FrameV2ResponseFn
+  /**
+   * Extract a context value that was previously set via `set` in [Middleware](/concepts/middleware).
+   *
+   * @see https://hono.dev/api/context#var
+   */
+  var: Context_hono<env, path, input>['var']
 }
 
 export type TransactionContext<
