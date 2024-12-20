@@ -1053,7 +1053,7 @@ export class FrogBase<
 
       if (response.status !== 'success')
         throw new Error(
-          `Unexepcted Error: Image response must always have value 'success'.`,
+          `Unexpected Error: Image response must always have value 'success'.`,
         )
 
       const defaultImageOptions = await (async () => {

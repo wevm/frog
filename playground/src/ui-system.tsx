@@ -320,7 +320,7 @@ export const app = new Frog({
           <VStack gap="4" grow>
             <Heading>{'<Spacer>'}</Heading>
             <Text color="text200" size="18">
-              Space betwen elements
+              Space between elements
             </Text>
             <Spacer size="16" />
             <Box backgroundColor="background200" grow padding="16">
