@@ -7,6 +7,7 @@ import { Box, Heading, vars } from './ui.js'
 import { app as castActionApp } from './castAction.js'
 import { app as composerActionApp } from './composerAction.js'
 import { app as fontsApp } from './fonts.js'
+import { app as frameV2App } from './frameV2.js'
 import { app as initial } from './initial.js'
 import { app as middlewareApp } from './middleware.js'
 import { app as neynarApp } from './neynar.js'
@@ -204,6 +205,7 @@ export const app = new Frog({
   .route('/transaction', transactionApp)
   .route('/todos', todoApp)
   .route('/signature', signatureApp)
+  .route('/frame-v2', frameV2App)
   .frame('/:dynamic', (c) => {
     const dynamic = c.req.param('dynamic')
     return c.res({

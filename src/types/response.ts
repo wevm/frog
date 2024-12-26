@@ -10,6 +10,7 @@ export type TypedResponse<data> = {
     | 'castAction'
     | 'composerAction'
     | 'frame'
+    | 'frame-v2'
     | 'transaction'
     | 'image'
     | 'signature'
