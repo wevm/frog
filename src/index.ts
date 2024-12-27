@@ -57,6 +57,7 @@ export type {
   FrameBaseContext,
   FrameContext,
   ImageContext,
+  SignatureContext,
   TransactionContext,
 } from './types/context.js'
 export type { Env } from './types/env.js'
