@@ -413,6 +413,22 @@ export default defineConfig({
       ],
     },
   },
+  sponsors: [
+    {
+      name: 'Small Enterprise',
+      height: 40,
+      items: [
+        [
+          {
+            name: 'Unofficial',
+            link: 'https://warpcast.com/unofficial',
+            image:
+              'https://raw.githubusercontent.com/wevm/frog/chore/sponsors/.github/content/sponsors/unofficial-light.svg',
+          },
+        ],
+      ],
+    },
+  ],
   title: 'Frog',
   topNav: [
     {
