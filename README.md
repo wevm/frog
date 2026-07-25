@@ -1,9 +1,9 @@
 # frog
 
-Changesets, but for friction logs.
+Friction you hit while building becomes a GitHub issue.
 
-Agents and humans drop atomic friction entries into `.agents/friction-log/` while building. Each entry
-becomes a GitHub issue, and the file then mirrors that issue's state until it closes.
+Agents and humans drop atomic entries into `.agents/friction-log/` as they hit friction. Each entry
+becomes an issue, and the file then mirrors that issue's state until it closes.
 
 ```sh
 frog log --publish --title 'pnpm test ignores file filters'
@@ -11,10 +11,9 @@ frog log --publish --title 'pnpm test ignores file filters'
 
 ## Why
 
-A friction log has no terminus. A changeset gets consumed: `changeset version` writes the changelog,
-deletes the file, and the release is the artifact. A friction log entry has no consumer, so it rots in
-place. Every hand-rolled friction log we have has either accumulated into a graveyard or been abandoned
-with zero entries written.
+A friction log has no terminus. Nothing consumes an entry, nobody owns any single one, and no step ever
+removes it, so the list either fills up until it is ignored or is abandoned before anything is written.
+Every hand-rolled friction log we have has done one or the other.
 
 frog gives friction a terminus (a GitHub issue) and keeps the two in lockstep:
 

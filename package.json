@@ -26,17 +26,17 @@
   "type": "module",
   "version": "0.0.0",
   "license": "MIT",
-  "description": "Changesets, but for friction logs. Turn friction you hit while building into GitHub issues.",
+  "description": "Turn friction you hit while building into GitHub issues.",
   "repository": {
     "type": "git",
     "url": "https://github.com/wevm/frog"
   },
   "keywords": [
     "agents",
-    "changesets",
     "dx",
     "friction-log",
-    "github-issues"
+    "github-issues",
+    "mcp"
   ],
   "bin": {
     "frog": "./dist/bin.js",

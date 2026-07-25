@@ -62,7 +62,8 @@ export type Entry = Frontmatter & {
 /**
  * Splits leading YAML frontmatter from the markdown body.
  *
- * Lifted from `@changesets/parse`, which has run against every changeset ever written.
+ * Lazy, so the first `---` after the opening one closes the block and a body containing a horizontal
+ * rule cannot swallow it. `[^]` rather than `.` because the frontmatter spans newlines.
  */
 const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
 
