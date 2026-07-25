@@ -1,0 +1,25 @@
+# GitHub App manifest. Create the App from this at
+# https://github.com/settings/apps/new (or an organization's equivalent).
+name: frictionsets
+description: >-
+  Turns friction recorded in .agents/frictionsets into GitHub issues, and keeps the two in sync.
+url: https://github.com/wevm/frictionsets
+public: true
+
+default_events:
+  # Files what a pull request introduces, and reports back on it.
+  - pull_request
+  # Writes the issue link back once the work lands.
+  - push
+  # Deletes an entry when its issue closes, rebuilds it when it reopens.
+  - issues
+
+default_permissions:
+  # Commits the issue link, and deletes an entry whose issue closed.
+  contents: write
+  # Files issues, and comments on the one already covering a friction.
+  issues: write
+  # Reads repository metadata, including the default branch.
+  metadata: read
+  # Posts the single comment kept on a pull request.
+  pull_requests: write
