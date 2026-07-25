@@ -6,9 +6,9 @@ command: frog
 
 # frog
 
-Log friction the moment you hit it. Each entry is a file in `.agents/friction-log/`; publishing gets it
-in front of whoever can fix it, and the file mirrors that until the friction is resolved. So the
-directory is a live list of what is still outstanding, including in dependencies.
+Log friction the moment you hit it. Each entry is a file in `.agents/friction-log/`, filed where it can
+be acted on and deleted once the friction is resolved. So the directory is a live list of what is still
+outstanding, including in dependencies.
 
 ## When to log
 

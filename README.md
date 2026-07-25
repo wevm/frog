@@ -1,9 +1,9 @@
 # frog
 
-Log friction the moment you hit it.
+Automated friction logs.
 
-Agents and humans drop atomic entries into `.agents/friction-log/` as they hit friction. Publishing then
-gets each one in front of whoever can fix it, and the file mirrors that until the friction is resolved.
+Agents and humans drop atomic entries into `.agents/friction-log/` as they hit friction. Each one is
+filed where it can be acted on, and the file is deleted once the friction is resolved.
 
 ```sh
 frog log --publish --title 'pnpm test ignores file filters'
@@ -17,7 +17,7 @@ Every hand-rolled friction log we have has done one or the other.
 
 frog gives friction a terminus, and keeps the log and the terminus in lockstep:
 
-- **Something owns each entry.** Publishing hands it to whoever can fix it, and that becomes the record.
+- **Filing gives each entry an owner.** The issue becomes the record, and closing it retires the entry.
 - **The file mirrors what happened to it.** It appears when you log, links when it is filed, and is
   deleted once the friction is resolved.
 - **So `.agents/friction-log/` is a live, greppable, offline list** of every known-unresolved friction

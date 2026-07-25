@@ -15,9 +15,9 @@ const readme = `# Friction log
 
 Friction hit while working in this repository, one file per item.
 
-Publishing hands an entry to whoever can fix it. The file then carries an \`issue:\` link and mirrors
-what happens to it, and is deleted once the friction is resolved. So this directory is a live list of
-friction that is still outstanding, including friction in dependencies.
+Filing an entry gives it an owner. The file then carries an \`issue:\` link, mirrors what happens to it,
+and is deleted once the friction is resolved. So this directory is a live list of friction that is still
+outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index, and it is kept true without anyone
 remembering to.
