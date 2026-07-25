@@ -142,6 +142,19 @@ describe('fromPackage', () => {
 })
 
 describe('fetchDocument', () => {
+  /** An in-memory cache, so these tests never touch a real directory. */
+  function store(): Manifest.Cache {
+    const entries = new Map<string, string>()
+    return {
+      async get(key) {
+        return entries.get(key)
+      },
+      async set(key, value) {
+        entries.set(key, value)
+      },
+    }
+  }
+
   /** Serves a well-known document, or a status, over real HTTP. */
   async function host(handler: (url: URL) => { body?: string; status: number }): Promise<string> {
     const server = http.createServer((request, response) => {
@@ -164,30 +177,30 @@ describe('fetchDocument', () => {
         : { status: 404 },
     )
 
-    const lookup = await Manifest.fetchDocument(url, { dir: await tmpdir() })
+    const lookup = await Manifest.fetchDocument(url)
     expect(lookup.ok && lookup.manifest).toMatchObject({ name: 'viem', repo })
   })
 
   test('behavior: reports a 404 rather than throwing', async () => {
     const url = await host(() => ({ status: 404 }))
-    const lookup = await Manifest.fetchDocument(url, { dir: await tmpdir() })
+    const lookup = await Manifest.fetchDocument(url)
     expect(lookup).toMatchObject({ ok: false })
     expect(lookup.ok === false && lookup.reason).toContain('404')
   })
 
   test('behavior: reports a malformed document', async () => {
     const url = await host(() => ({ body: JSON.stringify({ nope: true }), status: 200 }))
-    const lookup = await Manifest.fetchDocument(url, { dir: await tmpdir() })
+    const lookup = await Manifest.fetchDocument(url)
     expect(lookup.ok === false && lookup.reason).toContain('not a valid frictionsets manifest')
   })
 
   test('behavior: reports an unreachable host', async () => {
-    const lookup = await Manifest.fetchDocument('127.0.0.1:1', { dir: await tmpdir() })
+    const lookup = await Manifest.fetchDocument('127.0.0.1:1')
     expect(lookup).toMatchObject({ ok: false })
   })
 
   test('behavior: rejects an unusable host', async () => {
-    const lookup = await Manifest.fetchDocument('not a host', { dir: await tmpdir() })
+    const lookup = await Manifest.fetchDocument('not a host')
     expect(lookup.ok === false && lookup.reason).toContain('not a valid host')
   })
 
@@ -197,10 +210,10 @@ describe('fetchDocument', () => {
       requests += 1
       return { body: JSON.stringify({ repo, version: 1 }), status: 200 }
     })
-    const dir = await tmpdir()
+    const cache = store()
 
-    await Manifest.fetchDocument(url, { dir })
-    await Manifest.fetchDocument(url, { dir })
+    await Manifest.fetchDocument(url, { cache })
+    await Manifest.fetchDocument(url, { cache })
     expect(requests).toBe(1)
   })
 
@@ -210,23 +223,21 @@ describe('fetchDocument', () => {
       requests += 1
       return { status: 404 }
     })
-    const dir = await tmpdir()
+    const cache = store()
 
-    await Manifest.fetchDocument(url, { dir })
-    await Manifest.fetchDocument(url, { dir })
+    await Manifest.fetchDocument(url, { cache })
+    await Manifest.fetchDocument(url, { cache })
     expect(requests).toBe(1)
   })
 
-  test('behavior: `cache: false` bypasses a cached entry', async () => {
+  test('behavior: omitting the cache fetches every time', async () => {
     let requests = 0
     const url = await host(() => {
       requests += 1
       return { body: JSON.stringify({ repo, version: 1 }), status: 200 }
     })
-    const dir = await tmpdir()
-
-    await Manifest.fetchDocument(url, { dir })
-    await Manifest.fetchDocument(url, { cache: false, dir })
+    await Manifest.fetchDocument(url)
+    await Manifest.fetchDocument(url)
     expect(requests).toBe(2)
   })
 
@@ -236,10 +247,10 @@ describe('fetchDocument', () => {
       requests += 1
       return { body: JSON.stringify({ repo, version: 1 }), status: 200 }
     })
-    const dir = await tmpdir()
+    const cache = store()
 
-    await Manifest.fetchDocument(url, { dir, now: 0 })
-    await Manifest.fetchDocument(url, { dir, now: Manifest.cacheTtl + 1 })
+    await Manifest.fetchDocument(url, { cache, now: 0 })
+    await Manifest.fetchDocument(url, { cache, now: Manifest.cacheTtl + 1 })
     expect(requests).toBe(2)
   })
 })

@@ -6,3 +6,6 @@ node_modules
 incur.generated.ts
 .env
 scratch
+
+# Wrangler local state
+.wrangler

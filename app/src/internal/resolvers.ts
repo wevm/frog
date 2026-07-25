@@ -1,7 +1,6 @@
-import os from 'node:os'
-import path from 'node:path'
 import { Config, Github, Manifest, type Target } from 'frictionsets'
 import type { Octokit } from 'octokit'
+import * as cache from './cache.js'
 
 /** Where the npm registry serves package metadata. */
 export const registry = 'https://registry.npmjs.org'
@@ -48,7 +47,7 @@ export async function fromRegistry(
  * unchanged, which is the point of `Target` taking them as arguments.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, client, registry: url, self } = options
+  const { allowedRepos, cache: store = cache.memory(), client, registry: url, self } = options
 
   return {
     allowedRepos,
@@ -63,9 +62,8 @@ export function resolvers(options: resolvers.Options): Target.resolve.Options {
         return undefined
       }
     },
-    // Cached in the instance's temp directory, which is writable and survives a warm invocation.
-    readHost: (host) =>
-      Manifest.fetchDocument(host, { dir: path.join(os.tmpdir(), 'frictionsets') }),
+    // In memory: there is no filesystem here, and an isolate stays warm across deliveries.
+    readHost: (host) => Manifest.fetchDocument(host, { cache: store }),
     readPackage: (name) => fromRegistry(name, ...(url ? [{ url }] : [])),
     self,
   }
@@ -76,6 +74,8 @@ export declare namespace resolvers {
   type Options = {
     /** Targets the sender may file against, from its base-branch config. */
     allowedRepos: readonly string[]
+    /** Where to keep fetched well-known documents. Defaults to a fresh in-memory store. */
+    cache?: Manifest.Cache | undefined
     /** Installation client for the sender repository. */
     client: Octokit
     /** Registry base URL. Overridden in tests. */

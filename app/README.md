@@ -55,20 +55,37 @@ The receiving repository opts in separately:
 
 ## Setup
 
+Deployed as a Cloudflare Worker. The endpoint is a Fetch handler, so it needs no adapter.
+
 1. **Create the App** from [`app.yml`](./app.yml) at `https://github.com/settings/apps/new`, or an
-   organization's equivalent. Set the webhook URL to `https://<deployment>/api/webhook` and generate a
-   webhook secret and a private key.
-2. **Deploy** this directory to Vercel, with:
+   organization's equivalent. Generate a webhook secret and a private key. The webhook URL is filled in
+   after the first deploy.
 
-   | Variable         | Value                                                 |
-   | ---------------- | ----------------------------------------------------- |
-   | `APP_ID`         | The App's id.                                         |
-   | `PRIVATE_KEY`    | The PEM private key. Newlines may be escaped as `\n`. |
-   | `WEBHOOK_SECRET` | The webhook secret.                                   |
+2. **Set the secrets**, from this directory:
 
-3. **Install** it on the repositories that record friction, and on any repository that should receive
-   friction from them.
-4. **Run `frictionsets init`** in each repository, so the App has a config and a directory to read.
+   ```sh
+   pnpm exec wrangler secret put APP_ID
+   pnpm exec wrangler secret put PRIVATE_KEY
+   pnpm exec wrangler secret put WEBHOOK_SECRET
+   ```
+
+   `PRIVATE_KEY` is the PEM key. Real newlines are fine; escaped `\n` is also accepted.
+
+3. **Deploy**, then point the App's webhook URL at the resulting `https://<worker>.workers.dev/`:
+
+   ```sh
+   pnpm deploy
+   ```
+
+4. **Install** the App on the repositories that record friction, and on any repository that should
+   receive friction from them.
+
+5. **Run `frictionsets init`** in each repository, so the App has a config and a directory to read.
+
+`nodejs_compat` is enabled because the title hash uses `node:crypto`, and the package layer imports
+`node:fs` for the offline lookup the App never takes. The bundle is around 200 KiB gzipped.
+
+Run it locally against a real workerd with `pnpm dev`.
 
 ## Redelivery is safe
 

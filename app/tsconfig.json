@@ -3,7 +3,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "esnext",
-    "types": ["node", "vite-plus/test/globals"],
+    "types": ["node", "@cloudflare/workers-types", "vite-plus/test/globals"],
     // Resolved to source, so the app typechecks without building the package first.
     "paths": {
       "frictionsets": ["../src/index.ts"]
@@ -25,5 +25,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src", "api"]
+  "include": ["src"]
 }

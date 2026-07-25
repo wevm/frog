@@ -4,6 +4,7 @@ import * as Config from '../../Config.js'
 import type * as Github from '../../Github.js'
 import * as GithubModule from '../../Github.js'
 import * as Manifest from '../../Manifest.js'
+import * as cache from './cache.js'
 import type * as Target from '../../Target.js'
 
 /**
@@ -13,7 +14,7 @@ import type * as Target from '../../Target.js'
  * App will supply its own three, which is why `Target` takes them rather than importing any of it.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, cache = true, client, root, self } = options
+  const { allowedRepos, cache: cached = true, client, root, self } = options
 
   return {
     allowedRepos,
@@ -28,7 +29,7 @@ export function resolvers(options: resolvers.Options): Target.resolve.Options {
         return undefined
       }
     },
-    readHost: (host) => Manifest.fetchDocument(host, { cache }),
+    readHost: (host) => Manifest.fetchDocument(host, ...(cached ? [{ cache: cache.file() }] : [])),
     readPackage: (name) => Manifest.fromPackage(name, { root }),
     self,
   }
@@ -96,7 +97,7 @@ export async function accepting(options: accepting.Options): Promise<readonly Ac
     // one, which is how a docs site or an API becomes reportable.
     const homepage = await homepageOf(name, root)
     if (!homepage) continue
-    const lookup = await Manifest.fetchDocument(homepage)
+    const lookup = await Manifest.fetchDocument(homepage, { cache: cache.file() })
     if (lookup.ok && lookup.manifest.inbound.enabled)
       found.push({ kind: 'well-known', name: homepage, repo: lookup.manifest.repo })
   }

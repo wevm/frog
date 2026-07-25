@@ -4,6 +4,7 @@ packages:
 
 catalog:
   '@changesets/cli': latest
+  '@cloudflare/workers-types': ^4.20260701.0
   '@clack/prompts': ^1.7.0
   '@octokit/rest': ^22.0.1
   '@types/node': latest
@@ -14,8 +15,10 @@ catalog:
   tsx: ^4.23.1
   typescript: latest
   vite-plus: latest
+  wrangler: ^4.50.0
   yaml: ^2.9.0
   zile: latest
 
 allowBuilds:
   esbuild: true
+  workerd: true

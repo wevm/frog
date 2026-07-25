@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises'
-import os from 'node:os'
 import path from 'node:path'
 import { z } from 'incur'
 
@@ -222,14 +221,31 @@ export type Lookup =
       reason: string
     }
 
-/** Default cache location, honoring `XDG_CACHE_HOME`. */
-export function cacheDir(env: Record<string, string | undefined> = process.env): string {
-  const base = env['XDG_CACHE_HOME'] || path.join(os.homedir(), '.cache')
-  return path.join(base, 'frictionsets')
-}
-
 /** How long a fetched document is trusted before being fetched again. */
 export const cacheTtl = 24 * 60 * 60 * 1000
+
+/**
+ * Somewhere to keep fetched documents.
+ *
+ * Injected rather than assumed, because the two callers have nothing in common: the CLI caches to disk
+ * across runs, and the App runs where there is no filesystem at all. Keeping this out of the module also
+ * keeps `node:fs` out of a Workers bundle.
+ */
+export type Cache = {
+  /**
+   * Reads a cached entry.
+   *
+   * @param key - Host the document was fetched from.
+   */
+  get: (key: string) => Promise<string | undefined>
+  /**
+   * Writes a cached entry. Failures are the cache's business, not the caller's.
+   *
+   * @param key - Host the document was fetched from.
+   * @param value - Serialized entry.
+   */
+  set: (key: string, value: string) => Promise<void>
+}
 
 /**
  * Fetches a host's manifest, caching the result.
@@ -244,7 +260,7 @@ export async function fetchDocument(
   host: string,
   options: fetchDocument.Options = {},
 ): Promise<Lookup> {
-  const { cache = true, dir = cacheDir(), now = Date.now(), timeout = 5_000 } = options
+  const { cache, now = Date.now(), timeout = 5_000 } = options
 
   const origin = host.includes('://') ? host : `https://${host}`
   const url = (() => {
@@ -256,10 +272,10 @@ export async function fetchDocument(
   })()
   if (!url) return { ok: false, reason: `\`${host}\` is not a valid host.` }
 
-  const file = path.join(dir, `${encodeURIComponent(new URL(url).host)}.json`)
+  const key = new URL(url).host
 
   if (cache) {
-    const cached = await read(file, now)
+    const cached = await read(cache, key, now)
     if (cached) return cached
   }
 
@@ -282,17 +298,15 @@ export async function fetchDocument(
 
   // A definitive absence is cached as well as a hit: most hosts have no manifest, and re-probing every
   // one of them on every call would put the network in the path of logging friction.
-  await write(file, lookup, now)
+  if (cache) await write(cache, key, lookup, now)
   return lookup
 }
 
 export declare namespace fetchDocument {
   /** Options for {@link fetchDocument}. */
   type Options = {
-    /** Read from the cache. Writing to it happens either way. */
-    cache?: boolean | undefined
-    /** Cache directory. Defaults to {@link cacheDir}. */
-    dir?: string | undefined
+    /** Where to keep fetched documents. Omit to fetch every time. */
+    cache?: Cache | undefined
     /** Current time, for cache expiry. */
     now?: number | undefined
     /** Milliseconds before giving up. */
@@ -301,8 +315,8 @@ export declare namespace fetchDocument {
 }
 
 /** Reads a cached lookup, ignoring one that has expired. */
-async function read(file: string, now: number): Promise<Lookup | undefined> {
-  const contents = await fs.readFile(file, 'utf8').catch(() => undefined)
+async function read(cache: Cache, key: string, now: number): Promise<Lookup | undefined> {
+  const contents = await cache.get(key).catch(() => undefined)
   if (!contents) return undefined
 
   const entry = (() => {
@@ -317,9 +331,8 @@ async function read(file: string, now: number): Promise<Lookup | undefined> {
 }
 
 /** Caches a lookup, including a failure, so an absent manifest is not re-probed on every call. */
-async function write(file: string, lookup: Lookup, at: number): Promise<void> {
-  await fs.mkdir(path.dirname(file), { recursive: true }).catch(() => undefined)
-  await fs.writeFile(file, JSON.stringify({ at, lookup }), 'utf8').catch(() => undefined)
+async function write(cache: Cache, key: string, lookup: Lookup, at: number): Promise<void> {
+  await cache.set(key, JSON.stringify({ at, lookup })).catch(() => undefined)
 }
 
 /**

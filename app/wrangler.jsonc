@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "frictionsets",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-07-01",
+  // Octokit reaches for Node built-ins, and the package layer imports `node:fs` for the offline
+  // package lookup the App never takes.
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+  },
+}

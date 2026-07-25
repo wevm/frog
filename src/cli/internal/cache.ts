@@ -1,0 +1,31 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import type { Manifest } from '../../index.js'
+
+/** Default cache location, honoring `XDG_CACHE_HOME`. */
+export function dir(env: Record<string, string | undefined> = process.env): string {
+  const base = env['XDG_CACHE_HOME'] || path.join(os.homedir(), '.cache')
+  return path.join(base, 'frictionsets')
+}
+
+/**
+ * A cache on disk, so a well-known lookup survives between runs.
+ *
+ * Every failure is swallowed: a cache that cannot be written is a slower run, not a failed one.
+ */
+export function file(root: string = dir()): Manifest.Cache {
+  return {
+    async get(key) {
+      return fs
+        .readFile(path.join(root, `${encodeURIComponent(key)}.json`), 'utf8')
+        .catch(() => undefined)
+    },
+    async set(key, value) {
+      await fs.mkdir(root, { recursive: true }).catch(() => undefined)
+      await fs
+        .writeFile(path.join(root, `${encodeURIComponent(key)}.json`), value, 'utf8')
+        .catch(() => undefined)
+    },
+  }
+}
