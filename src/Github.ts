@@ -442,6 +442,26 @@ export async function permissions(
 }
 
 /**
+ * A repository's default branch.
+ *
+ * Needed to commit a reconciliation: an issue event says nothing about which branch mirrors it.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns The branch name, or `undefined` when the repository cannot be read.
+ */
+export async function defaultBranch(
+  client: Client,
+  options: { repo: string },
+): Promise<string | undefined> {
+  try {
+    const response = await client.repos.get(split(options.repo))
+    return response.data.default_branch
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * Finds the issue already covering a friction, without relying on a label.
  *
  * Searches by title, then confirms the marker hash. Slower and backed by an eventually consistent

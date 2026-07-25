@@ -180,6 +180,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       if (repository && request.method === 'GET') {
         const name = `${repository[1]}/${repository[2]}`
         return json(response, 200, {
+          default_branch: 'main',
           full_name: name,
           permissions: { pull: true, push: pushable(name) },
         })
