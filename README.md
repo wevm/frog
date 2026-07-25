@@ -24,6 +24,29 @@ frictionsets gives friction a terminus (a GitHub issue) and keeps the two in loc
 - **So `.agents/frictionsets/` is a live, greppable, offline list** of every known-unresolved friction
   affecting this repo, including friction in its dependencies. Read it before choosing an approach.
 
+## Agents
+
+Install the skill and register the MCP server once per repository:
+
+```sh
+frictionsets skills add
+frictionsets mcp add
+```
+
+The skill carries the part that decides whether any of this happens: **when** to log. The short version
+is _log when you worked around something_ — a workaround is the sharpest evidence of friction. See
+[`SKILL.md`](./SKILL.md) for the whole trigger.
+
+Then add one line to `AGENTS.md`, so it is in context even without the skill loaded:
+
+```md
+Record friction as you hit it: run `frictionsets log --publish --title '<what broke>' --body '<detail>'`.
+Read `frictionsets list` first, and `frictionsets targets` to report upstream instead.
+```
+
+Every command returns a structured envelope and takes flags rather than prompts, so an agent never has
+to interpret prose or answer a question it cannot see.
+
 ## Lifecycle
 
 ```

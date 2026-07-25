@@ -10,7 +10,7 @@ import { targets } from './commands/targets.js'
 export const cli = Cli.create('frictionsets', {
   description: 'Turn friction you hit while building into GitHub issues.',
   sync: {
-    depth: 0,
+    depth: 1,
     include: ['_root'],
     suggestions: [
       'log the friction I just hit',
