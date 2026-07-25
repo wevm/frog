@@ -23,21 +23,17 @@ Automated friction logs.
 
 ## Problem
 
-Friction logging is a simple practice: while you use something, you write down where it fought you, in
-your own words, as it happens. It rarely happens, because familiarity is corrosive. The longer you use a
-thing, the less able you are to see what is wrong with it, and by the time you would sit down to write
-the log you have stopped noticing.
+Friction logging is a simple practice: while you use something, you write down where it fought you, as it
+happens. It rarely happens, because familiarity is corrosive: the longer you use a thing, the less able
+you are to see what is wrong with it. An agent never acquires that familiarity. It arrives at every
+session a newcomer and meets the papercuts at full force, which makes it the best friction logger you
+have.
 
-An agent never acquires that familiarity. It arrives at every session a newcomer and meets the papercuts
-at full force, which makes it the best friction logger you have.
-
-It is also the worst at keeping the log. Each papercut gets worked around and the workaround is recorded
-nowhere, so the knowledge dies with the session. The next agent hits the same wall and starts from
-nothing, and the friction never reaches anyone who could remove it.
-
-Writing it down by hand does not survive either. Every hand-rolled friction log we have has either filled
-up until nobody read it, or been abandoned with nothing in it. A list nobody consumes and nobody prunes
-stops being worth reading, which is the same as not having one.
+It is also the worst at keeping one. Each papercut gets worked around and the workaround is recorded
+nowhere, so the knowledge dies with the session: the next agent hits the same wall and starts from
+nothing, and the friction never reaches anyone who could remove it. Writing it down by hand does not
+survive either. Every hand-rolled friction log we have has filled up until nobody read it, or been
+abandoned with nothing in it.
 
 ## Solution
 
