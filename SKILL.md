@@ -41,10 +41,13 @@ came before this one.
 
 ## Logging
 
+Pipe the entry in, shaped like a commit message: the first line is the title, the rest is the body.
+
 ```sh
-frog log --publish --severity major \
-  --title '`pnpm test -- <files>` ignores file filters and runs the whole suite' \
-  --body '## Description
+frog log --publish --severity major <<'EOF'
+`pnpm test -- <files>` ignores file filters and runs the whole suite
+
+## Description
 
 `pnpm test -- src/foo.test.ts` ran all 1,200 tests. The `--` is consumed by pnpm, so the filter never
 reaches Vitest.
@@ -55,14 +58,16 @@ reaches Vitest.
 
 ## Suggested fix
 
-Document the targeted-test syntax in the script help, or forward arguments past `--`.'
+Document the targeted-test syntax in the script help, or forward arguments past `--`.
+EOF
 ```
 
-**Prefer the MCP server for anything with an awkward body.** Registered with `frog mcp add`, the
-commands are reachable as typed tools: `search_tools` to find one, `get_tool_details` for its schema,
-then `call_write_tool` with `{ name: 'log', arguments: { … } }`. The schema names every option, so there
-is no flag to guess and no shell quoting to get wrong. A body containing an apostrophe will break the
-single-quoted form above.
+Nothing is quoted, so an apostrophe or a backtick in the body cannot end the argument early. `--title` and
+`--body` still work if you have short single-line content.
+
+If the MCP server is registered with `frog mcp add`, the commands are also reachable as typed tools:
+`search_tools` to find one, `get_tool_details` for its schema, then `call_write_tool` with
+`{ name: 'log', arguments: { … } }`. The schema names every option, so there is nothing to guess.
 
 **The title is what dedupes.** Make it specific enough to search for, and include the exact command,
 symbol, or error fragment. `Tests are slow` is not a title. ``pnpm test -- <files>` ignores file

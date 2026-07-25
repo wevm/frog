@@ -7,6 +7,7 @@ import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
 import * as prompt from '../internal/prompt.js'
 import * as publisher from '../internal/publish.js'
+import * as stdin from '../internal/stdin.js'
 import * as target from '../internal/target.js'
 
 async function promptTitle(): Promise<string> {
@@ -55,7 +56,7 @@ export const log = Cli.create('log', {
     body: z
       .string()
       .optional()
-      .describe('Markdown body. Required unless running interactively, where an editor opens.'),
+      .describe('Markdown body. Also readable from piped input, or an editor when interactive.'),
     cwd: context.cwdOption,
     force: z.boolean().optional().describe('Log it even if a similar entry already exists.'),
     label: z.array(z.string().min(1)).optional().describe('Extra issue label. Repeatable.'),
@@ -73,6 +74,7 @@ export const log = Cli.create('log', {
       .describe('Upstream package, `owner/repo`, or host. Omit for this repository.'),
   }),
   alias: { body: 'b', severity: 's', target: 't' },
+  usage: [{}, { args: { title: true }, options: { body: true } }, { prefix: 'cat entry.md |' }],
   examples: [
     {
       args: { title: '`pnpm test -- <files>` ignores file filters' },
@@ -100,28 +102,38 @@ export const log = Cli.create('log', {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const interactive = prompt.interactive()
 
+    // Piped input is the whole entry, shaped like a commit message. It is what makes bare `frog log`
+    // usable without a terminal, where a prompt cannot run at all.
+    const piped = await attempt(stdin.read())
+    if (!piped.ok) return c.error({ code: piped.code, message: piped.message })
+    const input = piped.value ? stdin.parse(piped.value) : undefined
+
     // Every `c.error` below is returned straight from `run`. See `internal/attempt.ts` for why that
     // matters.
-    const prompted = !c.args.title && interactive ? await attempt(promptTitle()) : undefined
+    const needsTitle = !c.args.title && !input
+    const prompted = needsTitle && interactive ? await attempt(promptTitle()) : undefined
     if (prompted && !prompted.ok) return c.error({ code: prompted.code, message: prompted.message })
 
-    const title = c.args.title ?? (prompted?.ok ? prompted.value : undefined)
+    const title = c.args.title ?? input?.title ?? (prompted?.ok ? prompted.value : undefined)
     if (!title)
       return c.error({
         code: 'MISSING_TITLE',
         message: 'A title is required.',
         cta: {
-          commands: [{ command: 'log', description: 'Pass the title as the first argument' }],
+          commands: [{ command: 'log', description: 'Pipe the entry in, or pass a title' }],
           description: 'Try:',
         },
       })
 
-    if (!c.options.body && !interactive)
+    const body = c.options.body ?? (input?.body || undefined)
+    if (!body && !interactive)
       return c.error({
         code: 'MISSING_BODY',
         message: 'A body is required. An entry with no detail is not actionable.',
         cta: {
-          commands: [{ command: 'log', description: 'Pass --body with the markdown detail' }],
+          commands: [
+            { command: 'log', description: 'Pipe a title, a blank line, then the detail' },
+          ],
           description: 'Try:',
         },
       })
@@ -153,7 +165,7 @@ export const log = Cli.create('log', {
 
     const { file, id } = await Store.write(
       {
-        body: c.options.body ?? Entry.template,
+        body: body ?? Entry.template,
         severity,
         title,
         ...(c.options.label?.length ? { labels: c.options.label } : {}),
@@ -163,7 +175,7 @@ export const log = Cli.create('log', {
     )
 
     // Only reached interactively, or on request: the editor is the long-form input path.
-    if (c.options.open ?? (interactive && !c.options.body)) {
+    if (c.options.open ?? (interactive && !body)) {
       const edited = await attempt(
         prompt
           .edit(`${root}/${file}`, { command: c.env.VISUAL ?? c.env.EDITOR ?? 'vi' })

@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process'
+import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
@@ -206,5 +208,64 @@ describe('duplicates', () => {
     await cli.data(['log', 'pnpm build ignores filters', '--body', body, '--cwd', cwd])
 
     expect(await Store.list({ root: cwd })).toHaveLength(2)
+  })
+})
+
+// Piping needs a process boundary, so these run the real binary rather than `cli.serve`.
+describe('piped input', () => {
+  const root = path.join(import.meta.dirname, '../../..')
+
+  type Result = { code?: string; id?: string; title?: string }
+
+  function run(cwd: string, input?: string): Result {
+    try {
+      const stdout = execFileSync(
+        'node',
+        ['--import', 'tsx', 'src/bin.ts', 'log', '--cwd', cwd, '--json'],
+        {
+          cwd: root,
+          encoding: 'utf8',
+          // Without input, standard input is `/dev/null`: a character device, which is what an agent
+          // shell hands over. An inherited pipe with no writer would hang instead.
+          ...(input === undefined ? { stdio: ['ignore', 'pipe', 'pipe'] } : { input }),
+        },
+      )
+      return JSON.parse(stdout) as Result
+    } catch (error) {
+      return JSON.parse((error as { stdout?: string }).stdout ?? '{}') as Result
+    }
+  }
+
+  test('behavior: a piped entry needs no flags at all', async () => {
+    const cwd = await helpers.repo()
+
+    const result = run(cwd, 'Filters ignored\n\n## Description\n\nThe `--` is swallowed.\n')
+
+    expect(result.title).toBe('Filters ignored')
+    expect(await Store.get(String(result.id), { root: cwd })).toMatchObject({
+      body: '## Description\n\nThe `--` is swallowed.',
+      severity: 'minor',
+      title: 'Filters ignored',
+    })
+  })
+
+  // The reason piping exists: an apostrophe ends a single-quoted `--body` and breaks the invocation.
+  test('behavior: apostrophes and backticks survive', async () => {
+    const cwd = await helpers.repo()
+
+    const result = run(cwd, "`pnpm test` doesn't filter\n\nIt didn't warn either.\n")
+
+    expect(await Store.get(String(result.id), { root: cwd })).toMatchObject({
+      body: "It didn't warn either.",
+      title: "`pnpm test` doesn't filter",
+    })
+  })
+
+  // A hang here would be invisible in the rest of the suite, where nothing is ever piped.
+  test('behavior: nothing piped and no terminal reports rather than waiting', async () => {
+    const cwd = await helpers.repo()
+
+    expect(run(cwd).code).toBe('MISSING_TITLE')
+    expect(await Store.list({ root: cwd })).toEqual([])
   })
 })

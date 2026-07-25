@@ -64,12 +64,25 @@ frog init
 ### Log Friction
 
 ```sh
-frog log --publish --severity major \
-  --title '`pnpm test -- <files>` ignores file filters and runs the whole suite' \
-  --body 'The `--` is consumed by pnpm, so the filter never reaches Vitest.
-
-Workaround: `pnpm exec vitest run src/foo.test.ts`'
+frog log
 ```
+
+In a terminal that asks for the title and severity, then opens `$EDITOR` for the body. Without a terminal
+there is nothing to prompt, so pipe the entry in instead, shaped like a commit message: first line the
+title, the rest the body.
+
+```sh
+frog log --publish --severity major <<'EOF'
+`pnpm test -- <files>` ignores file filters and runs the whole suite
+
+The `--` is consumed by pnpm, so the filter never reaches Vitest, and it doesn't warn.
+
+Workaround: `pnpm exec vitest run src/foo.test.ts`
+EOF
+```
+
+Nothing is quoted that way, so an apostrophe in the body is harmless. `--title` and `--body` still work if
+you would rather pass flags.
 
 `--publish` files it immediately, so the maintainer sees it while you still have the context to answer
 questions. Without a token the entry is still written, and gets filed when the work lands.
@@ -111,8 +124,8 @@ _log when you worked around something_. A workaround is the sharpest evidence of
 you hit it is the only time the exact error text is still in context. See [`SKILL.md`](./SKILL.md) for the
 whole trigger, and for what not to log.
 
-Every command takes flags rather than prompts and returns a structured envelope, so an agent never has to
-interpret prose or answer a question it cannot see.
+Every command returns a structured envelope, and nothing an agent needs sits behind a prompt: piped input
+and flags cover the whole surface, so it never has to answer a question it cannot see.
 
 ### Report Friction Upstream
 
