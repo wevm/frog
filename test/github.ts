@@ -91,10 +91,18 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
 
       const list = /^\/repos\/([^/]+)\/([^/]+)\/issues$/.exec(url.pathname)
       const comment = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)\/comments$/.exec(url.pathname)
+      const one = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/.exec(url.pathname)
 
-      const owned = list ?? comment
+      const owned = list ?? comment ?? one
       const status = owned ? errors[`${owned[1]}/${owned[2]}`] : undefined
       if (status) return json(response, status, { message: 'Not Found' })
+
+      if (one && request.method === 'GET') {
+        const repo = `${one[1]}/${one[2]}`
+        const found = (issues.get(repo) ?? []).find((issue) => issue.number === Number(one[3]))
+        if (!found) return json(response, 404, { message: 'Not Found' })
+        return json(response, 200, found)
+      }
 
       if (list && request.method === 'GET') {
         const repo = `${list[1]}/${list[2]}`

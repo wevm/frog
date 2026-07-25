@@ -131,13 +131,29 @@ export async function add(files: readonly string[], options: Options = {}): Prom
 }
 
 /**
- * Stages the removal of paths.
+ * Stages the removal of paths, deleting them from the working tree.
  *
  * @param files - Repository-relative paths. An empty list is a no-op.
  */
-export async function rm(files: readonly string[], options: Options = {}): Promise<void> {
+export async function rm(files: readonly string[], options: rm.Options = {}): Promise<void> {
   if (files.length === 0) return
-  await git(['rm', '--quiet', '--', ...files], options)
+  const flags = options.ignoreUnmatch ? ['--ignore-unmatch'] : []
+  await git(['rm', '--quiet', ...flags, '--', ...files], options)
+}
+
+export declare namespace rm {
+  /** Options for {@link rm}. */
+  type Options = {
+    /** Directory to run git in. Defaults to `process.cwd()`. */
+    cwd?: string | undefined
+    /**
+     * Succeed for paths git does not track.
+     *
+     * Reconciliation deletes entries that may never have been committed, where a strict `git rm`
+     * would fail on the pathspec.
+     */
+    ignoreUnmatch?: boolean | undefined
+  }
 }
 
 /**

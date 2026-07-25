@@ -10,16 +10,37 @@ import * as Frictionset from './Frictionset.js'
  */
 export type Client = Pick<Octokit['rest'], 'issues'>
 
+/** A label as GitHub returns it: either the bare name, or an object holding one. */
+export type Label =
+  | string
+  | {
+      /** Label name. */
+      name?: string | undefined
+    }
+
 /** The parts of a GitHub issue this module reads. */
 export type Issue = {
   /** Issue body. `null` when GitHub has none, which is how the API reports an empty body. */
   body?: string | null | undefined
+  /** Labels on the issue. */
+  labels?: readonly Label[] | undefined
   /** Issue number, unique within its repository. */
   number: number
   /** `open` or `closed`. */
   state: string
   /** Issue title. */
   title: string
+}
+
+/**
+ * Label names on an issue, flattening GitHub's two representations.
+ *
+ * @returns Every label name, with unnamed entries dropped.
+ */
+export function toLabelNames(issue: Issue): readonly string[] {
+  return (issue.labels ?? [])
+    .map((label) => (typeof label === 'string' ? label : label.name))
+    .filter((name): name is string => Boolean(name))
 }
 
 /**
@@ -50,6 +71,20 @@ export declare namespace toLink {
     /** Repository holding the issue, as `owner/name`. */
     repo: string
   }
+}
+
+/**
+ * Reads a frontmatter issue link.
+ *
+ * The inverse of {@link toLink}.
+ *
+ * @param link - Link as `owner/name#number`.
+ * @returns The repository and issue number, or `undefined` when the link is malformed.
+ */
+export function parseLink(link: string): { issue: number; repo: string } | undefined {
+  const match = /^([\w.-]+\/[\w.-]+)#(\d+)$/.exec(link)
+  if (!match?.[1] || !match[2]) return undefined
+  return { issue: Number(match[2]), repo: match[1] }
 }
 
 /**
@@ -214,6 +249,47 @@ export declare namespace toLabels {
 }
 
 /**
+ * Rebuilds an entry from the issue mirroring it.
+ *
+ * Used when an issue reopens after its file was deleted. `severity` and extra labels are recovered by
+ * reversing {@link toLabels}; `target` cannot be, because nothing on the issue records it.
+ *
+ * @returns The rebuilt entry, already linked to the issue.
+ */
+export function fromIssue(issue: Issue, options: fromIssue.Options): Frictionset.Frictionset {
+  const { id, labels, repo, severityLabels } = options
+
+  const names = toLabelNames(issue)
+  const severity =
+    Frictionset.severities.find((value) => names.includes(severityLabels[value])) ?? 'minor'
+  const managed = new Set<string>([...labels, ...Object.values(severityLabels)])
+  const extra = names.filter((name) => !managed.has(name))
+
+  return {
+    body: parseBody(issue.body),
+    id,
+    issue: toLink({ issue: issue.number, repo }),
+    severity,
+    title: issue.title,
+    ...(extra.length ? { labels: extra } : {}),
+  }
+}
+
+export declare namespace fromIssue {
+  /** Options for {@link fromIssue}. */
+  type Options = {
+    /** Id to give the rebuilt entry, taken from the marker's `path`. */
+    id: string
+    /** Labels applied to every issue, from config. Excluded from the entry's own labels. */
+    labels: readonly string[]
+    /** Repository holding the issue, as `owner/name`. */
+    repo: string
+    /** Label to apply for each severity, from config. Reversed to recover severity. */
+    severityLabels: Record<Frictionset.Severity, string>
+  }
+}
+
+/**
  * Indexes existing friction issues by dedupe hash.
  *
  * Listing by label rather than searching: the search index is eventually consistent, so two publishes
@@ -226,6 +302,58 @@ export declare namespace toLabels {
  * before closed, then lowest number.
  */
 export async function index(client: Client, options: index.Options): Promise<Map<string, Issue>> {
+  const indexed = new Map<string, Issue>()
+  for (const issue of await list(client, options)) {
+    const key = parseMarker(issue.body)?.hash ?? hash(issue.title)
+    // Prefer an open issue, then the lowest number, so comments land on the canonical one.
+    const current = indexed.get(key)
+    if (!current) indexed.set(key, issue)
+    else if (current.state !== 'open' && issue.state === 'open') indexed.set(key, issue)
+    else if (current.state === issue.state && issue.number < current.number) indexed.set(key, issue)
+  }
+  return indexed
+}
+
+/**
+ * One issue by number.
+ *
+ * Needed because {@link list} filters by label, so an issue that merely lost its label is
+ * indistinguishable from one that never existed. Clearing a link on that basis would send the entry
+ * back to pending and let the next publish open a duplicate.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns The issue, or `undefined` when it genuinely does not exist.
+ */
+export async function get(client: Client, options: get.Options): Promise<Issue | undefined> {
+  try {
+    const response = await client.issues.get({
+      ...split(options.repo),
+      issue_number: options.issue,
+    })
+    return response.data
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) return undefined
+    throw error
+  }
+}
+
+export declare namespace get {
+  /** Options for {@link get}. */
+  type Options = {
+    /** Issue number. */
+    issue: number
+    /** Repository holding the issue, as `owner/name`. */
+    repo: string
+  }
+}
+
+/**
+ * Every issue frictionsets manages in a repository.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns Issues carrying the label, oldest first, with pull requests filtered out.
+ */
+export async function list(client: Client, options: index.Options): Promise<readonly Issue[]> {
   const { label, repo, state = 'all' } = options
 
   const collected: Issue[] = []
@@ -240,22 +368,13 @@ export async function index(client: Client, options: index.Options): Promise<Map
       per_page: 100,
       state,
     })
-    collected.push(...response.data)
+    // `listForRepo` returns pull requests too.
+    collected.push(
+      ...response.data.filter((issue) => !('pull_request' in issue && issue.pull_request)),
+    )
     if (response.data.length < 100) break
   }
-
-  const indexed = new Map<string, Issue>()
-  for (const issue of collected) {
-    // `listForRepo` returns pull requests too.
-    if ('pull_request' in issue && issue.pull_request) continue
-    const key = parseMarker(issue.body)?.hash ?? hash(issue.title)
-    // Prefer an open issue, then the lowest number, so comments land on the canonical one.
-    const current = indexed.get(key)
-    if (!current) indexed.set(key, issue)
-    else if (current.state !== 'open' && issue.state === 'open') indexed.set(key, issue)
-    else if (current.state === issue.state && issue.number < current.number) indexed.set(key, issue)
-  }
-  return indexed
+  return collected
 }
 
 export declare namespace index {

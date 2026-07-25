@@ -15,3 +15,6 @@ export * as Github from './Github.js'
 
 /** Reading and writing entries under `.agents/frictionsets`. */
 export * as Store from './Store.js'
+
+/** Reconciling local entries against issue state, as a pure plan both adapters can apply. */
+export * as Sync from './Sync.js'

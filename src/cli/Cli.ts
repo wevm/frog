@@ -3,6 +3,7 @@ import { init } from './commands/init.js'
 import { list } from './commands/list.js'
 import { log } from './commands/log.js'
 import { publish } from './commands/publish.js'
+import { sync } from './commands/sync.js'
 
 export const cli = Cli.create('frictionsets', {
   description: 'Turn friction you hit while building into GitHub issues.',
@@ -19,5 +20,6 @@ export const cli = Cli.create('frictionsets', {
   .command(list)
   .command(log)
   .command(publish)
+  .command(sync)
 
 export default cli

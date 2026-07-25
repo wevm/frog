@@ -10,11 +10,19 @@ const root = path.join(import.meta.dirname, '..')
 /**
  * Modules re-exported from `src/index.ts`, which is the whole public surface.
  *
+ * Read from the entrypoint rather than listed here, so adding a public module cannot quietly escape
+ * the check.
+ *
  * Checked against emitted declarations rather than source: `.d.ts` preserves TSDoc, drops
  * implementation noise, and is machine-formatted, so a line scan is reliable. The workspace
  * TypeScript is the native port, which exposes no JavaScript compiler API to walk an AST with.
  */
-const modules = ['Config', 'Frictionset', 'Git', 'Github', 'Store']
+const entrypoint = await fs.readFile(path.join(root, 'src/index.ts'), 'utf8')
+const modules = [...entrypoint.matchAll(/export \* as \w+ from '\.\/([\w.]+)\.js'/g)].map(
+  (match) => match[1] ?? '',
+)
+
+if (modules.length === 0) throw new Error('No public modules found in src/index.ts')
 
 /** A top-level exported declaration. */
 const declaration =

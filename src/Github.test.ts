@@ -148,6 +148,106 @@ describe('toLabels', () => {
   })
 })
 
+describe('parseLink', () => {
+  test('behavior: inverts toLink', () => {
+    expect(Github.parseLink(Github.toLink({ issue: 4821, repo }))).toEqual({
+      issue: 4821,
+      repo,
+    })
+  })
+
+  test.for(['viem#1', 'wevm/viem', 'wevm/viem#', 'wevm/viem#abc', '', 'nonsense'] as const)(
+    'behavior: %s is not a link',
+    (link) => {
+      expect(Github.parseLink(link)).toBeUndefined()
+    },
+  )
+})
+
+describe('toLabelNames', () => {
+  test('behavior: flattens both representations and drops the unnamed', () => {
+    expect(
+      Github.toLabelNames({
+        labels: ['friction', { name: 'tooling' }, { name: undefined }],
+        number: 1,
+        state: 'open',
+        title,
+      }),
+    ).toEqual(['friction', 'tooling'])
+  })
+
+  test('behavior: an issue with no labels yields nothing', () => {
+    expect(Github.toLabelNames({ number: 1, state: 'open', title })).toEqual([])
+  })
+})
+
+describe('fromIssue', () => {
+  const options = {
+    id: 'a',
+    labels: ['friction'],
+    repo,
+    severityLabels: {
+      blocker: 'friction:blocker',
+      major: 'friction:major',
+      minor: 'friction:minor',
+    },
+  } as const
+
+  test('behavior: recovers body, severity, and extra labels', () => {
+    const issue = {
+      body: Github.renderBody({ body: 'The filter was swallowed.', marker: { hash: 'x' } }),
+      labels: ['friction', 'friction:blocker', 'tooling'],
+      number: 7,
+      state: 'open',
+      title,
+    }
+
+    expect(Github.fromIssue(issue, options)).toEqual({
+      body: 'The filter was swallowed.',
+      id: 'a',
+      issue: `${repo}#7`,
+      labels: ['tooling'],
+      severity: 'blocker',
+      title,
+    })
+  })
+
+  test('behavior: defaults severity when no severity label is present', () => {
+    const issue = { body: 'Body.', labels: ['friction'], number: 1, state: 'open', title }
+    expect(Github.fromIssue(issue, options).severity).toBe('minor')
+  })
+
+  test('behavior: omits labels when only managed ones remain', () => {
+    const issue = {
+      body: 'Body.',
+      labels: ['friction', 'friction:major'],
+      number: 1,
+      state: 'open',
+      title,
+    }
+    expect(Github.fromIssue(issue, options)).not.toHaveProperty('labels')
+  })
+})
+
+describe('get', () => {
+  test('behavior: returns the issue', async () => {
+    const instance = await github({ [repo]: [{ title }] })
+    expect((await Github.get(client(instance.url), { issue: 1, repo }))?.title).toBe(title)
+  })
+
+  test('behavior: undefined for an issue that does not exist', async () => {
+    const instance = await github()
+    expect(await Github.get(client(instance.url), { issue: 99, repo })).toBeUndefined()
+  })
+
+  test('behavior: finds an issue the label listing would miss', async () => {
+    const instance = await github({ [repo]: [{ labels: ['triage'], title }] })
+
+    expect(await Github.list(client(instance.url), { label: 'friction', repo })).toEqual([])
+    expect((await Github.get(client(instance.url), { issue: 1, repo }))?.title).toBe(title)
+  })
+})
+
 describe('index', () => {
   test('behavior: indexes by marker hash', async () => {
     const instance = await github({
