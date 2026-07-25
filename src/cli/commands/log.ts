@@ -2,10 +2,12 @@ import * as clack from '@clack/prompts'
 import { Cli, z } from 'incur'
 import * as Frictionset from '../../Frictionset.js'
 import * as Store from '../../Store.js'
+import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
 import * as prompt from '../internal/prompt.js'
 import * as publisher from '../internal/publish.js'
+import * as target from '../internal/target.js'
 
 async function promptTitle(): Promise<string> {
   const value = prompt.required(
@@ -196,13 +198,28 @@ export const log = Cli.create('log', {
           ...(c.options.token ? { token: c.options.token } : {}),
         })
         if ('code' in ready) return ready
-        // `commit: false`: the entry belongs in the same commit as the work that provoked it.
+
+        const entry = await Store.get(id, { root })
+        const resolution = await Target.resolve(
+          entry.target,
+          target.resolvers({
+            allowedRepos: config.outbound.allowedRepos,
+            client: ready.client,
+            root,
+            self: ready.repo,
+          }),
+        )
+        if (!resolution.ok) return { code: resolution.code, message: resolution.message }
+
+        // Nothing is committed: the entry belongs in the same commit as the work that provoked it.
         const outcome = await publisher.file({
           ...ready,
-          commit: false,
           config,
-          entries: [await Store.get(id, { root })],
+          entries: [entry],
+          origin: ready.repo,
+          repo: resolution.target.repo,
           root,
+          ...(resolution.target.labels ? { labels: resolution.target.labels } : {}),
         })
         return (
           outcome.created[0] ??

@@ -50,26 +50,50 @@ severity: minor # blocker | major | minor
 
 ${Frictionset.template}`
 
+const schema = 'https://unpkg.com/frictionsets/schema.json'
+
 const config = `{
-  "$schema": "https://unpkg.com/frictionsets/schema.json"
+  "$schema": "${schema}"
+}
+`
+
+/** Config for a project that accepts friction reported by others. */
+const libraryConfig = `{
+  "$schema": "${schema}",
+  "inbound": {
+    "enabled": true
+  }
 }
 `
 
 export const init = Cli.create('init', {
   description: 'Set up `.agents/frictionsets` in this repository.',
-  options: z.object({ cwd: context.cwdOption }),
-  examples: [{ description: 'Set up frictionsets' }],
+  options: z.object({
+    cwd: context.cwdOption,
+    library: z
+      .boolean()
+      .optional()
+      .describe('Also accept friction reported by consumers of this project.'),
+  }),
+  examples: [
+    { description: 'Set up frictionsets' },
+    { description: 'Become a friction target', options: { library: true } },
+  ],
   output: z.object({
     created: z.array(z.string()).describe('Files written.'),
+    declare: z
+      .string()
+      .optional()
+      .describe('With --library, the `package.json` field to add so installers can find this.'),
     existing: z.array(z.string()).describe('Files left alone.'),
   }),
   async run(c) {
-    const { root } = await context.resolve({ cwd: c.options.cwd })
+    const { repo, root } = await context.resolve({ cwd: c.options.cwd })
 
     const files = [
       [`${Store.dir}/README.md`, readme],
       [`${Store.dir}/TEMPLATE.md`, template],
-      [Config.file, config],
+      [Config.file, c.options.library ? libraryConfig : config],
     ] as const
 
     await fs.mkdir(path.join(root, Store.dir), { recursive: true })
@@ -87,14 +111,25 @@ export const init = Cli.create('init', {
       }
     }
 
+    // Printed rather than written: rewriting `package.json` would reformat a file we do not own.
+    const declare =
+      c.options.library && repo
+        ? JSON.stringify({ frictionsets: { inbound: true, repo } }, null, 2)
+        : undefined
+
     return c.ok(
-      { created, existing },
+      { created, existing, ...(declare ? { declare } : {}) },
       {
         cta: {
-          commands: [
-            { command: 'log', description: 'Log the friction you just hit' },
-            { command: 'skills add', description: 'Teach your agents to log friction' },
-          ],
+          commands: c.options.library
+            ? [
+                { command: 'manifest', description: 'Print the document to serve on your site' },
+                { command: 'skills add', description: 'Teach your agents to log friction' },
+              ]
+            : [
+                { command: 'log', description: 'Log the friction you just hit' },
+                { command: 'skills add', description: 'Teach your agents to log friction' },
+              ],
           description: 'Next:',
         },
       },

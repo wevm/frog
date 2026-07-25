@@ -8,7 +8,7 @@ import * as Frictionset from './Frictionset.js'
  * Narrow on purpose: the App passes Probot's client, which is the same endpoint-methods object, so
  * neither caller has to construct the other's.
  */
-export type Client = Pick<Octokit['rest'], 'issues'>
+export type Client = Pick<Octokit['rest'], 'issues' | 'repos'>
 
 /** A label as GitHub returns it: either the bare name, or an object holding one. */
 export type Label =
@@ -312,6 +312,43 @@ export async function index(client: Client, options: index.Options): Promise<Map
     else if (current.state === issue.state && issue.number < current.number) indexed.set(key, issue)
   }
   return indexed
+}
+
+/**
+ * Reads a file from a repository's default branch.
+ *
+ * Used to check whether a repository has committed a config accepting inbound friction. Always the
+ * default branch, never a pull request head: the untrusted side of a boundary must not get to say
+ * where issues are filed.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns The file's contents, or `undefined` when it does not exist or is not a file.
+ */
+export async function fetchFile(
+  client: Client,
+  options: fetchFile.Options,
+): Promise<string | undefined> {
+  try {
+    const response = await client.repos.getContent({ ...split(options.repo), path: options.path })
+    const data = response.data as { content?: string; encoding?: string; type?: string }
+    if (data.type !== 'file' || !data.content) return undefined
+    return Buffer.from(data.content, data.encoding === 'base64' ? 'base64' : 'utf8').toString(
+      'utf8',
+    )
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) return undefined
+    throw error
+  }
+}
+
+export declare namespace fetchFile {
+  /** Options for {@link fetchFile}. */
+  type Options = {
+    /** Repository-relative path. */
+    path: string
+    /** Repository to read from, as `owner/name`. */
+    repo: string
+  }
 }
 
 /**

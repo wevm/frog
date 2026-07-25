@@ -13,8 +13,14 @@ export * as Git from './Git.js'
 /** Issue rendering, the dedupe marker, and create-or-comment. Transport-agnostic. */
 export * as Github from './Github.js'
 
+/** The declaration a project publishes to accept friction, and the corroboration rule guarding it. */
+export * as Manifest from './Manifest.js'
+
 /** Reading and writing entries under `.agents/frictionsets`. */
 export * as Store from './Store.js'
 
 /** Reconciling local entries against issue state, as a pure plan both adapters can apply. */
 export * as Sync from './Sync.js'
+
+/** Resolving where an entry's issue belongs, and every consent gate on the way. */
+export * as Target from './Target.js'

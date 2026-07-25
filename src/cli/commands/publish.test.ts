@@ -1,6 +1,7 @@
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import * as Config from '../../Config.js'
 import * as Github from '../../Github.js'
 import * as Store from '../../Store.js'
 
@@ -154,18 +155,166 @@ test('behavior: defers entries over the ceiling', async () => {
   expect(instance.issues.get(repo)).toHaveLength(2)
 })
 
-test('behavior: defers cross-repo entries', async () => {
-  const cwd = await helpers.repo({ remote })
-  const instance = await github()
-  await Store.write(
-    { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
-    { id: 'a', root: cwd },
-  )
+describe('cross-repo', () => {
+  const upstream = 'wevm/viem'
 
-  const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+  /** Installs a package that declares it accepts friction. */
+  async function install(cwd: string, name: string, frictionsets: unknown): Promise<void> {
+    await helpers.writeFile(
+      `node_modules/${name}/package.json`,
+      JSON.stringify({ frictionsets, name }),
+      cwd,
+    )
+  }
 
-  expect(result.deferred).toEqual([{ id: 'a', reason: 'target `viem`' }])
-  expect(result.created).toEqual([])
+  test('behavior: files on the target named by an installed package', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write(
+      { body, severity: 'major', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
+    expect(instance.issues.get(upstream)?.[0]?.title).toBe('Upstream friction')
+    // The consumer's repository gets nothing.
+    expect(instance.issues.get(repo)).toBeUndefined()
+  })
+
+  test('behavior: applies the labels the receiver asked for', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await install(cwd, 'viem', {
+      inbound: { enabled: true, labels: ['friction', 'from-consumer'] },
+      repo: upstream,
+    })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(instance.issues.get(upstream)?.[0]?.labels).toEqual([
+      'friction',
+      'from-consumer',
+      'friction:minor',
+    ])
+  })
+
+  test('behavior: records the consumer repository as the origin', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    // `origin` is what lets closing the upstream issue delete the mirror in this repository.
+    expect(Github.parseMarker(instance.issues.get(upstream)?.[0]?.body)).toMatchObject({
+      origin: repo,
+    })
+  })
+
+  test('behavior: defers a target the sender has not allowlisted', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.deferred).toEqual([
+      { id: 'a', reason: '`wevm/viem` is not listed in `outbound.allowedRepos`.' },
+    ])
+    expect(instance.issues.get(upstream)).toBeUndefined()
+  })
+
+  test('behavior: defers a target that has opted out', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await install(cwd, 'viem', { inbound: false, repo: upstream })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.deferred[0]?.reason).toContain('does not accept friction reported by others')
+    expect(instance.issues.get(upstream)).toBeUndefined()
+  })
+
+  test('behavior: defers an unresolvable target with an actionable reason', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.deferred[0]?.reason).toContain('not installed')
+    expect(result.created).toEqual([])
+  })
+
+  test('behavior: one commit covers entries filed across two repositories', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await helpers.writeFile('a.txt', 'a', cwd)
+    await helpers.commit('init', cwd)
+    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write({ body, severity: 'minor', title: 'Ours' }, { id: 'a', root: cwd })
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Theirs' },
+      { id: 'b', root: cwd },
+    )
+    await helpers.commit('log friction', cwd)
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.created).toHaveLength(2)
+    expect(result.committed).toBe(true)
+    expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
+    expect((await helpers.git(['log', '--format=%s'], cwd)).split('\n')[0]).toBe(
+      'chore: link frictionsets to issues',
+    )
+  })
 })
 
 test('behavior: records the pull request in the issue body', async () => {

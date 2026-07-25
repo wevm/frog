@@ -1,9 +1,12 @@
 import { Cli, z } from 'incur'
 import type * as Frictionset from '../../Frictionset.js'
+import * as Git from '../../Git.js'
 import * as Store from '../../Store.js'
+import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
 import * as publisher from '../internal/publish.js'
+import * as target from '../internal/target.js'
 
 /** Normalizes `--pr` into `owner/name#number`, accepting a bare number. */
 function toPr(value: string, repo: string): string {
@@ -63,13 +66,7 @@ export const publish = Cli.create('publish', {
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
 
     const deferred: { id: string; reason: string }[] = []
-    const pending: Frictionset.Frictionset[] = []
-    for (const entry of entries.value) {
-      if (entry.issue) continue
-      // Cross-repo targeting needs the consent handshake, which is not wired up yet.
-      if (entry.target) deferred.push({ id: entry.id, reason: `target \`${entry.target}\`` })
-      else pending.push(entry)
-    }
+    const pending = entries.value.filter((entry) => !entry.issue)
 
     const max = c.options.max ?? config.maxPerRun
     for (const entry of pending.slice(max))
@@ -94,28 +91,80 @@ export const publish = Cli.create('publish', {
         },
       })
 
-    const outcome = await attempt(
-      publisher.file({
-        ...ready,
-        commit: (c.options.commit ?? config.commit) && !c.options.dryRun,
-        config,
-        entries: publishable,
-        root,
-        ...(c.options.dryRun ? { dryRun: true } : {}),
-        ...(c.options.pr ? { pr: toPr(c.options.pr, ready.repo) } : {}),
-      }),
-    )
-    if (!outcome.ok)
-      return c.error(
-        publisher.toFailure({
-          message: outcome.message,
-          repo: ready.repo,
-          ...(outcome.status !== undefined ? { status: outcome.status } : {}),
+    // Each entry's target is resolved through the consent gates before anything is filed, and entries
+    // are grouped by destination so one repository costs one index lookup however many entries it has.
+    const resolvers = target.resolvers({
+      allowedRepos: config.outbound.allowedRepos,
+      client: ready.client,
+      root,
+      self: ready.repo,
+    })
+
+    type Group = { entries: Frictionset.Frictionset[]; labels?: readonly string[] | undefined }
+    const groups = new Map<string, Group>()
+
+    for (const entry of publishable) {
+      const resolution = await attempt(Target.resolve(entry.target, resolvers))
+      if (!resolution.ok) {
+        deferred.push({ id: entry.id, reason: resolution.message })
+        continue
+      }
+      if (!resolution.value.ok) {
+        deferred.push({ id: entry.id, reason: resolution.value.message })
+        continue
+      }
+
+      const { labels, repo: destination } = resolution.value.target
+      const group = groups.get(destination) ?? {
+        entries: [],
+        ...(labels ? { labels } : {}),
+      }
+      group.entries.push(entry)
+      groups.set(destination, group)
+    }
+
+    const commented: publisher.Link[] = []
+    const created: publisher.Link[] = []
+    const written: string[] = []
+
+    for (const [destination, group] of groups) {
+      const outcome = await attempt(
+        publisher.file({
+          ...ready,
+          config,
+          entries: group.entries,
+          origin: ready.repo,
+          repo: destination,
+          root,
+          ...(group.labels ? { labels: group.labels } : {}),
+          ...(c.options.dryRun ? { dryRun: true } : {}),
+          ...(c.options.pr ? { pr: toPr(c.options.pr, ready.repo) } : {}),
         }),
       )
+      if (!outcome.ok)
+        return c.error(
+          publisher.toFailure({
+            message: outcome.message,
+            repo: destination,
+            ...(outcome.status !== undefined ? { status: outcome.status } : {}),
+          }),
+        )
+
+      commented.push(...outcome.value.commented)
+      created.push(...outcome.value.created)
+      written.push(...outcome.value.written)
+    }
+
+    // One commit, however many destinations were involved.
+    const committed = await (async () => {
+      if (!(c.options.commit ?? config.commit) || c.options.dryRun || written.length === 0)
+        return false
+      await Git.add(written, { cwd: root })
+      return Git.commit('chore: link frictionsets to issues', { cwd: root })
+    })()
 
     return c.ok(
-      { ...outcome.value, deferred },
+      { commented, committed, created, deferred },
       {
         cta: {
           commands: [{ command: 'list', description: 'See what is still pending' }],

@@ -10,8 +10,10 @@ export type Link = { id: string; issue: string }
 export type Outcome = {
   /** Entries that landed on an issue already covering them. */
   commented: Link[]
-  committed: boolean
   created: Link[]
+  /** Paths written, for the caller to stage. Filing may span several target repositories, and those
+   * belong in one commit. */
+  written: string[]
 }
 
 export type Ready = {
@@ -121,9 +123,12 @@ export declare namespace prepare {
  * rest pending. Nothing is lost, and re-running picks up where it stopped.
  */
 export async function file(options: file.Options): Promise<Outcome> {
-  const { client, commit, config, dryRun, entries, label, pr, repo, root } = options
+  const { client, config, dryRun, entries, label, origin, pr, repo, root } = options
 
-  const indexed = await Github.index(client, { label, repo })
+  // A cross-repo target may name its own labels, in which case dedupe must index by one of those and
+  // not by the sender's.
+  const applied = options.labels?.length ? options.labels : config.labels
+  const indexed = await Github.index(client, { label: applied[0] ?? label, repo })
   const [author, sha] = await Promise.all([Git.author({ cwd: root }), Git.head({ cwd: root })])
 
   const commented: Link[] = []
@@ -151,10 +156,12 @@ export async function file(options: file.Options): Promise<Outcome> {
       frictionset: entry,
       labels: Github.toLabels({
         frictionset: entry,
-        labels: config.labels,
+        labels: applied,
         severityLabels: config.severityLabels,
       }),
-      marker: { hash, origin: repo, path },
+      // `origin` is the repository holding the file, which is not the destination when reporting
+      // upstream. Getting this wrong would leave a closed issue unable to find its mirror.
+      marker: { hash, origin, path },
       provenance: { ...provenance, ...(pr ? { pr } : {}) },
       repo,
       ...(existing ? { existing } : {}),
@@ -169,24 +176,30 @@ export async function file(options: file.Options): Promise<Outcome> {
     if (!existing) indexed.set(hash, { number: result.issue, state: 'open', title: entry.title })
   }
 
-  const committed = await (async () => {
-    if (!commit || written.length === 0) return false
-    await Git.add(written, { cwd: root })
-    return Git.commit('chore: link frictionsets to issues', { cwd: root })
-  })()
-
-  return { commented, committed, created }
+  return { commented, created, written }
 }
 
 export declare namespace file {
+  /** Options for {@link file}. */
   type Options = Ready & {
-    /** Commit the written links. */
-    commit: boolean
+    /** Normalized sender config, for severity labels and the default label set. */
     config: Config.Config
+    /** Report what would happen without filing anything. */
     dryRun?: boolean | undefined
+    /** Entries to file. Every one must belong to `repo`. */
     entries: readonly Frictionset.Frictionset[]
+    /** Labels to apply, overriding the sender's. Set when a target named its own. */
+    labels?: readonly string[] | undefined
+    /**
+     * Repository holding the entry files, as `owner/name`.
+     *
+     * Distinct from `repo`, which is where the issue is filed. They differ whenever friction is
+     * reported upstream, and the marker records this one so a closed issue can find its mirror.
+     */
+    origin: string
     /** Pull request this is filed from, as `owner/name#number`. */
     pr?: string | undefined
+    /** Repository root. */
     root: string
   }
 }
