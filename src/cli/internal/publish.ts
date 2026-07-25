@@ -138,13 +138,7 @@ export async function file(options: file.Options): Promise<Outcome> {
   // not by the sender's.
   const applied = options.labels?.length ? options.labels : config.labels
 
-  // Without push access GitHub drops the labels, so indexing by label would find nothing and every
-  // consumer reporting the same friction would open its own issue. Fall back to searching by title.
-  const { push } = await Github.permissions(client, { repo })
-  const indexed = push
-    ? await Github.index(client, { label: applied[0] ?? label, repo })
-    : undefined
-
+  const matcher = await Github.matcher(client, { label: applied[0] ?? label, repo })
   const [author, sha] = await Promise.all([Git.author({ cwd: root }), Git.head({ cwd: root })])
 
   const commented: Link[] = []
@@ -155,9 +149,7 @@ export async function file(options: file.Options): Promise<Outcome> {
 
   for (const entry of entries) {
     const hash = Github.hash(entry.title)
-    const existing =
-      seen.get(hash) ??
-      (indexed ? indexed.get(hash) : await Github.find(client, { hash, repo, title: entry.title }))
+    const existing = seen.get(hash) ?? (await matcher.match(entry.title))
     const path = Store.toPath(entry.id)
 
     if (dryRun) {
@@ -200,7 +192,7 @@ export async function file(options: file.Options): Promise<Outcome> {
     created,
     written,
     // Reported rather than swallowed: the receiver asked for these and did not get them.
-    ...(!push && applied.length && !dryRun ? { unlabelled: [repo] } : { unlabelled: [] }),
+    unlabelled: !matcher.labelled && applied.length > 0 && !dryRun ? [repo] : [],
   }
 }
 

@@ -179,10 +179,19 @@ export async function fromPackage(
   if (!parsed?.frictionsets) return undefined
 
   const manifest = from(parsed.frictionsets)
-  if (!manifest) return undefined
+  return manifest ? named(manifest, name) : undefined
+}
 
-  // Looked up by name, so the name is known even when the field omits it. Corroboration compares
-  // against it, so it must not be left blank.
+/**
+ * Fills in what a lookup by package name already implies.
+ *
+ * Looked up by name, so the name is known even when the field omits it. Corroboration compares against
+ * both of these, so neither may be left blank. Shared by every reader — the filesystem one and the
+ * registry one the App uses — because a difference here would silently weaken the check.
+ *
+ * @param name - Package name the manifest was found under.
+ */
+export function named(manifest: Manifest, name: string): Manifest {
   return {
     ...manifest,
     name: manifest.name ?? name,

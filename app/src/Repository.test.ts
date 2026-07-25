@@ -5,8 +5,15 @@ import * as Repository from './Repository.js'
 const repo = 'acme/app'
 const dir = '.agents/frictionsets'
 
+// Throttling paces write requests about a second apart, which is right in production and pointless
+// against a local server.
 function client(url: string): Octokit {
-  return new Octokit({ auth: 'token', baseUrl: url })
+  return new Octokit({
+    auth: 'token',
+    baseUrl: url,
+    retry: { enabled: false },
+    throttle: { enabled: false },
+  })
 }
 
 function entry(title: string, body = 'Body.'): string {

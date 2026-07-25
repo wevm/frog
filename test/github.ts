@@ -8,8 +8,8 @@ import http from 'node:http'
  * dependency-free.
  */
 export type Instance = {
-  /** Comments added, keyed by `owner/name#number`. */
-  comments: Map<string, string[]>
+  /** Comment bodies on an issue, oldest first. */
+  comments: (repo: string, issue: number) => readonly string[]
   /** Contents of a branch, for asserting what a commit produced. */
   files: (repo: string, branch?: string) => Record<string, string>
   /** Issues by `owner/name`, in creation order. */
@@ -81,6 +81,12 @@ export type Options = {
    */
   files?: Record<string, Record<string, string>> | undefined
   /**
+   * npm packages served at `/registry/<name>/latest`, keyed by name.
+   *
+   * The App has no `node_modules`, so it reads consent from the registry instead.
+   */
+  packages?: Record<string, unknown> | undefined
+  /**
    * Repositories the token has push access to. `undefined` means all of them.
    *
    * GitHub silently drops `labels` on issue creation for a token without push access, which is the
@@ -115,7 +121,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     )
   }
 
-  const comments = new Map<string, string[]>()
+  const comments: { body: string; id: number; key: string }[] = []
   const requests: Request[] = []
 
   // Enough of the git object model to assert what a commit produced: blobs by sha, trees as resolved
@@ -160,6 +166,15 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       const owned = list ?? comment ?? one ?? repository
       const status = owned ? errors[`${owned[1]}/${owned[2]}`] : undefined
       if (status) return json(response, status, { message: 'Not Found' })
+
+      // The npm registry, which the App reads package manifests from.
+      const registry = /^\/registry\/(.+)\/latest$/.exec(url.pathname)
+      if (registry && request.method === 'GET') {
+        const name = decodeURIComponent(registry[1] ?? '')
+        const declared = options.packages?.[name]
+        if (declared === undefined) return json(response, 404, { message: 'Not Found' })
+        return json(response, 200, { frictionsets: declared, name })
+      }
 
       // `repos.get`, for whether this token may label issues here.
       if (repository && request.method === 'GET') {
@@ -232,8 +247,29 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       if (comment && request.method === 'POST') {
         const key = `${comment[1]}/${comment[2]}#${comment[3]}`
         const payload = await readBody<{ body?: string }>(request)
-        comments.set(key, [...(comments.get(key) ?? []), payload.body ?? ''])
-        return json(response, 201, { id: comments.get(key)?.length ?? 1 })
+        const id = comments.length + 1
+        comments.push({ body: payload.body ?? '', id, key })
+        return json(response, 201, { id })
+      }
+
+      if (comment && request.method === 'GET') {
+        const key = `${comment[1]}/${comment[2]}#${comment[3]}`
+        const listed = comments.filter((entry) => entry.key === key)
+        return json(
+          response,
+          200,
+          listed.map(({ body, id }) => ({ body, id })),
+        )
+      }
+
+      // `issues.updateComment`, which is how the pull request comment stays a single comment.
+      const editComment = /^\/repos\/([^/]+)\/([^/]+)\/issues\/comments\/(\d+)$/.exec(url.pathname)
+      if (editComment && request.method === 'PATCH') {
+        const payload = await readBody<{ body?: string }>(request)
+        const found = comments.find((entry) => entry.id === Number(editComment[3]))
+        if (!found) return json(response, 404, { message: 'Not Found' })
+        found.body = payload.body ?? ''
+        return json(response, 200, { body: found.body, id: found.id })
       }
 
       // `repos.getContent`, for reading entries and config without cloning.
@@ -357,7 +393,9 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   if (address === null || typeof address === 'string') throw new Error('Server has no port.')
 
   return {
-    comments,
+    comments(repo, issue) {
+      return comments.filter((entry) => entry.key === `${repo}#${issue}`).map((entry) => entry.body)
+    },
     files(repo, branch = 'main') {
       return Object.fromEntries(
         [...treeOf(repo, branch)].map(([path, sha]) => [path, blobs.get(sha) ?? '']),

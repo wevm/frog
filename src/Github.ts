@@ -533,6 +533,39 @@ export type Result = {
   status: 'commented' | 'created'
 }
 
+/** A dedupe lookup, plus whether labels will actually be applied. */
+export type Matcher = {
+  /** Whether the token may label issues here. When false, the receiver's labels are dropped. */
+  labelled: boolean
+  /**
+   * Finds the issue already covering a title.
+   *
+   * @param title - Entry title.
+   */
+  match: (title: string) => Promise<Issue | undefined>
+}
+
+/**
+ * Prepares dedupe for a repository, choosing a strategy the token can actually use.
+ *
+ * With push access, every issue is listed once by label and matched from memory. Without it, GitHub
+ * will have dropped that label on creation, so each title is searched instead. Both adapters go through
+ * here so the choice cannot drift between them.
+ *
+ * @param client - Authenticated client for the repository.
+ */
+export async function matcher(client: Client, options: index.Options): Promise<Matcher> {
+  const { push } = await permissions(client, { repo: options.repo })
+  if (!push)
+    return {
+      labelled: false,
+      match: (title) => find(client, { hash: hash(title), repo: options.repo, title }),
+    }
+
+  const indexed = await index(client, options)
+  return { labelled: true, match: async (title) => indexed.get(hash(title)) }
+}
+
 /**
  * Files an entry as an issue, or comments on the issue that already covers it.
  *

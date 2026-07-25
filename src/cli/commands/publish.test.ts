@@ -67,7 +67,7 @@ test('behavior: comments rather than duplicating when an issue already covers it
 
   expect(result.commented).toEqual([{ id: 'a', issue: `${repo}#1` }])
   expect(instance.issues.get(repo)).toHaveLength(1)
-  expect(instance.comments.get(`${repo}#1`)).toHaveLength(1)
+  expect(instance.comments(repo, 1)).toHaveLength(1)
 })
 
 // The App re-runs publish on every pull request `synchronize`, so this has to hold.

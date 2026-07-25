@@ -422,7 +422,7 @@ describe('publish', () => {
 
     expect(result).toEqual({ issue: 1, status: 'commented' })
     expect(instance.issues.get(repo)).toHaveLength(1)
-    expect(instance.comments.get(`${repo}#1`)).toMatchInlineSnapshot(`
+    expect(instance.comments(repo, 1)).toMatchInlineSnapshot(`
       [
         "Hit again by Test User via acme/app#42.
 
