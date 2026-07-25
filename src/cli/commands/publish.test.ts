@@ -14,6 +14,7 @@ type Outcome = {
   committed: boolean
   created: { id: string; issue: string }[]
   deferred: { id: string; reason: string }[]
+  unlabelled: string[]
 }
 
 function env(url: string): Record<string, string> {
@@ -235,6 +236,56 @@ describe('cross-repo', () => {
     expect(Github.parseMarker(instance.issues.get(upstream)?.[0]?.body)).toMatchObject({
       origin: repo,
     })
+  })
+
+  /** A consumer repository set up to report upstream. */
+  async function consumer(name: string) {
+    const cwd = await helpers.repo({ remote: `git@github.com:${name}.git` })
+    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    return cwd
+  }
+
+  // GitHub drops labels for a token without push access, which is every consumer reporting upstream.
+  // Dedupe must not depend on a label that never got applied.
+  test('behavior: two consumers reporting the same friction land on one issue', async () => {
+    const instance = await github({}, { pushAccess: [] })
+
+    const first = await consumer('acme/app')
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Filters ignored' },
+      { id: 'a', root: first },
+    )
+    const firstResult = await cli.data<Outcome>(['publish', '--cwd', first], env(instance.url))
+
+    const second = await consumer('other/app')
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: '  FILTERS   ignored!  ' },
+      { id: 'b', root: second },
+    )
+    const secondResult = await cli.data<Outcome>(['publish', '--cwd', second], env(instance.url))
+
+    expect(firstResult.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
+    expect(secondResult.commented).toEqual([{ id: 'b', issue: `${upstream}#1` }])
+    expect(instance.issues.get(upstream)).toHaveLength(1)
+  })
+
+  test('behavior: reports that the receiver labels could not be applied', async () => {
+    const instance = await github({}, { pushAccess: [] })
+    const cwd = await consumer('acme/app')
+    await Store.write(
+      { body, severity: 'minor', target: 'viem', title: 'Filters are ignored' },
+      { id: 'a', root: cwd },
+    )
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.unlabelled).toEqual([upstream])
+    expect(instance.issues.get(upstream)?.[0]?.labels).toEqual([])
   })
 
   test('behavior: defers a target the sender has not allowlisted', async () => {

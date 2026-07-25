@@ -248,6 +248,66 @@ describe('get', () => {
   })
 })
 
+describe('permissions', () => {
+  test('behavior: reports push access', async () => {
+    const instance = await github()
+    expect(await Github.permissions(client(instance.url), { repo })).toEqual({ push: true })
+  })
+
+  test('behavior: reports the absence of push access', async () => {
+    const instance = await github({}, { pushAccess: [] })
+    expect(await Github.permissions(client(instance.url), { repo })).toEqual({ push: false })
+  })
+
+  test('behavior: an unreadable repository reports no push access', async () => {
+    const instance = await github({}, { errors: { [repo]: 404 } })
+    expect(await Github.permissions(client(instance.url), { repo })).toEqual({ push: false })
+  })
+})
+
+describe('find', () => {
+  test('behavior: finds an unlabelled issue by its marker', async () => {
+    const instance = await github({
+      [repo]: [
+        { body: Github.renderMarker({ hash: Github.hash(title) }), labels: [], title: 'Anything' },
+      ],
+    })
+
+    // Deliberately a title the search would not match, so only the marker can identify it.
+    const found = await Github.find(client(instance.url), {
+      hash: Github.hash(title),
+      repo,
+      title: 'Anything',
+    })
+    expect(found?.number).toBe(1)
+  })
+
+  test('behavior: finds an unlabelled issue whose title normalizes the same', async () => {
+    const instance = await github({ [repo]: [{ body: 'Filed by hand.', labels: [], title }] })
+
+    const found = await Github.find(client(instance.url), {
+      hash: Github.hash(`  ${title.toUpperCase()}!  `),
+      repo,
+      title: `  ${title.toUpperCase()}!  `,
+    })
+    expect(found?.number).toBe(1)
+  })
+
+  test('behavior: undefined when nothing covers the friction', async () => {
+    const instance = await github({ [repo]: [{ labels: [], title: 'Unrelated' }] })
+    expect(
+      await Github.find(client(instance.url), { hash: Github.hash(title), repo, title }),
+    ).toBeUndefined()
+  })
+
+  test('behavior: ignores a pull request with a matching title', async () => {
+    const instance = await github({ [repo]: [{ labels: [], pull: true, title }] })
+    expect(
+      await Github.find(client(instance.url), { hash: Github.hash(title), repo, title }),
+    ).toBeUndefined()
+  })
+})
+
 describe('index', () => {
   test('behavior: indexes by marker hash', async () => {
     const instance = await github({

@@ -11,8 +11,17 @@ export type Outcome = {
   /** Entries that landed on an issue already covering them. */
   commented: Link[]
   created: Link[]
-  /** Paths written, for the caller to stage. Filing may span several target repositories, and those
-   * belong in one commit. */
+  /**
+   * Destinations whose labels were dropped, because the token cannot label there.
+   *
+   * Surfaced so a receiver's `inbound.labels` silently not applying is visible.
+   */
+  unlabelled: string[]
+  /**
+   * Paths written, for the caller to stage.
+   *
+   * Filing may span several destinations, and those belong in one commit.
+   */
   written: string[]
 }
 
@@ -128,16 +137,27 @@ export async function file(options: file.Options): Promise<Outcome> {
   // A cross-repo target may name its own labels, in which case dedupe must index by one of those and
   // not by the sender's.
   const applied = options.labels?.length ? options.labels : config.labels
-  const indexed = await Github.index(client, { label: applied[0] ?? label, repo })
+
+  // Without push access GitHub drops the labels, so indexing by label would find nothing and every
+  // consumer reporting the same friction would open its own issue. Fall back to searching by title.
+  const { push } = await Github.permissions(client, { repo })
+  const indexed = push
+    ? await Github.index(client, { label: applied[0] ?? label, repo })
+    : undefined
+
   const [author, sha] = await Promise.all([Git.author({ cwd: root }), Git.head({ cwd: root })])
 
   const commented: Link[] = []
   const created: Link[] = []
   const written: string[] = []
+  /** Filed during this run, so two entries with one title collapse onto one issue. */
+  const seen = new Map<string, Github.Issue>()
 
   for (const entry of entries) {
     const hash = Github.hash(entry.title)
-    const existing = indexed.get(hash)
+    const existing =
+      seen.get(hash) ??
+      (indexed ? indexed.get(hash) : await Github.find(client, { hash, repo, title: entry.title }))
     const path = Store.toPath(entry.id)
 
     if (dryRun) {
@@ -172,11 +192,16 @@ export async function file(options: file.Options): Promise<Outcome> {
     written.push(path)
     ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
 
-    // A second entry with the same title in one run must comment, not open another issue.
-    if (!existing) indexed.set(hash, { number: result.issue, state: 'open', title: entry.title })
+    if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
   }
 
-  return { commented, created, written }
+  return {
+    commented,
+    created,
+    written,
+    // Reported rather than swallowed: the receiver asked for these and did not get them.
+    ...(!push && applied.length && !dryRun ? { unlabelled: [repo] } : { unlabelled: [] }),
+  }
 }
 
 export declare namespace file {

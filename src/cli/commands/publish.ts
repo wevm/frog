@@ -58,6 +58,9 @@ export const publish = Cli.create('publish', {
     deferred: z
       .array(z.object({ id: z.string(), reason: z.string() }))
       .describe('Entries left pending, and why.'),
+    unlabelled: z
+      .array(z.string())
+      .describe('Destinations that dropped the labels, because this token cannot label there.'),
   }),
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
@@ -74,7 +77,7 @@ export const publish = Cli.create('publish', {
     const publishable = pending.slice(0, max)
 
     if (publishable.length === 0)
-      return c.ok({ commented: [], committed: false, created: [], deferred })
+      return c.ok({ commented: [], committed: false, created: [], deferred, unlabelled: [] })
 
     const ready = await publisher.prepare({
       config,
@@ -125,6 +128,7 @@ export const publish = Cli.create('publish', {
 
     const commented: publisher.Link[] = []
     const created: publisher.Link[] = []
+    const unlabelled: string[] = []
     const written: string[] = []
 
     for (const [destination, group] of groups) {
@@ -152,6 +156,7 @@ export const publish = Cli.create('publish', {
 
       commented.push(...outcome.value.commented)
       created.push(...outcome.value.created)
+      unlabelled.push(...outcome.value.unlabelled)
       written.push(...outcome.value.written)
     }
 
@@ -164,7 +169,7 @@ export const publish = Cli.create('publish', {
     })()
 
     return c.ok(
-      { commented, committed, created, deferred },
+      { commented, committed, created, deferred, unlabelled },
       {
         cta: {
           commands: [{ command: 'list', description: 'See what is still pending' }],

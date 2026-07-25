@@ -8,7 +8,7 @@ import * as Frictionset from './Frictionset.js'
  * Narrow on purpose: the App passes Probot's client, which is the same endpoint-methods object, so
  * neither caller has to construct the other's.
  */
-export type Client = Pick<Octokit['rest'], 'issues' | 'repos'>
+export type Client = Pick<Octokit['rest'], 'issues' | 'repos' | 'search'>
 
 /** A label as GitHub returns it: either the bare name, or an object holding one. */
 export type Label =
@@ -381,6 +381,72 @@ export declare namespace get {
     issue: number
     /** Repository holding the issue, as `owner/name`. */
     repo: string
+  }
+}
+
+/**
+ * Whether the token may label issues in a repository.
+ *
+ * GitHub silently drops `labels` on issue creation for a token without push access, which is the
+ * normal case when reporting friction upstream. That matters twice: the receiver's labels never get
+ * applied, and {@link index} cannot find the issue afterwards, because it finds issues *by* that
+ * label. {@link find} is the fallback.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns Whether labels will stick. Defaults to `false` when the answer cannot be read, since the
+ * only consequence is choosing the slower, label-independent lookup.
+ */
+export async function permissions(
+  client: Client,
+  options: { repo: string },
+): Promise<{ push: boolean }> {
+  try {
+    const response = await client.repos.get(split(options.repo))
+    return { push: response.data.permissions?.push === true }
+  } catch {
+    return { push: false }
+  }
+}
+
+/**
+ * Finds the issue already covering a friction, without relying on a label.
+ *
+ * Searches by title, then confirms the marker hash. Slower and backed by an eventually consistent
+ * index, so it is only used where {@link index} cannot work: a repository the token cannot label.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns The issue covering this friction, or `undefined`.
+ */
+export async function find(client: Client, options: find.Options): Promise<Issue | undefined> {
+  const { hash: key, repo, title } = options
+
+  // Searched normalized, not verbatim: the point is to find the same friction reported with different
+  // capitalization and punctuation, and GitHub tokenizes the phrase anyway.
+  const response = await client.search.issuesAndPullRequests({
+    per_page: 20,
+    q: `repo:${repo} is:issue in:title ${JSON.stringify(Frictionset.normalizeTitle(title))}`,
+  })
+  const candidates = response.data.items.filter(
+    (item) => !('pull_request' in item && item.pull_request),
+  )
+
+  // A marker is proof. A matching normalized title is the fallback, which is what catches an issue
+  // somebody filed by hand.
+  return (
+    candidates.find((item) => parseMarker(item.body)?.hash === key) ??
+    candidates.find((item) => hash(item.title) === key)
+  )
+}
+
+export declare namespace find {
+  /** Options for {@link find}. */
+  type Options = {
+    /** Dedupe key from {@link hash}. */
+    hash: string
+    /** Repository to search, as `owner/name`. */
+    repo: string
+    /** Title to search for. */
+    title: string
   }
 }
 

@@ -38,6 +38,21 @@ export type SeedIssue = {
   title: string
 }
 
+/**
+ * Approximates how GitHub tokenizes a title for phrase search: case and punctuation do not matter.
+ *
+ * Written independently of the normalizer under test, so a mismatch between the two would surface
+ * rather than cancel out.
+ */
+function tokenize(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .join(' ')
+}
+
 function json(response: http.ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body)
   response.writeHead(status, { 'content-type': 'application/json' })
@@ -55,11 +70,20 @@ async function readBody<value extends object>(request: http.IncomingMessage): Pr
 export type Options = {
   /** Repositories that respond with an error status, keyed by `owner/name`. */
   errors?: Record<string, number> | undefined
+  /**
+   * Repositories the token has push access to. `undefined` means all of them.
+   *
+   * GitHub silently drops `labels` on issue creation for a token without push access, which is the
+   * normal case when reporting friction upstream. Modelling it is the only way to test that path
+   * honestly.
+   */
+  pushAccess?: readonly string[] | undefined
 }
 
 /** Starts the server, stopping it when the test finishes. */
 export async function github(seed: Seed = {}, options: Options = {}): Promise<Instance> {
   const errors = options.errors ?? {}
+  const pushable = (repo: string) => !options.pushAccess || options.pushAccess.includes(repo)
   const issues = new Map<string, Issue[]>()
   const pulls = new Set<string>()
   let counter = 0
@@ -92,10 +116,36 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       const list = /^\/repos\/([^/]+)\/([^/]+)\/issues$/.exec(url.pathname)
       const comment = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)\/comments$/.exec(url.pathname)
       const one = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/.exec(url.pathname)
+      const repository = /^\/repos\/([^/]+)\/([^/]+)$/.exec(url.pathname)
 
-      const owned = list ?? comment ?? one
+      const owned = list ?? comment ?? one ?? repository
       const status = owned ? errors[`${owned[1]}/${owned[2]}`] : undefined
       if (status) return json(response, status, { message: 'Not Found' })
+
+      // `repos.get`, for whether this token may label issues here.
+      if (repository && request.method === 'GET') {
+        const name = `${repository[1]}/${repository[2]}`
+        return json(response, 200, {
+          full_name: name,
+          permissions: { pull: true, push: pushable(name) },
+        })
+      }
+
+      // `search.issuesAndPullRequests`, the label-independent dedupe path.
+      if (url.pathname === '/search/issues' && request.method === 'GET') {
+        const q = url.searchParams.get('q') ?? ''
+        const name = /repo:(\S+)/.exec(q)?.[1] ?? ''
+        const phrase = /"((?:[^"\\]|\\.)*)"/.exec(q)?.[1]?.replace(/\\(.)/g, '$1') ?? ''
+
+        const items = (issues.get(name) ?? [])
+          .filter((issue) => tokenize(issue.title) === tokenize(phrase))
+          .map((issue) => ({
+            ...issue,
+            // Search returns pull requests too, same as `listForRepo`.
+            ...(pulls.has(`${name}#${issue.number}`) ? { pull_request: { url: '' } } : {}),
+          }))
+        return json(response, 200, { items, total_count: items.length })
+      }
 
       if (one && request.method === 'GET') {
         const repo = `${one[1]}/${one[2]}`
@@ -130,7 +180,8 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         counter += 1
         const issue: Issue = {
           body: payload.body ?? '',
-          labels: payload.labels ?? [],
+          // Silently dropped without push access, exactly as GitHub does it.
+          labels: pushable(repo) ? (payload.labels ?? []) : [],
           number: counter,
           state: 'open',
           title: payload.title ?? '',
