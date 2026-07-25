@@ -28,7 +28,7 @@ handler again, and a fork's branch is unreachable anyway. Links land when the wo
 ## Cross-repo filing
 
 Filing on another repository needs an installation there. No installation means no token, so the App
-cannot file where it has not been installed — consent enforced by GitHub rather than by configuration.
+cannot file where it has not been installed: consent enforced by GitHub rather than by configuration.
 
 Beyond that it stays opt-in on the sender's side. Add the target to `outbound.allowedRepos`, and set
 `outbound.auto` to file without a human:

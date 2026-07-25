@@ -19,7 +19,7 @@
   <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#license">License</a>
 </p>
 
-Automated friction logs.
+Automated friction logging for agents.
 
 ## Problem
 
@@ -54,7 +54,7 @@ frog mcp add
 ```
 
 The skill carries the part that decides whether any of this happens: **when** to log. The short version is
-_log when you worked around something_ — a workaround is the sharpest evidence of friction, and the moment
+_log when you worked around something_. A workaround is the sharpest evidence of friction, and the moment
 you hit it is the only time the exact error text is still in context. See [`SKILL.md`](./SKILL.md) for the
 whole trigger, and for what not to log.
 
@@ -69,7 +69,7 @@ interpret prose or answer a question it cannot see.
 ```
 
 An entry is filed as an issue, so somebody owns it. The file then carries an `issue:` link, mirrors what
-happens to it, and is deleted once the friction is resolved — which is what keeps the list worth reading
+happens to it, and is deleted once the friction is resolved, which is what keeps the list worth reading
 without anyone pruning it.
 
 Every issue carries a hidden marker holding a hash of the normalized title, so `Filters ignored` and

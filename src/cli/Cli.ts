@@ -8,7 +8,7 @@ import { sync } from './commands/sync.js'
 import { targets } from './commands/targets.js'
 
 export const cli = Cli.create('frog', {
-  description: 'Automated friction logs.',
+  description: 'Automated friction logging for agents.',
   sync: {
     depth: 1,
     include: ['_root'],
