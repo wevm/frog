@@ -64,7 +64,12 @@ export const sync = Cli.create('sync', {
     // Always a remote read, even with no local entries: a reopened issue whose file was deleted has
     // nothing local to notice it by.
     const issues = await attempt(
-      Github.list(ready.client, { label: ready.label, repo: ready.repo }),
+      Sync.state({
+        entries: entries.value,
+        get: (issue) => Github.get(ready.client, { issue, repo: ready.repo }),
+        list: () => Github.list(ready.client, { label: ready.label, repo: ready.repo }),
+        repo: ready.repo,
+      }),
     )
     if (!issues.ok)
       return c.error(
@@ -75,35 +80,9 @@ export const sync = Cli.create('sync', {
         }),
       )
 
-    // A linked issue missing from the label listing may just have lost its label. Confirm each one
-    // directly before treating it as gone, or removing a label would clear the link and let the next
-    // publish open a duplicate. Only the suspicious cases cost a request.
-    const listed = new Set(issues.value.map((issue) => issue.number))
-    const unlisted = [
-      ...new Set(
-        entries.value
-          .map((entry) => (entry.issue ? Github.parseLink(entry.issue) : undefined))
-          .filter((link) => link && link.repo === ready.repo && !listed.has(link.issue))
-          .map((link) => link?.issue)
-          .filter((issue): issue is number => issue !== undefined),
-      ),
-    ]
-
-    const confirmed = await attempt(
-      Promise.all(unlisted.map((issue) => Github.get(ready.client, { issue, repo: ready.repo }))),
-    )
-    if (!confirmed.ok)
-      return c.error(
-        publisher.toFailure({
-          message: confirmed.message,
-          repo: ready.repo,
-          ...(confirmed.status !== undefined ? { status: confirmed.status } : {}),
-        }),
-      )
-
     const plan = Sync.plan({
       entries: entries.value,
-      issues: [...issues.value, ...confirmed.value.filter((issue) => issue !== undefined)],
+      issues: issues.value,
       labels: config.labels,
       repo: ready.repo,
       severityLabels: config.severityLabels,

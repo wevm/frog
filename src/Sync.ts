@@ -101,3 +101,49 @@ export declare namespace plan {
 export function empty(plan: Plan): boolean {
   return plan.clearLink.length === 0 && plan.remove.length === 0 && plan.write.length === 0
 }
+
+/**
+ * Assembles the issue set {@link plan} needs.
+ *
+ * A linked issue absent from the listing may simply have lost its label, so each one is confirmed
+ * directly before {@link plan} can conclude it is gone. Skipping this turns a label edit into a
+ * cleared link, and the next publish into a duplicate issue.
+ *
+ * Shared by both adapters through injected lookups: the CLI reads with a user token, the App with an
+ * installation token, and the reconciliation must not differ between them.
+ *
+ * @returns Every issue relevant to reconciling `repo`, listing plus confirmations.
+ */
+export async function state(options: state.Options): Promise<readonly Github.Issue[]> {
+  const { entries, get, list, repo } = options
+
+  const listed = await list()
+  const known = new Set(listed.map((issue) => issue.number))
+
+  const unlisted = [
+    ...new Set(
+      entries
+        .map((entry) => (entry.issue ? Github.parseLink(entry.issue) : undefined))
+        .filter((link) => link && link.repo === repo && !known.has(link.issue))
+        .map((link) => link?.issue)
+        .filter((issue): issue is number => issue !== undefined),
+    ),
+  ]
+
+  const confirmed = await Promise.all(unlisted.map((issue) => get(issue)))
+  return [...listed, ...confirmed.filter((issue) => issue !== undefined)]
+}
+
+export declare namespace state {
+  /** Options for {@link state}. */
+  type Options = {
+    /** Every local entry, from `Store.read` or the API. */
+    entries: readonly Frictionset.Frictionset[]
+    /** Fetches one issue by number, resolving to `undefined` when it does not exist. */
+    get: (issue: number) => Promise<Github.Issue | undefined>
+    /** Lists the issues frictionsets manages in `repo`. */
+    list: () => Promise<readonly Github.Issue[]>
+    /** Repository being reconciled, as `owner/name`. */
+    repo: string
+  }
+}

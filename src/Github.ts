@@ -329,7 +329,11 @@ export async function fetchFile(
   options: fetchFile.Options,
 ): Promise<string | undefined> {
   try {
-    const response = await client.repos.getContent({ ...split(options.repo), path: options.path })
+    const response = await client.repos.getContent({
+      ...split(options.repo),
+      path: options.path,
+      ...(options.ref ? { ref: options.ref } : {}),
+    })
     const data = response.data as { content?: string; encoding?: string; type?: string }
     if (data.type !== 'file' || !data.content) return undefined
     return Buffer.from(data.content, data.encoding === 'base64' ? 'base64' : 'utf8').toString(
@@ -346,8 +350,37 @@ export declare namespace fetchFile {
   type Options = {
     /** Repository-relative path. */
     path: string
+    /** Commit, branch, or tag to read at. Defaults to the repository's default branch. */
+    ref?: string | undefined
     /** Repository to read from, as `owner/name`. */
     repo: string
+  }
+}
+
+/**
+ * Lists the files directly inside a directory.
+ *
+ * Lets entries be enumerated without cloning, which is what allows reading a pull request head.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns Repository-relative paths of files, excluding subdirectories. Empty when the directory does
+ * not exist, which is the ordinary case for a repository that has logged no friction.
+ */
+export async function listFiles(
+  client: Client,
+  options: fetchFile.Options,
+): Promise<readonly string[]> {
+  try {
+    const response = await client.repos.getContent({
+      ...split(options.repo),
+      path: options.path,
+      ...(options.ref ? { ref: options.ref } : {}),
+    })
+    if (!Array.isArray(response.data)) return []
+    return response.data.filter((entry) => entry.type === 'file').map((entry) => entry.path)
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) return []
+    throw error
   }
 }
 

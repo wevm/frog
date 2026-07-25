@@ -1,5 +1,6 @@
 packages:
   - .
+  - app
 
 catalog:
   '@changesets/cli': latest
@@ -9,6 +10,7 @@ catalog:
   '@vitest/coverage-v8': latest
   human-id: ^4.2.0
   incur: 0.4.19
+  octokit: ^5.0.5
   tsx: ^4.23.1
   typescript: latest
   vite-plus: latest

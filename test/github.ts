@@ -10,8 +10,12 @@ import http from 'node:http'
 export type Instance = {
   /** Comments added, keyed by `owner/name#number`. */
   comments: Map<string, string[]>
+  /** Contents of a branch, for asserting what a commit produced. */
+  files: (repo: string, branch?: string) => Record<string, string>
   /** Issues by `owner/name`, in creation order. */
   issues: Map<string, Issue[]>
+  /** Commit messages by `owner/name`, newest last. */
+  messages: (repo: string, branch?: string) => readonly string[]
   /** Every request received, for asserting call counts. */
   requests: Request[]
   /** Base URL to hand Octokit. */
@@ -71,6 +75,12 @@ export type Options = {
   /** Repositories that respond with an error status, keyed by `owner/name`. */
   errors?: Record<string, number> | undefined
   /**
+   * Initial branch contents, as `{ 'owner/name': { path: contents } }`.
+   *
+   * Seeds a commit on `main` so the git data endpoints have a ref to build on.
+   */
+  files?: Record<string, Record<string, string>> | undefined
+  /**
    * Repositories the token has push access to. `undefined` means all of them.
    *
    * GitHub silently drops `labels` on issue creation for a token without push access, which is the
@@ -107,6 +117,35 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
 
   const comments = new Map<string, string[]>()
   const requests: Request[] = []
+
+  // Enough of the git object model to assert what a commit produced: blobs by sha, trees as resolved
+  // path maps, commits pointing at a tree, and refs pointing at a commit.
+  const blobs = new Map<string, string>()
+  const trees = new Map<string, Map<string, string>>()
+  const commits = new Map<string, { message: string; parent?: string | undefined; tree: string }>()
+  const refs = new Map<string, string>()
+  let objects = 0
+  const nextSha = () => `sha${(objects += 1).toString().padStart(4, '0')}`
+
+  for (const [repo, contents] of Object.entries(options.files ?? {})) {
+    const tree = new Map<string, string>()
+    for (const [path, body] of Object.entries(contents)) {
+      const sha = nextSha()
+      blobs.set(sha, body)
+      tree.set(path, sha)
+    }
+    const treeSha = nextSha()
+    trees.set(treeSha, tree)
+    const commitSha = nextSha()
+    commits.set(commitSha, { message: 'initial', tree: treeSha })
+    refs.set(`${repo}#main`, commitSha)
+  }
+
+  /** Resolves a branch to its tree, or an empty one. */
+  const treeOf = (repo: string, branch: string) => {
+    const commit = commits.get(refs.get(`${repo}#${branch}`) ?? '')
+    return trees.get(commit?.tree ?? '') ?? new Map<string, string>()
+  }
 
   const server = http.createServer((request, response) => {
     void (async () => {
@@ -197,6 +236,116 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         return json(response, 201, { id: comments.get(key)?.length ?? 1 })
       }
 
+      // `repos.getContent`, for reading entries and config without cloning.
+      const contents = /^\/repos\/([^/]+)\/([^/]+)\/contents\/(.*)$/.exec(url.pathname)
+      if (contents && request.method === 'GET') {
+        const name = `${contents[1]}/${contents[2]}`
+        const path = decodeURIComponent(contents[3] ?? '')
+        const ref = url.searchParams.get('ref') ?? 'main'
+
+        // A ref is either a branch we know or a commit sha.
+        const tree = refs.has(`${name}#${ref}`)
+          ? treeOf(name, ref)
+          : (trees.get(commits.get(ref)?.tree ?? '') ?? treeOf(name, 'main'))
+
+        const blob = tree.get(path)
+        if (blob !== undefined)
+          return json(response, 200, {
+            content: Buffer.from(blobs.get(blob) ?? '', 'utf8').toString('base64'),
+            encoding: 'base64',
+            path,
+            type: 'file',
+          })
+
+        const children = [...tree.keys()].filter((entry) => entry.startsWith(`${path}/`))
+        if (children.length === 0) return json(response, 404, { message: 'Not Found' })
+
+        return json(
+          response,
+          200,
+          children.map((entry) => ({
+            name: entry.slice(path.length + 1),
+            path: entry,
+            type: entry.slice(path.length + 1).includes('/') ? 'dir' : 'file',
+          })),
+        )
+      }
+
+      // Git data API: the App's write path, one tree and one commit per reconciliation.
+      const git = /^\/repos\/([^/]+)\/([^/]+)\/git\/(.+)$/.exec(url.pathname)
+      if (git) {
+        const name = `${git[1]}/${git[2]}`
+        // Octokit percent-encodes the slash in a ref path param, which real GitHub accepts.
+        const rest = decodeURIComponent(git[3] ?? '')
+
+        const readRef = /^ref\/heads\/(.+)$/.exec(rest)
+        if (readRef && request.method === 'GET') {
+          const sha = refs.get(`${name}#${readRef[1]}`)
+          if (!sha) return json(response, 404, { message: 'Not Found' })
+          return json(response, 200, {
+            object: { sha, type: 'commit' },
+            ref: `refs/heads/${readRef[1]}`,
+          })
+        }
+
+        const readCommit = /^commits\/(.+)$/.exec(rest)
+        if (readCommit && request.method === 'GET') {
+          const commit = commits.get(readCommit[1] ?? '')
+          if (!commit) return json(response, 404, { message: 'Not Found' })
+          return json(response, 200, { sha: readCommit[1], tree: { sha: commit.tree } })
+        }
+
+        if (rest === 'blobs' && request.method === 'POST') {
+          const payload = await readBody<{ content?: string; encoding?: string }>(request)
+          const sha = nextSha()
+          blobs.set(
+            sha,
+            Buffer.from(
+              payload.content ?? '',
+              payload.encoding === 'base64' ? 'base64' : 'utf8',
+            ).toString('utf8'),
+          )
+          return json(response, 201, { sha })
+        }
+
+        if (rest === 'trees' && request.method === 'POST') {
+          const payload = await readBody<{
+            base_tree?: string
+            tree?: { path?: string; sha?: string | null }[]
+          }>(request)
+          const base = new Map(trees.get(payload.base_tree ?? '') ?? [])
+          for (const entry of payload.tree ?? []) {
+            if (!entry.path) continue
+            // A null sha against a base tree deletes the path.
+            if (entry.sha === null) base.delete(entry.path)
+            else if (entry.sha) base.set(entry.path, entry.sha)
+          }
+          const sha = nextSha()
+          trees.set(sha, base)
+          return json(response, 201, { sha })
+        }
+
+        if (rest === 'commits' && request.method === 'POST') {
+          const payload = await readBody<{ message?: string; parents?: string[]; tree?: string }>(
+            request,
+          )
+          const sha = nextSha()
+          commits.set(sha, {
+            message: payload.message ?? '',
+            tree: payload.tree ?? '',
+            ...(payload.parents?.[0] ? { parent: payload.parents[0] } : {}),
+          })
+          return json(response, 201, { sha, tree: { sha: payload.tree } })
+        }
+
+        const writeRef = /^refs\/heads\/(.+)$/.exec(rest)
+        if (writeRef && request.method === 'PATCH') {
+          const payload = await readBody<{ sha?: string }>(request)
+          if (payload.sha) refs.set(`${name}#${writeRef[1]}`, payload.sha)
+          return json(response, 200, { object: { sha: payload.sha } })
+        }
+      }
+
       return json(response, 404, { message: `Not Found: ${request.method} ${url.pathname}` })
     })()
   })
@@ -207,5 +356,26 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   const address = server.address()
   if (address === null || typeof address === 'string') throw new Error('Server has no port.')
 
-  return { comments, issues, requests, url: `http://127.0.0.1:${address.port}` }
+  return {
+    comments,
+    files(repo, branch = 'main') {
+      return Object.fromEntries(
+        [...treeOf(repo, branch)].map(([path, sha]) => [path, blobs.get(sha) ?? '']),
+      )
+    },
+    issues,
+    messages(repo, branch = 'main') {
+      const collected: string[] = []
+      let sha = refs.get(`${repo}#${branch}`)
+      while (sha) {
+        const commit = commits.get(sha)
+        if (!commit) break
+        collected.unshift(commit.message)
+        sha = commit.parent
+      }
+      return collected
+    },
+    requests,
+    url: `http://127.0.0.1:${address.port}`,
+  }
 }
