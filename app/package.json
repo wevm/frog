@@ -1,16 +1,16 @@
 {
-  "name": "@frictionsets/app",
+  "name": "@frog/app",
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "GitHub App that files frictionsets as issues and keeps the two in sync.",
+  "description": "GitHub App that files frog as issues and keeps the two in sync.",
   "scripts": {
     "check:types": "tsc",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev"
   },
   "dependencies": {
-    "frictionsets": "workspace:*",
+    "frog": "workspace:*",
     "octokit": "catalog:"
   },
   "devDependencies": {

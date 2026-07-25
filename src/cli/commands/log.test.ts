@@ -14,7 +14,7 @@ test('behavior: writes an entry', async () => {
   const result = await cli.data<Logged>(['log', title, '--body', body, '--cwd', cwd])
 
   expect(result.title).toBe(title)
-  expect(result.file).toBe(`.agents/frictionsets/${result.id}.md`)
+  expect(result.file).toBe(`.agents/friction-log/${result.id}.md`)
 
   expect(await Store.get(result.id, { root: cwd })).toMatchObject({
     body,
@@ -159,7 +159,7 @@ describe('--publish', () => {
 
     expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe('init')
     expect(await helpers.git(['status', '--porcelain', '--untracked-files=all'], cwd)).toContain(
-      '.agents/frictionsets/',
+      '.agents/friction-log/',
     )
   })
 })

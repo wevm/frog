@@ -1,21 +1,21 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import * as Frictionset from './Frictionset.js'
+import * as Entry from './Entry.js'
 
-/** Directory holding frictionset entries, relative to the repository root. */
-export const dir = '.agents/frictionsets'
+/** Directory holding entries, relative to the repository root. */
+export const dir = '.agents/friction-log'
 
 /** Files in `dir` that are documentation or config, never entries. */
 const ignored = new Set(['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'README.md', 'TEMPLATE.md'])
 
 /** Options shared by every store operation. */
 export type Options = {
-  /** Repository root. Entries live in `<root>/.agents/frictionsets`. */
+  /** Repository root. Entries live in `<root>/.agents/friction-log`. */
   root: string
 }
 
 /**
- * Path of a frictionset file, relative to the repository root.
+ * Path of an entry file, relative to the repository root.
  *
  * @param id - Entry id, without the `.md` extension.
  * @returns The repository-relative path.
@@ -25,7 +25,7 @@ export function toPath(id: string): string {
 }
 
 /**
- * Id of the frictionset a repository-relative path refers to.
+ * Id of the entry a repository-relative path refers to.
  *
  * The inverse of {@link toPath}, and the filter that decides whether a changed file in a pull request
  * is an entry at all.
@@ -50,7 +50,7 @@ function isEntry(name: string): boolean {
  * @returns Every entry. Throws on the first malformed file rather than skipping it, so a broken entry
  * cannot go unnoticed.
  */
-export async function read(options: Options): Promise<readonly Frictionset.Frictionset[]> {
+export async function read(options: Options): Promise<readonly Entry.Entry[]> {
   const ids = await list(options)
   return Promise.all(ids.map((id) => get(id, options)))
 }
@@ -77,9 +77,9 @@ export async function list(options: Options): Promise<readonly string[]> {
  *
  * @param id - Entry id, without the `.md` extension.
  */
-export async function get(id: string, options: Options): Promise<Frictionset.Frictionset> {
+export async function get(id: string, options: Options): Promise<Entry.Entry> {
   const contents = await fs.readFile(path.join(options.root, toPath(id)), 'utf8')
-  return Frictionset.parse(contents, { id })
+  return Entry.parse(contents, { id })
 }
 
 /**
@@ -91,13 +91,13 @@ export async function get(id: string, options: Options): Promise<Frictionset.Fri
  * @returns The id used and the path written.
  */
 export async function write(
-  frictionset: Frictionset.serialize.Options,
+  entry: Entry.serialize.Options,
   options: write.Options,
 ): Promise<write.ReturnType> {
-  const id = options.id ?? Frictionset.newId()
+  const id = options.id ?? Entry.newId()
   const file = toPath(id)
   await fs.mkdir(path.join(options.root, dir), { recursive: true })
-  await fs.writeFile(path.join(options.root, file), Frictionset.serialize(frictionset), 'utf8')
+  await fs.writeFile(path.join(options.root, file), Entry.serialize(entry), 'utf8')
   return { file, id }
 }
 
@@ -106,7 +106,7 @@ export declare namespace write {
   type Options = {
     /** Reuse an existing id, overwriting that entry, instead of minting a new one. */
     id?: string | undefined
-    /** Repository root. Entries live in `<root>/.agents/frictionsets`. */
+    /** Repository root. Entries live in `<root>/.agents/friction-log`. */
     root: string
   }
   /** Result of {@link write}. */

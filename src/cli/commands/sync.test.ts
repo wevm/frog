@@ -59,7 +59,7 @@ test('behavior: a closed issue deletes its entry and commits', async () => {
   expect(result).toMatchObject({ committed: true, removed: ['a'] })
   expect(await Store.list({ root: cwd })).toEqual([])
   expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe(
-    'chore: sync frictionsets with issues',
+    'chore: sync friction log with issues',
   )
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
 })
@@ -183,7 +183,7 @@ test('behavior: --no-commit leaves the change uncommitted', async () => {
   const result = await cli.data<Outcome>(['sync', '--cwd', cwd, '--no-commit'], env(instance.url))
 
   expect(result.committed).toBe(false)
-  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain('.agents/frictionsets/a.md')
+  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain('.agents/friction-log/a.md')
 })
 
 // Runs on a schedule and on every issue event, so a second pass must do nothing.

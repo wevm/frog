@@ -7,7 +7,7 @@
     "check:docs": "node --import tsx scripts/docs.ts",
     "check:types": "tsc",
     "dev": "zile dev",
-    "frictionsets": "node --import tsx src/bin.ts",
+    "frog": "node --import tsx src/bin.ts",
     "schema": "node --import tsx scripts/schema.ts",
     "test": "vp test"
   },
@@ -22,14 +22,14 @@
   },
   "packageManager": "pnpm@11.15.0",
   "[!start-pkg]": "",
-  "name": "frictionsets",
+  "name": "frog",
   "type": "module",
   "version": "0.0.0",
   "license": "MIT",
   "description": "Changesets, but for friction logs. Turn friction you hit while building into GitHub issues.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wevm/frictionsets"
+    "url": "https://github.com/wevm/frog"
   },
   "keywords": [
     "agents",
@@ -39,8 +39,8 @@
     "github-issues"
   ],
   "bin": {
-    "frictionsets": "./dist/bin.js",
-    "frictionsets.src": "./src/bin.ts"
+    "frog": "./dist/bin.js",
+    "frog.src": "./src/bin.ts"
   },
   "files": [
     "dist",

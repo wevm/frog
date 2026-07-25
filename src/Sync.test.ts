@@ -1,4 +1,4 @@
-import type * as Frictionset from './Frictionset.js'
+import type * as Entry from './Entry.js'
 import * as Github from './Github.js'
 import * as Store from './Store.js'
 import * as Sync from './Sync.js'
@@ -11,7 +11,7 @@ const severityLabels = {
   minor: 'friction:minor',
 } as const
 
-function entry(overrides: Partial<Frictionset.Frictionset> = {}): Frictionset.Frictionset {
+function entry(overrides: Partial<Entry.Entry> = {}): Entry.Entry {
   return { body: 'Body.', id: 'a', severity: 'minor', title: 'Filters ignored', ...overrides }
 }
 
@@ -29,10 +29,7 @@ function issue(overrides: Partial<Github.Issue> = {}): Github.Issue {
   }
 }
 
-function plan(
-  entries: readonly Frictionset.Frictionset[],
-  issues: readonly Github.Issue[],
-): Sync.Plan {
+function plan(entries: readonly Entry.Entry[], issues: readonly Github.Issue[]): Sync.Plan {
   return Sync.plan({ entries, issues, labels, repo, severityLabels })
 }
 
@@ -186,10 +183,7 @@ describe('plan across repositories', () => {
     }
   }
 
-  function across(
-    entries: readonly Frictionset.Frictionset[],
-    issues: readonly Github.Issue[],
-  ): Sync.Plan {
+  function across(entries: readonly Entry.Entry[], issues: readonly Github.Issue[]): Sync.Plan {
     return Sync.plan({ entries, issues, labels, origin: repo, repo: upstream, severityLabels })
   }
 
@@ -231,10 +225,7 @@ function bodyFor(id: string): string {
 // Reconciliation runs on a schedule and on every issue event, so a second pass must be a no-op.
 describe('idempotency', () => {
   /** Applies a plan to a local entry set, the way the CLI does. */
-  function apply(
-    entries: readonly Frictionset.Frictionset[],
-    result: Sync.Plan,
-  ): readonly Frictionset.Frictionset[] {
+  function apply(entries: readonly Entry.Entry[], result: Sync.Plan): readonly Entry.Entry[] {
     const removed = new Set(result.remove)
     const replaced = new Map(
       [...result.write, ...result.clearLink].map((value) => [value.id, value]),

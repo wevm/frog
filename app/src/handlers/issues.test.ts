@@ -1,11 +1,11 @@
-import { Github, Store } from 'frictionsets'
+import { Github, Store } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import { issues } from './issues.js'
 
 const consumer = 'acme/app'
 const upstream = 'wevm/viem'
-const dir = '.agents/frictionsets'
+const dir = '.agents/friction-log'
 const title = 'Filters ignored'
 
 function client(url: string): Octokit {
@@ -49,7 +49,7 @@ describe('same repository', () => {
 
     expect(outcome.plan?.remove).toEqual(['a'])
     expect(instance.files(consumer)[`${dir}/a.md`]).toBeUndefined()
-    expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync frictionsets with issues'])
+    expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync friction log with issues'])
   })
 
   test('behavior: a reopened issue rebuilds the entry that was deleted', async () => {
@@ -150,7 +150,7 @@ describe('cross-repo', () => {
       repo: upstream,
     })
 
-    expect(outcome.ignored).toBe('frictionsets is not installed on `acme/app`')
+    expect(outcome.ignored).toBe('frog is not installed on `acme/app`')
     expect(instance.files(consumer)[`${dir}/a.md`]).toBeTruthy()
   })
 })
@@ -169,7 +169,7 @@ test('behavior: an issue with no marker is ignored', async () => {
     repo: consumer,
   })
 
-  expect(outcome.ignored).toBe('no frictionsets marker')
+  expect(outcome.ignored).toBe('no frog marker')
   expect(instance.messages(consumer)).toEqual(['initial'])
 })
 
@@ -188,5 +188,5 @@ test('behavior: an issue whose marker has no path is ignored', async () => {
     repo: consumer,
   })
 
-  expect(outcome.ignored).toBe('no frictionsets marker')
+  expect(outcome.ignored).toBe('no frog marker')
 })

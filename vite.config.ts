@@ -6,7 +6,7 @@ const dir = import.meta.dirname
 export default defineConfig({
   test: {
     alias: {
-      frictionsets: path.resolve(dir, 'src'),
+      frog: path.resolve(dir, 'src'),
     },
     coverage: {
       exclude: ['coverage/**', 'dist/**', 'scripts/**', '**/*.test.ts', '**/*.test-d.ts'],

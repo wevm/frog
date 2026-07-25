@@ -11,9 +11,9 @@ test('behavior: scaffolds the directory', async () => {
   expect(await cli.data(['init', '--cwd', cwd])).toMatchInlineSnapshot(`
     {
       "created": [
-        ".agents/frictionsets/README.md",
-        ".agents/frictionsets/TEMPLATE.md",
-        ".agents/frictionsets/config.json",
+        ".agents/friction-log/README.md",
+        ".agents/friction-log/TEMPLATE.md",
+        ".agents/friction-log/config.json",
       ],
       "existing": [],
     }
@@ -43,9 +43,9 @@ test('behavior: re-running never clobbers local edits', async () => {
   expect(await cli.data(['init', '--cwd', cwd])).toMatchObject({
     created: [],
     existing: [
-      '.agents/frictionsets/README.md',
-      '.agents/frictionsets/TEMPLATE.md',
-      '.agents/frictionsets/config.json',
+      '.agents/friction-log/README.md',
+      '.agents/friction-log/TEMPLATE.md',
+      '.agents/friction-log/config.json',
     ],
   })
   expect((await Config.resolve({ root: cwd })).maxPerRun).toBe(3)

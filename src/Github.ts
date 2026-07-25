@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import type { Octokit } from '@octokit/rest'
-import * as Frictionset from './Frictionset.js'
+import * as Entry from './Entry.js'
 
 /**
  * The slice of Octokit this module uses.
@@ -97,13 +97,13 @@ export function parseLink(link: string): { issue: number; repo: string } | undef
  * @returns The first 12 hex characters of the normalized title's sha256.
  */
 export function hash(title: string): string {
-  return createHash('sha256').update(Frictionset.normalizeTitle(title)).digest('hex').slice(0, 12)
+  return createHash('sha256').update(Entry.normalizeTitle(title)).digest('hex').slice(0, 12)
 }
 
 /** Marker format version, so a future format change can be recognized rather than misread. */
 export const markerVersion = 'v1'
 
-const markerRegex = /<!--\s*frictionsets:v1\s+([^>]*?)\s*-->/
+const markerRegex = /<!--\s*frog:v1\s+([^>]*?)\s*-->/
 
 /**
  * Hidden state carried in an issue body.
@@ -129,7 +129,7 @@ export function renderMarker(marker: Marker): string {
   const parts = [`hash=${marker.hash}`]
   if (marker.path) parts.push(`path=${marker.path}`)
   if (marker.origin) parts.push(`origin=${marker.origin}`)
-  return `<!-- frictionsets:${markerVersion} ${parts.join(' ')} -->`
+  return `<!-- frog:${markerVersion} ${parts.join(' ')} -->`
 }
 
 /**
@@ -193,7 +193,7 @@ export function renderBody(options: renderBody.Options): string {
     .filter(Boolean)
     .join(' ')
 
-  const footer = `<sub>${credits}. Filed by [frictionsets](https://github.com/wevm/frictionsets).</sub>`
+  const footer = `<sub>${credits}. Filed by [frog](https://github.com/wevm/frog).</sub>`
 
   return `${body.trim()}\n\n${renderMarker(marker)}\n\n---\n\n${footer}\n`
 }
@@ -201,7 +201,7 @@ export function renderBody(options: renderBody.Options): string {
 export declare namespace renderBody {
   /** Options for {@link renderBody}. */
   type Options = {
-    /** The frictionset body, verbatim. */
+    /** The entry body, verbatim. */
     body: string
     /** Hidden state to embed. Its `origin` also appears in the footer. */
     marker: Marker
@@ -211,7 +211,7 @@ export declare namespace renderBody {
 }
 
 /**
- * Recovers the frictionset body from an issue body.
+ * Recovers the entry body from an issue body.
  *
  * The inverse of {@link renderBody}, which the reopen path depends on to rebuild a deleted file.
  *
@@ -230,21 +230,19 @@ export function parseBody(body: string | null | undefined): string {
  * @returns Labels in that order, deduplicated.
  */
 export function toLabels(options: toLabels.Options): readonly string[] {
-  const { frictionset, labels, severityLabels } = options
-  return [
-    ...new Set([...labels, severityLabels[frictionset.severity], ...(frictionset.labels ?? [])]),
-  ]
+  const { entry, labels, severityLabels } = options
+  return [...new Set([...labels, severityLabels[entry.severity], ...(entry.labels ?? [])])]
 }
 
 export declare namespace toLabels {
   /** Options for {@link toLabels}. */
   type Options = {
     /** The entry, for its own labels and its severity. */
-    frictionset: Pick<Frictionset.Frictionset, 'labels' | 'severity'>
+    entry: Pick<Entry.Entry, 'labels' | 'severity'>
     /** Labels applied to every issue, from config. */
     labels: readonly string[]
     /** Label to apply for each severity, from config. */
-    severityLabels: Record<Frictionset.Severity, string>
+    severityLabels: Record<Entry.Severity, string>
   }
 }
 
@@ -256,12 +254,12 @@ export declare namespace toLabels {
  *
  * @returns The rebuilt entry, already linked to the issue.
  */
-export function fromIssue(issue: Issue, options: fromIssue.Options): Frictionset.Frictionset {
+export function fromIssue(issue: Issue, options: fromIssue.Options): Entry.Entry {
   const { id, labels, repo, severityLabels } = options
 
   const names = toLabelNames(issue)
   const severity =
-    Frictionset.severities.find((value) => names.includes(severityLabels[value])) ?? 'minor'
+    Entry.severities.find((value) => names.includes(severityLabels[value])) ?? 'minor'
   const managed = new Set<string>([...labels, ...Object.values(severityLabels)])
   const extra = names.filter((name) => !managed.has(name))
 
@@ -285,7 +283,7 @@ export declare namespace fromIssue {
     /** Repository holding the issue, as `owner/name`. */
     repo: string
     /** Label to apply for each severity, from config. Reversed to recover severity. */
-    severityLabels: Record<Frictionset.Severity, string>
+    severityLabels: Record<Entry.Severity, string>
   }
 }
 
@@ -477,7 +475,7 @@ export async function find(client: Client, options: find.Options): Promise<Issue
   // capitalization and punctuation, and GitHub tokenizes the phrase anyway.
   const response = await client.search.issuesAndPullRequests({
     per_page: 20,
-    q: `repo:${repo} is:issue in:title ${JSON.stringify(Frictionset.normalizeTitle(title))}`,
+    q: `repo:${repo} is:issue in:title ${JSON.stringify(Entry.normalizeTitle(title))}`,
   })
   const candidates = response.data.items.filter(
     (item) => !('pull_request' in item && item.pull_request),
@@ -504,7 +502,7 @@ export declare namespace find {
 }
 
 /**
- * Every issue frictionsets manages in a repository.
+ * Every issue frog manages in a repository.
  *
  * @param client - Authenticated client for the repository.
  * @returns Issues carrying the label, oldest first, with pull requests filtered out.
@@ -536,7 +534,7 @@ export async function list(client: Client, options: index.Options): Promise<read
 export declare namespace index {
   /** Options for {@link index}. */
   type Options = {
-    /** Label every frictionsets issue in this repository carries. Dedupe keys off it. */
+    /** Label every frog issue in this repository carries. Dedupe keys off it. */
     label: string
     /** Repository to index, as `owner/name`. */
     repo: string
@@ -596,9 +594,9 @@ export async function matcher(client: Client, options: index.Options): Promise<M
  * @returns The issue number and whether it was opened or commented on.
  */
 export async function publish(client: Client, options: publish.Options): Promise<Result> {
-  const { existing, frictionset, labels, marker, provenance, repo } = options
+  const { existing, entry, labels, marker, provenance, repo } = options
   const body = renderBody({
-    body: frictionset.body,
+    body: entry.body,
     marker,
     ...(provenance ? { provenance } : {}),
   })
@@ -615,7 +613,7 @@ export async function publish(client: Client, options: publish.Options): Promise
 
     await client.issues.createComment({
       ...split(repo),
-      body: `${note}.\n\n${frictionset.body.trim()}\n`,
+      body: `${note}.\n\n${entry.body.trim()}\n`,
       issue_number: existing.number,
     })
     return { issue: existing.number, status: 'commented' }
@@ -625,7 +623,7 @@ export async function publish(client: Client, options: publish.Options): Promise
     ...split(repo),
     body,
     labels: [...labels],
-    title: frictionset.title,
+    title: entry.title,
   })
   return { issue: created.data.number, status: 'created' }
 }
@@ -640,7 +638,7 @@ export declare namespace publish {
      */
     existing?: Issue | undefined
     /** The entry, for its title and body. */
-    frictionset: Pick<Frictionset.Frictionset, 'body' | 'title'>
+    entry: Pick<Entry.Entry, 'body' | 'title'>
     /** Labels for a newly opened issue. Ignored when commenting. */
     labels: readonly string[]
     /** Hidden state to embed, from {@link hash} plus the file path and origin repository. */

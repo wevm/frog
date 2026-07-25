@@ -74,7 +74,7 @@ describe('init --library', () => {
     expect((await Config.resolve({ root: cwd })).inbound.enabled).toBe(true)
     expect(result.declare).toMatchInlineSnapshot(`
       "{
-        "frictionsets": {
+        "frog": {
           "inbound": true,
           "repo": "wevm/viem"
         }
@@ -86,7 +86,7 @@ describe('init --library', () => {
     const cwd = await helpers.repo({ remote })
     const result = await cli.data<{ declare: string }>(['init', '--library', '--cwd', cwd])
 
-    const field = (JSON.parse(result.declare) as { frictionsets: unknown }).frictionsets
+    const field = (JSON.parse(result.declare) as { frog: unknown }).frog
     expect(Manifest.from(field)).toMatchObject({ inbound: { enabled: true }, repo })
   })
 

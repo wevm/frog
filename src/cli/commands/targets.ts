@@ -16,7 +16,7 @@ export const targets = Cli.create('targets', {
     { description: 'Which dependencies accept reports' },
     { description: 'Include projects that only advertise on a site', options: { probe: true } },
   ],
-  hint: 'Report to one of these with `frictionsets log --target <name>`.',
+  hint: 'Report to one of these with `frog log --target <name>`.',
   output: z.object({
     targets: z.array(
       z.object({

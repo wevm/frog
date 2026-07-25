@@ -2,16 +2,16 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { Cli, z } from 'incur'
 import * as Config from '../../Config.js'
-import * as Frictionset from '../../Frictionset.js'
+import * as Entry from '../../Entry.js'
 import * as Store from '../../Store.js'
 import * as context from '../internal/context.js'
 
 /** The rule to paste into `AGENTS.md`, and the reason it says *when* rather than just *what*. */
 export const rule =
   'Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
-  '`frictionsets log`. Run `frictionsets list` first to see what is already known.'
+  '`frog log`. Run `frog list` first to see what is already known.'
 
-const readme = `# Frictionsets
+const readme = `# Entrys
 
 Friction hit while working in this repository, one file per item.
 
@@ -24,8 +24,8 @@ Do not maintain an index here. The issue list is the index.
 ## Logging Friction
 
 \`\`\`sh
-frictionsets list    # what is already known
-frictionsets log     # add one
+frog list    # what is already known
+frog log     # add one
 \`\`\`
 
 Follow [\`TEMPLATE.md\`](./TEMPLATE.md). Filenames are random and mean nothing: they exist only so two
@@ -37,7 +37,7 @@ Add this to \`AGENTS.md\`:
 
 > ${rule}
 
-Managed by [frictionsets](https://github.com/wevm/frictionsets).
+Managed by [frog](https://github.com/wevm/frog).
 `
 
 const template = `---
@@ -48,9 +48,9 @@ severity: minor # blocker | major | minor
 #   - tooling
 ---
 
-${Frictionset.template}`
+${Entry.template}`
 
-const schema = 'https://unpkg.com/frictionsets/schema.json'
+const schema = 'https://unpkg.com/frog/schema.json'
 
 const config = `{
   "$schema": "${schema}"
@@ -67,7 +67,7 @@ const libraryConfig = `{
 `
 
 export const init = Cli.create('init', {
-  description: 'Set up `.agents/frictionsets` in this repository.',
+  description: 'Set up `.agents/friction-log` in this repository.',
   options: z.object({
     cwd: context.cwdOption,
     library: z
@@ -76,7 +76,7 @@ export const init = Cli.create('init', {
       .describe('Also accept friction reported by consumers of this project.'),
   }),
   examples: [
-    { description: 'Set up frictionsets' },
+    { description: 'Set up frog' },
     { description: 'Become a friction target', options: { library: true } },
   ],
   output: z.object({
@@ -114,7 +114,7 @@ export const init = Cli.create('init', {
     // Printed rather than written: rewriting `package.json` would reformat a file we do not own.
     const declare =
       c.options.library && repo
-        ? JSON.stringify({ frictionsets: { inbound: true, repo } }, null, 2)
+        ? JSON.stringify({ frog: { inbound: true, repo } }, null, 2)
         : undefined
 
     return c.ok(

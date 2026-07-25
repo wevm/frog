@@ -1,4 +1,4 @@
-import type { Manifest } from 'frictionsets'
+import type { Manifest } from 'frog'
 
 /**
  * A cache in memory.

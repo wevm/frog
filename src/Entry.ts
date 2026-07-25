@@ -15,7 +15,7 @@ export type Severity = (typeof severities)[number]
 /** Schema for {@link Severity}. */
 export const Severity = z.enum(severities)
 
-/** Frontmatter of a frictionset file. */
+/** Frontmatter of an entry file. */
 export type Frontmatter = {
   /** Linked issue as `owner/name#number`. Written by publishing, absent while pending. */
   issue?: string | undefined
@@ -52,7 +52,7 @@ export const Frontmatter: z.ZodType<Frontmatter> = z.object({
 })
 
 /** A friction entry: its frontmatter, its markdown body, and the id taken from its filename. */
-export type Frictionset = Frontmatter & {
+export type Entry = Frontmatter & {
   /** Markdown body: everything after the frontmatter block. */
   body: string
   /** Filename without the `.md` extension. */
@@ -67,11 +67,11 @@ export type Frictionset = Frontmatter & {
 const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
 
 /**
- * Parses a frictionset file's contents.
+ * Parses an entry file's contents.
  *
  * @example
  * ```ts
- * const frictionset = Frictionset.parse(contents, { id: 'lazy-squids-chew' })
+ * const entry = Entry.parse(contents, { id: 'lazy-squids-chew' })
  * ```
  *
  * @param contents - Full contents of the file, frontmatter included.
@@ -79,7 +79,7 @@ const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
  * @throws {MalformedError} When there is no parseable frontmatter block.
  * @throws {InvalidError} When the frontmatter parses but fails validation.
  */
-export function parse(contents: string, options: parse.Options): Frictionset {
+export function parse(contents: string, options: parse.Options): Entry {
   const { id } = options
 
   const match = frontmatterRegex.exec(contents)
@@ -109,20 +109,20 @@ export declare namespace parse {
 }
 
 /**
- * Serializes a frictionset to file contents.
+ * Serializes an entry to file contents.
  *
  * Values are single-quoted: friction titles are full of backticks, colons, and `@scope/pkg`
  * names, none of which survive plain YAML scalars.
  *
  * @example
  * ```ts
- * const contents = Frictionset.serialize({ body, severity: 'minor', title: 'Filters ignored' })
+ * const contents = Entry.serialize({ body, severity: 'minor', title: 'Filters ignored' })
  * ```
  *
  * @returns File contents, ready to write. Absent optional fields are omitted, not written empty.
  */
-export function serialize(frictionset: serialize.Options): string {
-  const { body, issue, labels, severity, target, title } = frictionset
+export function serialize(entry: serialize.Options): string {
+  const { body, issue, labels, severity, target, title } = entry
   const frontmatter = YAML.stringify(
     {
       title,
@@ -138,11 +138,11 @@ export function serialize(frictionset: serialize.Options): string {
 
 export declare namespace serialize {
   /** The entry to serialize. The id lives in the filename, so it is not part of the contents. */
-  type Options = Omit<Frictionset, 'id'>
+  type Options = Omit<Entry, 'id'>
 }
 
 /**
- * Generates a collision-resistant, human-readable id for a new frictionset.
+ * Generates a collision-resistant, human-readable id for a new entry.
  *
  * Nothing parses the id. It exists only so two branches writing entries at the same time don't
  * conflict, which is exactly why sequential ids were a mistake.
@@ -194,13 +194,13 @@ export function normalizeTitle(title: string): string {
 /** Thrown when a file has no parseable frontmatter block. */
 export class MalformedError extends Error {
   /** Namespaced class name. */
-  override name = 'Frictionset.MalformedError'
+  override name = 'Entry.MalformedError'
   /** Machine-readable code, surfaced as the CLI error code. */
-  code = 'MALFORMED_FRICTIONSET' as const
+  code = 'MALFORMED_ENTRY' as const
 
   constructor(options: MalformedError.Options) {
     super(
-      `Frictionset \`${options.id}\` has no valid YAML frontmatter block.`,
+      `Entry \`${options.id}\` has no valid YAML frontmatter block.`,
       options.cause ? { cause: options.cause } : {},
     )
   }
@@ -219,9 +219,9 @@ export declare namespace MalformedError {
 /** Thrown when frontmatter parses as YAML but fails validation. */
 export class InvalidError extends Error {
   /** Namespaced class name. */
-  override name = 'Frictionset.InvalidError'
+  override name = 'Entry.InvalidError'
   /** Machine-readable code, surfaced as the CLI error code. */
-  code = 'INVALID_FRICTIONSET' as const
+  code = 'INVALID_ENTRY' as const
   /** Every validation failure, for callers that need more than the message. */
   issues: readonly z.core.$ZodIssue[]
 
@@ -229,7 +229,7 @@ export class InvalidError extends Error {
     const details = options.issues
       .map((issue) => `${issue.path.join('.') || 'frontmatter'}: ${issue.message}`)
       .join('; ')
-    super(`Frictionset \`${options.id}\` has invalid frontmatter. ${details}`)
+    super(`Entry \`${options.id}\` has invalid frontmatter. ${details}`)
     this.issues = options.issues
   }
 }

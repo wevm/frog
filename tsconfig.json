@@ -7,7 +7,7 @@
     "moduleResolution": "nodenext",
     "target": "esnext",
     "paths": {
-      "frictionsets": ["./src/index.ts"]
+      "frog": ["./src/index.ts"]
     },
     "types": ["node", "vite-plus/test/globals"],
 

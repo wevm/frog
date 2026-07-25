@@ -96,7 +96,7 @@ importers:
 
   app:
     dependencies:
-      frictionsets:
+      frog:
         specifier: workspace:*
         version: link:..
       octokit:

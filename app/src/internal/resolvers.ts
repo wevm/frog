@@ -1,4 +1,4 @@
-import { Config, Github, Manifest, type Target } from 'frictionsets'
+import { Config, Github, Manifest, type Target } from 'frog'
 import type { Octokit } from 'octokit'
 import * as cache from './cache.js'
 
@@ -9,7 +9,7 @@ export const registry = 'https://registry.npmjs.org'
  * Reads a package's manifest from the npm registry.
  *
  * The App has no `node_modules` to inspect, so the offline path the CLI uses does not exist here. The
- * registry preserves non-standard top-level fields, so `frictionsets` survives publication and the same
+ * registry preserves non-standard top-level fields, so `frog` survives publication and the same
  * consent data is available over HTTP.
  *
  * Resolved at `latest` rather than the version a consumer has pinned. Whether a project accepts friction
@@ -31,12 +31,10 @@ export async function fromRegistry(
     .catch(() => undefined)
   if (!response?.ok) return undefined
 
-  const document = (await response.json().catch(() => undefined)) as
-    | { frictionsets?: unknown }
-    | undefined
-  if (!document?.frictionsets) return undefined
+  const document = (await response.json().catch(() => undefined)) as { frog?: unknown } | undefined
+  if (!document?.frog) return undefined
 
-  const manifest = Manifest.from(document.frictionsets)
+  const manifest = Manifest.from(document.frog)
   return manifest ? Manifest.named(manifest, name) : undefined
 }
 

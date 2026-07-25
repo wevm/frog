@@ -1,11 +1,11 @@
-import * as Frictionset from './Frictionset.js'
+import * as Entry from './Entry.js'
 
 const id = 'lazy-squids-chew'
 
 describe('parse', () => {
   test('behavior: parses frontmatter and body', () => {
     expect(
-      Frictionset.parse(
+      Entry.parse(
         `---
 title: 'Filters are ignored'
 severity: major
@@ -39,54 +39,52 @@ The filter was swallowed.
   })
 
   test('behavior: defaults severity to minor', () => {
-    expect(Frictionset.parse("---\ntitle: 'Slow'\n---\n\nBody.\n", { id }).severity).toBe('minor')
+    expect(Entry.parse("---\ntitle: 'Slow'\n---\n\nBody.\n", { id }).severity).toBe('minor')
   })
 
   test('behavior: trims surrounding whitespace from the body', () => {
-    expect(Frictionset.parse("---\ntitle: 'Slow'\n---\n\n\n  Body.\n\n\n", { id }).body).toBe(
-      'Body.',
-    )
+    expect(Entry.parse("---\ntitle: 'Slow'\n---\n\n\n  Body.\n\n\n", { id }).body).toBe('Body.')
   })
 
   test('behavior: tolerates an empty body', () => {
-    expect(Frictionset.parse("---\ntitle: 'Slow'\n---\n", { id }).body).toBe('')
+    expect(Entry.parse("---\ntitle: 'Slow'\n---\n", { id }).body).toBe('')
   })
 
   test('error: no frontmatter block', () => {
-    expect(() => Frictionset.parse('# Just markdown\n', { id })).toThrowErrorMatchingInlineSnapshot(
-      `[Frictionset.MalformedError: Frictionset \`lazy-squids-chew\` has no valid YAML frontmatter block.]`,
+    expect(() => Entry.parse('# Just markdown\n', { id })).toThrowErrorMatchingInlineSnapshot(
+      `[Entry.MalformedError: Entry \`lazy-squids-chew\` has no valid YAML frontmatter block.]`,
     )
   })
 
   test('error: unparseable yaml', () => {
     expect(() =>
-      Frictionset.parse("---\ntitle: 'unterminated\n---\n\nBody.\n", { id }),
+      Entry.parse("---\ntitle: 'unterminated\n---\n\nBody.\n", { id }),
     ).toThrowErrorMatchingInlineSnapshot(
-      `[Frictionset.MalformedError: Frictionset \`lazy-squids-chew\` has no valid YAML frontmatter block.]`,
+      `[Entry.MalformedError: Entry \`lazy-squids-chew\` has no valid YAML frontmatter block.]`,
     )
   })
 
   test('error: missing title', () => {
     expect(() =>
-      Frictionset.parse('---\nseverity: major\n---\n\nBody.\n', { id }),
+      Entry.parse('---\nseverity: major\n---\n\nBody.\n', { id }),
     ).toThrowErrorMatchingInlineSnapshot(
-      `[Frictionset.InvalidError: Frictionset \`lazy-squids-chew\` has invalid frontmatter. title: Invalid input: expected string, received undefined]`,
+      `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. title: Invalid input: expected string, received undefined]`,
     )
   })
 
   test('error: unknown severity', () => {
     expect(() =>
-      Frictionset.parse("---\ntitle: 'Slow'\nseverity: catastrophic\n---\n\nBody.\n", { id }),
+      Entry.parse("---\ntitle: 'Slow'\nseverity: catastrophic\n---\n\nBody.\n", { id }),
     ).toThrowErrorMatchingInlineSnapshot(
-      `[Frictionset.InvalidError: Frictionset \`lazy-squids-chew\` has invalid frontmatter. severity: Invalid option: expected one of "blocker"|"major"|"minor"]`,
+      `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. severity: Invalid option: expected one of "blocker"|"major"|"minor"]`,
     )
   })
 
   test('error: malformed issue link', () => {
     expect(() =>
-      Frictionset.parse("---\ntitle: 'Slow'\nissue: 'viem#4821'\n---\n\nBody.\n", { id }),
+      Entry.parse("---\ntitle: 'Slow'\nissue: 'viem#4821'\n---\n\nBody.\n", { id }),
     ).toThrowErrorMatchingInlineSnapshot(
-      `[Frictionset.InvalidError: Frictionset \`lazy-squids-chew\` has invalid frontmatter. issue: Invalid string: must match pattern /^[\\w.-]+\\/[\\w.-]+#\\d+$/]`,
+      `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. issue: Invalid string: must match pattern /^[\\w.-]+\\/[\\w.-]+#\\d+$/]`,
     )
   })
 })
@@ -94,7 +92,7 @@ The filter was swallowed.
 describe('serialize', () => {
   test('behavior: quotes values and omits absent fields', () => {
     expect(
-      Frictionset.serialize({
+      Entry.serialize({
         body: 'The filter was swallowed.',
         severity: 'minor',
         title: 'Filters are ignored',
@@ -112,7 +110,7 @@ describe('serialize', () => {
 
   test('behavior: writes every present field in reading order', () => {
     expect(
-      Frictionset.serialize({
+      Entry.serialize({
         body: 'Body.',
         issue: 'wevm/viem#4821',
         labels: ['dx', 'docs'],
@@ -138,7 +136,7 @@ describe('serialize', () => {
 
   test('behavior: drops an empty labels array', () => {
     expect(
-      Frictionset.serialize({ body: 'Body.', labels: [], severity: 'minor', title: 'Slow' }),
+      Entry.serialize({ body: 'Body.', labels: [], severity: 'minor', title: 'Slow' }),
     ).not.toContain('labels')
   })
 })
@@ -160,11 +158,11 @@ describe('round trip', () => {
       target: '@scope/pkg',
       title: 'everything at once',
     },
-  ] as const satisfies readonly Frictionset.serialize.Options[]
+  ] as const satisfies readonly Entry.serialize.Options[]
 
-  test.for(cases)('behavior: parse(serialize(x)) === x for %o', (frictionset) => {
-    expect(Frictionset.parse(Frictionset.serialize(frictionset), { id })).toEqual({
-      ...frictionset,
+  test.for(cases)('behavior: parse(serialize(x)) === x for %o', (entry) => {
+    expect(Entry.parse(Entry.serialize(entry), { id })).toEqual({
+      ...entry,
       id,
     })
   })
@@ -172,11 +170,11 @@ describe('round trip', () => {
 
 describe('newId', () => {
   test('behavior: mints a hyphenated lowercase id', () => {
-    expect(Frictionset.newId()).toMatch(/^[a-z]+(-[a-z]+)+$/)
+    expect(Entry.newId()).toMatch(/^[a-z]+(-[a-z]+)+$/)
   })
 
   test('behavior: ids do not collide across a batch', () => {
-    const ids = new Set(Array.from({ length: 200 }, () => Frictionset.newId()))
+    const ids = new Set(Array.from({ length: 200 }, () => Entry.newId()))
     expect(ids.size).toBeGreaterThan(190)
   })
 })
@@ -188,6 +186,6 @@ describe('normalizeTitle', () => {
     ['PNPM Test Ignores Filters.', 'pnpm test ignores filters'],
     ['  pnpm-test ignores filters  ', 'pnpm test ignores filters'],
   ] as const)('behavior: %s', ([input, expected]) => {
-    expect(Frictionset.normalizeTitle(input)).toBe(expected)
+    expect(Entry.normalizeTitle(input)).toBe(expected)
   })
 })

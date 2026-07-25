@@ -1,6 +1,6 @@
 import * as clack from '@clack/prompts'
 import { Cli, z } from 'incur'
-import * as Frictionset from '../../Frictionset.js'
+import * as Entry from '../../Entry.js'
 import * as Store from '../../Store.js'
 import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
@@ -21,12 +21,12 @@ async function promptTitle(): Promise<string> {
   return value.trim()
 }
 
-async function promptSeverity(): Promise<Frictionset.Severity> {
+async function promptSeverity(): Promise<Entry.Severity> {
   return prompt.required(
     await clack.select({
       ...prompt.stream,
       message: 'How much did it hurt?',
-      initialValue: 'minor' as Frictionset.Severity,
+      initialValue: 'minor' as Entry.Severity,
       options: [
         { hint: 'could not proceed', label: 'blocker', value: 'blocker' },
         { hint: 'lost real time', label: 'major', value: 'major' },
@@ -64,7 +64,7 @@ export const log = Cli.create('log', {
       .boolean()
       .optional()
       .describe('File the issue immediately. Defaults to the `publishOnLog` config value.'),
-    severity: Frictionset.Severity.optional().describe('Impact. Defaults to minor.'),
+    severity: Entry.Severity.optional().describe('Impact. Defaults to minor.'),
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
     target: z
       .string()
@@ -85,7 +85,7 @@ export const log = Cli.create('log', {
       options: { severity: 'major', target: 'viem' },
     },
   ],
-  hint: 'Run `frictionsets list` first: the entry you are about to write may already exist.',
+  hint: 'Run `frog list` first: the entry you are about to write may already exist.',
   output: z.object({
     file: z.string().describe('Path of the entry, relative to the repository root.'),
     id: z.string(),
@@ -132,7 +132,7 @@ export const log = Cli.create('log', {
     // Catching the repeat here, at authoring time, is the only place it is cheap. A flat friction
     // log has no duplicate check at all, which is how the same item lands five times.
     const duplicate = entries.value.find(
-      (entry) => Frictionset.normalizeTitle(entry.title) === Frictionset.normalizeTitle(title),
+      (entry) => Entry.normalizeTitle(entry.title) === Entry.normalizeTitle(title),
     )
     if (duplicate && !c.options.force)
       return c.error({
@@ -153,7 +153,7 @@ export const log = Cli.create('log', {
 
     const { file, id } = await Store.write(
       {
-        body: c.options.body ?? Frictionset.template,
+        body: c.options.body ?? Entry.template,
         severity,
         title,
         ...(c.options.label?.length ? { labels: c.options.label } : {}),

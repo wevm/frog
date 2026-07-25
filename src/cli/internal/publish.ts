@@ -1,5 +1,5 @@
 import type * as Config from '../../Config.js'
-import type * as Frictionset from '../../Frictionset.js'
+import type * as Entry from '../../Entry.js'
 import * as Git from '../../Git.js'
 import * as Github from '../../Github.js'
 import * as Store from '../../Store.js'
@@ -27,7 +27,7 @@ export type Outcome = {
 
 export type Ready = {
   client: Github.Client
-  /** Label used to find issues frictionsets already filed. */
+  /** Label used to find issues frog already filed. */
   label: string
   repo: string
 }
@@ -165,9 +165,9 @@ export async function file(options: file.Options): Promise<Outcome> {
     }
 
     const result = await Github.publish(client, {
-      frictionset: entry,
+      entry: entry,
       labels: Github.toLabels({
-        frictionset: entry,
+        entry: entry,
         labels: applied,
         severityLabels: config.severityLabels,
       }),
@@ -204,7 +204,7 @@ export declare namespace file {
     /** Report what would happen without filing anything. */
     dryRun?: boolean | undefined
     /** Entries to file. Every one must belong to `repo`. */
-    entries: readonly Frictionset.Frictionset[]
+    entries: readonly Entry.Entry[]
     /** Labels to apply, overriding the sender's. Set when a target named its own. */
     labels?: readonly string[] | undefined
     /**

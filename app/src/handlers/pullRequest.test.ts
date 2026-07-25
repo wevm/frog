@@ -1,4 +1,4 @@
-import { Github } from 'frictionsets'
+import { Github } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import { marker } from '../internal/comment.js'
@@ -6,7 +6,7 @@ import { pullRequest } from './pullRequest.js'
 
 const base = 'acme/app'
 const upstream = 'wevm/viem'
-const dir = '.agents/frictionsets'
+const dir = '.agents/friction-log'
 
 // Throttling paces write requests about a second apart, which is right in production and pointless
 // against a local server.
@@ -204,7 +204,7 @@ describe('cross-repo', () => {
 
     const report = await run(instance.url)
 
-    expect(report.deferred[0]?.reason).toBe('frictionsets is not installed on `wevm/viem`.')
+    expect(report.deferred[0]?.reason).toBe('frog is not installed on `wevm/viem`.')
     expect(instance.issues.get(upstream)).toBeUndefined()
   })
 

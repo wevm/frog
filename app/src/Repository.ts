@@ -1,10 +1,10 @@
-import { Frictionset, Github, Store } from 'frictionsets'
+import { Entry, Github, Store } from 'frog'
 import type { Octokit } from 'octokit'
 
 /** Entries read from a ref, and the files that would not parse. */
 export type Contents = {
   /** Entries that parsed. */
-  entries: readonly Frictionset.Frictionset[]
+  entries: readonly Entry.Entry[]
   /** Ids of entries that did not parse, with the reason, for reporting back on the pull request. */
   malformed: readonly { id: string; reason: string }[]
 }
@@ -30,7 +30,7 @@ export async function read(client: Octokit, options: read.Options): Promise<Cont
     ...(ref ? { ref } : {}),
   })
 
-  const entries: Frictionset.Frictionset[] = []
+  const entries: Entry.Entry[] = []
   const malformed: { id: string; reason: string }[] = []
 
   for (const file of files) {
@@ -45,7 +45,7 @@ export async function read(client: Octokit, options: read.Options): Promise<Cont
     if (contents === undefined) continue
 
     try {
-      entries.push(Frictionset.parse(contents, { id }))
+      entries.push(Entry.parse(contents, { id }))
     } catch (error) {
       malformed.push({ id, reason: (error as Error).message })
     }

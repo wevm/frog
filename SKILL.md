@@ -1,13 +1,13 @@
 ---
-name: frictionsets
+name: frog
 description: Records friction hit while building as a GitHub issue. Use when a tool, dependency, doc, test, or convention cost you time, and when reporting that upstream.
-command: frictionsets
+command: frog
 ---
 
-# frictionsets
+# frog
 
 Friction you hit becomes a GitHub issue. The entry file mirrors that issue until it closes, so
-`.agents/frictionsets/` is a live list of what is still unresolved, including in dependencies.
+`.agents/friction-log/` is a live list of what is still unresolved, including in dependencies.
 
 ## When to log
 
@@ -30,7 +30,7 @@ One entry per friction. Two problems in one entry cannot be closed separately.
 ## Before logging, read what is known
 
 ```sh
-frictionsets list
+frog list
 ```
 
 Everything unresolved is there, including friction in dependencies. If yours is already recorded, add
@@ -41,7 +41,7 @@ came before this one.
 ## Logging
 
 ```sh
-frictionsets log --publish --severity major \
+frog log --publish --severity major \
   --title '`pnpm test -- <files>` ignores file filters and runs the whole suite' \
   --body '## Description
 
@@ -57,7 +57,7 @@ reaches Vitest.
 Document the targeted-test syntax in the script help, or forward arguments past `--`.'
 ```
 
-**Prefer the MCP server for anything with an awkward body.** Registered with `frictionsets mcp add`, the
+**Prefer the MCP server for anything with an awkward body.** Registered with `frog mcp add`, the
 commands are reachable as typed tools: `search_tools` to find one, `get_tool_details` for its schema,
 then `call_write_tool` with `{ name: 'log', arguments: { … } }`. The schema names every option, so there
 is no flag to guess and no shell quoting to get wrong. A body containing an apostrophe will break the
@@ -79,13 +79,13 @@ Most friction is not in the code you are editing. It is in the libraries, docs, 
 integrating, and it can be reported where it can actually be fixed:
 
 ```sh
-frictionsets targets
+frog targets
 ```
 
 That lists the dependencies that have declared they accept reports. Then name one:
 
 ```sh
-frictionsets log --target viem --title '`getBalance` rejects a checksummed address'
+frog log --target viem --title '`getBalance` rejects a checksummed address'
 ```
 
 A target can also be a repository (`wevm/viem`) or a host (`viem.sh`), which is how a docs site or an

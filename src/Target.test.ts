@@ -146,7 +146,7 @@ describe('resolve', () => {
     test('error: an explicit repository with no committed config', async () => {
       const result = await Target.resolve('wevm/viem', options({ allowedRepos: ['wevm/viem'] }))
       expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
-      expect(result.ok === false && result.message).toContain('no committed frictionsets config')
+      expect(result.ok === false && result.message).toContain('no committed frog config')
     })
 
     test('error: an explicit repository that has opted out', async () => {
@@ -251,7 +251,7 @@ describe('resolve', () => {
     test('error: reports both reasons when neither resolves', async () => {
       const result = await Target.resolve('viem.sh', options())
       expect(result.ok === false && result.message).toMatchInlineSnapshot(
-        `"Cannot report friction to \`viem.sh\`: \`viem.sh\` is not installed, or declares no \`frictionsets\` field; no document."`,
+        `"Cannot report friction to \`viem.sh\`: \`viem.sh\` is not installed, or declares no \`frog\` field; no document."`,
       )
     })
   })

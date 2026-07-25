@@ -1,4 +1,4 @@
-import { Config, Github } from 'frictionsets'
+import { Config, Github } from 'frog'
 import type { Octokit } from 'octokit'
 
 /**

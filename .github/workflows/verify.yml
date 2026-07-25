@@ -34,8 +34,8 @@ jobs:
       # Git identity: the git layer's tests commit in throwaway repositories.
       - name: Configure git
         run: |
-          git config --global user.name 'frictionsets'
-          git config --global user.email 'frictionsets@users.noreply.github.com'
+          git config --global user.name 'frog'
+          git config --global user.email 'frog@users.noreply.github.com'
 
       - run: pnpm check:types
       - run: pnpm --dir app check:types

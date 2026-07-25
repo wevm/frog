@@ -5,17 +5,17 @@ import * as Manifest from '../../Manifest.js'
 
 type Listed = { targets: { kind: string; name: string; repo: string }[] }
 
-/** Declares a dependency, and installs it with the given `frictionsets` field. */
+/** Declares a dependency, and installs it with the given `frog` field. */
 async function install(
   cwd: string,
   name: string,
-  options: { frictionsets?: unknown; homepage?: string } = {},
+  options: { frog?: unknown; homepage?: string } = {},
 ): Promise<void> {
   await helpers.writeFile(
     `node_modules/${name}/package.json`,
     JSON.stringify({
       name,
-      ...(options.frictionsets ? { frictionsets: options.frictionsets } : {}),
+      ...(options.frog ? { frog: options.frog } : {}),
       ...(options.homepage ? { homepage: options.homepage } : {}),
     }),
     cwd,
@@ -29,8 +29,8 @@ async function declare(cwd: string, dependencies: Record<string, string>): Promi
 test('behavior: lists dependencies that accept reports', async () => {
   const cwd = await helpers.repo()
   await declare(cwd, { ox: '^1.0.0', typescript: '^5.0.0', viem: '^2.0.0' })
-  await install(cwd, 'viem', { frictionsets: { inbound: true, repo: 'wevm/viem' } })
-  await install(cwd, 'ox', { frictionsets: { inbound: true, repo: 'wevm/ox' } })
+  await install(cwd, 'viem', { frog: { inbound: true, repo: 'wevm/viem' } })
+  await install(cwd, 'ox', { frog: { inbound: true, repo: 'wevm/ox' } })
   await install(cwd, 'typescript')
 
   expect(await cli.data<Listed>(['targets', '--cwd', cwd])).toMatchInlineSnapshot(`
@@ -54,7 +54,7 @@ test('behavior: lists dependencies that accept reports', async () => {
 test('behavior: skips a dependency that has opted out', async () => {
   const cwd = await helpers.repo()
   await declare(cwd, { viem: '^2.0.0' })
-  await install(cwd, 'viem', { frictionsets: { inbound: false, repo: 'wevm/viem' } })
+  await install(cwd, 'viem', { frog: { inbound: false, repo: 'wevm/viem' } })
 
   expect((await cli.data<Listed>(['targets', '--cwd', cwd])).targets).toEqual([])
 })

@@ -130,7 +130,7 @@ export const sync = Cli.create('sync', {
     const committed = await (async () => {
       if (!(c.options.commit ?? config.commit)) return false
       await Git.add(touched, { cwd: root })
-      return Git.commit('chore: sync frictionsets with issues', { cwd: root })
+      return Git.commit('chore: sync friction log with issues', { cwd: root })
     })()
 
     return c.ok(

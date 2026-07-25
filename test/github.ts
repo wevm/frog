@@ -1,7 +1,7 @@
 import http from 'node:http'
 
 /**
- * A real HTTP server implementing the GitHub REST endpoints frictionsets uses.
+ * A real HTTP server implementing the GitHub REST endpoints frog uses.
  *
  * Not a mock: Octokit's `baseUrl` points here and makes genuine requests, so serialization,
  * pagination, and status codes are all exercised. `node:http` rather than a framework keeps this
@@ -181,7 +181,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const name = decodeURIComponent(registry[1] ?? '')
         const declared = options.packages?.[name]
         if (declared === undefined) return json(response, 404, { message: 'Not Found' })
-        return json(response, 200, { frictionsets: declared, name })
+        return json(response, 200, { frog: declared, name })
       }
 
       // `repos.get`, for whether this token may label issues here.

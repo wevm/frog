@@ -56,7 +56,7 @@ export type Resolution =
 /**
  * Resolves where an entry's issue belongs, applying every consent gate.
  *
- * Discovery is offline-first: an installed package's `package.json#frictionsets` needs no network at
+ * Discovery is offline-first: an installed package's `package.json#frog` needs no network at
  * all, and only a host falls back to fetching a well-known document.
  *
  * Three gates, all of which must pass for a target that is not this repository. The receiver must have
@@ -176,14 +176,14 @@ async function discover(
     if (kind === 'repo') {
       const inbound = await options.readConfig(name)
       if (inbound) return { kind, manifest: { inbound, packages: [], repo: name }, ok: true }
-      reasons.push(`\`${name}\` has no committed frictionsets config`)
+      reasons.push(`\`${name}\` has no committed frog config`)
       continue
     }
 
     if (kind === 'npm') {
       const manifest = await options.readPackage(name)
       if (manifest) return { kind, manifest, ok: true }
-      reasons.push(`\`${name}\` is not installed, or declares no \`frictionsets\` field`)
+      reasons.push(`\`${name}\` is not installed, or declares no \`frog\` field`)
       continue
     }
 

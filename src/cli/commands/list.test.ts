@@ -81,8 +81,8 @@ test('error: a malformed entry fails the whole listing', async () => {
 
   expect(await cli.error(['list', '--cwd', cwd])).toMatchInlineSnapshot(`
     {
-      "code": "MALFORMED_FRICTIONSET",
-      "message": "Frictionset \`broken\` has no valid YAML frontmatter block.",
+      "code": "MALFORMED_ENTRY",
+      "message": "Entry \`broken\` has no valid YAML frontmatter block.",
     }
   `)
 })

@@ -3,7 +3,7 @@ import { github } from '../../test/github.js'
 import * as Repository from './Repository.js'
 
 const repo = 'acme/app'
-const dir = '.agents/frictionsets'
+const dir = '.agents/friction-log'
 
 // Throttling paces write requests about a second apart, which is right in production and pointless
 // against a local server.
@@ -72,7 +72,7 @@ describe('read', () => {
       [
         {
           "id": "broken",
-          "reason": "Frictionset \`broken\` has no valid YAML frontmatter block.",
+          "reason": "Entry \`broken\` has no valid YAML frontmatter block.",
         },
       ]
     `)
@@ -97,7 +97,7 @@ describe('commit', () => {
     const sha = await Repository.commit(client(instance.url), {
       branch: 'main',
       deletes: [`${dir}/gone.md`],
-      message: 'chore: sync frictionsets with issues',
+      message: 'chore: sync friction log with issues',
       repo,
       writes: [{ contents: entry('Filters ignored', 'Rewritten.'), path: `${dir}/stays.md` }],
     })
@@ -106,7 +106,7 @@ describe('commit', () => {
     expect(Object.keys(instance.files(repo)).sort()).toEqual([`${dir}/stays.md`, 'README.md'])
     expect(instance.files(repo)[`${dir}/stays.md`]).toContain('Rewritten.')
     // One commit, not one per file.
-    expect(instance.messages(repo)).toEqual(['initial', 'chore: sync frictionsets with issues'])
+    expect(instance.messages(repo)).toEqual(['initial', 'chore: sync friction log with issues'])
   })
 
   test('behavior: what it writes is what read gets back', async () => {
@@ -115,7 +115,7 @@ describe('commit', () => {
 
     await Repository.commit(octokit, {
       branch: 'main',
-      message: 'chore: link frictionsets to issues',
+      message: 'chore: link friction log to issues',
       repo,
       writes: [{ contents: entry('Filters ignored'), path: `${dir}/a.md` }],
     })
@@ -141,7 +141,7 @@ describe('commit', () => {
     await Repository.commit(client(instance.url), {
       branch: 'main',
       deletes: [`${dir}/never-existed.md`],
-      message: 'chore: sync frictionsets with issues',
+      message: 'chore: sync friction log with issues',
       repo,
     })
 

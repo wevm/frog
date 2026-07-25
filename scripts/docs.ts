@@ -49,7 +49,7 @@ function documented(lines: readonly string[], index: number): boolean {
   return false
 }
 
-const out = await fs.mkdtemp(path.join(os.tmpdir(), 'frictionsets-docs-'))
+const out = await fs.mkdtemp(path.join(os.tmpdir(), 'frog-docs-'))
 await exec(
   'pnpm',
   ['exec', 'tsc', '--noEmit', 'false', '--emitDeclarationOnly', '--declaration', '--outDir', out],

@@ -4,8 +4,8 @@
  */
 export * as Config from './Config.js'
 
-/** The frictionset file format: frontmatter, body, ids, and title normalization. */
-export * as Frictionset from './Frictionset.js'
+/** The entry file format: frontmatter, body, ids, and title normalization. */
+export * as Entry from './Entry.js'
 
 /** Git queries and mutations the CLI needs. The App uses the GitHub API instead. */
 export * as Git from './Git.js'
@@ -16,7 +16,7 @@ export * as Github from './Github.js'
 /** The declaration a project publishes to accept friction, and the corroboration rule guarding it. */
 export * as Manifest from './Manifest.js'
 
-/** Reading and writing entries under `.agents/frictionsets`. */
+/** Reading and writing entries under `.agents/friction-log`. */
 export * as Store from './Store.js'
 
 /** Reconciling local entries against issue state, as a pure plan both adapters can apply. */

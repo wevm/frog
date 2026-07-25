@@ -1,4 +1,4 @@
-# @frictionsets/app
+# @frog/app
 
 The GitHub App. Files recorded friction as issues, and keeps the files and the issues in sync.
 
@@ -34,7 +34,7 @@ Beyond that it stays opt-in on the sender's side. Add the target to `outbound.al
 `outbound.auto` to file without a human:
 
 ```jsonc
-// .agents/frictionsets/config.json in the reporting repository
+// .agents/friction-log/config.json in the reporting repository
 {
   "outbound": { "allowedRepos": ["wevm/viem"], "auto": true },
 }
@@ -47,7 +47,7 @@ sides gives unattended reporting.
 The receiving repository opts in separately:
 
 ```jsonc
-// .agents/frictionsets/config.json in the receiving repository
+// .agents/friction-log/config.json in the receiving repository
 {
   "inbound": { "enabled": true, "allowFrom": ["wevm/*"] },
 }
@@ -80,7 +80,7 @@ Deployed as a Cloudflare Worker. The endpoint is a Fetch handler, so it needs no
 4. **Install** the App on the repositories that record friction, and on any repository that should
    receive friction from them.
 
-5. **Run `frictionsets init`** in each repository, so the App has a config and a directory to read.
+5. **Run `frog init`** in each repository, so the App has a config and a directory to read.
 
 `nodejs_compat` is enabled because the title hash uses `node:crypto`, and the package layer imports
 `node:fs` for the offline lookup the App never takes. The bundle is around 200 KiB gzipped.

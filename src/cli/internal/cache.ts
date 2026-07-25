@@ -6,7 +6,7 @@ import type { Manifest } from '../../index.js'
 /** Default cache location, honoring `XDG_CACHE_HOME`. */
 export function dir(env: Record<string, string | undefined> = process.env): string {
   const base = env['XDG_CACHE_HOME'] || path.join(os.homedir(), '.cache')
-  return path.join(base, 'frictionsets')
+  return path.join(base, 'frog')
 }
 
 /**

@@ -50,26 +50,26 @@ describe('from', () => {
   })
 
   test('behavior: strips unknown keys such as $schema', () => {
-    expect(
-      Config.from({ $schema: 'https://unpkg.com/frictionsets/schema.json' }),
-    ).not.toHaveProperty('$schema')
+    expect(Config.from({ $schema: 'https://unpkg.com/frog/schema.json' })).not.toHaveProperty(
+      '$schema',
+    )
   })
 
   test('error: rejects a non-object', () => {
     expect(() => Config.from([])).toThrowErrorMatchingInlineSnapshot(
-      `[Config.InvalidError: \`.agents/frictionsets/config.json\` is invalid. Expected an object.]`,
+      `[Config.InvalidError: \`.agents/friction-log/config.json\` is invalid. Expected an object.]`,
     )
   })
 
   test('error: rejects a malformed repo', () => {
     expect(() => Config.from({ repo: 'viem' })).toThrowErrorMatchingInlineSnapshot(
-      `[Config.InvalidError: \`.agents/frictionsets/config.json\` is invalid. repo: Invalid string: must match pattern /^[\\w.-]+\\/[\\w.-]+$/]`,
+      `[Config.InvalidError: \`.agents/friction-log/config.json\` is invalid. repo: Invalid string: must match pattern /^[\\w.-]+\\/[\\w.-]+$/]`,
     )
   })
 
   test('error: rejects a non-positive maxPerRun', () => {
     expect(() => Config.from({ maxPerRun: 0 })).toThrowErrorMatchingInlineSnapshot(
-      `[Config.InvalidError: \`.agents/frictionsets/config.json\` is invalid. maxPerRun: Too small: expected number to be >0]`,
+      `[Config.InvalidError: \`.agents/friction-log/config.json\` is invalid. maxPerRun: Too small: expected number to be >0]`,
     )
   })
 })
@@ -96,7 +96,7 @@ describe('resolve', () => {
     const root = await tmpdir()
     await writeFile(Config.file, '{ nope', root)
     await expect(Config.resolve({ root })).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Config.MalformedError: \`.agents/frictionsets/config.json\` is not valid JSON.]`,
+      `[Config.MalformedError: \`.agents/friction-log/config.json\` is not valid JSON.]`,
     )
   })
 })

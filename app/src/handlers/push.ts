@@ -1,4 +1,4 @@
-import { Frictionset, Store } from 'frictionsets'
+import { Entry, Store } from 'frog'
 import type { Octokit } from 'octokit'
 import type * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
@@ -57,14 +57,14 @@ export async function push(options: push.Options): Promise<Outcome> {
     const issue = filed.links.get(entry.id)
     if (!issue) continue
     writes.push({
-      contents: Frictionset.serialize({ ...entry, issue }),
+      contents: Entry.serialize({ ...entry, issue }),
       path: Store.toPath(entry.id),
     })
   }
 
   const committed = await Repository.commit(client, {
     branch,
-    message: 'chore: link frictionsets to issues',
+    message: 'chore: link friction log to issues',
     repo,
     writes,
   })

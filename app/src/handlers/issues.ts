@@ -1,4 +1,4 @@
-import { Frictionset, Github, Store, Sync } from 'frictionsets'
+import { Entry, Github, Store, Sync } from 'frog'
 import type { Octokit } from 'octokit'
 import * as config from '../internal/config.js'
 import * as Repository from '../Repository.js'
@@ -31,14 +31,14 @@ export type Outcome = {
 export async function issues(options: issues.Options): Promise<Outcome> {
   const { client, installation, issue, repo } = options
 
-  // Only an issue frictionsets filed can be reconciled: without a marker there is no file to find, and
+  // Only an issue frog itself filed can be reconciled: without a marker there is no file to find, and
   // an issue somebody labelled by hand is not ours to act on.
   const marker = Github.parseMarker(issue.body)
-  if (!marker?.path) return { ignored: 'no frictionsets marker' }
+  if (!marker?.path) return { ignored: 'no frog marker' }
 
   const origin = marker.origin ?? repo
   const source = origin === repo ? client : await installation(origin)
-  if (!source) return { ignored: `frictionsets is not installed on \`${origin}\``, origin }
+  if (!source) return { ignored: `frog is not installed on \`${origin}\``, origin }
 
   const branch = await Github.defaultBranch(source.rest, { repo: origin })
   if (!branch) return { ignored: `cannot read \`${origin}\``, origin }
@@ -72,10 +72,10 @@ export async function issues(options: issues.Options): Promise<Outcome> {
   const committed = await Repository.commit(source, {
     branch,
     deletes: plan.remove.map(Store.toPath),
-    message: 'chore: sync frictionsets with issues',
+    message: 'chore: sync friction log with issues',
     repo: origin,
     writes: [...plan.write, ...plan.clearLink].map((entry) => ({
-      contents: Frictionset.serialize(entry),
+      contents: Entry.serialize(entry),
       path: Store.toPath(entry.id),
     })),
   })

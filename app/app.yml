@@ -1,9 +1,9 @@
 # GitHub App manifest. Create the App from this at
 # https://github.com/settings/apps/new (or an organization's equivalent).
-name: frictionsets
+name: frog
 description: >-
-  Turns friction recorded in .agents/frictionsets into GitHub issues, and keeps the two in sync.
-url: https://github.com/wevm/frictionsets
+  Turns friction recorded in .agents/friction-log into GitHub issues, and keeps the two in sync.
+url: https://github.com/wevm/frog
 public: true
 
 default_events:

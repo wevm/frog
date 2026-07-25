@@ -82,7 +82,7 @@ export const Schema = z.object({
     })
     .prefault({})
     .describe('Issue label applied for each severity.'),
-  site: z.url().optional().describe('Site serving `/.well-known/frictionsets.json`.'),
+  site: z.url().optional().describe('Site serving `/.well-known/frog.json`.'),
   sync: z
     .object({
       closeOnDelete: z
@@ -102,7 +102,7 @@ export const Schema = z.object({
  * Field documentation lives on {@link Schema} as `.describe()` rather than as TSDoc here. That is
  * deliberate and the one exception in this package: `.describe()` is what reaches `schema.json`, where
  * `$schema` turns it into autocomplete for the person writing the JSON. Duplicating the same prose as
- * TSDoc would give two sources that drift. Run `frictionsets publish --schema` to read it.
+ * TSDoc would give two sources that drift. Run `frog publish --schema` to read it.
  */
 export type Config = z.output<typeof Schema>
 
@@ -155,7 +155,7 @@ export async function resolve(options: resolve.Options): Promise<Config> {
 export declare namespace resolve {
   /** Options for {@link resolve}. */
   type Options = from.Options & {
-    /** Repository root. Config is read from `<root>/.agents/frictionsets/config.json`. */
+    /** Repository root. Config is read from `<root>/.agents/friction-log/config.json`. */
     root: string
   }
 }

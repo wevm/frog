@@ -13,7 +13,7 @@ const exec = promisify(execFile)
  * --show-toplevel` reports the resolved path.
  */
 export async function tmpdir(): Promise<string> {
-  const dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'frictionsets-')))
+  const dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'frog-')))
   onTestFinished(() => fs.rm(dir, { force: true, recursive: true }))
   return dir
 }

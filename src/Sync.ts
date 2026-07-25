@@ -1,4 +1,4 @@
-import type * as Frictionset from './Frictionset.js'
+import type * as Entry from './Entry.js'
 import * as Github from './Github.js'
 import * as Store from './Store.js'
 
@@ -9,11 +9,11 @@ export type Plan = {
    *
    * Written back without the link, returning them to pending so publishing can file them again.
    */
-  clearLink: readonly Frictionset.Frictionset[]
+  clearLink: readonly Entry.Entry[]
   /** Ids of entries whose issue closed. The friction is resolved, so the mirror goes away. */
   remove: readonly string[]
   /** Entries to write: content pulled from their issue, or rebuilt for one that reopened. */
-  write: readonly Frictionset.Frictionset[]
+  write: readonly Entry.Entry[]
 }
 
 /**
@@ -38,9 +38,9 @@ export function plan(options: plan.Options): Plan {
   const byNumber = new Map(issues.map((issue) => [issue.number, issue]))
   const present = new Set(entries.map((entry) => Store.toPath(entry.id)))
 
-  const clearLink: Frictionset.Frictionset[] = []
+  const clearLink: Entry.Entry[] = []
   const remove: string[] = []
-  const write: Frictionset.Frictionset[] = []
+  const write: Entry.Entry[] = []
 
   for (const entry of entries) {
     if (!entry.issue) continue
@@ -69,7 +69,7 @@ export function plan(options: plan.Options): Plan {
   for (const issue of issues) {
     if (issue.state !== 'open') continue
 
-    // Only an issue frictionsets filed can be rebuilt: the marker is what names the file. An issue
+    // Only an issue frog itself filed can be rebuilt: the marker is what names the file. An issue
     // somebody labelled by hand is left alone rather than materialized as an entry here.
     const marker = Github.parseMarker(issue.body)
     if (!marker?.path) continue
@@ -89,8 +89,8 @@ export declare namespace plan {
   /** Options for {@link plan}. */
   type Options = {
     /** Every local entry, from `Store.read`. */
-    entries: readonly Frictionset.Frictionset[]
-    /** Every issue frictionsets manages in `repo`, from `Github.list`. */
+    entries: readonly Entry.Entry[]
+    /** Every issue frog manages in `repo`, from `Github.list`. */
     issues: readonly Github.Issue[]
     /** Labels applied to every issue, from config. */
     labels: readonly string[]
@@ -104,7 +104,7 @@ export declare namespace plan {
     /** Repository the issues live in, as `owner/name`. */
     repo: string
     /** Label to apply for each severity, from config. */
-    severityLabels: Record<Frictionset.Severity, string>
+    severityLabels: Record<Entry.Severity, string>
   }
 }
 
@@ -149,10 +149,10 @@ export declare namespace state {
   /** Options for {@link state}. */
   type Options = {
     /** Every local entry, from `Store.read` or the API. */
-    entries: readonly Frictionset.Frictionset[]
+    entries: readonly Entry.Entry[]
     /** Fetches one issue by number, resolving to `undefined` when it does not exist. */
     get: (issue: number) => Promise<Github.Issue | undefined>
-    /** Lists the issues frictionsets manages in `repo`. */
+    /** Lists the issues frog manages in `repo`. */
     list: () => Promise<readonly Github.Issue[]>
     /** Repository being reconciled, as `owner/name`. */
     repo: string

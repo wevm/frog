@@ -21,7 +21,7 @@ describe('repo', () => {
     ['https://github.com/wevm/viem.git', 'wevm/viem'],
     ['https://github.com/wevm/viem', 'wevm/viem'],
     ['ssh://git@github.com/wevm/viem.git', 'wevm/viem'],
-    ['git@github.com:wevm/frictionsets.dev.git', 'wevm/frictionsets.dev'],
+    ['git@github.com:wevm/frog.dev.git', 'wevm/frog.dev'],
     ['git@gitlab.com:wevm/viem.git', undefined],
     ['https://example.com/wevm/viem.git', undefined],
   ] as const)('behavior: %s', async ([remote, expected]) => {

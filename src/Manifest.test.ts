@@ -61,7 +61,7 @@ describe('render', () => {
   test('behavior: renders a servable document', () => {
     expect(
       Manifest.render({
-        docs: 'https://viem.sh/docs/frictionsets',
+        docs: 'https://viem.sh/docs/frog',
         labels: ['friction'],
         name: 'viem',
         packages: ['viem', 'ox'],
@@ -69,7 +69,7 @@ describe('render', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
-        "docs": "https://viem.sh/docs/frictionsets",
+        "docs": "https://viem.sh/docs/frog",
         "inbound": true,
         "labels": [
           "friction",
@@ -105,7 +105,7 @@ describe('fromPackage', () => {
 
   test('behavior: reads the field from an installed package', async () => {
     const root = await tmpdir()
-    await install(root, 'viem', { frictionsets: { inbound: true, repo }, name: 'viem' })
+    await install(root, 'viem', { frog: { inbound: true, repo }, name: 'viem' })
 
     expect(await Manifest.fromPackage('viem', { root })).toEqual({
       inbound: { enabled: true },
@@ -117,7 +117,7 @@ describe('fromPackage', () => {
 
   test('behavior: reads a scoped package', async () => {
     const root = await tmpdir()
-    await install(root, '@scope/pkg', { frictionsets: { repo: 'acme/pkg' } })
+    await install(root, '@scope/pkg', { frog: { repo: 'acme/pkg' } })
 
     expect((await Manifest.fromPackage('@scope/pkg', { root }))?.name).toBe('@scope/pkg')
   })
@@ -191,7 +191,7 @@ describe('fetchDocument', () => {
   test('behavior: reports a malformed document', async () => {
     const url = await host(() => ({ body: JSON.stringify({ nope: true }), status: 200 }))
     const lookup = await Manifest.fetchDocument(url)
-    expect(lookup.ok === false && lookup.reason).toContain('not a valid frictionsets manifest')
+    expect(lookup.ok === false && lookup.reason).toContain('not a valid frog manifest')
   })
 
   test('behavior: reports an unreachable host', async () => {

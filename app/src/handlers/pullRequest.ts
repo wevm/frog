@@ -5,7 +5,7 @@ import * as filing from '../internal/file.js'
 import * as Repository from '../Repository.js'
 
 /**
- * Files the frictionsets a pull request introduces, and reports back on the pull request.
+ * Files the entries a pull request introduces, and reports back on the pull request.
  *
  * Reads the head commit from the **base** repository rather than the head one. GitHub makes a pull
  * request's head commit reachable there, so this works for a fork without the installation needing any
@@ -69,7 +69,7 @@ export declare namespace pullRequest {
     /**
      * Resolves an installation client for another repository.
      *
-     * Returns `undefined` when frictionsets is not installed there, which is what makes the receiver's
+     * Returns `undefined` when frog is not installed there, which is what makes the receiver's
      * installation the consent gate for cross-repo filing.
      */
     installation: (repo: string) => Promise<Octokit | undefined>

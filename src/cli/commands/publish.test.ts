@@ -38,7 +38,7 @@ test('behavior: files a pending entry and writes the link back', async () => {
   expect(Github.parseMarker(issue?.body)).toEqual({
     hash: Github.hash('Filters ignored'),
     origin: repo,
-    path: '.agents/frictionsets/a.md',
+    path: '.agents/friction-log/a.md',
   })
 })
 
@@ -111,7 +111,7 @@ test('behavior: commits the links by default', async () => {
 
   expect(result.committed).toBe(true)
   expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe(
-    'chore: link frictionsets to issues',
+    'chore: link friction log to issues',
   )
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
 })
@@ -128,7 +128,7 @@ test('behavior: --no-commit leaves the link uncommitted', async () => {
   )
 
   expect(result.committed).toBe(false)
-  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain('.agents/frictionsets/a.md')
+  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain('.agents/friction-log/a.md')
 })
 
 test('behavior: --dry-run files nothing and writes nothing', async () => {
@@ -160,10 +160,10 @@ describe('cross-repo', () => {
   const upstream = 'wevm/viem'
 
   /** Installs a package that declares it accepts friction. */
-  async function install(cwd: string, name: string, frictionsets: unknown): Promise<void> {
+  async function install(cwd: string, name: string, frog: unknown): Promise<void> {
     await helpers.writeFile(
       `node_modules/${name}/package.json`,
-      JSON.stringify({ frictionsets, name }),
+      JSON.stringify({ frog, name }),
       cwd,
     )
   }
@@ -363,7 +363,7 @@ describe('cross-repo', () => {
     expect(result.committed).toBe(true)
     expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
     expect((await helpers.git(['log', '--format=%s'], cwd)).split('\n')[0]).toBe(
-      'chore: link frictionsets to issues',
+      'chore: link friction log to issues',
     )
   })
 })

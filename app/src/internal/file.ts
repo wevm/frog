@@ -1,5 +1,5 @@
-import type { Config, Frictionset } from 'frictionsets'
-import { Github, Store, Target } from 'frictionsets'
+import type { Config, Entry } from 'frog'
+import { Github, Store, Target } from 'frog'
 import type { Octokit } from 'octokit'
 import type * as comment from './comment.js'
 import * as resolvers from './resolvers.js'
@@ -35,10 +35,7 @@ export async function file(options: file.Options): Promise<Filing> {
   const deferred: { id: string; reason: string }[] = []
 
   /** Grouped by destination, so one destination costs one dedupe preparation however many entries. */
-  const groups = new Map<
-    string,
-    { entries: Frictionset.Frictionset[]; labels?: readonly string[] }
-  >()
+  const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
 
   for (const entry of entries) {
     const resolution = await Target.resolve(entry.target, stack)
@@ -54,7 +51,7 @@ export async function file(options: file.Options): Promise<Filing> {
     if (destination !== origin && !config.outbound.auto) {
       deferred.push({
         id: entry.id,
-        reason: `\`${destination}\` is upstream, and \`outbound.auto\` is off. Run \`frictionsets publish\`.`,
+        reason: `\`${destination}\` is upstream, and \`outbound.auto\` is off. Run \`frog publish\`.`,
       })
       continue
     }
@@ -76,7 +73,7 @@ export async function file(options: file.Options): Promise<Filing> {
       for (const entry of group.entries)
         deferred.push({
           id: entry.id,
-          reason: `frictionsets is not installed on \`${destination}\`.`,
+          reason: `frog is not installed on \`${destination}\`.`,
         })
       continue
     }
@@ -94,9 +91,9 @@ export async function file(options: file.Options): Promise<Filing> {
       const existing = seen.get(hash) ?? (await matcher.match(entry.title))
 
       const result = await Github.publish(target.rest, {
-        frictionset: entry,
+        entry: entry,
         labels: Github.toLabels({
-          frictionset: entry,
+          entry: entry,
           labels: applied,
           severityLabels: config.severityLabels,
         }),
@@ -128,7 +125,7 @@ export declare namespace file {
     /** Normalized config, read from the default branch. */
     config: Config.Config
     /** Entries to file. Already capped and already free of linked ones. */
-    entries: readonly Frictionset.Frictionset[]
+    entries: readonly Entry.Entry[]
     /** Resolves an installation client for another repository. */
     installation: (repo: string) => Promise<Octokit | undefined>
     /** Repository holding the entries, as `owner/name`. */
@@ -142,15 +139,15 @@ export declare namespace file {
 
 /** Splits entries into those already linked and those still to file, applying the per-run ceiling. */
 export function partition(
-  entries: readonly Frictionset.Frictionset[],
+  entries: readonly Entry.Entry[],
   maxPerRun: number,
 ): {
   deferred: { id: string; reason: string }[]
   linked: comment.Link[]
-  pending: readonly Frictionset.Frictionset[]
+  pending: readonly Entry.Entry[]
 } {
   const linked: comment.Link[] = []
-  const unlinked: Frictionset.Frictionset[] = []
+  const unlinked: Entry.Entry[] = []
   for (const entry of entries) {
     if (entry.issue) linked.push({ id: entry.id, issue: entry.issue })
     else unlinked.push(entry)

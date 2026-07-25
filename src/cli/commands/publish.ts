@@ -1,5 +1,5 @@
 import { Cli, z } from 'incur'
-import type * as Frictionset from '../../Frictionset.js'
+import type * as Entry from '../../Entry.js'
 import * as Git from '../../Git.js'
 import * as Store from '../../Store.js'
 import * as Target from '../../Target.js'
@@ -103,7 +103,7 @@ export const publish = Cli.create('publish', {
       self: ready.repo,
     })
 
-    type Group = { entries: Frictionset.Frictionset[]; labels?: readonly string[] | undefined }
+    type Group = { entries: Entry.Entry[]; labels?: readonly string[] | undefined }
     const groups = new Map<string, Group>()
 
     for (const entry of publishable) {
@@ -165,7 +165,7 @@ export const publish = Cli.create('publish', {
       if (!(c.options.commit ?? config.commit) || c.options.dryRun || written.length === 0)
         return false
       await Git.add(written, { cwd: root })
-      return Git.commit('chore: link frictionsets to issues', { cwd: root })
+      return Git.commit('chore: link friction log to issues', { cwd: root })
     })()
 
     return c.ok(

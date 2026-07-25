@@ -1,13 +1,13 @@
-import { Github, Store } from 'frictionsets'
+import { Github, Store } from 'frog'
 import type { Octokit } from 'octokit'
 
 /**
- * Marks the one comment frictionsets keeps on a pull request.
+ * Marks the one comment frog keeps on a pull request.
  *
  * An explicit marker rather than matching on the bot's login: the login can be renamed, and a marker
  * also leaves room for a second kind of comment later without the two being confused.
  */
-export const marker = '<!-- frictionsets:comment -->'
+export const marker = '<!-- frog:comment -->'
 
 /** What a pull request run did, as reported back on the pull request. */
 export type Report = {

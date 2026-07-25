@@ -40,10 +40,10 @@ describe('marker', () => {
     const marker = {
       hash: 'a3f9c1e20b47',
       origin: 'acme/app',
-      path: '.agents/frictionsets/lazy-squids-chew.md',
+      path: '.agents/friction-log/lazy-squids-chew.md',
     }
     expect(Github.renderMarker(marker)).toMatchInlineSnapshot(
-      `"<!-- frictionsets:v1 hash=a3f9c1e20b47 path=.agents/frictionsets/lazy-squids-chew.md origin=acme/app -->"`,
+      `"<!-- frog:v1 hash=a3f9c1e20b47 path=.agents/friction-log/lazy-squids-chew.md origin=acme/app -->"`,
     )
     expect(Github.parseMarker(Github.renderMarker(marker))).toEqual(marker)
   })
@@ -56,8 +56,8 @@ describe('marker', () => {
     ['', undefined],
     [null, undefined],
     ['no marker here', undefined],
-    ['<!-- frictionsets:v1 -->', undefined],
-    ['<!-- frictionsets:v1 path=a.md -->', undefined],
+    ['<!-- frog:v1 -->', undefined],
+    ['<!-- frog:v1 path=a.md -->', undefined],
     ['<!-- other:v1 hash=abc -->', undefined],
   ] as const)('behavior: %s yields no marker', ([body]) => {
     expect(Github.parseMarker(body)).toBeUndefined()
@@ -69,7 +69,7 @@ describe('renderBody and parseBody', () => {
     expect(
       Github.renderBody({
         body: '## Description\n\nThe filter was swallowed.',
-        marker: { hash: 'abc123', origin: 'acme/app', path: '.agents/frictionsets/one.md' },
+        marker: { hash: 'abc123', origin: 'acme/app', path: '.agents/friction-log/one.md' },
         provenance: { author: 'Test User', pr: 'acme/app#42', sha: '0123456789abcdef' },
       }),
     ).toMatchInlineSnapshot(`
@@ -77,11 +77,11 @@ describe('renderBody and parseBody', () => {
 
       The filter was swallowed.
 
-      <!-- frictionsets:v1 hash=abc123 path=.agents/frictionsets/one.md origin=acme/app -->
+      <!-- frog:v1 hash=abc123 path=.agents/friction-log/one.md origin=acme/app -->
 
       ---
 
-      <sub>Logged by Test User in \`acme/app\` at \`0123456\` via acme/app#42. Filed by [frictionsets](https://github.com/wevm/frictionsets).</sub>
+      <sub>Logged by Test User in \`acme/app\` at \`0123456\` via acme/app#42. Filed by [frog](https://github.com/wevm/frog).</sub>
       "
     `)
   })
@@ -90,11 +90,11 @@ describe('renderBody and parseBody', () => {
     expect(Github.renderBody({ body: 'Body.', marker: { hash: 'abc123' } })).toMatchInlineSnapshot(`
       "Body.
 
-      <!-- frictionsets:v1 hash=abc123 -->
+      <!-- frog:v1 hash=abc123 -->
 
       ---
 
-      <sub>Logged. Filed by [frictionsets](https://github.com/wevm/frictionsets).</sub>
+      <sub>Logged. Filed by [frog](https://github.com/wevm/frog).</sub>
       "
     `)
   })
@@ -130,7 +130,7 @@ describe('toLabels', () => {
   test('behavior: combines configured, severity, and entry labels', () => {
     expect(
       Github.toLabels({
-        frictionset: { labels: ['tooling'], severity: 'blocker' },
+        entry: { labels: ['tooling'], severity: 'blocker' },
         labels: ['friction'],
         severityLabels,
       }),
@@ -140,7 +140,7 @@ describe('toLabels', () => {
   test('behavior: deduplicates', () => {
     expect(
       Github.toLabels({
-        frictionset: { labels: ['friction', 'friction:minor'], severity: 'minor' },
+        entry: { labels: ['friction', 'friction:minor'], severity: 'minor' },
         labels: ['friction'],
         severityLabels,
       }),
@@ -376,13 +376,13 @@ describe('index', () => {
 })
 
 describe('publish', () => {
-  const frictionset = { body: '## Description\n\nThe filter was swallowed.', title }
+  const entry = { body: '## Description\n\nThe filter was swallowed.', title }
 
   test('behavior: creates an issue with labels and a marker', async () => {
     const instance = await github()
 
     const result = await Github.publish(client(instance.url), {
-      frictionset,
+      entry,
       labels: ['friction', 'friction:minor'],
       marker: { hash: Github.hash(title), origin: 'acme/app', path: 'a.md' },
       provenance: { author: 'Test User', sha: 'deadbeefcafe' },
@@ -399,7 +399,7 @@ describe('publish', () => {
       origin: 'acme/app',
       path: 'a.md',
     })
-    expect(Github.parseBody(created?.body)).toBe(frictionset.body)
+    expect(Github.parseBody(created?.body)).toBe(entry.body)
   })
 
   test('behavior: comments instead of opening a duplicate', async () => {
@@ -412,7 +412,7 @@ describe('publish', () => {
       Github.hash(title),
     )
     const result = await Github.publish(octokit, {
-      frictionset,
+      entry,
       labels: ['friction'],
       marker: { hash: Github.hash(title) },
       provenance: { author: 'Test User', pr: 'acme/app#42' },
@@ -442,7 +442,7 @@ describe('publish', () => {
       const indexed = await Github.index(octokit, { label: 'friction', repo })
       const existing = indexed.get(Github.hash(title))
       const result = await Github.publish(octokit, {
-        frictionset,
+        entry,
         labels: ['friction'],
         marker: { hash: Github.hash(title) },
         repo,

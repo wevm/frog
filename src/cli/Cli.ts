@@ -7,7 +7,7 @@ import { publish } from './commands/publish.js'
 import { sync } from './commands/sync.js'
 import { targets } from './commands/targets.js'
 
-export const cli = Cli.create('frictionsets', {
+export const cli = Cli.create('frog', {
   description: 'Turn friction you hit while building into GitHub issues.',
   sync: {
     depth: 1,

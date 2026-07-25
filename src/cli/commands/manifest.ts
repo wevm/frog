@@ -17,7 +17,7 @@ export const manifest = Cli.create('manifest', {
     { description: 'Print the document' },
     { description: 'Speak for several packages', options: { package: ['viem', 'ox'] } },
   ],
-  hint: `Serve it at /${Manifest.wellKnown}: frictionsets manifest --json > public/${Manifest.wellKnown}`,
+  hint: `Serve it at /${Manifest.wellKnown}: frog manifest --json > public/${Manifest.wellKnown}`,
   output: z.object({
     docs: z.string().optional(),
     inbound: z.boolean(),

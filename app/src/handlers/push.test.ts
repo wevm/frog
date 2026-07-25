@@ -1,11 +1,11 @@
-import { Frictionset, Github } from 'frictionsets'
+import { Entry, Github } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import { push } from './push.js'
 
 const repo = 'acme/app'
 const upstream = 'wevm/viem'
-const dir = '.agents/frictionsets'
+const dir = '.agents/friction-log'
 
 function client(url: string): Octokit {
   return new Octokit({
@@ -43,10 +43,10 @@ test('behavior: files pending entries and writes the link back in one commit', a
 
   expect(outcome.created).toEqual([{ id: 'a', issue: `${repo}#1` }])
   expect(outcome.committed).toBeTruthy()
-  expect(instance.messages(repo)).toEqual(['initial', 'chore: link frictionsets to issues'])
+  expect(instance.messages(repo)).toEqual(['initial', 'chore: link friction log to issues'])
 
   const written = instance.files(repo)[`${dir}/a.md`] ?? ''
-  expect(Frictionset.parse(written, { id: 'a' }).issue).toBe(`${repo}#1`)
+  expect(Entry.parse(written, { id: 'a' }).issue).toBe(`${repo}#1`)
 })
 
 // The commit written here triggers another push. That run must do nothing.
@@ -84,7 +84,7 @@ test('behavior: an entry filed on a pull request gets its link on merge', async 
   expect(outcome.commented).toEqual([{ id: 'a', issue: `${repo}#1` }])
   expect(instance.issues.get(repo)).toHaveLength(1)
   const written = instance.files(repo)[`${dir}/a.md`] ?? ''
-  expect(Frictionset.parse(written, { id: 'a' }).issue).toBe(`${repo}#1`)
+  expect(Entry.parse(written, { id: 'a' }).issue).toBe(`${repo}#1`)
 })
 
 test('behavior: nothing pending makes no commit', async () => {
@@ -140,5 +140,5 @@ test('behavior: an upstream filing writes the link into this repository', async 
 
   expect(outcome.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
   const written = instance.files(repo)[`${dir}/a.md`] ?? ''
-  expect(Frictionset.parse(written, { id: 'a' }).issue).toBe(`${upstream}#1`)
+  expect(Entry.parse(written, { id: 'a' }).issue).toBe(`${upstream}#1`)
 })

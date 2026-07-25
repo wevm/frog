@@ -3,7 +3,7 @@ import path from 'node:path'
 import { z } from 'incur'
 
 /** Path a project serves its manifest from. */
-export const wellKnown = '.well-known/frictionsets.json'
+export const wellKnown = '.well-known/frog.json'
 
 /** Only version this release understands. A document declaring anything else is rejected, not guessed at. */
 export const version = 1
@@ -22,7 +22,7 @@ const Inbound = z.object({
 })
 
 /**
- * The document as published, at `/.well-known/frictionsets.json` or in `package.json#frictionsets`.
+ * The document as published, at `/.well-known/frog.json` or in `package.json#frog`.
  *
  * `inbound` accepts `true` as shorthand for the common case, so a project opting in writes one word.
  */
@@ -119,7 +119,7 @@ export type Document = Written & {
 /**
  * Renders the document a project serves.
  *
- * @returns The document, ready to write to `/.well-known/frictionsets.json`.
+ * @returns The document, ready to write to `/.well-known/frog.json`.
  */
 export function render(options: render.Options): Document {
   const { docs, labels, name, packages, repo } = options
@@ -153,7 +153,7 @@ export declare namespace render {
 /**
  * Reads an installed package's manifest.
  *
- * This is the offline path, and the reason `package.json#frictionsets` was chosen over a separate
+ * This is the offline path, and the reason `package.json#frog` was chosen over a separate
  * file: that field ships in every tarball with no `files` configuration, so consent is a filesystem
  * read with no API call, no rate limit, and no network in CI.
  *
@@ -170,14 +170,14 @@ export async function fromPackage(
 
   const parsed = (() => {
     try {
-      return JSON.parse(contents) as { frictionsets?: unknown }
+      return JSON.parse(contents) as { frog?: unknown }
     } catch {
       return undefined
     }
   })()
-  if (!parsed?.frictionsets) return undefined
+  if (!parsed?.frog) return undefined
 
-  const manifest = from(parsed.frictionsets)
+  const manifest = from(parsed.frog)
   return manifest ? named(manifest, name) : undefined
 }
 
@@ -293,7 +293,7 @@ export async function fetchDocument(
     const manifest = from(await response.json().catch(() => undefined))
     return manifest
       ? { manifest, ok: true }
-      : { ok: false, reason: `${url} is not a valid frictionsets manifest.` }
+      : { ok: false, reason: `${url} is not a valid frog manifest.` }
   })()
 
   // A definitive absence is cached as well as a hit: most hosts have no manifest, and re-probing every
