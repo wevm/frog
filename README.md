@@ -23,11 +23,10 @@ Automated friction logs.
 
 ## Problem
 
-[Friction logging](https://mikebifulco.com/posts/how-stripe-uses-friction-logs) comes from developer
-relations: while you use something, you write down where it fought you, in your own words, as it happens.
-Stripe trains every employee to do it during onboarding, because it does not happen by default, and
-because familiarity is corrosive. The longer you use a thing, the less able you are to see what is wrong
-with it.
+Friction logging is a simple practice: while you use something, you write down where it fought you, in
+your own words, as it happens. It rarely happens, because familiarity is corrosive. The longer you use a
+thing, the less able you are to see what is wrong with it, and by the time you would sit down to write
+the log you have stopped noticing.
 
 An agent never acquires that familiarity. It arrives at every session a newcomer and meets the papercuts
 at full force, which makes it the best friction logger you have.
