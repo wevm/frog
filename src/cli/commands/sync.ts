@@ -61,35 +61,58 @@ export const sync = Cli.create('sync', {
         },
       })
 
-    // Always a remote read, even with no local entries: a reopened issue whose file was deleted has
-    // nothing local to notice it by.
-    const issues = await attempt(
-      Sync.state({
-        entries: entries.value,
-        get: (issue) => Github.get(ready.client, { issue, repo: ready.repo }),
-        list: () => Github.list(ready.client, { label: ready.label, repo: ready.repo }),
-        repo: ready.repo,
-      }),
-    )
-    if (!issues.ok)
-      return c.error(
-        publisher.toFailure({
-          message: issues.message,
-          repo: ready.repo,
-          ...(issues.status !== undefined ? { status: issues.status } : {}),
+    // Every repository these entries point at, not just this one. An entry reported upstream is
+    // mirrored here, so its issue closing has to be noticed here too. Own repository always included:
+    // a reopened issue whose file was deleted has nothing local to notice it by.
+    const destinations = [
+      ...new Set([
+        ready.repo,
+        ...entries.value
+          .map((entry) => (entry.issue ? Github.parseLink(entry.issue)?.repo : undefined))
+          .filter((repo): repo is string => repo !== undefined),
+      ]),
+    ]
+
+    const plans: Sync.Plan[] = []
+    for (const destination of destinations) {
+      const issues = await attempt(
+        Sync.state({
+          entries: entries.value,
+          get: (issue) => Github.get(ready.client, { issue, repo: destination }),
+          list: () => Github.list(ready.client, { label: ready.label, repo: destination }),
+          repo: destination,
         }),
       )
+      if (!issues.ok)
+        return c.error(
+          publisher.toFailure({
+            message: issues.message,
+            repo: destination,
+            ...(issues.status !== undefined ? { status: issues.status } : {}),
+          }),
+        )
 
-    const plan = Sync.plan({
-      entries: entries.value,
-      issues: issues.value,
-      labels: config.labels,
-      repo: ready.repo,
-      severityLabels: config.severityLabels,
-    })
+      plans.push(
+        Sync.plan({
+          entries: entries.value,
+          issues: issues.value,
+          labels: config.labels,
+          // The files are always here, whichever repository the issues are in.
+          origin: ready.repo,
+          repo: destination,
+          severityLabels: config.severityLabels,
+        }),
+      )
+    }
+
+    const plan: Sync.Plan = {
+      clearLink: plans.flatMap((value) => value.clearLink),
+      remove: plans.flatMap((value) => value.remove),
+      write: plans.flatMap((value) => value.write),
+    }
 
     const cleared = plan.clearLink.map((entry) => entry.id)
-    const removed = [...plan.remove]
+    const removed = [...new Set(plan.remove)]
     const updated = plan.write.map((entry) => entry.id)
 
     if (c.options.dryRun || Sync.empty(plan))

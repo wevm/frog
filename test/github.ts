@@ -102,18 +102,26 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   const pushable = (repo: string) => !options.pushAccess || options.pushAccess.includes(repo)
   const issues = new Map<string, Issue[]>()
   const pulls = new Set<string>()
-  let counter = 0
+
+  // Numbered per repository, as GitHub does. A shared counter would let a test pass for the wrong
+  // reason, since `owner/a#1` and `owner/b#1` are different issues.
+  const numbers = new Map<string, number>()
+  const nextNumber = (repo: string) => {
+    const next = (numbers.get(repo) ?? 0) + 1
+    numbers.set(repo, next)
+    return next
+  }
 
   for (const [repo, list] of Object.entries(seed)) {
     issues.set(
       repo,
       list.map((issue) => {
-        counter += 1
-        if (issue.pull) pulls.add(`${repo}#${counter}`)
+        const number = nextNumber(repo)
+        if (issue.pull) pulls.add(`${repo}#${number}`)
         return {
           body: issue.body ?? '',
           labels: [...(issue.labels ?? ['friction'])],
-          number: counter,
+          number,
           state: issue.state ?? 'open',
           title: issue.title,
         }
@@ -232,12 +240,11 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const payload = await readBody<{ body?: string; labels?: string[]; title?: string }>(
           request,
         )
-        counter += 1
         const issue: Issue = {
           body: payload.body ?? '',
           // Silently dropped without push access, exactly as GitHub does it.
           labels: pushable(repo) ? (payload.labels ?? []) : [],
-          number: counter,
+          number: nextNumber(repo),
           state: 'open',
           title: payload.title ?? '',
         }

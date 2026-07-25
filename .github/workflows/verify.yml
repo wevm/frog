@@ -1,0 +1,50 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancel superseded runs on a branch, but never on main.
+concurrency:
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions: {}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          cache: pnpm
+          node-version: 22
+
+      - run: pnpm install --frozen-lockfile
+
+      # Git identity: the git layer's tests commit in throwaway repositories.
+      - name: Configure git
+        run: |
+          git config --global user.name 'frictionsets'
+          git config --global user.email 'frictionsets@users.noreply.github.com'
+
+      - run: pnpm check:types
+      - run: pnpm --dir app check:types
+      - run: pnpm check:docs
+      - run: pnpm test --run
+
+      # Formatting and lint, without the `--fix` the local script uses.
+      - run: pnpm exec vp check
+
+      # The Worker has to bundle, which the unit tests cannot tell us.
+      - run: pnpm build
+      - run: pnpm --dir app exec wrangler deploy --dry-run

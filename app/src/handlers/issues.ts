@@ -62,6 +62,8 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     entries,
     issues: state,
     labels: settings.labels,
+    // The files are in `origin`; the issues are in `repo`. They differ for anything reported upstream.
+    origin,
     repo,
     severityLabels: settings.severityLabels,
   })

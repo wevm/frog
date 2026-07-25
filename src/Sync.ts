@@ -32,6 +32,8 @@ export type Plan = {
  */
 export function plan(options: plan.Options): Plan {
   const { entries, issues, labels, repo, severityLabels } = options
+  // Where the files are, which is only the same as where the issues are when reporting to yourself.
+  const origin = options.origin ?? repo
 
   const byNumber = new Map(issues.map((issue) => [issue.number, issue]))
   const present = new Set(entries.map((entry) => Store.toPath(entry.id)))
@@ -71,7 +73,9 @@ export function plan(options: plan.Options): Plan {
     // somebody labelled by hand is left alone rather than materialized as an entry here.
     const marker = Github.parseMarker(issue.body)
     if (!marker?.path) continue
-    if (marker.origin && marker.origin !== repo) continue
+    // The marker names the repository holding the file, so this compares against `origin`. Comparing
+    // against `repo` would refuse to rebuild any file mirroring an upstream issue.
+    if (marker.origin && marker.origin !== origin) continue
     if (present.has(marker.path)) continue
 
     const id = Store.toId(marker.path)
@@ -90,7 +94,14 @@ export declare namespace plan {
     issues: readonly Github.Issue[]
     /** Labels applied to every issue, from config. */
     labels: readonly string[]
-    /** Repository being reconciled, as `owner/name`. */
+    /**
+     * Repository holding the entry files, as `owner/name`. Defaults to `repo`.
+     *
+     * Differs from `repo` whenever friction was reported upstream: the issues are there, the files are
+     * here. A marker records this one, so rebuilding a deleted file matches against it.
+     */
+    origin?: string | undefined
+    /** Repository the issues live in, as `owner/name`. */
     repo: string
     /** Label to apply for each severity, from config. */
     severityLabels: Record<Frictionset.Severity, string>

@@ -167,6 +167,60 @@ describe('plan', () => {
   })
 })
 
+// Friction reported upstream: the issues are there, the files are here. `plan` is told both.
+describe('plan across repositories', () => {
+  const upstream = 'wevm/viem'
+
+  /** An issue in `upstream` whose marker points at a file in this repository. */
+  function upstreamIssue(overrides: Partial<Github.Issue> = {}): Github.Issue {
+    return {
+      body: Github.renderBody({
+        body: 'Body.',
+        marker: { hash: Github.hash('Filters ignored'), origin: repo, path: Store.toPath('a') },
+      }),
+      labels: ['friction', 'friction:minor'],
+      number: 1,
+      state: 'open',
+      title: 'Filters ignored',
+      ...overrides,
+    }
+  }
+
+  function across(
+    entries: readonly Frictionset.Frictionset[],
+    issues: readonly Github.Issue[],
+  ): Sync.Plan {
+    return Sync.plan({ entries, issues, labels, origin: repo, repo: upstream, severityLabels })
+  }
+
+  test('behavior: an upstream issue that closed removes the entry mirroring it', () => {
+    const result = across(
+      [entry({ issue: `${upstream}#1`, target: 'viem' })],
+      [upstreamIssue({ state: 'closed' })],
+    )
+    expect(result.remove).toEqual(['a'])
+  })
+
+  // Without `origin`, the marker would be compared against the upstream repository and never match.
+  test('behavior: an open upstream issue whose file was deleted is rebuilt here', () => {
+    const result = across([], [upstreamIssue()])
+    expect(result.write.map((value) => value.id)).toEqual(['a'])
+    expect(result.write[0]?.issue).toBe(`${upstream}#1`)
+  })
+
+  test('behavior: an upstream issue mirroring a third repository is ignored', () => {
+    const body = Github.renderBody({
+      body: 'Body.',
+      marker: { hash: 'x', origin: 'other/app', path: Store.toPath('a') },
+    })
+    expect(Sync.empty(across([], [upstreamIssue({ body })]))).toBe(true)
+  })
+
+  test('behavior: an entry linked to a different repository is left alone', () => {
+    expect(Sync.empty(across([entry({ issue: 'third/party#9' })], [upstreamIssue()]))).toBe(true)
+  })
+})
+
 function bodyFor(id: string): string {
   return Github.renderBody({
     body: 'Body.',

@@ -196,6 +196,92 @@ test('behavior: running twice is a no-op', async () => {
   expect(second).toMatchObject({ cleared: [], committed: false, removed: [], updated: [] })
 })
 
+// A consumer mirrors issues that live upstream, so reconciling must follow the links out.
+describe('cross-repo', () => {
+  const upstream = 'wevm/viem'
+
+  /** An issue in `upstream` whose marker points at a file in this repository. */
+  function upstreamBody(id = 'a'): string {
+    return Github.renderBody({
+      body: 'Body.',
+      marker: { hash: Github.hash(title), origin: repo, path: Store.toPath(id) },
+    })
+  }
+
+  async function reporting(state: 'closed' | 'open') {
+    const cwd = await helpers.repo({ remote })
+    await Store.write(
+      { body: 'Body.', issue: `${upstream}#1`, severity: 'minor', target: 'viem', title },
+      { id: 'a', root: cwd },
+    )
+    await helpers.commit('log friction', cwd)
+    const instance = await github({ [upstream]: [{ body: upstreamBody(), state, title }] })
+    return { cwd, instance }
+  }
+
+  test('behavior: an upstream issue that closed deletes the entry mirroring it', async () => {
+    const { cwd, instance } = await reporting('closed')
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+    expect(result.removed).toEqual(['a'])
+    expect(await Store.list({ root: cwd })).toEqual([])
+  })
+
+  test('behavior: an open upstream issue leaves the entry alone', async () => {
+    const { cwd, instance } = await reporting('open')
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+    expect(result).toMatchObject({ cleared: [], removed: [], updated: [] })
+    expect((await Store.get('a', { root: cwd })).issue).toBe(`${upstream}#1`)
+  })
+
+  test('behavior: an upstream issue that no longer exists clears the link', async () => {
+    const cwd = await helpers.repo({ remote })
+    await Store.write(
+      { body: 'Body.', issue: `${upstream}#9`, severity: 'minor', target: 'viem', title },
+      { id: 'a', root: cwd },
+    )
+    const instance = await github()
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+    expect(result.cleared).toEqual(['a'])
+    expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
+  })
+
+  test('behavior: reconciles this repository and an upstream one in one pass', async () => {
+    const cwd = await helpers.repo({ remote })
+    await Store.write(
+      { body: 'Body.', issue: `${repo}#1`, severity: 'minor', title: 'Ours' },
+      { id: 'ours', root: cwd },
+    )
+    await Store.write(
+      { body: 'Body.', issue: `${upstream}#1`, severity: 'minor', target: 'viem', title },
+      { id: 'theirs', root: cwd },
+    )
+    const instance = await github({
+      [repo]: [
+        {
+          body: Github.renderBody({
+            body: 'Body.',
+            marker: { hash: Github.hash('Ours'), origin: repo, path: Store.toPath('ours') },
+          }),
+          state: 'closed',
+          title: 'Ours',
+        },
+      ],
+      [upstream]: [{ body: upstreamBody('theirs'), state: 'closed', title }],
+    })
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+    expect(result.removed.sort()).toEqual(['ours', 'theirs'])
+    expect(await Store.list({ root: cwd })).toEqual([])
+  })
+})
+
 test('error: a repository the token cannot see', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github({}, { errors: { [repo]: 404 } })
