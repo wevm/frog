@@ -26,9 +26,9 @@ Automated friction logging for agents.
 An agent hits friction constantly, and notices all of it. That makes it the best friction logger you have,
 and the worst at keeping one: each workaround goes unrecorded, and the next agent starts from nothing.
 
-The friction also never reaches whoever could remove it. Writing it down by hand is the obvious fix and
-does not survive: familiarity is corrosive, so you stop noticing what to write, and nobody prunes the
-list, so nobody reads it.
+Nobody who could fix the friction hears about it either. Keeping the log by hand does not work: you stop
+noticing what to write, and nothing removes the entries you did write. The list goes stale, and a stale
+list goes unread.
 
 ## Solution
 
