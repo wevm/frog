@@ -23,14 +23,18 @@ Automated friction logs.
 
 ## Problem
 
-An agent building a feature runs into friction constantly. A command that does not do what its name says.
-A dependency whose types disagree with its docs. A test that fails for a reason unrelated to the code. A
-setup step that needed knowledge written down nowhere.
+[Friction logging](https://mikebifulco.com/posts/how-stripe-uses-friction-logs) comes from developer
+relations: while you use something, you write down where it fought you, in your own words, as it happens.
+Stripe trains every employee to do it during onboarding, because it does not happen by default, and
+because familiarity is corrosive. The longer you use a thing, the less able you are to see what is wrong
+with it.
 
-Each one gets worked around, and the workaround is never recorded. So the knowledge dies with the session.
-The next agent hits the same wall and starts guessing again, from nothing: no note that the command is
-misleading, no note that the failure is unrelated, no note that somebody already found the way through
-last week. And the friction itself is never surfaced to anyone who could remove it.
+An agent never acquires that familiarity. It arrives at every session a newcomer and meets the papercuts
+at full force, which makes it the best friction logger you have.
+
+It is also the worst at keeping the log. Each papercut gets worked around and the workaround is recorded
+nowhere, so the knowledge dies with the session. The next agent hits the same wall and starts from
+nothing, and the friction never reaches anyone who could remove it.
 
 Writing it down by hand does not survive either. Every hand-rolled friction log we have has either filled
 up until nobody read it, or been abandoned with nothing in it. A list nobody consumes and nobody prunes
