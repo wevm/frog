@@ -1,0 +1,19 @@
+packages:
+  - .
+
+catalog:
+  '@changesets/cli': latest
+  '@clack/prompts': ^1.7.0
+  '@octokit/rest': ^22.0.1
+  '@types/node': latest
+  '@vitest/coverage-v8': latest
+  human-id: ^4.2.0
+  incur: 0.4.19
+  tsx: ^4.23.1
+  typescript: latest
+  vite-plus: latest
+  yaml: ^2.9.0
+  zile: latest
+
+allowBuilds:
+  esbuild: true
