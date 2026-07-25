@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "frictionsets config",
+  "type": "object",
+  "properties": {
+    "commit": {
+      "default": true,
+      "description": "Commit the file changes that publish and sync make.",
+      "type": "boolean"
+    },
+    "inbound": {
+      "description": "Whether and how this repository accepts friction reported by others.",
+      "default": {},
+      "type": "object",
+      "properties": {
+        "allowFrom": {
+          "description": "Sender repositories, or `owner/*` globs, allowed to report friction here. Absent means anyone.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "enabled": {
+          "default": false,
+          "description": "Accept friction reported by other repositories.",
+          "type": "boolean"
+        },
+        "labels": {
+          "description": "Labels applied to inbound issues, in place of `labels`.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "labels": {
+      "default": ["friction"],
+      "description": "Labels applied to every issue this repository files about itself.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "maxPerRun": {
+      "default": 10,
+      "description": "Ceiling on issues filed in a single publish run, so a runaway agent cannot spray.",
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "outbound": {
+      "description": "Where friction may be reported, and whether automation may do it unattended.",
+      "default": {},
+      "type": "object",
+      "properties": {
+        "allowedRepos": {
+          "default": [],
+          "description": "Targets this repository may file against. Always read from the base branch, never a pull request head.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "auto": {
+          "default": false,
+          "description": "Let the GitHub App file cross-repo without a human running publish. Off, because a private repository can leak proprietary detail upstream.",
+          "type": "boolean"
+        }
+      }
+    },
+    "publishOnLog": {
+      "default": false,
+      "description": "Make `log` file the issue immediately, without needing `--publish`.",
+      "type": "boolean"
+    },
+    "repo": {
+      "description": "`owner/name` this repository's own friction is filed against. Defaults to the origin remote.",
+      "type": "string",
+      "pattern": "^[\\w.-]+\\/[\\w.-]+$"
+    },
+    "severityLabels": {
+      "description": "Issue label applied for each severity.",
+      "default": {},
+      "type": "object",
+      "properties": {
+        "blocker": {
+          "default": "friction:blocker",
+          "type": "string",
+          "minLength": 1
+        },
+        "major": {
+          "default": "friction:major",
+          "type": "string",
+          "minLength": 1
+        },
+        "minor": {
+          "default": "friction:minor",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "site": {
+      "description": "Site serving `/.well-known/frictionsets.json`.",
+      "type": "string",
+      "format": "uri"
+    },
+    "sync": {
+      "description": "How local files reconcile against issue state.",
+      "default": {},
+      "type": "object",
+      "properties": {
+        "closeOnDelete": {
+          "default": false,
+          "description": "Close the issue when its file is deleted by hand. Off, because a deletion is often just a rebase.",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
