@@ -23,9 +23,8 @@ Automated friction logging for agents.
 
 ## Problem
 
-An agent meets every papercut at full force, every session. That makes it the best friction logger you
-have, and the worst at keeping one: each workaround goes unrecorded, and the next agent starts from
-nothing.
+An agent hits friction constantly, and notices all of it. That makes it the best friction logger you have,
+and the worst at keeping one: each workaround goes unrecorded, and the next agent starts from nothing.
 
 The friction also never reaches whoever could remove it. Writing it down by hand is the obvious fix and
 does not survive: familiarity is corrosive, so you stop noticing what to write, and nobody prunes the
