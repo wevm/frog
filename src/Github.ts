@@ -10,22 +10,46 @@ import * as Frictionset from './Frictionset.js'
  */
 export type Client = Pick<Octokit['rest'], 'issues'>
 
+/** The parts of a GitHub issue this module reads. */
 export type Issue = {
+  /** Issue body. `null` when GitHub has none, which is how the API reports an empty body. */
   body?: string | null | undefined
+  /** Issue number, unique within its repository. */
   number: number
+  /** `open` or `closed`. */
   state: string
+  /** Issue title. */
   title: string
 }
 
-/** Splits `owner/name` into the shape Octokit wants. */
+/**
+ * Splits `owner/name` into the shape Octokit wants.
+ *
+ * @param target - Repository as `owner/name`.
+ * @returns Octokit's `{ owner, repo }` pair.
+ */
 export function split(target: string): { owner: string; repo: string } {
   const [owner = '', repo = ''] = target.split('/')
   return { owner, repo }
 }
 
-/** Formats a linked issue as it appears in frontmatter. */
-export function toLink(options: { issue: number; repo: string }): string {
+/**
+ * Formats a linked issue as it appears in frontmatter.
+ *
+ * @returns The link as `owner/name#number`.
+ */
+export function toLink(options: toLink.Options): string {
   return `${options.repo}#${options.issue}`
+}
+
+export declare namespace toLink {
+  /** Options for {@link toLink}. */
+  type Options = {
+    /** Issue number. */
+    issue: number
+    /** Repository holding the issue, as `owner/name`. */
+    repo: string
+  }
 }
 
 /**
@@ -33,14 +57,25 @@ export function toLink(options: { issue: number; repo: string }): string {
  *
  * Normalized first, so the same friction reported with different capitalization and punctuation
  * lands on one issue.
+ *
+ * @param title - Title as written.
+ * @returns The first 12 hex characters of the normalized title's sha256.
  */
 export function hash(title: string): string {
   return createHash('sha256').update(Frictionset.normalizeTitle(title)).digest('hex').slice(0, 12)
 }
 
+/** Marker format version, so a future format change can be recognized rather than misread. */
 export const markerVersion = 'v1'
+
 const markerRegex = /<!--\s*frictionsets:v1\s+([^>]*?)\s*-->/
 
+/**
+ * Hidden state carried in an issue body.
+ *
+ * This is the whole basis of idempotency and of sync: it is how a second publish recognizes an issue
+ * it already filed, and how an issue event finds the file mirroring it.
+ */
 export type Marker = {
   /** Dedupe key. */
   hash: string
@@ -50,7 +85,11 @@ export type Marker = {
   path?: string | undefined
 }
 
-/** Renders the hidden marker appended to every issue body. */
+/**
+ * Renders the hidden marker embedded in every issue body.
+ *
+ * @returns An HTML comment, which renders as nothing on GitHub.
+ */
 export function renderMarker(marker: Marker): string {
   const parts = [`hash=${marker.hash}`]
   if (marker.path) parts.push(`path=${marker.path}`)
@@ -58,7 +97,12 @@ export function renderMarker(marker: Marker): string {
   return `<!-- frictionsets:${markerVersion} ${parts.join(' ')} -->`
 }
 
-/** Reads the marker out of an issue body. */
+/**
+ * Reads the marker out of an issue body.
+ *
+ * @param body - Issue body, which may be absent.
+ * @returns The marker, or `undefined` for a body with none or with no `hash` field.
+ */
 export function parseMarker(body: string | null | undefined): Marker | undefined {
   const match = markerRegex.exec(body ?? '')
   if (!match?.[1]) return undefined
@@ -79,12 +123,18 @@ export function parseMarker(body: string | null | undefined): Marker | undefined
   }
 }
 
+/**
+ * Who hit the friction, and where.
+ *
+ * Every field is optional: an entry logged moments ago is not committed yet, so none of this is
+ * always knowable.
+ */
 export type Provenance = {
-  /** Commit author name. */
+  /** Commit author name, or the GitHub actor when the App files on someone's behalf. */
   author?: string | undefined
   /** Pull request this was logged in, as `owner/name#number`. */
   pr?: string | undefined
-  /** Commit the entry was added in. */
+  /** Commit the entry was added in. Rendered short. */
   sha?: string | undefined
 }
 
@@ -93,6 +143,8 @@ export type Provenance = {
  *
  * The marker sits directly after the body so `parseBody` can recover the entry by splitting on it.
  * Anything after the marker is presentation and is dropped on the way back.
+ *
+ * @returns The issue body. {@link parseBody} inverts this exactly.
  */
 export function renderBody(options: renderBody.Options): string {
   const { body, marker, provenance = {} } = options
@@ -112,22 +164,36 @@ export function renderBody(options: renderBody.Options): string {
 }
 
 export declare namespace renderBody {
+  /** Options for {@link renderBody}. */
   type Options = {
     /** The frictionset body, verbatim. */
     body: string
+    /** Hidden state to embed. Its `origin` also appears in the footer. */
     marker: Marker
+    /** Attribution for the footer. Omitted entirely when nothing is known. */
     provenance?: Provenance | undefined
   }
 }
 
-/** Recovers the frictionset body from an issue body. */
+/**
+ * Recovers the frictionset body from an issue body.
+ *
+ * The inverse of {@link renderBody}, which the reopen path depends on to rebuild a deleted file.
+ *
+ * @param body - Issue body, which may be absent.
+ * @returns The entry body. A body with no marker is returned trimmed but otherwise untouched.
+ */
 export function parseBody(body: string | null | undefined): string {
   const value = body ?? ''
   const match = markerRegex.exec(value)
   return (match ? value.slice(0, match.index) : value).trim()
 }
 
-/** Labels for an entry: the configured set, its severity label, and anything on the entry. */
+/**
+ * Labels for an entry: the configured set, its severity label, and anything on the entry.
+ *
+ * @returns Labels in that order, deduplicated.
+ */
 export function toLabels(options: toLabels.Options): readonly string[] {
   const { frictionset, labels, severityLabels } = options
   return [
@@ -136,9 +202,13 @@ export function toLabels(options: toLabels.Options): readonly string[] {
 }
 
 export declare namespace toLabels {
+  /** Options for {@link toLabels}. */
   type Options = {
+    /** The entry, for its own labels and its severity. */
     frictionset: Pick<Frictionset.Frictionset, 'labels' | 'severity'>
+    /** Labels applied to every issue, from config. */
     labels: readonly string[]
+    /** Label to apply for each severity, from config. */
     severityLabels: Record<Frictionset.Severity, string>
   }
 }
@@ -150,6 +220,10 @@ export declare namespace toLabels {
  * moments apart can both miss and open duplicates. Listing is deterministic and paginates.
  *
  * Issues with no marker are indexed by their title hash, so an issue filed by hand still dedupes.
+ *
+ * @param client - Authenticated client for the target repository.
+ * @returns Issues keyed by dedupe hash. Where several share a hash, the canonical one wins: open
+ * before closed, then lowest number.
  */
 export async function index(client: Client, options: index.Options): Promise<Map<string, Issue>> {
   const { label, repo, state = 'all' } = options
@@ -185,15 +259,20 @@ export async function index(client: Client, options: index.Options): Promise<Map
 }
 
 export declare namespace index {
+  /** Options for {@link index}. */
   type Options = {
-    /** Label every frictionsets issue in this repository carries. */
+    /** Label every frictionsets issue in this repository carries. Dedupe keys off it. */
     label: string
+    /** Repository to index, as `owner/name`. */
     repo: string
+    /** Which issues to consider. Defaults to `all`, so a closed issue still dedupes. */
     state?: 'all' | 'open' | undefined
   }
 }
 
+/** What filing an entry did. */
 export type Result = {
+  /** Number of the issue that now covers the entry. */
   issue: number
   /** `created` opened a new issue, `commented` added to one that already existed. */
   status: 'commented' | 'created'
@@ -204,6 +283,9 @@ export type Result = {
  *
  * Commenting rather than opening a duplicate is what makes publishing idempotent, which is required:
  * a pull request `synchronize` event re-runs this over the same entries.
+ *
+ * @param client - Authenticated client for the target repository.
+ * @returns The issue number and whether it was opened or commented on.
  */
 export async function publish(client: Client, options: publish.Options): Promise<Result> {
   const { existing, frictionset, labels, marker, provenance, repo } = options
@@ -241,13 +323,23 @@ export async function publish(client: Client, options: publish.Options): Promise
 }
 
 export declare namespace publish {
+  /** Options for {@link publish}. */
   type Options = {
-    /** Issue already covering this friction, from `index`. */
+    /**
+     * Issue already covering this friction, looked up in {@link index}.
+     *
+     * When set, the entry is added as a comment instead of a new issue.
+     */
     existing?: Issue | undefined
+    /** The entry, for its title and body. */
     frictionset: Pick<Frictionset.Frictionset, 'body' | 'title'>
+    /** Labels for a newly opened issue. Ignored when commenting. */
     labels: readonly string[]
+    /** Hidden state to embed, from {@link hash} plus the file path and origin repository. */
     marker: Marker
+    /** Attribution for the footer and the comment. */
     provenance?: Provenance | undefined
+    /** Repository to file in, as `owner/name`. */
     repo: string
   }
 }

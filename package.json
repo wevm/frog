@@ -4,6 +4,7 @@
     "changeset:publish": "zile publish:prepare && changeset publish && zile publish:post",
     "changeset:version": "changeset version",
     "check": "vp check --fix",
+    "check:docs": "node --import tsx scripts/docs.ts",
     "check:types": "tsc",
     "dev": "zile dev",
     "frictionsets": "node --import tsx src/bin.ts",

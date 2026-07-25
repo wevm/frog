@@ -96,10 +96,17 @@ export const Schema = z.object({
     .describe('How local files reconcile against issue state.'),
 })
 
-/** Normalized config, with every default applied. */
+/**
+ * Normalized config, with every default applied.
+ *
+ * Field documentation lives on {@link Schema} as `.describe()` rather than as TSDoc here. That is
+ * deliberate and the one exception in this package: `.describe()` is what reaches `schema.json`, where
+ * `$schema` turns it into autocomplete for the person writing the JSON. Duplicating the same prose as
+ * TSDoc would give two sources that drift. Run `frictionsets publish --schema` to read it.
+ */
 export type Config = z.output<typeof Schema>
 
-/** Config as written on disk: every field optional. */
+/** Config as written on disk: every field optional, before defaults are applied. */
 export type WrittenConfig = z.input<typeof Schema>
 
 /**
@@ -117,8 +124,9 @@ export function from(value: unknown, options: from.Options = {}): Config {
 }
 
 export declare namespace from {
+  /** Options for {@link from}. */
   type Options = {
-    /** Applied beneath the written config, for values derived elsewhere (e.g. the origin remote). */
+    /** Applied beneath the written config, for values derived elsewhere such as the origin remote. */
     defaults?: WrittenConfig | undefined
   }
 }
@@ -145,33 +153,55 @@ export async function resolve(options: resolve.Options): Promise<Config> {
 }
 
 export declare namespace resolve {
+  /** Options for {@link resolve}. */
   type Options = from.Options & {
-    /** Repository root. */
+    /** Repository root. Config is read from `<root>/.agents/frictionsets/config.json`. */
     root: string
   }
 }
 
 /** Thrown when the config file is not parseable JSON. */
 export class MalformedError extends Error {
+  /** Namespaced class name. */
   override name = 'Config.MalformedError'
+  /** Machine-readable code, surfaced as the CLI error code. */
   code = 'MALFORMED_CONFIG' as const
 
-  constructor(options: { cause: Error }) {
+  constructor(options: MalformedError.Options) {
     super(`\`${file}\` is not valid JSON.`, { cause: options.cause })
+  }
+}
+
+export declare namespace MalformedError {
+  /** Options for {@link MalformedError}. */
+  type Options = {
+    /** Underlying JSON parse failure. */
+    cause: Error
   }
 }
 
 /** Thrown when config parses as JSON but fails validation. */
 export class InvalidError extends Error {
+  /** Namespaced class name. */
   override name = 'Config.InvalidError'
+  /** Machine-readable code, surfaced as the CLI error code. */
   code = 'INVALID_CONFIG' as const
+  /** Every validation failure, for callers that need more than the message. */
   issues: readonly z.core.$ZodIssue[]
 
-  constructor(options: { issues: readonly z.core.$ZodIssue[] }) {
+  constructor(options: InvalidError.Options) {
     const details = options.issues
       .map((issue) => `${issue.path.join('.') || 'config'}: ${issue.message}`)
       .join('; ')
     super(`\`${file}\` is invalid. ${details || 'Expected an object.'}`)
     this.issues = options.issues
+  }
+}
+
+export declare namespace InvalidError {
+  /** Options for {@link InvalidError}. */
+  type Options = {
+    /** Validation failures, summarized into the message and kept for inspection. */
+    issues: readonly z.core.$ZodIssue[]
   }
 }

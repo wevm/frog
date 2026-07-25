@@ -14,7 +14,11 @@ async function git(args: readonly string[], options: Options = {}): Promise<stri
   return stdout.trim()
 }
 
-/** Absolute path of the repository root, or `undefined` outside a repository. */
+/**
+ * Absolute path of the repository root.
+ *
+ * @returns The root, or `undefined` outside a repository.
+ */
 export async function root(options: Options = {}): Promise<string | undefined> {
   try {
     return await git(['rev-parse', '--show-toplevel'], options)
@@ -26,7 +30,12 @@ export async function root(options: Options = {}): Promise<string | undefined> {
 /** Matches GitHub remotes in ssh, scp, and https form. */
 const remoteRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?$/
 
-/** `owner/name` from the `origin` remote, or `undefined` when it is missing or not GitHub. */
+/**
+ * Repository behind the `origin` remote.
+ *
+ * @returns `owner/name`, or `undefined` when there is no `origin` or it does not point at GitHub.
+ * Recognizes ssh, scp, and https remote forms.
+ */
 export async function repo(options: Options = {}): Promise<string | undefined> {
   const url = await git(['remote', 'get-url', 'origin'], options).catch(() => '')
   const match = remoteRegex.exec(url)
@@ -35,17 +44,28 @@ export async function repo(options: Options = {}): Promise<string | undefined> {
   return `${owner}/${name}`
 }
 
-/** Current commit sha, or `undefined` in a repository with no commits. */
+/**
+ * Sha of the current commit.
+ *
+ * @returns The sha, or `undefined` in a repository with no commits.
+ */
 export async function head(options: Options = {}): Promise<string | undefined> {
   return git(['rev-parse', 'HEAD'], options).catch(() => undefined)
 }
 
-/** Local committer name from git config, or `undefined` when unset. */
+/**
+ * Local committer name from git config.
+ *
+ * Used to attribute an entry that has not been committed yet, where there is no commit to read.
+ *
+ * @returns The name, or `undefined` when `user.name` is unset.
+ */
 export async function author(options: Options = {}): Promise<string | undefined> {
   const name = await git(['config', 'user.name'], options).catch(() => '')
   return name || undefined
 }
 
+/** Who added a file, and when. */
 export type Provenance = {
   /** Commit author name. */
   author: string
@@ -61,8 +81,11 @@ const separator = '\u001f'
 /**
  * Provenance of the commit that added `file`.
  *
- * Returns `undefined` for a file that is not committed yet, leaving the caller to decide what an
- * unknown reporter renders as.
+ * Reads the commit that *added* the file, so a later edit does not reattribute the report.
+ *
+ * @param file - Repository-relative path.
+ * @returns The provenance, or `undefined` for a file that is not committed yet, leaving the caller to
+ * decide what an unknown reporter renders as.
  */
 export async function provenance(
   file: string,
@@ -78,7 +101,13 @@ export async function provenance(
   return { author, date, sha }
 }
 
-/** Paths under `dir` added or modified since `ref`. */
+/**
+ * Paths under `dir` added or modified since `ref`.
+ *
+ * @param ref - Git ref to compare against, such as a branch name or sha.
+ * @param dir - Repository-relative directory to limit the diff to.
+ * @returns Repository-relative paths. Empty when nothing under `dir` changed.
+ */
 export async function changedSince(
   ref: string,
   dir: string,
@@ -91,19 +120,33 @@ export async function changedSince(
   return output ? output.split('\n') : []
 }
 
-/** Stages paths. */
+/**
+ * Stages paths.
+ *
+ * @param files - Repository-relative paths. An empty list is a no-op.
+ */
 export async function add(files: readonly string[], options: Options = {}): Promise<void> {
   if (files.length === 0) return
   await git(['add', '--', ...files], options)
 }
 
-/** Stages the removal of paths. */
+/**
+ * Stages the removal of paths.
+ *
+ * @param files - Repository-relative paths. An empty list is a no-op.
+ */
 export async function rm(files: readonly string[], options: Options = {}): Promise<void> {
   if (files.length === 0) return
   await git(['rm', '--quiet', '--', ...files], options)
 }
 
-/** Commits staged changes. Returns `false` when there was nothing staged. */
+/**
+ * Commits staged changes.
+ *
+ * @param message - Commit message.
+ * @returns `true` when a commit was made, `false` when nothing was staged. Reporting rather than
+ * throwing keeps a no-op run from looking like a failure.
+ */
 export async function commit(message: string, options: Options = {}): Promise<boolean> {
   const staged = await git(['diff', '--cached', '--name-only'], options)
   if (!staged) return false

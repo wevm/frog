@@ -2,28 +2,56 @@ import { humanId } from 'human-id'
 import { z } from 'incur'
 import * as YAML from 'yaml'
 
-/** Friction severity, in descending impact order. */
+/** Every severity, in descending impact order. */
 export const severities = ['blocker', 'major', 'minor'] as const
 
+/**
+ * How much a friction hurt.
+ *
+ * `blocker` stopped the work, `major` cost real time, `minor` is a papercut.
+ */
+export type Severity = (typeof severities)[number]
+
+/** Schema for {@link Severity}. */
 export const Severity = z.enum(severities)
-export type Severity = z.infer<typeof Severity>
 
 /** Frontmatter of a frictionset file. */
-export const Frontmatter = z.object({
-  /** Linked issue as `owner/name#number`. Written by `publish`, absent while pending. */
+export type Frontmatter = {
+  /** Linked issue as `owner/name#number`. Written by publishing, absent while pending. */
+  issue?: string | undefined
+  /** Extra issue labels, applied on top of the configured and severity labels. */
+  labels?: readonly string[] | undefined
+  /** How much the friction hurt. Defaults to `minor`. */
+  severity: Severity
+  /**
+   * Where the issue belongs: an npm package, `owner/repo`, or a host.
+   *
+   * Absent means this repository.
+   */
+  target?: string | undefined
+  /** One line, specific enough to search for. */
+  title: string
+}
+
+/**
+ * Schema for {@link Frontmatter}.
+ *
+ * Annotated rather than inferred, because TSDoc written on a schema's fields does not survive
+ * `z.infer`. The hand-written type above is the documented public shape, and this annotation stops
+ * the two drifting: a schema change that alters the parsed shape fails to compile here.
+ */
+export const Frontmatter: z.ZodType<Frontmatter> = z.object({
   issue: z
     .string()
     .regex(/^[\w.-]+\/[\w.-]+#\d+$/)
     .optional(),
-  /** Extra issue labels. */
   labels: z.array(z.string().min(1)).optional(),
   severity: Severity.default('minor'),
-  /** Where the issue belongs. Absent means the current repo. See `Target.resolve`. */
   target: z.string().min(1).optional(),
   title: z.string().min(1),
 })
-export type Frontmatter = z.infer<typeof Frontmatter>
 
+/** A friction entry: its frontmatter, its markdown body, and the id taken from its filename. */
 export type Frictionset = Frontmatter & {
   /** Markdown body: everything after the frontmatter block. */
   body: string
@@ -45,6 +73,11 @@ const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
  * ```ts
  * const frictionset = Frictionset.parse(contents, { id: 'lazy-squids-chew' })
  * ```
+ *
+ * @param contents - Full contents of the file, frontmatter included.
+ * @returns The parsed entry, with defaults applied and the body trimmed.
+ * @throws {MalformedError} When there is no parseable frontmatter block.
+ * @throws {InvalidError} When the frontmatter parses but fails validation.
  */
 export function parse(contents: string, options: parse.Options): Frictionset {
   const { id } = options
@@ -68,8 +101,9 @@ export function parse(contents: string, options: parse.Options): Frictionset {
 }
 
 export declare namespace parse {
+  /** Options for {@link parse}. */
   type Options = {
-    /** Filename without the `.md` extension, used to make errors actionable. */
+    /** Filename without the `.md` extension. Named in errors so they point at a real file. */
     id: string
   }
 }
@@ -84,6 +118,8 @@ export declare namespace parse {
  * ```ts
  * const contents = Frictionset.serialize({ body, severity: 'minor', title: 'Filters ignored' })
  * ```
+ *
+ * @returns File contents, ready to write. Absent optional fields are omitted, not written empty.
  */
 export function serialize(frictionset: serialize.Options): string {
   const { body, issue, labels, severity, target, title } = frictionset
@@ -101,6 +137,7 @@ export function serialize(frictionset: serialize.Options): string {
 }
 
 export declare namespace serialize {
+  /** The entry to serialize. The id lives in the filename, so it is not part of the contents. */
   type Options = Omit<Frictionset, 'id'>
 }
 
@@ -109,6 +146,8 @@ export declare namespace serialize {
  *
  * Nothing parses the id. It exists only so two branches writing entries at the same time don't
  * conflict, which is exactly why sequential ids were a mistake.
+ *
+ * @returns A hyphenated lowercase id, such as `lazy-squids-chew`.
  */
 export function newId(): string {
   return humanId({ capitalize: false, separator: '-' })
@@ -137,7 +176,12 @@ What you did instead, if anything.
 The smallest durable change that would remove this friction.
 `
 
-/** Normalizes a title for duplicate detection: case, whitespace, and punctuation are noise. */
+/**
+ * Normalizes a title for duplicate detection: case, whitespace, and punctuation are noise.
+ *
+ * @param title - Title as written.
+ * @returns Lowercased words joined by single spaces, with punctuation dropped.
+ */
 export function normalizeTitle(title: string): string {
   return title
     .toLowerCase()
@@ -149,7 +193,9 @@ export function normalizeTitle(title: string): string {
 
 /** Thrown when a file has no parseable frontmatter block. */
 export class MalformedError extends Error {
+  /** Namespaced class name. */
   override name = 'Frictionset.MalformedError'
+  /** Machine-readable code, surfaced as the CLI error code. */
   code = 'MALFORMED_FRICTIONSET' as const
 
   constructor(options: MalformedError.Options) {
@@ -161,16 +207,22 @@ export class MalformedError extends Error {
 }
 
 export declare namespace MalformedError {
+  /** Options for {@link MalformedError}. */
   type Options = {
+    /** Underlying YAML failure, when there was one. */
     cause?: Error | undefined
+    /** Id of the offending entry. */
     id: string
   }
 }
 
 /** Thrown when frontmatter parses as YAML but fails validation. */
 export class InvalidError extends Error {
+  /** Namespaced class name. */
   override name = 'Frictionset.InvalidError'
+  /** Machine-readable code, surfaced as the CLI error code. */
   code = 'INVALID_FRICTIONSET' as const
+  /** Every validation failure, for callers that need more than the message. */
   issues: readonly z.core.$ZodIssue[]
 
   constructor(options: InvalidError.Options) {
@@ -183,8 +235,11 @@ export class InvalidError extends Error {
 }
 
 export declare namespace InvalidError {
+  /** Options for {@link InvalidError}. */
   type Options = {
+    /** Id of the offending entry. */
     id: string
+    /** Validation failures, summarized into the message and kept for inspection. */
     issues: readonly z.core.$ZodIssue[]
   }
 }
