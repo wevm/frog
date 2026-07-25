@@ -10,5 +10,8 @@ export * as Frictionset from './Frictionset.js'
 /** Git queries and mutations the CLI needs. The App uses the GitHub API instead. */
 export * as Git from './Git.js'
 
+/** Issue rendering, the dedupe marker, and create-or-comment. Transport-agnostic. */
+export * as Github from './Github.js'
+
 /** Reading and writing entries under `.agents/frictionsets`. */
 export * as Store from './Store.js'

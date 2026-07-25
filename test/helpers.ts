@@ -41,6 +41,25 @@ export declare namespace repo {
   }
 }
 
+/**
+ * Makes `gh` unresolvable for the duration of a test, leaving `git` working.
+ *
+ * `gh auth token` is the last token fallback, so a developer logged into the GitHub CLI would
+ * otherwise never see the unauthenticated path. Narrowing `PATH` to a directory holding only `git`
+ * exercises it for real, without stubbing anything.
+ */
+export async function withoutGh(): Promise<void> {
+  const dir = await tmpdir()
+  const { stdout } = await exec('which', ['git'])
+  await fs.symlink(stdout.trim(), path.join(dir, 'git'))
+
+  const original = process.env['PATH']
+  process.env['PATH'] = dir
+  onTestFinished(() => {
+    process.env['PATH'] = original
+  })
+}
+
 /** Writes a file, creating parent directories. */
 export async function writeFile(file: string, contents: string, cwd: string): Promise<void> {
   await fs.mkdir(path.dirname(path.join(cwd, file)), { recursive: true })

@@ -1,6 +1,6 @@
 export type Attempt<value> =
   | { ok: true; value: value }
-  | { code: string; message: string; ok: false }
+  | { code: string; message: string; ok: false; status?: number | undefined }
 
 /**
  * Runs `promise`, returning a failure instead of throwing.
@@ -18,7 +18,13 @@ export async function attempt<value>(promise: Promise<value>): Promise<Attempt<v
   try {
     return { ok: true, value: await promise }
   } catch (error) {
-    const failure = error as Error & { code?: string }
-    return { code: failure.code ?? 'UNKNOWN', message: failure.message, ok: false }
+    const failure = error as Error & { code?: string; status?: number }
+    return {
+      code: failure.code ?? 'UNKNOWN',
+      message: failure.message,
+      ok: false,
+      // Octokit puts the HTTP status here, which is what turns "Not Found" into something actionable.
+      ...(typeof failure.status === 'number' ? { status: failure.status } : {}),
+    }
   }
 }

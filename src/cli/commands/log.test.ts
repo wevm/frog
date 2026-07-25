@@ -1,5 +1,7 @@
 import * as cli from '../../../test/cli.js'
+import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import * as Config from '../../Config.js'
 import * as Store from '../../Store.js'
 
 const title = '`pnpm test -- <files>` ignores file filters'
@@ -82,6 +84,84 @@ test('error: an unknown severity is rejected before anything is written', async 
 
   expect(result.code).toBe('VALIDATION_ERROR')
   expect(await Store.list({ root: cwd })).toEqual([])
+})
+
+describe('--publish', () => {
+  const repo = 'wevm/demo'
+  const remote = `git@github.com:${repo}.git`
+
+  test('behavior: files the issue in the same command', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+
+    const result = await cli.data<Logged & { issue?: string }>(
+      ['log', title, '--body', body, '--publish', '--cwd', cwd],
+      { GITHUB_API_URL: instance.url, GITHUB_TOKEN: 'test-token' },
+    )
+
+    expect(result.issue).toBe(`${repo}#1`)
+    expect((await Store.get(result.id, { root: cwd })).issue).toBe(`${repo}#1`)
+    expect(instance.issues.get(repo)?.[0]?.title).toBe(title)
+  })
+
+  test('behavior: publishOnLog config makes it the default', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await helpers.writeFile(Config.file, JSON.stringify({ publishOnLog: true }), cwd)
+
+    const result = await cli.data<Logged & { issue?: string }>(
+      ['log', title, '--body', body, '--cwd', cwd],
+      { GITHUB_API_URL: instance.url, GITHUB_TOKEN: 'test-token' },
+    )
+
+    expect(result.issue).toBe(`${repo}#1`)
+  })
+
+  test('behavior: --no-publish opts out of the config default', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await helpers.writeFile(Config.file, JSON.stringify({ publishOnLog: true }), cwd)
+
+    const result = await cli.data<Logged & { issue?: string }>(
+      ['log', title, '--body', body, '--no-publish', '--cwd', cwd],
+      { GITHUB_API_URL: instance.url, GITHUB_TOKEN: 'test-token' },
+    )
+
+    expect(result.issue).toBeUndefined()
+    expect(instance.issues.get(repo)).toBeUndefined()
+  })
+
+  // Filing sits in the hot path of an agent's work, so it must never cost the entry.
+  test('behavior: keeps the entry when filing cannot happen', async () => {
+    const cwd = await helpers.repo({ remote })
+    await helpers.withoutGh()
+
+    const result = await cli.data<Logged & { unfiled?: string }>(
+      ['log', title, '--body', body, '--publish', '--cwd', cwd],
+      {},
+    )
+
+    expect(result.unfiled).toBe('No GitHub token found.')
+    expect(await Store.get(result.id, { root: cwd })).toMatchObject({ body, title })
+    expect((await Store.get(result.id, { root: cwd })).issue).toBeUndefined()
+  })
+
+  test('behavior: does not commit', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github()
+    await helpers.writeFile('a.txt', 'a', cwd)
+    await helpers.commit('init', cwd)
+
+    await cli.data<Logged>(['log', title, '--body', body, '--publish', '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe('init')
+    expect(await helpers.git(['status', '--porcelain', '--untracked-files=all'], cwd)).toContain(
+      '.agents/frictionsets/',
+    )
+  })
 })
 
 describe('duplicates', () => {

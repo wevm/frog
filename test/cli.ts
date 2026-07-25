@@ -19,10 +19,14 @@ type Envelope =
  * incur's `serve` dependency injection means no subprocess, and asserting the JSON envelope rather
  * than formatted text keeps the tests indifferent to help and layout changes.
  */
-export async function run(argv: readonly string[]): Promise<Result> {
+export async function run(
+  argv: readonly string[],
+  env: Record<string, string | undefined> = {},
+): Promise<Result> {
   let stdout = ''
   let code: number | undefined
   await cli.serve([...argv, '--json', '--full-output'], {
+    env,
     exit(value) {
       code ??= value
     },
@@ -36,16 +40,20 @@ export async function run(argv: readonly string[]): Promise<Result> {
 /** Runs the CLI and asserts it succeeded, returning the data payload. */
 export async function data<value = Record<string, unknown>>(
   argv: readonly string[],
+  env?: Record<string, string | undefined>,
 ): Promise<value> {
-  const result = await run(argv)
+  const result = await run(argv, env)
   if (!result.envelope.ok)
     throw new Error(`Expected success, got ${result.envelope.error.code}: ${result.stdout}`)
   return result.envelope.data as value
 }
 
 /** Runs the CLI and asserts it failed, returning the error. */
-export async function error(argv: readonly string[]): Promise<{ code: string; message: string }> {
-  const result = await run(argv)
+export async function error(
+  argv: readonly string[],
+  env?: Record<string, string | undefined>,
+): Promise<{ code: string; message: string }> {
+  const result = await run(argv, env)
   if (result.envelope.ok) throw new Error(`Expected failure, got ${result.stdout}`)
   return result.envelope.error
 }

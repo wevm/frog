@@ -5,6 +5,7 @@ import * as Store from '../../Store.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
 import * as prompt from '../internal/prompt.js'
+import * as publisher from '../internal/publish.js'
 
 async function promptTitle(): Promise<string> {
   const value = prompt.required(
@@ -43,6 +44,9 @@ export const log = Cli.create('log', {
       .string()
       .optional()
       .describe('Editor opened for the body when running interactively.'),
+    GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
+    GITHUB_API_URL: z.string().optional().describe('API base URL. Set for you inside Actions.'),
+    GITHUB_TOKEN: z.string().optional().describe('Token used by --publish.'),
     VISUAL: z.string().optional().describe('Preferred over EDITOR when both are set.'),
   }),
   options: z.object({
@@ -54,7 +58,12 @@ export const log = Cli.create('log', {
     force: z.boolean().optional().describe('Log it even if a similar entry already exists.'),
     label: z.array(z.string().min(1)).optional().describe('Extra issue label. Repeatable.'),
     open: z.boolean().optional().describe('Open $EDITOR on the entry after writing it.'),
+    publish: z
+      .boolean()
+      .optional()
+      .describe('File the issue immediately. Defaults to the `publishOnLog` config value.'),
     severity: Frictionset.Severity.optional().describe('Impact. Defaults to minor.'),
+    token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
     target: z
       .string()
       .min(1)
@@ -78,10 +87,15 @@ export const log = Cli.create('log', {
   output: z.object({
     file: z.string().describe('Path of the entry, relative to the repository root.'),
     id: z.string(),
+    issue: z.string().optional().describe('Linked issue, when --publish filed one.'),
     title: z.string(),
+    unfiled: z
+      .string()
+      .optional()
+      .describe('Why --publish did not file an issue. The entry is written either way.'),
   }),
   async run(c) {
-    const { root } = await context.resolve({ cwd: c.options.cwd })
+    const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const interactive = prompt.interactive()
 
     // Every `c.error` below is returned straight from `run`. See `internal/attempt.ts` for why that
@@ -157,14 +171,65 @@ export const log = Cli.create('log', {
       if (!edited.ok) return c.error({ code: edited.code, message: edited.message })
     }
 
+    if (!(c.options.publish ?? config.publishOnLog))
+      return c.ok(
+        { file, id, title },
+        {
+          cta: {
+            commands: [
+              { command: 'list', description: 'See everything recorded' },
+              { command: 'publish', description: 'File it as an issue now' },
+            ],
+            description: 'Next:',
+          },
+        },
+      )
+
+    // Filing must never lose the entry. It is already on disk, so every failure past this point
+    // reports why it stayed pending rather than failing the command.
+    const filed = await attempt(
+      (async () => {
+        const ready = await publisher.prepare({
+          config,
+          env: c.env,
+          repo,
+          ...(c.options.token ? { token: c.options.token } : {}),
+        })
+        if ('code' in ready) return ready
+        // `commit: false`: the entry belongs in the same commit as the work that provoked it.
+        const outcome = await publisher.file({
+          ...ready,
+          commit: false,
+          config,
+          entries: [await Store.get(id, { root })],
+          root,
+        })
+        return (
+          outcome.created[0] ??
+          outcome.commented[0] ?? { code: 'PUBLISH_FAILED', message: 'Nothing was filed.' }
+        )
+      })(),
+    )
+
+    const unfiled = !filed.ok
+      ? filed.message
+      : 'code' in filed.value
+        ? filed.value.message
+        : undefined
+
     return c.ok(
-      { file, id, title },
+      {
+        file,
+        id,
+        title,
+        ...(filed.ok && 'issue' in filed.value ? { issue: filed.value.issue } : {}),
+        ...(unfiled ? { unfiled } : {}),
+      },
       {
         cta: {
-          commands: [
-            { command: 'list', description: 'See everything recorded' },
-            { command: 'publish', description: 'File it as an issue now' },
-          ],
+          commands: unfiled
+            ? [{ command: 'publish', description: 'File it once the problem above is fixed' }]
+            : [{ command: 'list', description: 'See everything recorded' }],
           description: 'Next:',
         },
       },
