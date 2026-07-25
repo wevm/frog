@@ -1,13 +1,14 @@
 ---
 name: frog
-description: Records friction hit while building as a GitHub issue. Use when a tool, dependency, doc, test, or convention cost you time, and when reporting that upstream.
+description: Records friction the moment it is hit, and reports it where it can be fixed. Use when a tool, dependency, doc, test, or convention cost you time, including when the cause is upstream.
 command: frog
 ---
 
 # frog
 
-Friction you hit becomes a GitHub issue. The entry file mirrors that issue until it closes, so
-`.agents/friction-log/` is a live list of what is still unresolved, including in dependencies.
+Log friction the moment you hit it. Each entry is a file in `.agents/friction-log/`; publishing gets it
+in front of whoever can fix it, and the file mirrors that until the friction is resolved. So the
+directory is a live list of what is still outstanding, including in dependencies.
 
 ## When to log
 

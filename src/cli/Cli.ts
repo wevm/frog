@@ -8,7 +8,7 @@ import { sync } from './commands/sync.js'
 import { targets } from './commands/targets.js'
 
 export const cli = Cli.create('frog', {
-  description: 'Turn friction you hit while building into GitHub issues.',
+  description: 'Log friction the moment you hit it, and get it in front of whoever can fix it.',
   sync: {
     depth: 1,
     include: ['_root'],

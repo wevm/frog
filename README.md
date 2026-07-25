@@ -1,9 +1,9 @@
 # frog
 
-Friction you hit while building becomes a GitHub issue.
+Log friction the moment you hit it.
 
-Agents and humans drop atomic entries into `.agents/friction-log/` as they hit friction. Each entry
-becomes an issue, and the file then mirrors that issue's state until it closes.
+Agents and humans drop atomic entries into `.agents/friction-log/` as they hit friction. Publishing then
+gets each one in front of whoever can fix it, and the file mirrors that until the friction is resolved.
 
 ```sh
 frog log --publish --title 'pnpm test ignores file filters'
@@ -15,13 +15,15 @@ A friction log has no terminus. Nothing consumes an entry, nobody owns any singl
 removes it, so the list either fills up until it is ignored or is abandoned before anything is written.
 Every hand-rolled friction log we have has done one or the other.
 
-frog gives friction a terminus (a GitHub issue) and keeps the two in lockstep:
+frog gives friction a terminus, and keeps the log and the terminus in lockstep:
 
-- **The issue is the artifact.** No index file to desync.
-- **The file mirrors the issue.** It appears when you log, links when it's filed, and is deleted
-  automatically when the issue closes.
+- **Something owns each entry.** Publishing hands it to whoever can fix it, and that becomes the record.
+- **The file mirrors what happened to it.** It appears when you log, links when it is filed, and is
+  deleted once the friction is resolved.
 - **So `.agents/friction-log/` is a live, greppable, offline list** of every known-unresolved friction
   affecting this repo, including friction in its dependencies. Read it before choosing an approach.
+
+Publishing means GitHub issues today. Nothing about the log format assumes that.
 
 ## Agents
 

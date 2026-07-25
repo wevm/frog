@@ -11,15 +11,16 @@ export const rule =
   'Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
   '`frog log`. Run `frog list` first to see what is already known.'
 
-const readme = `# Entrys
+const readme = `# Friction log
 
 Friction hit while working in this repository, one file per item.
 
-Each file becomes a GitHub issue. Once it does, the file carries an \`issue:\` link and mirrors that
-issue until it closes, at which point the file is deleted automatically. So this directory is a live
-list of friction that is still unresolved, including friction in dependencies.
+Publishing hands an entry to whoever can fix it. The file then carries an \`issue:\` link and mirrors
+what happens to it, and is deleted once the friction is resolved. So this directory is a live list of
+friction that is still outstanding, including friction in dependencies.
 
-Do not maintain an index here. The issue list is the index.
+Do not maintain an index here. This directory is the index, and it is kept true without anyone
+remembering to.
 
 ## Logging Friction
 

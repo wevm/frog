@@ -26,7 +26,7 @@
   "type": "module",
   "version": "0.0.0",
   "license": "MIT",
-  "description": "Turn friction you hit while building into GitHub issues.",
+  "description": "Log friction the moment you hit it, and get it in front of whoever can fix it.",
   "repository": {
     "type": "git",
     "url": "https://github.com/wevm/frog"
