@@ -2,6 +2,7 @@ import type { Octokit } from 'octokit'
 import * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
 import * as filing from '../internal/file.js'
+import * as serialization from '../internal/serialize.js'
 import * as Repository from '../Repository.js'
 
 /**
@@ -18,11 +19,21 @@ import * as Repository from '../Repository.js'
  * @returns What happened, already reported on the pull request.
  */
 export async function pullRequest(options: pullRequest.Options): Promise<comment.Report> {
-  const { base, baseRef, client, head, installation, pr, registry } = options
+  const {
+    base,
+    baseRef,
+    client,
+    delivery,
+    head,
+    installation,
+    pr,
+    registry,
+    serialize = serialization.direct,
+  } = options
 
   const settings = await config.read(client, { ref: baseRef, repo: base })
   const { entries, malformed } = await Repository.read(client, { ref: head, repo: base })
-  const { deferred, linked, pending } = filing.partition(entries, settings.maxPerRun)
+  const { linked, pending } = filing.partition(entries)
 
   const filed = await filing.file({
     client,
@@ -32,19 +43,21 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     origin: base,
     pr: `${base}#${pr}`,
     ...(options.actor ? { actor: options.actor } : {}),
+    ...(delivery ? { delivery } : {}),
     ...(registry ? { registry } : {}),
+    serialize,
   })
 
   const report: comment.Report = {
     commented: filed.commented,
     created: filed.created,
-    deferred: [...deferred, ...filed.deferred],
+    deferred: filed.deferred,
     linked,
     malformed,
   }
 
   const body = comment.render(report)
-  if (body) await comment.upsert(client, { body, pr, repo: base })
+  if (body) await serialize(base, () => comment.upsert(client, { body, pr, repo: base }))
 
   return report
 }
@@ -64,6 +77,8 @@ export declare namespace pullRequest {
     baseRef: string
     /** Installation client for the base repository. */
     client: Octokit
+    /** GitHub delivery id used to make issue publishing replay-safe. */
+    delivery?: string | undefined
     /** Head commit sha, reachable from the base repository even for a fork. */
     head: string
     /**
@@ -77,5 +92,7 @@ export declare namespace pullRequest {
     pr: number
     /** Registry base URL. Overridden in tests. */
     registry?: string | undefined
+    /** Serializes conflicting writes by repository. */
+    serialize?: serialization.Serialize | undefined
   }
 }

@@ -63,9 +63,7 @@ export function reader(
     }
 
     const inbound = await (async () => {
-      const contents = await GithubModule.fetchFile(client, { path: Config.file, repo }).catch(
-        () => undefined,
-      )
+      const contents = await GithubModule.fetchFile(client, { path: Config.file, repo })
       if (!contents) return undefined
       try {
         return Config.from(JSON.parse(contents)).inbound
@@ -108,7 +106,7 @@ export type Accepting = {
  * reports.
  */
 export async function accepting(options: accepting.Options): Promise<readonly Accepting[]> {
-  const { client, root, store } = options
+  const { client, root, self, store } = options
 
   const own = await fs
     .readFile(path.join(root, 'package.json'), 'utf8')
@@ -119,6 +117,7 @@ export async function accepting(options: accepting.Options): Promise<readonly Ac
     ...new Set([
       ...Object.keys(own?.dependencies ?? {}),
       ...Object.keys(own?.devDependencies ?? {}),
+      ...Object.keys(own?.optionalDependencies ?? {}),
       ...Object.keys(own?.peerDependencies ?? {}),
     ]),
   ].sort()
@@ -141,7 +140,8 @@ export async function accepting(options: accepting.Options): Promise<readonly Ac
     const batch = repos.slice(index, index + concurrency)
     const inbounds = await Promise.all(batch.map((repo) => read(repo).catch(() => undefined)))
     batch.forEach((repo, offset) => {
-      if (inbounds[offset]?.enabled) accepts.add(repo)
+      const inbound = inbounds[offset]
+      if (inbound && Config.allows(inbound, self)) accepts.add(repo)
     })
   }
 
@@ -155,6 +155,8 @@ export declare namespace accepting {
     client: Github.Client
     /** Repository root, holding `package.json` and `node_modules`. */
     root: string
+    /** This repository, as `owner/name`, for applying each receiver's `allowFrom` policy. */
+    self: string | undefined
     /** Where to keep config lookups. Absent reads fresh every time. */
     store?: Cache.Cache | undefined
   }
@@ -165,6 +167,7 @@ type Dependencies = {
   dependencies?: Record<string, string> | undefined
   devDependencies?: Record<string, string> | undefined
   homepage?: string | undefined
+  optionalDependencies?: Record<string, string> | undefined
   peerDependencies?: Record<string, string> | undefined
   repository?: { url?: string | undefined } | string | undefined
 }

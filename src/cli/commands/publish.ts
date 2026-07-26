@@ -75,11 +75,7 @@ export const publish = Cli.create('publish', {
     const pending = entries.value.filter((entry) => !entry.issue)
 
     const max = c.options.max ?? config.maxPerRun
-    for (const entry of pending.slice(max))
-      deferred.push({ id: entry.id, reason: `over the ceiling of ${max} per run` })
-    const publishable = pending.slice(0, max)
-
-    if (publishable.length === 0)
+    if (pending.length === 0)
       return c.ok({ commented: [], committed: false, created: [], deferred, unlabelled: [] })
 
     const ready = await publisher.prepare({
@@ -109,7 +105,8 @@ export const publish = Cli.create('publish', {
     type Group = { entries: Entry.Entry[]; labels?: readonly string[] | undefined }
     const groups = new Map<string, Group>()
 
-    for (const entry of publishable) {
+    let accepted = 0
+    for (const entry of pending) {
       const resolution = await attempt(Target.resolve(entry.target, resolvers))
       if (!resolution.ok) {
         deferred.push({ id: entry.id, reason: resolution.message })
@@ -119,6 +116,11 @@ export const publish = Cli.create('publish', {
         deferred.push({ id: entry.id, reason: resolution.value.message })
         continue
       }
+      if (accepted >= max) {
+        deferred.push({ id: entry.id, reason: `over the ceiling of ${max} per run` })
+        continue
+      }
+      accepted += 1
 
       const { labels, repo: destination } = resolution.value.target
       const group = groups.get(destination) ?? {
@@ -168,7 +170,7 @@ export const publish = Cli.create('publish', {
       if (!(c.options.commit ?? config.commit) || c.options.dryRun || written.length === 0)
         return false
       await Git.add(written, { cwd: root })
-      return Git.commit('chore: link friction log to issues', { cwd: root })
+      return Git.commit('chore: link friction log to issues', { cwd: root, files: written })
     })()
 
     return c.ok(

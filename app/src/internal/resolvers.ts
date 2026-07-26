@@ -25,19 +25,17 @@ export async function fromRegistry(
   const { timeout = 5_000, url = registry } = options
 
   // Only the slash is escaped: the registry expects `@scope%2Fname`, not a fully encoded path.
-  const response = await globalThis
-    .fetch(`${url}/${name.replace('/', '%2F')}/latest`, { signal: AbortSignal.timeout(timeout) })
-    .catch(() => undefined)
-  if (!response?.ok) return undefined
+  const response = await globalThis.fetch(`${url}/${name.replace('/', '%2F')}/latest`, {
+    signal: AbortSignal.timeout(timeout),
+  })
+  if (response.status === 404) return undefined
+  if (!response.ok) throw new Error(`npm registry returned ${response.status} for \`${name}\`.`)
 
-  const document = (await response.json().catch(() => undefined)) as
-    | {
-        bugs?: { url?: string } | string
-        homepage?: string
-        repository?: { url?: string } | string
-      }
-    | undefined
-  if (!document) return undefined
+  const document = (await response.json()) as {
+    bugs?: { url?: string } | string
+    homepage?: string
+    repository?: { url?: string } | string
+  }
 
   const { bugs, homepage, repository } = document
   const candidates = [
@@ -60,14 +58,15 @@ export async function fromRegistry(
  * unchanged, which is the point of `Target` taking them as arguments.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, client, registry: url, self } = options
+  const { allowedRepos, installation, registry: url, self } = options
 
   return {
     allowedRepos,
     async readConfig(repo) {
-      const contents = await Github.fetchFile(client.rest, { path: Config.file, repo }).catch(
-        () => undefined,
-      )
+      const client = await installation(repo)
+      if (!client) throw new InstallationMissingError(repo)
+
+      const contents = await Github.fetchFile(client.rest, { path: Config.file, repo })
       if (!contents) return undefined
       try {
         return Config.from(JSON.parse(contents)).inbound
@@ -85,11 +84,23 @@ export declare namespace resolvers {
   type Options = {
     /** Targets the sender may file against, from its base-branch config. */
     allowedRepos: readonly string[]
-    /** Installation client for the sender repository. */
-    client: Octokit
+    /** Resolves the installation client authorized to read each target repository. */
+    installation: (repo: string) => Promise<Octokit | undefined>
     /** Registry base URL. Overridden in tests. */
     registry?: string | undefined
     /** The sender repository, as `owner/name`. */
     self: string
+  }
+}
+
+/** Signals that target consent could not be read because the App is not installed there. */
+export class InstallationMissingError extends Error {
+  /** Repository whose installation is missing. */
+  repo: string
+
+  constructor(repo: string) {
+    super(`frog is not installed on \`${repo}\`.`)
+    this.name = 'InstallationMissingError'
+    this.repo = repo
   }
 }

@@ -2,6 +2,7 @@ import { Github } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import { marker } from '../internal/comment.js'
+import type { Serialize } from '../internal/serialize.js'
 import { pullRequest } from './pullRequest.js'
 
 const base = 'acme/app'
@@ -27,18 +28,44 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 }
 
 /** Runs the handler against one repository, with no other installation available. */
-async function run(url: string, options: { installed?: Record<string, Octokit> | undefined } = {}) {
+async function run(
+  url: string,
+  options: {
+    delivery?: string | undefined
+    installed?: Record<string, Octokit> | undefined
+    serialize?: Serialize | undefined
+  } = {},
+) {
   const octokit = client(url)
   return pullRequest({
     actor: '@contributor',
     base,
     baseRef: 'main',
     client: octokit,
+    ...(options.delivery ? { delivery: options.delivery } : {}),
     head: 'main',
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
     registry: `${url}/registry`,
+    ...(options.serialize ? { serialize: options.serialize } : {}),
   })
+}
+
+function serial(): Serialize {
+  let tail = Promise.resolve()
+  return async (_repo, operation) => {
+    const previous = tail
+    let release = () => {}
+    tail = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    await previous
+    try {
+      return await operation()
+    } finally {
+      release()
+    }
+  }
 }
 
 test('behavior: files pending entries and comments once', async () => {
@@ -94,6 +121,23 @@ test('behavior: a second run opens no issue and adds no comment', async () => {
 
   expect(second.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 42)).toHaveLength(1)
+})
+
+test('behavior: concurrent deliveries with the same title open one issue', async () => {
+  const instance = await github(
+    {},
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+  const serialize = serial()
+
+  await Promise.all([
+    run(instance.url, { delivery: 'delivery-1', serialize }),
+    run(instance.url, { delivery: 'delivery-2', serialize }),
+  ])
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(1)
   expect(instance.comments(base, 42)).toHaveLength(1)
 })
 
@@ -156,6 +200,32 @@ test('behavior: entries over the ceiling are deferred', async () => {
 
   expect(report.created).toHaveLength(1)
   expect(report.deferred).toEqual([{ id: 'b', reason: 'over the ceiling of 1 per run' }])
+})
+
+test('behavior: a refused entry does not consume the ceiling', async () => {
+  const instance = await github(
+    {},
+    {
+      files: {
+        [base]: {
+          [`${dir}/a/friction.md`]: entry('Cannot resolve', { target: 'missing' }),
+          [`${dir}/b/friction.md`]: entry('Can file'),
+          [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }),
+        },
+      },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report.created).toEqual([{ id: 'b', issue: `${base}#1` }])
+  expect(report.deferred).toEqual([
+    {
+      id: 'a',
+      reason:
+        '`missing` is not installed, or declares no GitHub repository. Name the repository instead, as `owner/name`.',
+    },
+  ])
 })
 
 describe('cross-repo', () => {

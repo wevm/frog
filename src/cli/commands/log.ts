@@ -74,7 +74,9 @@ export const log = Cli.create('log', {
       .string()
       .min(1)
       .optional()
-      .describe('Upstream package, `owner/repo`, or host. Omit for this repository.'),
+      .describe(
+        'Upstream npm package or GitHub repository as `owner/repo`. Omit for this repository.',
+      ),
   }),
   alias: { body: 'b', severity: 's', target: 't' },
   usage: [{}, { args: { title: true }, options: { body: true } }, { prefix: 'cat entry.md |' }],

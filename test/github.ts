@@ -86,6 +86,8 @@ export type Options = {
    * The App has no `node_modules`, so it resolves a package to its repository through the registry.
    */
   packages?: Record<string, string> | undefined
+  /** Registry packages that respond with an error status. */
+  registryErrors?: Record<string, number> | undefined
   /**
    * Repositories the token has push access to. `undefined` means all of them.
    *
@@ -170,8 +172,9 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       const comment = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)\/comments$/.exec(url.pathname)
       const one = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/.exec(url.pathname)
       const repository = /^\/repos\/([^/]+)\/([^/]+)$/.exec(url.pathname)
+      const contents = /^\/repos\/([^/]+)\/([^/]+)\/contents\/(.*)$/.exec(url.pathname)
 
-      const owned = list ?? comment ?? one ?? repository
+      const owned = list ?? comment ?? one ?? repository ?? contents
       const status = owned ? errors[`${owned[1]}/${owned[2]}`] : undefined
       if (status) return json(response, status, { message: 'Not Found' })
 
@@ -179,6 +182,8 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       const registry = /^\/registry\/(.+)\/latest$/.exec(url.pathname)
       if (registry && request.method === 'GET') {
         const name = decodeURIComponent(registry[1] ?? '')
+        const status = options.registryErrors?.[name]
+        if (status) return json(response, status, { message: 'Registry error' })
         const declared = options.packages?.[name]
         if (declared === undefined) return json(response, 404, { message: 'Not Found' })
         return json(response, 200, { name, repository: `https://github.com/${declared}` })
@@ -214,6 +219,15 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const repo = `${one[1]}/${one[2]}`
         const found = (issues.get(repo) ?? []).find((issue) => issue.number === Number(one[3]))
         if (!found) return json(response, 404, { message: 'Not Found' })
+        return json(response, 200, found)
+      }
+
+      if (one && request.method === 'PATCH') {
+        const repo = `${one[1]}/${one[2]}`
+        const found = (issues.get(repo) ?? []).find((issue) => issue.number === Number(one[3]))
+        if (!found) return json(response, 404, { message: 'Not Found' })
+        const payload = await readBody<{ state?: 'closed' | 'open' }>(request)
+        if (payload.state) found.state = payload.state
         return json(response, 200, found)
       }
 
@@ -263,10 +277,12 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       if (comment && request.method === 'GET') {
         const key = `${comment[1]}/${comment[2]}#${comment[3]}`
         const listed = comments.filter((entry) => entry.key === key)
+        const page = Number(url.searchParams.get('page') ?? '1')
+        const perPage = Number(url.searchParams.get('per_page') ?? '30')
         return json(
           response,
           200,
-          listed.map(({ body, id }) => ({ body, id })),
+          listed.slice((page - 1) * perPage, page * perPage).map(({ body, id }) => ({ body, id })),
         )
       }
 
@@ -281,7 +297,6 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       }
 
       // `repos.getContent`, for reading entries and config without cloning.
-      const contents = /^\/repos\/([^/]+)\/([^/]+)\/contents\/(.*)$/.exec(url.pathname)
       if (contents && request.method === 'GET') {
         const name = `${contents[1]}/${contents[2]}`
         const path = decodeURIComponent(contents[3] ?? '')

@@ -2,6 +2,7 @@ import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
 import * as Github from '../../Github.js'
+import * as Mirrors from '../../Mirrors.js'
 import * as Store from '../../Store.js'
 
 const repo = 'wevm/demo'
@@ -80,7 +81,7 @@ test('behavior: closing takes the committed reproduction with it', async () => {
   // Gone from disk and from the index: a staged artifact left behind would show up here.
   expect(await Store.files('a', { root: cwd })).toEqual([])
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
-  expect(await helpers.git(['ls-files', Store.dir], cwd)).toBe('')
+  expect(await helpers.git(['ls-files', Store.dir], cwd)).toBe(Mirrors.file)
 })
 
 test('behavior: deletes an entry that was never committed', async () => {
@@ -194,6 +195,7 @@ test('behavior: --dry-run changes nothing', async () => {
 
   expect(result).toMatchObject({ committed: false, removed: ['a'] })
   expect(await Store.list({ root: cwd })).toEqual(['a'])
+  expect(await Mirrors.resolve({ root: cwd })).toEqual(Mirrors.empty())
 })
 
 test('behavior: --no-commit leaves the change uncommitted', async () => {
@@ -249,6 +251,34 @@ describe('cross-repo', () => {
     expect(await Store.list({ root: cwd })).toEqual([])
   })
 
+  test('behavior: restores the final unlabelled upstream mirror after reopening', async () => {
+    const cwd = await helpers.repo({ remote })
+    await Store.write(
+      { body: 'Body.', issue: `${upstream}#1`, severity: 'minor', target: 'viem', title },
+      { id: 'a', root: cwd },
+    )
+    await helpers.commit('log friction', cwd)
+    const instance = await github({
+      [upstream]: [{ body: upstreamBody(), labels: [], state: 'closed', title }],
+    })
+
+    const closed = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+    expect(closed.removed).toEqual(['a'])
+    expect((await Mirrors.resolve({ root: cwd })).mirrors).toEqual([
+      { issue: `${upstream}#1`, path: Store.toPath('a') },
+    ])
+
+    const issue = instance.issues.get(upstream)?.[0]
+    if (issue) issue.state = 'open'
+    const reopened = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+    expect(reopened.updated).toEqual(['a'])
+    expect((await Store.get('a', { root: cwd })).issue).toBe(`${upstream}#1`)
+    expect(await Mirrors.resolve({ root: cwd })).toEqual(Mirrors.empty())
+
+    const third = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+    expect(third).toMatchObject({ cleared: [], committed: false, removed: [], updated: [] })
+  })
+
   test('behavior: an open upstream issue leaves the entry alone', async () => {
     const { cwd, instance } = await reporting('open')
 
@@ -270,6 +300,25 @@ describe('cross-repo', () => {
 
     expect(result.cleared).toEqual(['a'])
     expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
+  })
+
+  test('behavior: forgets a remembered issue that no longer exists', async () => {
+    const cwd = await helpers.repo({ remote })
+    await helpers.writeFile('README.md', '# demo\n', cwd)
+    await Mirrors.write(
+      Mirrors.update(Mirrors.empty(), {
+        remember: [{ issue: `${upstream}#9`, path: Store.toPath('a') }],
+      }),
+      { root: cwd },
+    )
+    await helpers.commit('remember mirror', cwd)
+    const instance = await github()
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+    expect(result.committed).toBe(true)
+    expect(await Mirrors.resolve({ root: cwd })).toEqual(Mirrors.empty())
+    expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
   })
 
   test('behavior: reconciles this repository and an upstream one in one pass', async () => {

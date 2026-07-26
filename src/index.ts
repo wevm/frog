@@ -16,6 +16,9 @@ export * as Git from './Git.js'
 /** Issue rendering, the dedupe marker, and create-or-comment. Transport-agnostic. */
 export * as Github from './Github.js'
 
+/** Recovery records for entries removed when their mirrored issues close. */
+export * as Mirrors from './Mirrors.js'
+
 /** Reading and writing entries under `.agents/friction-log`. */
 export * as Store from './Store.js'
 

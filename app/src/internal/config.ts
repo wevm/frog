@@ -18,7 +18,7 @@ export async function read(client: Octokit, options: read.Options): Promise<Conf
     path: Config.file,
     repo,
     ...(ref ? { ref } : {}),
-  }).catch(() => undefined)
+  })
 
   try {
     return contents ? Config.from(JSON.parse(contents)) : Config.from({})

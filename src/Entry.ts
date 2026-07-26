@@ -23,7 +23,7 @@ export type Frontmatter = {
   /** How much the friction hurt. Defaults to `minor`. */
   severity: Severity
   /**
-   * Where the issue belongs: an npm package, `owner/repo`, or a host.
+   * Where the issue belongs: an npm package or GitHub repository as `owner/repo`.
    *
    * Absent means this repository.
    */

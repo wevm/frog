@@ -36,7 +36,7 @@ export async function root(options: Options = {}): Promise<string | undefined> {
  */
 export async function repo(options: Options = {}): Promise<string | undefined> {
   const url = await git(['remote', 'get-url', 'origin'], options).catch(() => '')
-  return Github.parseRepository(url)
+  return Github.parseRepository(url, { shorthand: false })
 }
 
 /**
@@ -154,15 +154,30 @@ export declare namespace rm {
 }
 
 /**
- * Commits staged changes.
+ * Commits staged changes within an explicit set of paths.
  *
  * @param message - Commit message.
- * @returns `true` when a commit was made, `false` when nothing was staged. Reporting rather than
- * throwing keeps a no-op run from looking like a failure.
+ * @returns `true` when a commit was made, `false` when none of the requested paths were staged.
+ * Reporting rather than throwing keeps a no-op run from looking like a failure.
  */
-export async function commit(message: string, options: Options = {}): Promise<boolean> {
-  const staged = await git(['diff', '--cached', '--name-only'], options)
-  if (!staged) return false
-  await git(['commit', '--no-verify', '--message', message], options)
+export async function commit(message: string, options: commit.Options): Promise<boolean> {
+  if (options.files.length === 0) return false
+
+  const staged = (await git(['diff', '--cached', '--name-only', '--', ...options.files], options))
+    .split('\n')
+    .filter(Boolean)
+  if (staged.length === 0) return false
+
+  await git(['commit', '--no-verify', '--message', message, '--only', '--', ...staged], options)
   return true
+}
+
+export declare namespace commit {
+  /** Paths whose staged changes belong in the commit. Other staged work is preserved. */
+  type Options = {
+    /** Directory to run git in. Defaults to `process.cwd()`. */
+    cwd?: string | undefined
+    /** Repository-relative paths to commit. */
+    files: readonly string[]
+  }
 }

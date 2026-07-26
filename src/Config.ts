@@ -7,6 +7,7 @@ import { dir } from './Store.js'
 export const file = `${dir}/config.json`
 
 const repoPattern = /^[\w.-]+\/[\w.-]+$/
+const repoAllowPattern = /^[\w.-]+\/(?:[\w.-]+|\*)$/
 
 /**
  * One schema serves both shapes: `z.input` is what a user writes (everything optional), `z.output`
@@ -20,7 +21,7 @@ export const Schema = z.object({
   inbound: z
     .object({
       allowFrom: z
-        .array(z.string().min(1))
+        .array(z.string().regex(repoAllowPattern))
         .optional()
         .describe(
           'Sender repositories, or `owner/*` globs, allowed to report friction here. Absent means anyone.',
@@ -49,7 +50,7 @@ export const Schema = z.object({
   outbound: z
     .object({
       allowedRepos: z
-        .array(z.string().min(1))
+        .array(z.string().regex(repoAllowPattern))
         .default([])
         .describe(
           'Targets this repository may file against. Always read from the base branch, never a pull request head.',

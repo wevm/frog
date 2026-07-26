@@ -3,6 +3,7 @@ import type { Octokit } from 'octokit'
 import type * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
 import * as filing from '../internal/file.js'
+import * as serialization from '../internal/serialize.js'
 import * as Repository from '../Repository.js'
 
 /** What a push run did. */
@@ -34,13 +35,21 @@ export type Outcome = {
  * @returns What happened.
  */
 export async function push(options: push.Options): Promise<Outcome> {
-  const { branch, client, installation, registry, repo } = options
+  const {
+    branch,
+    client,
+    delivery,
+    installation,
+    registry,
+    repo,
+    serialize = serialization.direct,
+  } = options
 
   const settings = await config.read(client, { ref: branch, repo })
   const { entries } = await Repository.read(client, { ref: branch, repo })
-  const { deferred, pending } = filing.partition(entries, settings.maxPerRun)
+  const { pending } = filing.partition(entries)
 
-  if (pending.length === 0) return { commented: [], created: [], deferred }
+  if (pending.length === 0) return { commented: [], created: [], deferred: [] }
 
   const filed = await filing.file({
     client,
@@ -49,30 +58,38 @@ export async function push(options: push.Options): Promise<Outcome> {
     installation,
     origin: repo,
     ...(options.actor ? { actor: options.actor } : {}),
+    ...(delivery ? { delivery } : {}),
     ...(registry ? { registry } : {}),
+    serialize,
   })
 
-  const writes: { contents: string; path: string }[] = []
-  for (const entry of pending) {
-    const issue = filed.links.get(entry.id)
-    if (!issue) continue
-    writes.push({
-      contents: Entry.serialize({ ...entry, issue }),
-      path: Store.toPath(entry.id),
-    })
-  }
+  const initial = new Map(pending.map((entry) => [entry.id, Entry.serialize(entry)]))
+  const committed = await serialize(repo, async () => {
+    // Filing can take several requests. Re-read under the repository lease so a concurrent sync or
+    // push cannot be overwritten with the stale snapshot from the start of this delivery.
+    const current = await Repository.read(client, { ref: branch, repo })
+    const writes: { contents: string; path: string }[] = []
+    for (const entry of current.entries) {
+      const issue = filed.links.get(entry.id)
+      if (!issue || entry.issue || Entry.serialize(entry) !== initial.get(entry.id)) continue
+      writes.push({
+        contents: Entry.serialize({ ...entry, issue }),
+        path: Store.toPath(entry.id),
+      })
+    }
 
-  const committed = await Repository.commit(client, {
-    branch,
-    message: 'chore: link friction log to issues',
-    repo,
-    writes,
+    return Repository.commit(client, {
+      branch,
+      message: 'chore: link friction log to issues',
+      repo,
+      writes,
+    })
   })
 
   return {
     commented: filed.commented,
     created: filed.created,
-    deferred: [...deferred, ...filed.deferred],
+    deferred: filed.deferred,
     ...(committed ? { committed } : {}),
   }
 }
@@ -86,11 +103,15 @@ export declare namespace push {
     branch: string
     /** Installation client for the repository. */
     client: Octokit
+    /** GitHub delivery id used to make issue publishing replay-safe. */
+    delivery?: string | undefined
     /** Resolves an installation client for another repository. */
     installation: (repo: string) => Promise<Octokit | undefined>
     /** Registry base URL. Overridden in tests. */
     registry?: string | undefined
     /** Repository pushed to, as `owner/name`. */
     repo: string
+    /** Serializes conflicting writes by repository. */
+    serialize?: serialization.Serialize | undefined
   }
 }

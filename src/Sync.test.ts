@@ -1,5 +1,6 @@
 import type * as Entry from './Entry.js'
 import * as Github from './Github.js'
+import type * as Mirrors from './Mirrors.js'
 import * as Store from './Store.js'
 import * as Sync from './Sync.js'
 
@@ -29,8 +30,19 @@ function issue(overrides: Partial<Github.Issue> = {}): Github.Issue {
   }
 }
 
-function plan(entries: readonly Entry.Entry[], issues: readonly Github.Issue[]): Sync.Plan {
-  return Sync.plan({ entries, issues, labels, repo, severityLabels })
+function plan(
+  entries: readonly Entry.Entry[],
+  issues: readonly Github.Issue[],
+  mirrors?: readonly Mirrors.Mirror[],
+): Sync.Plan {
+  return Sync.plan({
+    entries,
+    issues,
+    labels,
+    ...(mirrors ? { mirrors } : {}),
+    repo,
+    severityLabels,
+  })
 }
 
 describe('plan', () => {
@@ -89,6 +101,26 @@ describe('plan', () => {
         title: 'Filters ignored',
       },
     ])
+  })
+
+  test('behavior: a remembered path overrides an edited issue marker', () => {
+    const edited = issue({
+      body: Github.renderBody({
+        body: 'Body.',
+        marker: { hash: 'x', origin: 'attacker/repo', path: Store.toPath('redirected') },
+      }),
+    })
+    const mirrors = [{ issue: `${repo}#1`, path: Store.toPath('trusted') }]
+
+    expect(plan([], [edited], mirrors).write.map((entry) => entry.id)).toEqual(['trusted'])
+  })
+
+  test('behavior: restores several remembered paths linked to one issue', () => {
+    const mirrors = [
+      { issue: `${repo}#1`, path: Store.toPath('a') },
+      { issue: `${repo}#1`, path: Store.toPath('b') },
+    ]
+    expect(plan([], [issue()], mirrors).write.map((entry) => entry.id)).toEqual(['a', 'b'])
   })
 
   test('behavior: a rebuilt entry with no extra labels omits them', () => {

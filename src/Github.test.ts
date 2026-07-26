@@ -23,11 +23,14 @@ describe('parseRepository', () => {
     ['git@github.com:wevm/viem.git', 'wevm/viem'],
     ['ssh://git@github.com/wevm/viem.git', 'wevm/viem'],
     ['git://github.com/wevm/viem.git', 'wevm/viem'],
+    ['https://github.com:443/wevm/viem', 'wevm/viem'],
     // A monorepo package pointing at its own subdirectory rather than the repository root.
     ['https://github.com/changesets/changesets/tree/main/packages/config', 'changesets/changesets'],
     ['github:eemeli/yaml', 'eemeli/yaml'],
     ['lydell/js-tokens', 'lydell/js-tokens'],
     // Only GitHub resolves: an issue cannot be filed anywhere else.
+    ['https://notgithub.com/foo/bar', undefined],
+    ['https://example.com/github.com/foo/bar', undefined],
     ['https://gitlab.com/foo/bar.git', undefined],
     ['https://bitbucket.org/foo/bar', undefined],
     ['not a repository', undefined],
@@ -35,6 +38,10 @@ describe('parseRepository', () => {
     [undefined, undefined],
   ] as const)('behavior: %s', ([value, expected]) => {
     expect(Github.parseRepository(value)).toBe(expected)
+  })
+
+  test('behavior: npm shorthand can be disabled for git remotes', () => {
+    expect(Github.parseRepository('wevm/viem', { shorthand: false })).toBeUndefined()
   })
 })
 
@@ -124,6 +131,19 @@ describe('renderBody and parseBody', () => {
       <sub>Logged. Filed by [frog](https://github.com/wevm/frog).</sub>
       "
     `)
+  })
+
+  test('behavior: renders a stable replay marker without changing the parsed body', () => {
+    const rendered = Github.renderBody({
+      body: 'Body.',
+      marker: { hash: 'abc123' },
+      occurrence: 'delivery-1:entry-a',
+    })
+
+    expect(rendered).toContain(
+      '<!-- frog:occurrence:v1 1285780025c132555ee8a247a8a04563e822a8aa64727236c8bb42b72f963d60 -->',
+    )
+    expect(Github.parseBody(rendered)).toBe('Body.')
   })
 
   // The reopen edge of sync rebuilds a file from its issue, so this inverse must hold exactly.
@@ -292,6 +312,25 @@ describe('permissions', () => {
   })
 })
 
+describe('defaultBranch', () => {
+  test('behavior: returns the default branch', async () => {
+    const instance = await github()
+    expect(await Github.defaultBranch(client(instance.url), { repo })).toBe('main')
+  })
+
+  test('behavior: undefined when the repository does not exist', async () => {
+    const instance = await github({}, { errors: { [repo]: 404 } })
+    expect(await Github.defaultBranch(client(instance.url), { repo })).toBeUndefined()
+  })
+
+  test('error: propagates a transient repository failure', async () => {
+    const instance = await github({}, { errors: { [repo]: 503 } })
+    await expect(Github.defaultBranch(client(instance.url), { repo })).rejects.toMatchObject({
+      status: 503,
+    })
+  })
+})
+
 describe('find', () => {
   test('behavior: finds an unlabelled issue by its marker', async () => {
     const instance = await github({
@@ -300,13 +339,14 @@ describe('find', () => {
       ],
     })
 
-    // Deliberately a title the search would not match, so only the marker can identify it.
+    // Deliberately a different title, so only the marker can identify it.
     const found = await Github.find(client(instance.url), {
       hash: Github.hash(title),
       repo,
       title: 'Anything',
     })
     expect(found?.number).toBe(1)
+    expect(instance.requests).not.toContainEqual({ method: 'GET', path: '/search/issues' })
   })
 
   test('behavior: finds an unlabelled issue whose title normalizes the same', async () => {
@@ -461,6 +501,34 @@ describe('publish', () => {
     `)
   })
 
+  test('behavior: reopens a closed issue before commenting', async () => {
+    const instance = await github({
+      [repo]: [
+        {
+          body: Github.renderMarker({ hash: Github.hash(title) }),
+          state: 'closed',
+          title: 'Already filed',
+        },
+      ],
+    })
+    const octokit = client(instance.url)
+    const existing = (await Github.index(octokit, { label: 'friction', repo })).get(
+      Github.hash(title),
+    )
+
+    const result = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(result).toEqual({ issue: 1, status: 'commented' })
+    expect(instance.issues.get(repo)?.[0]?.state).toBe('open')
+    expect(instance.comments(repo, 1)).toHaveLength(1)
+  })
+
   test('behavior: publishing twice through the index never duplicates', async () => {
     const instance = await github()
     const octokit = client(instance.url)
@@ -479,5 +547,75 @@ describe('publish', () => {
     }
 
     expect(instance.issues.get(repo)).toHaveLength(1)
+  })
+
+  test('behavior: replay after issue creation does not add a hit-again comment', async () => {
+    const instance = await github({}, { pushAccess: [] })
+    const octokit = client(instance.url)
+    const occurrence = 'delivery-1:entry-a'
+
+    const first = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence,
+      repo,
+    })
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(title)
+    const replayed = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence,
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(first).toEqual({ issue: 1, status: 'created' })
+    expect(replayed).toEqual({ issue: 1, status: 'created' })
+    expect(instance.issues.get(repo)).toHaveLength(1)
+    expect(instance.comments(repo, 1)).toEqual([])
+  })
+
+  test('behavior: replay after commenting does not add the comment twice', async () => {
+    const instance = await github({
+      [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
+    })
+    const octokit = client(instance.url)
+    const existing = (await Github.index(octokit, { label: 'friction', repo })).get(
+      Github.hash(title),
+    )
+    if (!existing) throw new Error('Expected seeded issue.')
+
+    for (let index = 0; index < 100; index++)
+      await octokit.issues.createComment({
+        ...Github.split(repo),
+        body: `Existing comment ${index}.`,
+        issue_number: existing.number,
+      })
+
+    const publish = (occurrence: string) =>
+      Github.publish(octokit, {
+        entry,
+        existing,
+        labels: ['friction'],
+        marker: { hash: Github.hash(title) },
+        occurrence,
+        repo,
+      })
+
+    await expect(publish('delivery-1:entry-a')).resolves.toEqual({
+      issue: 1,
+      status: 'commented',
+    })
+    await expect(publish('delivery-1:entry-a')).resolves.toEqual({
+      issue: 1,
+      status: 'commented',
+    })
+    expect(instance.comments(repo, 1)).toHaveLength(101)
+
+    await publish('delivery-2:entry-a')
+    expect(instance.comments(repo, 1)).toHaveLength(102)
   })
 })

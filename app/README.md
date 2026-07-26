@@ -71,27 +71,45 @@ Deployed as a Cloudflare Worker. The endpoint is a Fetch handler, so it needs no
 
    `PRIVATE_KEY` is the PEM key. Real newlines are fine; escaped `\n` is also accepted.
 
-3. **Deploy**, then point the App's webhook URL at the resulting `https://<worker>.workers.dev/`:
+3. **Create the delivery and dead-letter queues**:
+
+   ```sh
+   pnpm exec wrangler queues create frog-webhooks
+   pnpm exec wrangler queues create frog-webhooks-dlq
+   ```
+
+4. **Deploy**, then point the App's webhook URL at the resulting `https://<worker>.workers.dev/`:
 
    ```sh
    pnpm deploy
    ```
 
-4. **Install** the App on the repositories that record friction, and on any repository that should
+5. **Install** the App on the repositories that record friction, and on any repository that should
    receive friction from them.
 
-5. **Run `frog init`** in each repository, so the App has a config and a directory to read.
+6. **Run `frog init`** in each repository, so the App has a config and a directory to read.
 
 `nodejs_compat` is enabled because the title hash uses `node:crypto`, and the package layer imports
 `node:fs` for the disk reads the App never takes. The bundle is around 200 KiB gzipped.
 
 Run it locally against a real workerd with `pnpm dev`.
 
-## Redelivery is safe
+## Delivery and retries
 
-A handler that throws returns 500, and GitHub redelivers. Every handler is idempotent: filing comments
-on the issue already covering a friction rather than opening another, and reconciliation converges, so a
-redelivery repeats the work harmlessly.
+The endpoint verifies the exact signed bytes, projects only the fields Frog reads, and awaits a durable
+Queue write before returning `202`. Issue events carry only their repository and number; the consumer
+fetches current issue state after claiming the delivery, so a delayed close cannot undo a later reopen.
+
+Queue retries each failed message independently with bounded backoff. A Durable Object remembers
+completed GitHub delivery ids and serializes repository mutations, while occurrence markers make an
+ambiguous issue or comment write replay-safe. After 20 retries, Queue moves a poison message to
+`frog-webhooks-dlq`, which deliberately has no consumer. Inspect and re-send its messages from the
+Cloudflare dashboard before retention expires: 24 hours on Free, or four days by default on Paid.
+
+If the initial Queue write itself fails, the endpoint returns `503`. GitHub does not automatically retry
+failed webhook deliveries; redeliver one from the App's **Recent deliveries** page after resolving the
+outage. The same manual redelivery also recovers a dead-lettered event when its GitHub delivery is still
+available.
 
 ## Tests
 

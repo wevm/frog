@@ -28,8 +28,8 @@ async function declare(cwd: string, dependencies: Record<string, string>): Promi
 }
 
 /** A repository that has committed its consent, or opted out. */
-function config(enabled: boolean): string {
-  return JSON.stringify({ inbound: { enabled } })
+function config(enabled: boolean, allowFrom?: readonly string[]): string {
+  return JSON.stringify({ inbound: { enabled, ...(allowFrom ? { allowFrom } : {}) } })
 }
 
 function env(url: string, cache: string): Record<string, string> {
@@ -73,6 +73,47 @@ test('behavior: lists dependencies whose repositories accept reports', async () 
       ],
     }
   `)
+})
+
+test('behavior: includes optional dependencies', async () => {
+  const cwd = await helpers.repo()
+  await helpers.writeFile(
+    'package.json',
+    JSON.stringify({ name: 'app', optionalDependencies: { viem: '^2.0.0' } }),
+    cwd,
+  )
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
+
+  const instance = await github({}, { files: { 'wevm/viem': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
+})
+
+test('behavior: applies each receiver allowFrom policy', async () => {
+  const cwd = await helpers.repo({ remote: 'https://github.com/acme/app' })
+  await declare(cwd, { ox: '^1.0.0', viem: '^2.0.0' })
+  await install(cwd, 'ox', { repository: 'https://github.com/wevm/ox' })
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
+
+  const instance = await github(
+    {},
+    {
+      files: {
+        'wevm/ox': { [Config.file]: config(true, ['other/*']) },
+        'wevm/viem': { [Config.file]: config(true, ['acme/*']) },
+      },
+    },
+  )
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
 })
 
 test('behavior: a dependency declaring no GitHub repository is skipped without a lookup', async () => {
@@ -161,6 +202,29 @@ test('behavior: a repository that accepts nothing is not re-asked', async () => 
 
   expect(second.targets).toEqual([])
   expect(instance.requests.length).toBe(first)
+})
+
+test('behavior: a transient config failure is not cached as rejection', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { viem: '^2.0.0' })
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
+
+  const errors: Record<string, number> = { 'wevm/viem': 503 }
+  const instance = await github(
+    {},
+    {
+      errors,
+      files: { 'wevm/viem': { [Config.file]: config(true) } },
+    },
+  )
+  const cache = await helpers.tmpdir()
+
+  const first = await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+  expect(first.targets).toEqual([])
+
+  delete errors['wevm/viem']
+  const second = await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+  expect(second.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
 })
 
 test('behavior: one repository behind several packages is asked about once', async () => {

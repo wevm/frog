@@ -2,6 +2,7 @@ import { App, type Octokit } from 'octokit'
 import { issues } from './handlers/issues.js'
 import { pullRequest } from './handlers/pullRequest.js'
 import { push } from './handlers/push.js'
+import * as serialization from './internal/serialize.js'
 
 /**
  * Builds the App and registers every handler.
@@ -10,11 +11,11 @@ import { push } from './handlers/push.js'
  * repository with no installation resolves to `undefined`, and that is the consent gate: the App
  * physically cannot file where it has not been installed.
  *
- * Handlers are allowed to throw. GitHub redelivers a failed webhook, and every handler is idempotent,
- * so a redelivery repeats the work harmlessly rather than duplicating it.
+ * Handlers are allowed to throw. Delivery claims are only completed after the handler succeeds, and
+ * replay markers keep a repeated external mutation from duplicating an issue or comment.
  */
 export function create(options: create.Options): App {
-  const { appId, privateKey, registry, secret } = options
+  const { appId, coordinator, privateKey, registry, secret } = options
 
   const app = new App({ appId, privateKey, webhooks: { secret } })
 
@@ -31,8 +32,9 @@ export function create(options: create.Options): App {
       const client = await app.getInstallationOctokit(found.data.id)
       clients.set(repo, client)
       return client
-    } catch {
-      return undefined
+    } catch (error) {
+      if ((error as { status?: number }).status === 404) return undefined
+      throw error
     }
   }
 
@@ -45,24 +47,28 @@ export function create(options: create.Options): App {
     return identity
   }
 
+  const serialize = (delivery: string) => serialization.repositories(coordinator, delivery)
+
   app.webhooks.on(
     ['pull_request.opened', 'pull_request.reopened', 'pull_request.synchronize'],
-    async ({ octokit, payload }) => {
+    async ({ id, octokit, payload }) => {
       const author = payload.pull_request.user?.login
       await pullRequest({
         ...(author ? { actor: `@${author}` } : {}),
         base: payload.repository.full_name,
         baseRef: payload.pull_request.base.ref,
         client: octokit,
+        delivery: id,
         head: payload.pull_request.head.sha,
         installation,
         pr: payload.number,
         ...(registry ? { registry } : {}),
+        serialize: serialize(id),
       })
     },
   )
 
-  app.webhooks.on('push', async ({ octokit, payload }) => {
+  app.webhooks.on('push', async ({ id, octokit, payload }) => {
     const branch = payload.repository.default_branch
     // Only the default branch: a topic branch's entries are handled as a pull request.
     if (payload.ref !== `refs/heads/${branch}`) return
@@ -74,15 +80,17 @@ export function create(options: create.Options): App {
     await push({
       branch,
       client: octokit,
+      delivery: id,
       installation,
       repo: payload.repository.full_name,
       ...(registry ? { registry } : {}),
+      serialize: serialize(id),
     })
   })
 
   app.webhooks.on(
     ['issues.closed', 'issues.edited', 'issues.reopened'],
-    async ({ octokit, payload }) => {
+    async ({ id, octokit, payload }) => {
       await issues({
         client: octokit,
         installation,
@@ -99,6 +107,7 @@ export function create(options: create.Options): App {
           title: payload.issue.title,
         },
         repo: payload.repository.full_name,
+        serialize: serialize(id),
       })
     },
   )
@@ -111,6 +120,8 @@ export declare namespace create {
   type Options = {
     /** GitHub App id. */
     appId: number | string
+    /** Durable coordinator binding for delivery and repository serialization. */
+    coordinator: serialization.Namespace
     /** GitHub App private key, PEM encoded. */
     privateKey: string
     /** Registry base URL. Overridden in tests. */

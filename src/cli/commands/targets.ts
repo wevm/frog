@@ -31,7 +31,7 @@ export const targets = Cli.create('targets', {
     ),
   }),
   async run(c) {
-    const { root } = await context.resolve({ cwd: c.options.cwd })
+    const { repo, root } = await context.resolve({ cwd: c.options.cwd })
 
     // Consent lives on the target repository, so this needs a client. Unauthenticated works, at 60
     // requests an hour, which the day-long cache is what keeps within reach.
@@ -45,7 +45,7 @@ export const targets = Cli.create('targets', {
     })
 
     const found = await attempt(
-      target.accepting({ client, root, store: cache.file(cache.dir(c.env)) }),
+      target.accepting({ client, root, self: repo, store: cache.file(cache.dir(c.env)) }),
     )
     if (!found.ok) return c.error({ code: found.code, message: found.message })
 

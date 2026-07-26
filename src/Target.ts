@@ -3,6 +3,8 @@ import * as Config from './Config.js'
 /** How a target was named. */
 export type Kind = 'npm' | 'repo'
 
+const repoPattern = /^[\w.-]+\/[\w.-]+$/
+
 /**
  * How a target string names a repository.
  *
@@ -153,7 +155,14 @@ async function locate(
     }
 
   const { kind, name } = classify(value)
-  if (kind === 'repo') return { kind, ok: true, repo: name }
+  if (kind === 'repo') {
+    if (repoPattern.test(name)) return { kind, ok: true, repo: name }
+    return {
+      code: 'TARGET_UNKNOWN',
+      message: `\`${name}\` is not a repository. Name it as \`owner/name\`.`,
+      ok: false,
+    }
+  }
 
   const repo = await options.readRepo(name)
   if (repo) return { kind, ok: true, repo }

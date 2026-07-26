@@ -8,7 +8,7 @@ import * as Entry from './Entry.js'
  * Narrow on purpose: the App passes Probot's client, which is the same endpoint-methods object, so
  * neither caller has to construct the other's.
  */
-export type Client = Pick<Octokit['rest'], 'issues' | 'repos' | 'search'>
+export type Client = Pick<Octokit['rest'], 'issues' | 'repos'>
 
 /** A label as GitHub returns it: either the bare name, or an object holding one. */
 export type Label =
@@ -57,13 +57,10 @@ export function split(target: string): { owner: string; repo: string } {
 /** npm's shorthand forms: `owner/name`, optionally prefixed with `github:`. */
 const shorthandRegex = /^(?:github:)?([\w.-]+)\/([\w.-]+)$/
 
-/**
- * Matches GitHub in ssh, scp, and https form, with an optional `.git` suffix.
- *
- * Anything after the repository is discarded, which is what handles a monorepo package pointing at its
- * own subdirectory rather than the repository root.
- */
-const urlRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:[/#?].*)?$/
+/** Git's scp-like SSH form, which `URL` cannot parse. */
+const scpRegex = /^(?:[^@\s]+@)?github\.com:([\w.-]+)\/([\w.-]+?)(?:\.git)?$/
+
+const componentRegex = /^[\w.-]+$/
 
 /**
  * Normalizes a repository reference into `owner/name`.
@@ -77,14 +74,39 @@ const urlRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:[/#?].*)?$/
  * @returns The repository as `owner/name`, or `undefined` when it is absent or not on GitHub. Only GitHub
  * resolves, because an issue can only be filed there.
  */
-export function parseRepository(value: string | undefined): string | undefined {
+export function parseRepository(
+  value: string | undefined,
+  options: parseRepository.Options = {},
+): string | undefined {
   if (!value) return undefined
 
-  const match = shorthandRegex.exec(value) ?? urlRegex.exec(value)
-  if (!match) return undefined
+  const shorthand = options.shorthand === false ? undefined : shorthandRegex.exec(value)
+  if (shorthand) return `${shorthand[1]}/${shorthand[2]}`
 
-  const [, owner, name] = match
-  return `${owner}/${name}`
+  const scp = scpRegex.exec(value)
+  if (scp) return `${scp[1]}/${scp[2]}`
+
+  try {
+    const url = new URL(value.startsWith('git+') ? value.slice(4) : value)
+    if (url.hostname.toLowerCase() !== 'github.com') return undefined
+
+    const [owner, rawName] = url.pathname.replace(/^\/+/, '').split('/')
+    const name = rawName?.replace(/\.git$/, '')
+    if (!owner || !name || !componentRegex.test(owner) || !componentRegex.test(name))
+      return undefined
+
+    return `${owner}/${name}`
+  } catch {
+    return undefined
+  }
+}
+
+export declare namespace parseRepository {
+  /** Parsing controls for contexts such as git remotes, where npm shorthand is not meaningful. */
+  type Options = {
+    /** Whether to accept npm's `owner/name` and `github:owner/name` shorthand. Defaults to `true`. */
+    shorthand?: boolean | undefined
+  }
 }
 
 /**
@@ -137,6 +159,14 @@ export function hash(title: string): string {
 export const markerVersion = 'v1'
 
 const markerRegex = /<!--\s*frog:v1\s+([^>]*?)\s*-->/
+
+/** Version of the marker that makes one external publish occurrence replay-safe. */
+const occurrenceVersion = 'v1'
+
+function renderOccurrence(occurrence: string): string {
+  const digest = createHash('sha256').update(occurrence).digest('hex')
+  return `<!-- frog:occurrence:${occurrenceVersion} ${digest} -->`
+}
 
 /**
  * Hidden state carried in an issue body.
@@ -215,7 +245,7 @@ export type Provenance = {
  * @returns The issue body. {@link parseBody} inverts this exactly.
  */
 export function renderBody(options: renderBody.Options): string {
-  const { body, marker, provenance = {} } = options
+  const { body, marker, occurrence, provenance = {} } = options
 
   const credits = [
     provenance.author ? `Logged by ${provenance.author}` : 'Logged',
@@ -228,7 +258,11 @@ export function renderBody(options: renderBody.Options): string {
 
   const footer = `<sub>${credits}. Filed by [frog](https://github.com/wevm/frog).</sub>`
 
-  return `${body.trim()}\n\n${renderMarker(marker)}\n\n---\n\n${footer}\n`
+  const markers = [renderMarker(marker), occurrence ? renderOccurrence(occurrence) : undefined]
+    .filter(Boolean)
+    .join('\n')
+
+  return `${body.trim()}\n\n${markers}\n\n---\n\n${footer}\n`
 }
 
 export declare namespace renderBody {
@@ -238,6 +272,8 @@ export declare namespace renderBody {
     body: string
     /** Hidden state to embed. Its `origin` also appears in the footer. */
     marker: Marker
+    /** Stable key for one external publish occurrence. */
+    occurrence?: string | undefined
     /** Attribution for the footer. Omitted entirely when nothing is known. */
     provenance?: Provenance | undefined
   }
@@ -333,8 +369,12 @@ export declare namespace fromIssue {
  * before closed, then lowest number.
  */
 export async function index(client: Client, options: index.Options): Promise<Map<string, Issue>> {
+  return toIndex(await list(client, options))
+}
+
+function toIndex(issues: readonly Issue[]): Map<string, Issue> {
   const indexed = new Map<string, Issue>()
-  for (const issue of await list(client, options)) {
+  for (const issue of issues) {
     const key = parseMarker(issue.body)?.hash ?? hash(issue.title)
     // Prefer an open issue, then the lowest number, so comments land on the canonical one.
     const current = indexed.get(key)
@@ -488,32 +528,24 @@ export async function defaultBranch(
   try {
     const response = await client.repos.get(split(options.repo))
     return response.data.default_branch
-  } catch {
-    return undefined
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) return undefined
+    throw error
   }
 }
 
 /**
  * Finds the issue already covering a friction, without relying on a label.
  *
- * Searches by title, then confirms the marker hash. Slower and backed by an eventually consistent
- * index, so it is only used where {@link index} cannot work: a repository the token cannot label.
+ * Lists issues directly rather than using GitHub's eventually consistent search index. It is only
+ * used where {@link index} cannot work: a repository the token cannot label.
  *
  * @param client - Authenticated client for the repository.
  * @returns The issue covering this friction, or `undefined`.
  */
 export async function find(client: Client, options: find.Options): Promise<Issue | undefined> {
-  const { hash: key, repo, title } = options
-
-  // Searched normalized, not verbatim: the point is to find the same friction reported with different
-  // capitalization and punctuation, and GitHub tokenizes the phrase anyway.
-  const response = await client.search.issuesAndPullRequests({
-    per_page: 20,
-    q: `repo:${repo} is:issue in:title ${JSON.stringify(Entry.normalizeTitle(title))}`,
-  })
-  const candidates = response.data.items.filter(
-    (item) => !('pull_request' in item && item.pull_request),
-  )
+  const { hash: key, repo } = options
+  const candidates = await listAll(client, { repo })
 
   // A marker is proof. A matching normalized title is the fallback, which is what catches an issue
   // somebody filed by hand.
@@ -551,12 +583,33 @@ export async function list(client: Client, options: index.Options): Promise<read
   for (let page = 1; page <= 50; page++) {
     const response = await client.issues.listForRepo({
       ...split(repo),
+      direction: 'asc',
       labels: label,
       page,
       per_page: 100,
+      sort: 'created',
       state,
     })
     // `listForRepo` returns pull requests too.
+    collected.push(
+      ...response.data.filter((issue) => !('pull_request' in issue && issue.pull_request)),
+    )
+    if (response.data.length < 100) break
+  }
+  return collected
+}
+
+async function listAll(client: Client, options: { repo: string }): Promise<readonly Issue[]> {
+  const collected: Issue[] = []
+  for (let page = 1; ; page++) {
+    const response = await client.issues.listForRepo({
+      ...split(options.repo),
+      direction: 'asc',
+      page,
+      per_page: 100,
+      sort: 'created',
+      state: 'all',
+    })
     collected.push(
       ...response.data.filter((issue) => !('pull_request' in issue && issue.pull_request)),
     )
@@ -600,22 +653,30 @@ export type Matcher = {
 /**
  * Prepares dedupe for a repository, choosing a strategy the token can actually use.
  *
- * With push access, every issue is listed once by label and matched from memory. Without it, GitHub
- * will have dropped that label on creation, so each title is searched instead. Both adapters go through
- * here so the choice cannot drift between them.
+ * With push access, issues are indexed by label first. A miss falls back to one unfiltered listing,
+ * which also covers labels removed by users or dropped during creation. Without push access, that
+ * fallback is the primary index.
  *
  * @param client - Authenticated client for the repository.
  */
 export async function matcher(client: Client, options: index.Options): Promise<Matcher> {
   const { push } = await permissions(client, { repo: options.repo })
-  if (!push)
-    return {
-      labelled: false,
-      match: (title) => find(client, { hash: hash(title), repo: options.repo, title }),
-    }
+  const labelled = push ? await index(client, options) : new Map<string, Issue>()
+  let unlabelled: Promise<Map<string, Issue>> | undefined
 
-  const indexed = await index(client, options)
-  return { labelled: true, match: async (title) => indexed.get(hash(title)) }
+  return {
+    labelled: push,
+    match: async (title) => {
+      const key = hash(title)
+      const existing = labelled.get(key)
+      if (existing) return existing
+
+      // Even a token with push access can encounter an issue whose configured label was removed.
+      // Fall back once per filing group so a replay still finds the side effect immediately.
+      unlabelled ??= listAll(client, options).then(toIndex)
+      return (await unlabelled).get(key)
+    },
+  }
 }
 
 /**
@@ -628,14 +689,40 @@ export async function matcher(client: Client, options: index.Options): Promise<M
  * @returns The issue number and whether it was opened or commented on.
  */
 export async function publish(client: Client, options: publish.Options): Promise<Result> {
-  const { existing, entry, labels, marker, provenance, repo } = options
+  const { existing, entry, labels, marker, occurrence, provenance, repo } = options
   const body = renderBody({
     body: entry.body,
     marker,
+    ...(occurrence ? { occurrence } : {}),
     ...(provenance ? { provenance } : {}),
   })
 
   if (existing) {
+    if (occurrence) {
+      const occurrenceMarker = renderOccurrence(occurrence)
+      if (existing.body?.includes(occurrenceMarker))
+        return { issue: existing.number, status: 'created' }
+
+      for (let page = 1; ; page++) {
+        const response = await client.issues.listComments({
+          ...split(repo),
+          issue_number: existing.number,
+          page,
+          per_page: 100,
+        })
+        if (response.data.some((comment) => comment.body?.includes(occurrenceMarker)))
+          return { issue: existing.number, status: 'commented' }
+        if (response.data.length < 100) break
+      }
+    }
+
+    if (existing.state !== 'open')
+      await client.issues.update({
+        ...split(repo),
+        issue_number: existing.number,
+        state: 'open',
+      })
+
     const note = [
       'Hit again',
       provenance?.author ? `by ${provenance.author}` : undefined,
@@ -647,7 +734,9 @@ export async function publish(client: Client, options: publish.Options): Promise
 
     await client.issues.createComment({
       ...split(repo),
-      body: `${note}.\n\n${entry.body.trim()}\n`,
+      body: `${note}.\n\n${entry.body.trim()}${
+        occurrence ? `\n\n${renderOccurrence(occurrence)}` : ''
+      }\n`,
       issue_number: existing.number,
     })
     return { issue: existing.number, status: 'commented' }
@@ -677,6 +766,8 @@ export declare namespace publish {
     labels: readonly string[]
     /** Hidden state to embed, from {@link hash} plus the file path and origin repository. */
     marker: Marker
+    /** Stable key used to suppress a replay of this exact create or comment. */
+    occurrence?: string | undefined
     /** Attribution for the footer and the comment. */
     provenance?: Provenance | undefined
     /** Repository to file in, as `owner/name`. */

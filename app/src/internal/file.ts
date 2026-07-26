@@ -3,6 +3,7 @@ import { Github, Store, Target } from 'frog'
 import type { Octokit } from 'octokit'
 import type * as comment from './comment.js'
 import * as resolvers from './resolvers.js'
+import * as serialization from './serialize.js'
 
 /** What filing a set of entries did. */
 export type Filing = {
@@ -23,22 +24,51 @@ export type Filing = {
  * comments, the other writes the links back. The gates themselves must not differ between them.
  */
 export async function file(options: file.Options): Promise<Filing> {
-  const { actor, client, config, entries, installation, origin, pr, registry } = options
+  const {
+    actor,
+    client,
+    config,
+    delivery,
+    entries,
+    installation,
+    origin,
+    pr,
+    registry,
+    serialize = serialization.direct,
+  } = options
+
+  const clients = new Map<string, Octokit | undefined>([[origin, client]])
+  const installed = async (repo: string): Promise<Octokit | undefined> => {
+    if (clients.has(repo)) return clients.get(repo)
+    const target = await installation(repo)
+    clients.set(repo, target)
+    return target
+  }
 
   const stack = resolvers.resolvers({
     allowedRepos: config.outbound.allowedRepos,
-    client,
+    installation: installed,
     self: origin,
     ...(registry ? { registry } : {}),
   })
 
   const deferred: { id: string; reason: string }[] = []
 
-  /** Grouped by destination, so one destination costs one dedupe preparation however many entries. */
-  const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
+  const candidates: {
+    destination: string
+    entry: Entry.Entry
+    labels?: readonly string[] | undefined
+  }[] = []
 
   for (const entry of entries) {
-    const resolution = await Target.resolve(entry.target, stack)
+    const resolution = await Target.resolve(entry.target, stack).catch((error: unknown) => {
+      if (error instanceof resolvers.InstallationMissingError) {
+        deferred.push({ id: entry.id, reason: error.message })
+        return undefined
+      }
+      throw error
+    })
+    if (!resolution) continue
     if (!resolution.ok) {
       deferred.push({ id: entry.id, reason: resolution.message })
       continue
@@ -56,60 +86,84 @@ export async function file(options: file.Options): Promise<Filing> {
       continue
     }
 
-    const group = groups.get(destination) ?? { entries: [], ...(labels ? { labels } : {}) }
-    group.entries.push(entry)
-    groups.set(destination, group)
+    candidates.push({ destination, entry, ...(labels ? { labels } : {}) })
   }
 
   const commented: comment.Link[] = []
   const created: comment.Link[] = []
   const links = new Map<string, string>()
 
-  for (const [destination, group] of groups) {
-    // Cross-repo needs its own installation token. Without an installation there is no token, so the
-    // App cannot file there at all: consent enforced by GitHub rather than by us.
-    const target = destination === origin ? client : await installation(destination)
-    if (!target) {
-      for (const entry of group.entries)
-        deferred.push({
-          id: entry.id,
-          reason: `frog is not installed on \`${destination}\`.`,
-        })
+  for (const destination of new Set(candidates.map((candidate) => candidate.destination))) {
+    const target = await installed(destination)
+    if (target) continue
+    for (const candidate of candidates.filter((entry) => entry.destination === destination))
+      deferred.push({
+        id: candidate.entry.id,
+        reason: `frog is not installed on \`${destination}\`.`,
+      })
+  }
+
+  /** Grouped after every gate, so deferred entries do not consume the per-run ceiling. */
+  const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
+  let accepted = 0
+  for (const candidate of candidates) {
+    if (!clients.get(candidate.destination)) continue
+    if (accepted >= config.maxPerRun) {
+      deferred.push({
+        id: candidate.entry.id,
+        reason: `over the ceiling of ${config.maxPerRun} per run`,
+      })
       continue
     }
+    accepted += 1
 
-    const applied = group.labels?.length ? group.labels : config.labels
-    const matcher = await Github.matcher(target.rest, {
-      label: applied[0] ?? 'friction',
-      repo: destination,
-    })
-    /** Filed during this run, so two entries with one title collapse onto one issue. */
-    const seen = new Map<string, Github.Issue>()
-
-    for (const entry of group.entries) {
-      const hash = Github.hash(entry.title)
-      const existing = seen.get(hash) ?? (await matcher.match(entry.title))
-
-      const result = await Github.publish(target.rest, {
-        entry: entry,
-        labels: Github.toLabels({
-          entry: entry,
-          labels: applied,
-          severityLabels: config.severityLabels,
-        }),
-        // `origin` is where the file lives, which is not the destination when reporting upstream.
-        marker: { hash, origin, path: Store.toPath(entry.id) },
-        provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
-        repo: destination,
-        ...(existing ? { existing } : {}),
-      })
-
-      const issue = Github.toLink({ issue: result.issue, repo: destination })
-      links.set(entry.id, issue)
-      ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
-
-      if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
+    const group = groups.get(candidate.destination) ?? {
+      entries: [],
+      ...(candidate.labels ? { labels: candidate.labels } : {}),
     }
+    group.entries.push(candidate.entry)
+    groups.set(candidate.destination, group)
+  }
+
+  for (const [destination, group] of groups) {
+    const target = clients.get(destination)
+    if (!target) continue
+
+    await serialize(destination, async () => {
+      const applied = group.labels?.length ? group.labels : config.labels
+      const matcher = await Github.matcher(target.rest, {
+        label: applied[0] ?? 'friction',
+        repo: destination,
+      })
+      /** Filed during this run, so two entries with one title collapse onto one issue. */
+      const seen = new Map<string, Github.Issue>()
+
+      for (const entry of group.entries) {
+        const hash = Github.hash(entry.title)
+        const existing = seen.get(hash) ?? (await matcher.match(entry.title))
+
+        const result = await Github.publish(target.rest, {
+          entry,
+          labels: Github.toLabels({
+            entry,
+            labels: applied,
+            severityLabels: config.severityLabels,
+          }),
+          // `origin` is where the file lives, which is not the destination when reporting upstream.
+          marker: { hash, origin, path: Store.toPath(entry.id) },
+          provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
+          repo: destination,
+          ...(delivery ? { occurrence: `${delivery}:${entry.id}` } : {}),
+          ...(existing ? { existing } : {}),
+        })
+
+        const issue = Github.toLink({ issue: result.issue, repo: destination })
+        links.set(entry.id, issue)
+        ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
+
+        if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
+      }
+    })
   }
 
   return { commented, created, deferred, links }
@@ -124,7 +178,9 @@ export declare namespace file {
     client: Octokit
     /** Normalized config, read from the default branch. */
     config: Config.Config
-    /** Entries to file. Already capped and already free of linked ones. */
+    /** GitHub delivery id used to make each external publish occurrence replay-safe. */
+    delivery?: string | undefined
+    /** Entries to resolve and file. Already free of linked ones. */
     entries: readonly Entry.Entry[]
     /** Resolves an installation client for another repository. */
     installation: (repo: string) => Promise<Octokit | undefined>
@@ -134,15 +190,13 @@ export declare namespace file {
     pr?: string | undefined
     /** Registry base URL. Overridden in tests. */
     registry?: string | undefined
+    /** Serializes conflicting writes by destination repository. */
+    serialize?: serialization.Serialize | undefined
   }
 }
 
-/** Splits entries into those already linked and those still to file, applying the per-run ceiling. */
-export function partition(
-  entries: readonly Entry.Entry[],
-  maxPerRun: number,
-): {
-  deferred: { id: string; reason: string }[]
+/** Splits entries into those already linked and those still to file. */
+export function partition(entries: readonly Entry.Entry[]): {
   linked: comment.Link[]
   pending: readonly Entry.Entry[]
 } {
@@ -154,10 +208,7 @@ export function partition(
   }
 
   return {
-    deferred: unlinked
-      .slice(maxPerRun)
-      .map((entry) => ({ id: entry.id, reason: `over the ceiling of ${maxPerRun} per run` })),
     linked,
-    pending: unlinked.slice(0, maxPerRun),
+    pending: unlinked,
   }
 }

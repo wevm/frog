@@ -18,7 +18,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 1
+            "pattern": "^[\\w.-]+\\/(?:[\\w.-]+|\\*)$"
           }
         },
         "enabled": {
@@ -63,7 +63,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 1
+            "pattern": "^[\\w.-]+\\/(?:[\\w.-]+|\\*)$"
           }
         },
         "auto": {
@@ -104,11 +104,6 @@
           "minLength": 1
         }
       }
-    },
-    "site": {
-      "description": "Site serving `/.well-known/frog.json`.",
-      "type": "string",
-      "format": "uri"
     },
     "sync": {
       "description": "How local files reconcile against issue state.",
