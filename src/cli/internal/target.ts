@@ -119,6 +119,7 @@ export async function accepting(options: accepting.Options): Promise<readonly Ac
     ...new Set([
       ...Object.keys(own?.dependencies ?? {}),
       ...Object.keys(own?.devDependencies ?? {}),
+      ...Object.keys(own?.optionalDependencies ?? {}),
       ...Object.keys(own?.peerDependencies ?? {}),
     ]),
   ].sort()
@@ -165,6 +166,7 @@ type Dependencies = {
   dependencies?: Record<string, string> | undefined
   devDependencies?: Record<string, string> | undefined
   homepage?: string | undefined
+  optionalDependencies?: Record<string, string> | undefined
   peerDependencies?: Record<string, string> | undefined
   repository?: { url?: string | undefined } | string | undefined
 }

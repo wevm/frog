@@ -75,6 +75,24 @@ test('behavior: lists dependencies whose repositories accept reports', async () 
   `)
 })
 
+test('behavior: includes optional dependencies', async () => {
+  const cwd = await helpers.repo()
+  await helpers.writeFile(
+    'package.json',
+    JSON.stringify({ name: 'app', optionalDependencies: { viem: '^2.0.0' } }),
+    cwd,
+  )
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
+
+  const instance = await github({}, { files: { 'wevm/viem': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
+})
+
 test('behavior: a dependency declaring no GitHub repository is skipped without a lookup', async () => {
   const cwd = await helpers.repo()
   await declare(cwd, { private: '^1.0.0' })
