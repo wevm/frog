@@ -158,6 +158,27 @@ test('behavior: defers entries over the ceiling', async () => {
   expect(instance.issues.get(repo)).toHaveLength(2)
 })
 
+test('behavior: a refused entry does not consume the ceiling', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github()
+  await Store.write(
+    { body, severity: 'minor', target: 'missing', title: 'Cannot resolve' },
+    { id: 'a', root: cwd },
+  )
+  await Store.write({ body, severity: 'minor', title: 'Can file' }, { id: 'b', root: cwd })
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
+
+  expect(result.created).toEqual([{ id: 'b', issue: `${repo}#1` }])
+  expect(result.deferred).toEqual([
+    {
+      id: 'a',
+      reason:
+        '`missing` is not installed, or declares no GitHub repository. Name the repository instead, as `owner/name`.',
+    },
+  ])
+})
+
 describe('cross-repo', () => {
   const upstream = 'wevm/viem'
 

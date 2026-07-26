@@ -34,8 +34,11 @@ export async function file(options: file.Options): Promise<Filing> {
 
   const deferred: { id: string; reason: string }[] = []
 
-  /** Grouped by destination, so one destination costs one dedupe preparation however many entries. */
-  const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
+  const candidates: {
+    destination: string
+    entry: Entry.Entry
+    labels?: readonly string[] | undefined
+  }[] = []
 
   for (const entry of entries) {
     const resolution = await Target.resolve(entry.target, stack)
@@ -56,27 +59,53 @@ export async function file(options: file.Options): Promise<Filing> {
       continue
     }
 
-    const group = groups.get(destination) ?? { entries: [], ...(labels ? { labels } : {}) }
-    group.entries.push(entry)
-    groups.set(destination, group)
+    candidates.push({ destination, entry, ...(labels ? { labels } : {}) })
   }
 
   const commented: comment.Link[] = []
   const created: comment.Link[] = []
   const links = new Map<string, string>()
 
-  for (const [destination, group] of groups) {
-    // Cross-repo needs its own installation token. Without an installation there is no token, so the
-    // App cannot file there at all: consent enforced by GitHub rather than by us.
-    const target = destination === origin ? client : await installation(destination)
-    if (!target) {
-      for (const entry of group.entries)
+  const clients = new Map<string, Octokit>([[origin, client]])
+  for (const destination of new Set(candidates.map((candidate) => candidate.destination))) {
+    if (clients.has(destination)) continue
+
+    const target = await installation(destination)
+    if (target) clients.set(destination, target)
+    else {
+      for (const candidate of candidates.filter((entry) => entry.destination === destination))
         deferred.push({
-          id: entry.id,
+          id: candidate.entry.id,
           reason: `frog is not installed on \`${destination}\`.`,
         })
+    }
+  }
+
+  /** Grouped after every gate, so deferred entries do not consume the per-run ceiling. */
+  const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
+  let accepted = 0
+  for (const candidate of candidates) {
+    if (!clients.has(candidate.destination)) continue
+    if (accepted >= config.maxPerRun) {
+      deferred.push({
+        id: candidate.entry.id,
+        reason: `over the ceiling of ${config.maxPerRun} per run`,
+      })
       continue
     }
+    accepted += 1
+
+    const group = groups.get(candidate.destination) ?? {
+      entries: [],
+      ...(candidate.labels ? { labels: candidate.labels } : {}),
+    }
+    group.entries.push(candidate.entry)
+    groups.set(candidate.destination, group)
+  }
+
+  for (const [destination, group] of groups) {
+    const target = clients.get(destination)
+    if (!target) continue
 
     const applied = group.labels?.length ? group.labels : config.labels
     const matcher = await Github.matcher(target.rest, {
@@ -124,7 +153,7 @@ export declare namespace file {
     client: Octokit
     /** Normalized config, read from the default branch. */
     config: Config.Config
-    /** Entries to file. Already capped and already free of linked ones. */
+    /** Entries to resolve and file. Already free of linked ones. */
     entries: readonly Entry.Entry[]
     /** Resolves an installation client for another repository. */
     installation: (repo: string) => Promise<Octokit | undefined>
@@ -137,12 +166,8 @@ export declare namespace file {
   }
 }
 
-/** Splits entries into those already linked and those still to file, applying the per-run ceiling. */
-export function partition(
-  entries: readonly Entry.Entry[],
-  maxPerRun: number,
-): {
-  deferred: { id: string; reason: string }[]
+/** Splits entries into those already linked and those still to file. */
+export function partition(entries: readonly Entry.Entry[]): {
   linked: comment.Link[]
   pending: readonly Entry.Entry[]
 } {
@@ -154,10 +179,7 @@ export function partition(
   }
 
   return {
-    deferred: unlinked
-      .slice(maxPerRun)
-      .map((entry) => ({ id: entry.id, reason: `over the ceiling of ${maxPerRun} per run` })),
     linked,
-    pending: unlinked.slice(0, maxPerRun),
+    pending: unlinked,
   }
 }

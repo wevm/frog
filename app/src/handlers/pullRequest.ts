@@ -22,7 +22,7 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
 
   const settings = await config.read(client, { ref: baseRef, repo: base })
   const { entries, malformed } = await Repository.read(client, { ref: head, repo: base })
-  const { deferred, linked, pending } = filing.partition(entries, settings.maxPerRun)
+  const { linked, pending } = filing.partition(entries)
 
   const filed = await filing.file({
     client,
@@ -38,7 +38,7 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   const report: comment.Report = {
     commented: filed.commented,
     created: filed.created,
-    deferred: [...deferred, ...filed.deferred],
+    deferred: filed.deferred,
     linked,
     malformed,
   }

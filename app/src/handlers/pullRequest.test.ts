@@ -158,6 +158,32 @@ test('behavior: entries over the ceiling are deferred', async () => {
   expect(report.deferred).toEqual([{ id: 'b', reason: 'over the ceiling of 1 per run' }])
 })
 
+test('behavior: a refused entry does not consume the ceiling', async () => {
+  const instance = await github(
+    {},
+    {
+      files: {
+        [base]: {
+          [`${dir}/a/friction.md`]: entry('Cannot resolve', { target: 'missing' }),
+          [`${dir}/b/friction.md`]: entry('Can file'),
+          [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }),
+        },
+      },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report.created).toEqual([{ id: 'b', issue: `${base}#1` }])
+  expect(report.deferred).toEqual([
+    {
+      id: 'a',
+      reason:
+        '`missing` is not installed, or declares no GitHub repository. Name the repository instead, as `owner/name`.',
+    },
+  ])
+})
+
 describe('cross-repo', () => {
   /**
    * A consumer with one upstream-targeted entry, and an upstream that has committed its consent.

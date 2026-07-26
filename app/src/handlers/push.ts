@@ -38,9 +38,9 @@ export async function push(options: push.Options): Promise<Outcome> {
 
   const settings = await config.read(client, { ref: branch, repo })
   const { entries } = await Repository.read(client, { ref: branch, repo })
-  const { deferred, pending } = filing.partition(entries, settings.maxPerRun)
+  const { pending } = filing.partition(entries)
 
-  if (pending.length === 0) return { commented: [], created: [], deferred }
+  if (pending.length === 0) return { commented: [], created: [], deferred: [] }
 
   const filed = await filing.file({
     client,
@@ -72,7 +72,7 @@ export async function push(options: push.Options): Promise<Outcome> {
   return {
     commented: filed.commented,
     created: filed.created,
-    deferred: [...deferred, ...filed.deferred],
+    deferred: filed.deferred,
     ...(committed ? { committed } : {}),
   }
 }
