@@ -169,13 +169,78 @@ describe('round trip', () => {
 })
 
 describe('newId', () => {
-  test('behavior: mints a hyphenated lowercase id', () => {
-    expect(Entry.newId()).toMatch(/^[a-z]+(-[a-z]+)+$/)
+  test('behavior: timestamps the entry and carries the title', () => {
+    expect(
+      Entry.newId({
+        date: new Date(2026, 6, 25, 14, 30, 12),
+        title: '`pnpm test -- <files>` ignores file filters',
+      }),
+    ).toMatchInlineSnapshot(`"20260725143012-pnpm-test-files"`)
   })
 
-  test('behavior: ids do not collide across a batch', () => {
-    const ids = new Set(Array.from({ length: 200 }, () => Entry.newId()))
-    expect(ids.size).toBeGreaterThan(190)
+  test('behavior: pads every single-digit field', () => {
+    expect(
+      Entry.newId({ date: new Date(2026, 0, 3, 4, 5, 6), title: 'Slow' }),
+    ).toMatchInlineSnapshot(`"20260103040506-slow"`)
+  })
+
+  test('behavior: defaults to now', () => {
+    const id = Entry.newId({ title: 'Slow' })
+
+    // Parsed back rather than compared against a second rendering of the same logic, so a field in the
+    // wrong position fails here instead of matching itself.
+    const [, year, month, day, hour, minute, second] =
+      /^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)-slow$/.exec(id) ?? []
+    const parsed = new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    )
+    expect(Math.abs(parsed.getTime() - Date.now())).toBeLessThan(5_000)
+  })
+
+  test('behavior: ids sort oldest first', () => {
+    const ids = [
+      Entry.newId({ date: new Date(2026, 6, 25, 14, 30, 12), title: 'Last' }),
+      Entry.newId({ date: new Date(2026, 6, 25, 9, 12, 4), title: 'Third' }),
+      Entry.newId({ date: new Date(2026, 0, 3, 4, 5, 6), title: 'Second' }),
+      Entry.newId({ date: new Date(2025, 11, 31, 23, 59, 59), title: 'First' }),
+    ]
+    expect([...ids].sort()).toMatchInlineSnapshot(`
+      [
+        "20251231235959-first",
+        "20260103040506-second",
+        "20260725091204-third",
+        "20260725143012-last",
+      ]
+    `)
+  })
+})
+
+describe('slug', () => {
+  test.for([
+    ['`pnpm test` ignores filters', 'pnpm-test-ignores'],
+    ['PNPM Test Ignores Filters.', 'pnpm-test-ignores'],
+    ['  spaced   out  ', 'spaced-out'],
+    ['@scope/pkg breaks', 'scope-pkg-breaks'],
+    ['one', 'one'],
+    ['!!!', 'friction'],
+    ['', 'friction'],
+  ] as const)('behavior: %s', ([title, expected]) => {
+    expect(Entry.slug(title)).toBe(expected)
+  })
+
+  test('behavior: keeps the first three words of a long title', () => {
+    expect(
+      Entry.slug('the filter is swallowed before it reaches the runner and nothing warns'),
+    ).toMatchInlineSnapshot(`"the-filter-is"`)
+  })
+
+  test('behavior: truncates a word longer than the length bound', () => {
+    expect(Entry.slug('a'.repeat(60))).toBe('a'.repeat(48))
   })
 })
 

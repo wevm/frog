@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import type { Manifest } from '../../index.js'
+import type { Cache } from '../../index.js'
 
 /** Default cache location, honoring `XDG_CACHE_HOME`. */
 export function dir(env: Record<string, string | undefined> = process.env): string {
@@ -10,11 +10,11 @@ export function dir(env: Record<string, string | undefined> = process.env): stri
 }
 
 /**
- * A cache on disk, so a well-known lookup survives between runs.
+ * A cache on disk, so a consent lookup survives between runs.
  *
  * Every failure is swallowed: a cache that cannot be written is a slower run, not a failed one.
  */
-export function file(root: string = dir()): Manifest.Cache {
+export function file(root: string = dir()): Cache.Cache {
   return {
     async get(key) {
       return fs

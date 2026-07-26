@@ -28,6 +28,7 @@ test('behavior: the template it writes parses as an entry', async () => {
   await cli.data(['init', '--cwd', cwd])
 
   const template = await fs.readFile(path.join(cwd, Store.dir, 'TEMPLATE.md'), 'utf8')
+  await fs.mkdir(path.join(cwd, Store.toDir('from-template')), { recursive: true })
   await fs.writeFile(path.join(cwd, Store.toPath('from-template')), template, 'utf8')
 
   expect((await Store.get('from-template', { root: cwd })).title).toBe(

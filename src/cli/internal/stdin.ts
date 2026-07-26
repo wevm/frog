@@ -8,13 +8,14 @@ export const grace = 100
  * Reads piped input, or nothing when there is none.
  *
  * `isTTY` is not enough on its own, and neither is `fstat`. A terminal and `/dev/null` are character
- * devices and never have input. A pipe or a redirected file certainly does. A socket is ambiguous: Node
- * presents a spawned child's pipe as a socket, so that is how a harness supplies input from code, but a
- * worker thread can also be handed a socket that never carries anything and never closes. Reading that
- * blocks forever.
+ * devices and never have input. A redirected file certainly does, and reading one cannot block.
  *
- * So the certain cases are read without a deadline, which leaves a slow writer free to take its time, and
- * only a socket has to prove itself within {@link grace}.
+ * Everything else has to prove itself within {@link grace}, because an open channel is not the same as an
+ * arriving one. A parent that spawns this and holds the write end open without writing, which is what an
+ * agent does, leaves standard input readable forever and never ended.
+ *
+ * The cost is that a producer slower than the deadline is treated as silent. That is the better failure:
+ * a refusal naming `--title`, rather than a process that never returns.
  *
  * @returns The input, or `undefined` when nothing was piped in.
  */
@@ -23,20 +24,40 @@ export async function read(options: read.Options = {}): Promise<string | undefin
 
   const source = kind()
   if (source === 'none') return undefined
-  if (source === 'ambiguous' && !(await arriving(process.stdin, options.grace ?? grace)))
-    return undefined
 
-  return consume(process.stdin)
+  if (source === 'ambiguous' && !(await arriving(process.stdin, options.grace ?? grace))) {
+    release()
+    return undefined
+  }
+
+  const contents = await consume(process.stdin)
+  if (source === 'ambiguous') release()
+  return contents
 }
 
 export declare namespace read {
   /** Options for {@link read}. */
   type Options = {
-    /** Milliseconds a socket has to produce its first byte. */
+    /** Milliseconds an open channel has to produce its first byte. */
     grace?: number | undefined
     /** Stream to read instead of standard input. Read to the end with no deadline. */
     stream?: Readable | undefined
   }
+}
+
+/**
+ * Lets the process exit even though standard input is still open.
+ *
+ * Touching standard input references its handle, and the reference outlives the listeners: a parent that
+ * spawns this and keeps the write end open would otherwise hold the process alive indefinitely after its
+ * work is done, with the entry already written and nothing left to wait for.
+ *
+ * Only for a pipe or a socket. A file-backed standard input is an `fs.ReadStream`, which has no `unref`
+ * at all, and needs none: a file always reaches its end.
+ */
+function release(): void {
+  process.stdin.pause()
+  process.stdin.unref()
 }
 
 /** Reads a stream to the end. */
@@ -51,8 +72,10 @@ async function consume(stream: Readable): Promise<string | undefined> {
 function kind(): 'ambiguous' | 'certain' | 'none' {
   try {
     const stats = fs.fstatSync(0)
-    if (stats.isFIFO() || stats.isFile()) return 'certain'
-    if (stats.isSocket()) return 'ambiguous'
+    // A regular file is the only one that cannot leave a read outstanding. A pipe or a socket may be
+    // held open by a parent that never writes and never closes.
+    if (stats.isFile()) return 'certain'
+    if (stats.isFIFO() || stats.isSocket()) return 'ambiguous'
     return 'none'
   } catch {
     return 'none'

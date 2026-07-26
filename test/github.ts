@@ -81,11 +81,11 @@ export type Options = {
    */
   files?: Record<string, Record<string, string>> | undefined
   /**
-   * npm packages served at `/registry/<name>/latest`, keyed by name.
+   * Repository each npm package declares, served at `/registry/<name>/latest`, keyed by package name.
    *
-   * The App has no `node_modules`, so it reads consent from the registry instead.
+   * The App has no `node_modules`, so it resolves a package to its repository through the registry.
    */
-  packages?: Record<string, unknown> | undefined
+  packages?: Record<string, string> | undefined
   /**
    * Repositories the token has push access to. `undefined` means all of them.
    *
@@ -175,13 +175,13 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       const status = owned ? errors[`${owned[1]}/${owned[2]}`] : undefined
       if (status) return json(response, status, { message: 'Not Found' })
 
-      // The npm registry, which the App reads package manifests from.
+      // The npm registry, which the App resolves package names through.
       const registry = /^\/registry\/(.+)\/latest$/.exec(url.pathname)
       if (registry && request.method === 'GET') {
         const name = decodeURIComponent(registry[1] ?? '')
         const declared = options.packages?.[name]
         if (declared === undefined) return json(response, 404, { message: 'Not Found' })
-        return json(response, 200, { frog: declared, name })
+        return json(response, 200, { name, repository: `https://github.com/${declared}` })
       }
 
       // `repos.get`, for whether this token may label issues here.
@@ -301,16 +301,25 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
             type: 'file',
           })
 
-        const children = [...tree.keys()].filter((entry) => entry.startsWith(`${path}/`))
-        if (children.length === 0) return json(response, 404, { message: 'Not Found' })
+        // Immediate children only, with nested paths collapsed to the directory holding them, which
+        // is what the contents API returns.
+        const children = new Map<string, 'dir' | 'file'>()
+        for (const entry of tree.keys()) {
+          if (!entry.startsWith(`${path}/`)) continue
+          const rest = entry.slice(path.length + 1)
+          const slash = rest.indexOf('/')
+          if (slash === -1) children.set(entry, 'file')
+          else children.set(`${path}/${rest.slice(0, slash)}`, 'dir')
+        }
+        if (children.size === 0) return json(response, 404, { message: 'Not Found' })
 
         return json(
           response,
           200,
-          children.map((entry) => ({
+          [...children].map(([entry, type]) => ({
             name: entry.slice(path.length + 1),
             path: entry,
-            type: entry.slice(path.length + 1).includes('/') ? 'dir' : 'file',
+            type,
           })),
         )
       }
@@ -329,6 +338,16 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           return json(response, 200, {
             object: { sha, type: 'commit' },
             ref: `refs/heads/${readRef[1]}`,
+          })
+        }
+
+        const readTree = /^trees\/(.+)$/.exec(rest)
+        if (readTree && request.method === 'GET') {
+          const tree = trees.get(readTree[1] ?? '')
+          if (!tree) return json(response, 404, { message: 'Not Found' })
+          return json(response, 200, {
+            sha: readTree[1],
+            tree: [...tree].map(([path, sha]) => ({ mode: '100644', path, sha, type: 'blob' })),
           })
         }
 

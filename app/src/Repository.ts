@@ -24,7 +24,8 @@ export type Contents = {
 export async function read(client: Octokit, options: read.Options): Promise<Contents> {
   const { ref, repo } = options
 
-  const files = await Github.listFiles(client.rest, {
+  // Entries are directories, so the write-up inside each one is what gets read.
+  const directories = await Github.listDirectories(client.rest, {
     path: Store.dir,
     repo,
     ...(ref ? { ref } : {}),
@@ -33,12 +34,14 @@ export async function read(client: Octokit, options: read.Options): Promise<Cont
   const entries: Entry.Entry[] = []
   const malformed: { id: string; reason: string }[] = []
 
-  for (const file of files) {
-    const id = Store.toId(file)
+  for (const directory of directories) {
+    // Validated through `toId` rather than by slicing the prefix off, so what counts as an entry is
+    // decided in one place for both transports.
+    const id = Store.toId(`${directory}/${Store.filename}`)
     if (!id) continue
 
     const contents = await Github.fetchFile(client.rest, {
-      path: file,
+      path: Store.toPath(id),
       repo,
       ...(ref ? { ref } : {}),
     })
@@ -77,14 +80,32 @@ export async function commit(
   client: Octokit,
   options: commit.Options,
 ): Promise<string | undefined> {
-  const { branch, deletes = [], message, repo, writes = [] } = options
-  if (writes.length === 0 && deletes.length === 0) return undefined
+  const { branch, deletes = [], directories = [], message, repo, writes = [] } = options
+  if (writes.length === 0 && deletes.length === 0 && directories.length === 0) return undefined
 
   const { owner, repo: name } = Github.split(repo)
 
   const reference = await client.rest.git.getRef({ owner, ref: `heads/${branch}`, repo: name })
   const head = reference.data.object.sha
   const parent = await client.rest.git.getCommit({ commit_sha: head, owner, repo: name })
+
+  // A directory has to be expanded into its blobs: the API deletes paths, not trees. Read from the base
+  // tree so an entry's artifacts go with its write-up.
+  const removed = [...deletes]
+  if (directories.length > 0) {
+    const tree = await client.rest.git.getTree({
+      owner,
+      recursive: '1',
+      repo: name,
+      tree_sha: parent.data.tree.sha,
+    })
+    for (const item of tree.data.tree) {
+      const itemPath = item.path
+      if (item.type !== 'blob' || !itemPath) continue
+      if (directories.some((directory) => itemPath.startsWith(`${directory}/`)))
+        removed.push(itemPath)
+    }
+  }
 
   // Each blob carries its own path out of the promise, so there is no index to line back up.
   const blobs = await Promise.all(
@@ -111,7 +132,7 @@ export async function commit(
         type: 'blob' as const,
       })),
       // A null sha against a base tree is how the API expresses a deletion.
-      ...deletes.map((path) => ({
+      ...removed.map((path) => ({
         mode: '100644' as const,
         path,
         sha: null,
@@ -145,6 +166,8 @@ export declare namespace commit {
     branch: string
     /** Repository-relative paths to delete. */
     deletes?: readonly string[] | undefined
+    /** Repository-relative directories to delete, expanded to every file beneath them. */
+    directories?: readonly string[] | undefined
     /** Commit message. */
     message: string
     /** Repository to commit to, as `owner/name`. */

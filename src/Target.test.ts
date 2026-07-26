@@ -1,21 +1,17 @@
-import type * as Manifest from './Manifest.js'
+import type * as Config from './Config.js'
 import * as Target from './Target.js'
 
 const self = 'acme/app'
+const upstream = 'wevm/viem'
 
 describe('classify', () => {
   test.for([
-    ['viem', ['npm'], 'viem'],
-    ['@scope/pkg', ['npm'], '@scope/pkg'],
-    ['wevm/viem', ['repo'], 'wevm/viem'],
-    ['https://viem.sh', ['host'], 'https://viem.sh'],
-    ['http://localhost:3000', ['host'], 'http://localhost:3000'],
-    ['npm:lodash.merge', ['npm'], 'lodash.merge'],
-    // The one genuine ambiguity: a package name and a hostname are indistinguishable by shape.
-    ['viem.sh', ['npm', 'host'], 'viem.sh'],
-    ['lodash.merge', ['npm', 'host'], 'lodash.merge'],
-  ] as const)('behavior: %s classifies as %o', ([value, kinds, name]) => {
-    expect(Target.classify(value)).toEqual({ kinds, name })
+    ['viem', 'npm', 'viem'],
+    ['@scope/pkg', 'npm', '@scope/pkg'],
+    ['lodash.merge', 'npm', 'lodash.merge'],
+    ['wevm/viem', 'repo', 'wevm/viem'],
+  ] as const)('behavior: %s classifies as %s', ([value, kind, name]) => {
+    expect(Target.classify(value)).toEqual({ kind, name })
   })
 })
 
@@ -25,15 +21,15 @@ describe('resolve', () => {
     return {
       allowedRepos: [],
       readConfig: async () => undefined,
-      readHost: async () => ({ ok: false, reason: 'no document' }),
-      readPackage: async () => undefined,
+      readRepo: async () => undefined,
       self,
       ...overrides,
     }
   }
 
-  function manifest(overrides: Partial<Manifest.Manifest> = {}): Manifest.Manifest {
-    return { inbound: { enabled: true }, packages: [], repo: 'wevm/viem', ...overrides }
+  /** A target that has committed its consent. */
+  function accepts(inbound: Partial<Config.Inbound> = {}) {
+    return async () => ({ enabled: true, ...inbound })
   }
 
   test('behavior: no target means this repository', async () => {
@@ -64,195 +60,151 @@ describe('resolve', () => {
   })
 
   describe('packages', () => {
-    test('behavior: resolves an installed package', async () => {
+    test('behavior: resolves through the repository the package declares', async () => {
       const result = await Target.resolve(
         'viem',
         options({
-          allowedRepos: ['wevm/viem'],
-          readPackage: async () => manifest({ inbound: { enabled: true, labels: ['dx'] } }),
+          allowedRepos: [upstream],
+          readConfig: accepts(),
+          readRepo: async () => upstream,
         }),
       )
-      expect(result).toEqual({
-        ok: true,
-        target: { kind: 'npm', labels: ['dx'], repo: 'wevm/viem' },
-      })
+      expect(result).toEqual({ ok: true, target: { kind: 'npm', repo: upstream } })
     })
 
-    test('behavior: a package is trusted without corroboration', async () => {
-      let read = false
-      await Target.resolve(
+    // The package names the repository; the repository decides. A package pointing somewhere that has
+    // not opted in cannot redirect a report there.
+    test('error: a package whose repository has not opted in', async () => {
+      const result = await Target.resolve(
         'viem',
-        options({
-          allowedRepos: ['wevm/viem'],
-          readConfig: async () => {
-            read = true
-            return undefined
-          },
-          readPackage: async () => manifest(),
-        }),
+        options({ allowedRepos: [upstream], readRepo: async () => upstream }),
       )
-      // The manifest shipped in the tarball the consumer installed; it cannot name someone else's repo.
-      expect(read).toBe(false)
+      expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
+      expect(result.ok === false && result.message).toContain('has not opted in')
     })
 
-    test('error: a package that is not installed', async () => {
+    test('error: a package that declares no repository', async () => {
       const result = await Target.resolve('viem', options())
-      expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
-      expect(result.ok === false && result.message).toContain('not installed')
+      expect(result.ok === false && result.code).toBe('TARGET_UNKNOWN')
+      expect(result.ok === false && result.message).toContain('is not installed')
     })
 
-    test('error: a package that has opted out', async () => {
+    test('behavior: a scoped package resolves the same way', async () => {
       const result = await Target.resolve(
-        'viem',
-        options({ readPackage: async () => manifest({ inbound: { enabled: false } }) }),
-      )
-      expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
-    })
-
-    test('error: a sender the receiver does not allow', async () => {
-      const result = await Target.resolve(
-        'viem',
+        '@scope/pkg',
         options({
-          readPackage: async () => manifest({ inbound: { allowFrom: ['wevm/*'], enabled: true } }),
+          allowedRepos: [upstream],
+          readConfig: accepts(),
+          readRepo: async () => upstream,
         }),
-      )
-      expect(result.ok === false && result.code).toBe('SENDER_NOT_ALLOWED')
-    })
-
-    test('error: a target the sender has not allowlisted', async () => {
-      const result = await Target.resolve('viem', options({ readPackage: async () => manifest() }))
-      expect(result.ok === false && result.code).toBe('TARGET_NOT_ALLOWED')
-    })
-
-    test('behavior: an owner glob satisfies the allowlist', async () => {
-      const result = await Target.resolve(
-        'viem',
-        options({ allowedRepos: ['wevm/*'], readPackage: async () => manifest() }),
       )
       expect(result.ok).toBe(true)
+    })
+
+    test('behavior: the package resolves to this repository', async () => {
+      const result = await Target.resolve(
+        'app',
+        options({ readConfig: accepts(), readRepo: async () => self }),
+      )
+      expect(result).toEqual({ ok: true, target: { kind: 'self', repo: self } })
     })
   })
 
   describe('repositories', () => {
     test('behavior: an explicit repository that accepts inbound friction', async () => {
       const result = await Target.resolve(
-        'wevm/viem',
-        options({ allowedRepos: ['wevm/viem'], readConfig: async () => ({ enabled: true }) }),
+        upstream,
+        options({ allowedRepos: [upstream], readConfig: accepts() }),
       )
-      expect(result).toEqual({ ok: true, target: { kind: 'repo', repo: 'wevm/viem' } })
+      expect(result).toEqual({ ok: true, target: { kind: 'repo', repo: upstream } })
     })
 
     // Naming a repository directly must not be a way around the receiver gate.
     test('error: an explicit repository with no committed config', async () => {
-      const result = await Target.resolve('wevm/viem', options({ allowedRepos: ['wevm/viem'] }))
+      const result = await Target.resolve(upstream, options({ allowedRepos: [upstream] }))
       expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
-      expect(result.ok === false && result.message).toContain('no committed frog config')
+      expect(result.ok === false && result.message).toContain('has not opted in')
     })
 
     test('error: an explicit repository that has opted out', async () => {
       const result = await Target.resolve(
-        'wevm/viem',
-        options({ allowedRepos: ['wevm/viem'], readConfig: async () => ({ enabled: false }) }),
+        upstream,
+        options({ allowedRepos: [upstream], readConfig: async () => ({ enabled: false }) }),
       )
       expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
     })
   })
 
-  describe('hosts', () => {
-    const hosted = manifest({ packages: ['viem'] })
+  describe('urls', () => {
+    test.for(['https://viem.sh', 'http://localhost:3000'] as const)(
+      'error: %s names no repository',
+      async (value) => {
+        const result = await Target.resolve(value, options())
+        expect(result.ok === false && result.code).toBe('TARGET_UNKNOWN')
+        expect(result.ok === false && result.message).toContain('Name the repository behind it')
+      },
+    )
 
-    test('behavior: a host corroborated by the repository it names', async () => {
-      const result = await Target.resolve(
-        'viem.sh',
+    test('behavior: a url costs no lookup', async () => {
+      let looked = false
+      await Target.resolve(
+        'https://viem.sh',
         options({
-          allowedRepos: ['wevm/viem'],
-          readConfig: async () => ({ enabled: true }),
-          readHost: async () => ({ manifest: hosted, ok: true }),
+          readRepo: async () => {
+            looked = true
+            return undefined
+          },
         }),
       )
-      expect(result).toEqual({ ok: true, target: { kind: 'host', repo: 'wevm/viem' } })
+      expect(looked).toBe(false)
+    })
+  })
+
+  describe('gates', () => {
+    test('error: the sender is not on the receiver allowFrom list', async () => {
+      const result = await Target.resolve(
+        upstream,
+        options({
+          allowedRepos: [upstream],
+          readConfig: accepts({ allowFrom: ['other/*'] }),
+        }),
+      )
+      expect(result.ok === false && result.code).toBe('SENDER_NOT_ALLOWED')
     })
 
-    test('behavior: a host corroborated by a package pointing back', async () => {
+    test('behavior: an allowFrom glob matching the sender', async () => {
       const result = await Target.resolve(
-        'viem.sh',
-        options({
-          allowedRepos: ['wevm/viem'],
-          readHost: async () => ({ manifest: hosted, ok: true }),
-          readPackage: async (name) =>
-            name === 'viem' ? manifest({ name: 'viem', packages: ['viem'] }) : undefined,
-        }),
+        upstream,
+        options({ allowedRepos: [upstream], readConfig: accepts({ allowFrom: ['acme/*'] }) }),
       )
       expect(result.ok).toBe(true)
     })
 
-    // The attack the corroboration rule exists to stop: a site aiming consumers at another repository.
-    test('error: a host claiming a repository that does not confirm it', async () => {
+    test('error: the target is not on the sender allowedRepos list', async () => {
+      const result = await Target.resolve(upstream, options({ readConfig: accepts() }))
+      expect(result.ok === false && result.code).toBe('TARGET_NOT_ALLOWED')
+    })
+
+    test('behavior: an allowedRepos glob matching the target', async () => {
       const result = await Target.resolve(
-        'evil.example',
+        upstream,
+        options({ allowedRepos: ['wevm/*'], readConfig: accepts() }),
+      )
+      expect(result.ok).toBe(true)
+    })
+
+    test('behavior: the receiver labels reach the target', async () => {
+      const result = await Target.resolve(
+        upstream,
         options({
-          allowedRepos: ['wevm/viem'],
-          readHost: async () => ({ manifest: manifest({ repo: 'wevm/viem' }), ok: true }),
+          allowedRepos: [upstream],
+          readConfig: accepts({ labels: ['friction', 'from-consumer'] }),
         }),
       )
-      expect(result.ok === false && result.code).toBe('TARGET_NOT_CORROBORATED')
-    })
-
-    test('error: a host claiming a repository whose package points elsewhere', async () => {
-      const result = await Target.resolve(
-        'evil.example',
-        options({
-          allowedRepos: ['wevm/viem'],
-          readHost: async () => ({ manifest: hosted, ok: true }),
-          // Only answers for the package the document names, not for the host name itself.
-          readPackage: async (name) =>
-            name === 'viem' ? manifest({ name: 'viem', repo: 'attacker/repo' }) : undefined,
-        }),
-      )
-      expect(result.ok === false && result.code).toBe('TARGET_NOT_CORROBORATED')
-    })
-
-    test('error: a host serving no document', async () => {
-      const result = await Target.resolve('viem.sh', options())
-      expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
-    })
-  })
-
-  describe('the ambiguous dotted name', () => {
-    test('behavior: an installed package wins over a host lookup', async () => {
-      let probed = false
-      const result = await Target.resolve(
-        'lodash.merge',
-        options({
-          allowedRepos: ['wevm/viem'],
-          readHost: async () => {
-            probed = true
-            return { ok: false, reason: 'no document' }
-          },
-          readPackage: async () => manifest(),
-        }),
-      )
-      expect(result.ok && result.target.kind).toBe('npm')
-      expect(probed).toBe(false)
-    })
-
-    test('behavior: falls through to a host when nothing is installed', async () => {
-      const result = await Target.resolve(
-        'viem.sh',
-        options({
-          allowedRepos: ['wevm/viem'],
-          readConfig: async () => ({ enabled: true }),
-          readHost: async () => ({ manifest: manifest({ packages: ['viem'] }), ok: true }),
-        }),
-      )
-      expect(result.ok && result.target.kind).toBe('host')
-    })
-
-    test('error: reports both reasons when neither resolves', async () => {
-      const result = await Target.resolve('viem.sh', options())
-      expect(result.ok === false && result.message).toMatchInlineSnapshot(
-        `"Cannot report friction to \`viem.sh\`: \`viem.sh\` is not installed, or declares no \`frog\` field; no document."`,
-      )
+      expect(result).toEqual({
+        ok: true,
+        target: { kind: 'repo', labels: ['friction', 'from-consumer'], repo: upstream },
+      })
     })
   })
 })

@@ -38,7 +38,7 @@ async function promptSeverity(): Promise<Entry.Severity> {
 }
 
 export const log = Cli.create('log', {
-  description: 'Record a friction you just hit.',
+  description: 'Write a friction entry.',
   args: z.object({
     title: z.string().min(1).optional().describe('One line, specific enough to search for.'),
   }),
@@ -48,7 +48,10 @@ export const log = Cli.create('log', {
       .optional()
       .describe('Editor opened for the body when running interactively.'),
     GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
-    GITHUB_API_URL: z.string().optional().describe('API base URL. Set for you inside Actions.'),
+    GITHUB_API_URL: z
+      .string()
+      .optional()
+      .describe('API base URL. Set automatically inside Actions.'),
     GITHUB_TOKEN: z.string().optional().describe('Token used by --publish.'),
     VISUAL: z.string().optional().describe('Preferred over EDITOR when both are set.'),
   }),
@@ -87,8 +90,11 @@ export const log = Cli.create('log', {
       options: { severity: 'major', target: 'viem' },
     },
   ],
-  hint: 'Run `frog list` first: the entry you are about to write may already exist.',
+  hint: 'Run `frog list` first: this friction may already be recorded.',
   output: z.object({
+    artifacts: z
+      .string()
+      .describe('Directory for reproduction files. Not created until something writes there.'),
     file: z.string().describe('Path of the entry, relative to the repository root.'),
     id: z.string(),
     issue: z.string().optional().describe('Linked issue, when --publish filed one.'),
@@ -104,9 +110,12 @@ export const log = Cli.create('log', {
 
     // Piped input is the whole entry, shaped like a commit message. It is what makes bare `frog log`
     // usable without a terminal, where a prompt cannot run at all.
-    const piped = await attempt(stdin.read())
-    if (!piped.ok) return c.error({ code: piped.code, message: piped.message })
-    const input = piped.value ? stdin.parse(piped.value) : undefined
+    //
+    // Not read at all once the arguments cover both parts. Standard input is whatever the caller left
+    // attached, and looking at it when there is nothing to learn only costs the wait.
+    const piped = c.args.title && c.options.body ? undefined : await attempt(stdin.read())
+    if (piped && !piped.ok) return c.error({ code: piped.code, message: piped.message })
+    const input = piped?.ok && piped.value ? stdin.parse(piped.value) : undefined
 
     // Every `c.error` below is returned straight from `run`. See `internal/attempt.ts` for why that
     // matters.
@@ -187,7 +196,7 @@ export const log = Cli.create('log', {
 
     if (!(c.options.publish ?? config.publishOnLog))
       return c.ok(
-        { file, id, title },
+        { artifacts: Store.toArtifacts(id), file, id, title },
         {
           cta: {
             commands: [
@@ -248,6 +257,7 @@ export const log = Cli.create('log', {
 
     return c.ok(
       {
+        artifacts: Store.toArtifacts(id),
         file,
         id,
         title,

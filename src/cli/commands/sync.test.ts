@@ -58,10 +58,29 @@ test('behavior: a closed issue deletes its entry and commits', async () => {
 
   expect(result).toMatchObject({ committed: true, removed: ['a'] })
   expect(await Store.list({ root: cwd })).toEqual([])
-  expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe(
-    'chore: sync friction log with issues',
-  )
+  expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe('chore: sync friction log')
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
+})
+
+test('behavior: closing takes the committed reproduction with it', async () => {
+  const cwd = await helpers.repo({ remote })
+  await Store.write(
+    { body: 'Body.', issue: `${repo}#1`, severity: 'minor', title },
+    { id: 'a', root: cwd },
+  )
+  await helpers.writeFile(`${Store.toArtifacts('a')}/repro.ts`, 'export {}\n', cwd)
+  await helpers.commit('log friction', cwd)
+  const instance = await github({
+    [repo]: [{ body: issueBody('a'), state: 'closed', title }],
+  })
+
+  const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+  expect(result).toMatchObject({ committed: true, removed: ['a'] })
+  // Gone from disk and from the index: a staged artifact left behind would show up here.
+  expect(await Store.files('a', { root: cwd })).toEqual([])
+  expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
+  expect(await helpers.git(['ls-files', Store.dir], cwd)).toBe('')
 })
 
 test('behavior: deletes an entry that was never committed', async () => {
@@ -183,7 +202,9 @@ test('behavior: --no-commit leaves the change uncommitted', async () => {
   const result = await cli.data<Outcome>(['sync', '--cwd', cwd, '--no-commit'], env(instance.url))
 
   expect(result.committed).toBe(false)
-  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain('.agents/friction-log/a.md')
+  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain(
+    '.agents/friction-log/a/friction.md',
+  )
 })
 
 // Runs on a schedule and on every issue event, so a second pass must do nothing.

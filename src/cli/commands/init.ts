@@ -13,11 +13,17 @@ export const rule =
 
 const readme = `# Friction log
 
-Friction hit while working in this repository, one file per item.
+Friction hit while working in this repository, one directory per item:
 
-Filing an entry gives it an owner. The file then carries an \`issue:\` link, mirrors what happens to it,
-and is deleted once the friction is resolved. So this directory is a live list of friction that is still
-outstanding, including friction in dependencies.
+\`\`\`
+<id>/
+  ${Store.filename.padEnd(14)}the write-up
+  ${`${Store.artifacts}/`.padEnd(14)}optional, whatever reproduces it
+\`\`\`
+
+Filing an entry gives it an owner. The write-up then carries an \`issue:\` link, mirrors what happens to
+it, and the whole directory is deleted once the friction is resolved. So this is a live list of friction
+that is still outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index, and it is kept true without anyone
 remembering to.
@@ -29,8 +35,11 @@ frog list    # what is already known
 frog log     # add one
 \`\`\`
 
-Follow [\`TEMPLATE.md\`](./TEMPLATE.md). Filenames are random and mean nothing: they exist only so two
-branches writing entries at once do not conflict.
+Follow [\`TEMPLATE.md\`](./TEMPLATE.md). Ids are when the friction was hit plus its title, so this
+directory reads oldest-first and shows at a glance how long something has gone unresolved.
+
+Put anything that reproduces the friction in that entry's \`${Store.artifacts}/\` and reference it from the
+write-up, so the next reader runs the reproduction instead of rebuilding it.
 
 ## For Agents
 
@@ -44,7 +53,7 @@ Managed by [frog](https://github.com/wevm/frog).
 const template = `---
 title: 'One line, specific enough to search for'
 severity: minor # blocker | major | minor
-# target: viem  # an upstream package, owner/repo, or host. Omit for this repository.
+# target: viem  # an upstream package or owner/repo. Omit for this repository.
 # labels:
 #   - tooling
 ---
@@ -68,7 +77,7 @@ const libraryConfig = `{
 `
 
 export const init = Cli.create('init', {
-  description: 'Set up `.agents/friction-log` in this repository.',
+  description: 'Create `.agents/friction-log` and its config.',
   options: z.object({
     cwd: context.cwdOption,
     library: z
@@ -82,14 +91,10 @@ export const init = Cli.create('init', {
   ],
   output: z.object({
     created: z.array(z.string()).describe('Files written.'),
-    declare: z
-      .string()
-      .optional()
-      .describe('With --library, the `package.json` field to add so installers can find this.'),
     existing: z.array(z.string()).describe('Files left alone.'),
   }),
   async run(c) {
-    const { repo, root } = await context.resolve({ cwd: c.options.cwd })
+    const { root } = await context.resolve({ cwd: c.options.cwd })
 
     const files = [
       [`${Store.dir}/README.md`, readme],
@@ -112,25 +117,14 @@ export const init = Cli.create('init', {
       }
     }
 
-    // Printed rather than written: rewriting `package.json` would reformat a file we do not own.
-    const declare =
-      c.options.library && repo
-        ? JSON.stringify({ frog: { inbound: true, repo } }, null, 2)
-        : undefined
-
     return c.ok(
-      { created, existing, ...(declare ? { declare } : {}) },
+      { created, existing },
       {
         cta: {
-          commands: c.options.library
-            ? [
-                { command: 'manifest', description: 'Print the document to serve on your site' },
-                { command: 'skills add', description: 'Teach your agents to log friction' },
-              ]
-            : [
-                { command: 'log', description: 'Log the friction you just hit' },
-                { command: 'skills add', description: 'Teach your agents to log friction' },
-              ],
+          commands: [
+            { command: 'log', description: 'Write the first entry' },
+            { command: 'skills add', description: 'Install the skill that says when to log' },
+          ],
           description: 'Next:',
         },
       },

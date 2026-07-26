@@ -1,4 +1,6 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
+import { closeSync, openSync } from 'node:fs'
+import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
@@ -16,7 +18,7 @@ test('behavior: writes an entry', async () => {
   const result = await cli.data<Logged>(['log', title, '--body', body, '--cwd', cwd])
 
   expect(result.title).toBe(title)
-  expect(result.file).toBe(`.agents/friction-log/${result.id}.md`)
+  expect(result.file).toBe(`.agents/friction-log/${result.id}/friction.md`)
 
   expect(await Store.get(result.id, { root: cwd })).toMatchObject({
     body,
@@ -225,8 +227,8 @@ describe('piped input', () => {
         {
           cwd: root,
           encoding: 'utf8',
-          // Without input, standard input is `/dev/null`: a character device, which is what an agent
-          // shell hands over. An inherited pipe with no writer would hang instead.
+          // Without input, standard input is `/dev/null`: a character device, which is one of the
+          // shapes an agent hands over. The other, a pipe held open, is covered below.
           ...(input === undefined ? { stdio: ['ignore', 'pipe', 'pipe'] } : { input }),
         },
       )
@@ -261,6 +263,29 @@ describe('piped input', () => {
     })
   })
 
+  // A redirect hands over an `fs.ReadStream` rather than a pipe, which has a different API surface.
+  // Nothing else in the suite exercises it: `input` gives a pipe.
+  test('behavior: reads a redirected file', async () => {
+    const cwd = await helpers.repo()
+    const file = path.join(await helpers.tmpdir(), 'entry.md')
+    await writeFile(file, 'From a file\n\nFile body.\n', 'utf8')
+
+    const input = openSync(file, 'r')
+    onTestFinished(() => closeSync(input))
+    const stdout = execFileSync(
+      'node',
+      ['--import', 'tsx', 'src/bin.ts', 'log', '--cwd', cwd, '--json'],
+      {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: [input, 'pipe', 'pipe'],
+      },
+    )
+
+    expect((JSON.parse(stdout) as Result).title).toBe('From a file')
+    expect((await Store.read({ root: cwd }))[0]?.body).toBe('File body.')
+  })
+
   // A hang here would be invisible in the rest of the suite, where nothing is ever piped.
   test('behavior: nothing piped and no terminal reports rather than waiting', async () => {
     const cwd = await helpers.repo()
@@ -269,3 +294,91 @@ describe('piped input', () => {
     expect(await Store.list({ root: cwd })).toEqual([])
   })
 })
+
+// The shape that used to hang: a parent holding the write end open and never writing.
+describe('an open stdin pipe', () => {
+  /**
+   * Runs the real binary as a child, holding its standard input open and writing nothing.
+   *
+   * This is how an agent invokes a command, and it is the shape that used to hang: a pipe stays readable
+   * for as long as the parent holds the write end, so waiting for it to end waits forever.
+   */
+  function spawned(args: readonly string[], options: { write?: string | undefined } = {}) {
+    const child = spawn('node', ['--import', 'tsx', 'src/bin.ts', ...args], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+    if (options.write !== undefined) child.stdin.end(options.write)
+    onTestFinished(() => void child.kill())
+
+    return new Promise<{ code: number | null; output: string }>((resolve, reject) => {
+      let output = ''
+      child.stdout.on('data', (chunk) => (output += chunk))
+      child.stderr.on('data', (chunk) => (output += chunk))
+      const timer = setTimeout(() => reject(new Error(`Never exited:\n${output}`)), 20_000)
+      child.on('exit', (code) => {
+        clearTimeout(timer)
+        resolve({ code, output })
+      })
+    })
+  }
+
+  test('behavior: returns when the arguments already cover the entry', async () => {
+    const cwd = await helpers.repo()
+    const { code } = await spawned(['log', title, '--body', body, '--cwd', cwd])
+
+    expect(code).toBe(0)
+    expect((await Store.read({ root: cwd }))[0]?.title).toBe(title)
+  })
+
+  test('behavior: refuses rather than waiting when the entry is incomplete', async () => {
+    const cwd = await helpers.repo()
+    const { code, output } = await spawned(['log', title, '--cwd', cwd])
+
+    expect(code).toBe(1)
+    expect(output).toContain('MISSING_BODY')
+  })
+
+  // A shell pipeline gives a FIFO rather than a socket, and an idle one blocks the read itself rather
+  // than merely holding the process open. Different failure, same symptom, so it needs its own case.
+  test('behavior: an idle shell pipe does not block the read', async () => {
+    const cwd = await helpers.repo()
+    const fifo = path.join(await helpers.tmpdir(), 'pipe')
+    execFileSync('mkfifo', [fifo])
+
+    // Opened read-write so the pipe has a writer and never reaches end-of-file, which is what an idle
+    // shell pipeline looks like from inside the command.
+    const idle = openSync(fifo, 'r+')
+    onTestFinished(() => closeSync(idle))
+
+    const child = spawn('node', ['--import', 'tsx', 'src/bin.ts', 'log', title, '--cwd', cwd], {
+      stdio: [idle, 'pipe', 'pipe'],
+    })
+    onTestFinished(() => void child.kill())
+
+    const { code, output } = await new Promise<{ code: number | null; output: string }>(
+      (resolve, reject) => {
+        let output = ''
+        child.stdout?.on('data', (chunk) => (output += chunk))
+        child.stderr?.on('data', (chunk) => (output += chunk))
+        const timer = setTimeout(() => reject(new Error(`Never exited:\n${output}`)), 20_000)
+        child.on('exit', (code) => {
+          clearTimeout(timer)
+          resolve({ code, output })
+        })
+      },
+    )
+
+    expect(code).toBe(1)
+    expect(output).toContain('MISSING_BODY')
+  })
+
+  test('behavior: still reads input the parent actually sends', async () => {
+    const cwd = await helpers.repo()
+    const { code } = await spawned(['log', '--cwd', cwd], { write: `${title}\n\n${body}\n` })
+
+    expect(code).toBe(0)
+    const [entry] = await Store.read({ root: cwd })
+    expect(entry?.title).toBe(title)
+    expect(entry?.body).toBe(body)
+  })
+}, 60_000)

@@ -44,7 +44,7 @@ async function run(url: string, options: { installed?: Record<string, Octokit> |
 test('behavior: files pending entries and comments once', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   const report = await run(instance.url)
@@ -58,7 +58,7 @@ test('behavior: files pending entries and comments once', async () => {
 test('behavior: records the pull request and the reporter on the issue', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)
@@ -72,21 +72,21 @@ test('behavior: records the pull request and the reporter on the issue', async (
 test('behavior: nothing written back to the pull request branch', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)
 
   // A commit here would trigger `synchronize` and run this again.
   expect(instance.messages(base)).toEqual(['initial'])
-  expect(instance.files(base)[`${dir}/a.md`]).not.toContain('issue:')
+  expect(instance.files(base)[`${dir}/a/friction.md`]).not.toContain('issue:')
 })
 
 // Every push to the branch re-runs this.
 test('behavior: a second run opens no issue and adds no comment', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)
@@ -102,7 +102,7 @@ test('behavior: an already-linked entry is listed, not filed again', async () =>
     { [base]: [{ title: 'Filters ignored' }] },
     {
       files: {
-        [base]: { [`${dir}/a.md`]: entry('Filters ignored', { issue: `${base}#1` }) },
+        [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored', { issue: `${base}#1` }) },
       },
     },
   )
@@ -123,8 +123,8 @@ test('behavior: a malformed entry is reported without stopping the rest', async 
     {
       files: {
         [base]: {
-          [`${dir}/broken.md`]: '# no frontmatter\n',
-          [`${dir}/good.md`]: entry('Filters ignored'),
+          [`${dir}/broken/friction.md`]: '# no frontmatter\n',
+          [`${dir}/good/friction.md`]: entry('Filters ignored'),
         },
       },
     },
@@ -144,8 +144,8 @@ test('behavior: entries over the ceiling are deferred', async () => {
       files: {
         [base]: {
           'config.placeholder': '',
-          [`${dir}/a.md`]: entry('One'),
-          [`${dir}/b.md`]: entry('Two'),
+          [`${dir}/a/friction.md`]: entry('One'),
+          [`${dir}/b/friction.md`]: entry('Two'),
           [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }),
         },
       },
@@ -160,19 +160,21 @@ test('behavior: entries over the ceiling are deferred', async () => {
 
 describe('cross-repo', () => {
   /**
-   * A consumer with one upstream-targeted entry, and a registry that declares the upstream accepts it.
+   * A consumer with one upstream-targeted entry, and an upstream that has committed its consent.
    *
-   * The registry stands in for `node_modules`, which the App does not have.
+   * The registry maps the package name to its repository, standing in for the `node_modules` read the
+   * App cannot do. Consent itself comes from the upstream repository, as it does everywhere else.
    */
   function seed(config: Record<string, unknown>) {
     return {
       files: {
         [base]: {
-          [`${dir}/a.md`]: entry('Upstream friction', { target: 'viem' }),
+          [`${dir}/a/friction.md`]: entry('Upstream friction', { target: 'viem' }),
           [`${dir}/config.json`]: JSON.stringify(config),
         },
+        [upstream]: { [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }) },
       },
-      packages: { viem: { inbound: true, repo: upstream } },
+      packages: { viem: upstream },
     }
   }
 
@@ -229,7 +231,7 @@ test('behavior: no entries posts no comment', async () => {
 test('behavior: the comment carries the marker that keeps it single', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)

@@ -36,7 +36,7 @@ describe('same repository', () => {
   test('behavior: a closed issue deletes its entry', async () => {
     const instance = await github(
       { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
-      { files: { [consumer]: { [`${dir}/a.md`]: entry({ issue: `${consumer}#1` }) } } },
+      { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
     )
     const octokit = client(instance.url)
 
@@ -48,8 +48,34 @@ describe('same repository', () => {
     })
 
     expect(outcome.plan?.remove).toEqual(['a'])
-    expect(instance.files(consumer)[`${dir}/a.md`]).toBeUndefined()
-    expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync friction log with issues'])
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync friction log'])
+  })
+
+  test('behavior: closing takes the reproduction with it', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      {
+        files: {
+          [consumer]: {
+            [`${dir}/a/artifacts/nested/fixture.json`]: '{}\n',
+            [`${dir}/a/artifacts/repro.ts`]: 'export {}\n',
+            [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }),
+            'README.md': '# app',
+          },
+        },
+      },
+    )
+
+    await issues({
+      client: client(instance.url),
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    // Nothing under the entry survives, and nothing outside it is touched.
+    expect(Object.keys(instance.files(consumer))).toEqual(['README.md'])
   })
 
   test('behavior: a reopened issue rebuilds the entry that was deleted', async () => {
@@ -66,13 +92,13 @@ describe('same repository', () => {
     })
 
     expect(outcome.plan?.write.map((value) => value.id)).toEqual(['a'])
-    expect(instance.files(consumer)[`${dir}/a.md`]).toContain(title)
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toContain(title)
   })
 
   test('behavior: a matching issue and entry need no commit', async () => {
     const instance = await github(
       { [consumer]: [{ body: body(consumer), title }] },
-      { files: { [consumer]: { [`${dir}/a.md`]: entry({ issue: `${consumer}#1` }) } } },
+      { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
     )
 
     const outcome = await issues({
@@ -90,7 +116,7 @@ describe('same repository', () => {
   test('behavior: reconciling twice makes one commit', async () => {
     const instance = await github(
       { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
-      { files: { [consumer]: { [`${dir}/a.md`]: entry({ issue: `${consumer}#1` }) } } },
+      { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
     )
     const event = {
       client: client(instance.url),
@@ -114,7 +140,9 @@ describe('cross-repo', () => {
       { [upstream]: [{ body: body(consumer), state: 'closed', title }] },
       {
         files: {
-          [consumer]: { [`${dir}/a.md`]: entry({ issue: `${upstream}#1`, target: 'viem' }) },
+          [consumer]: {
+            [`${dir}/a/friction.md`]: entry({ issue: `${upstream}#1`, target: 'viem' }),
+          },
         },
       },
     )
@@ -129,7 +157,7 @@ describe('cross-repo', () => {
 
     expect(outcome.origin).toBe(consumer)
     expect(outcome.plan?.remove).toEqual(['a'])
-    expect(instance.files(consumer)[`${dir}/a.md`]).toBeUndefined()
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
   })
 
   // Without an installation on the consumer there is no token to write with.
@@ -138,7 +166,9 @@ describe('cross-repo', () => {
       { [upstream]: [{ body: body(consumer), state: 'closed', title }] },
       {
         files: {
-          [consumer]: { [`${dir}/a.md`]: entry({ issue: `${upstream}#1`, target: 'viem' }) },
+          [consumer]: {
+            [`${dir}/a/friction.md`]: entry({ issue: `${upstream}#1`, target: 'viem' }),
+          },
         },
       },
     )
@@ -151,7 +181,7 @@ describe('cross-repo', () => {
     })
 
     expect(outcome.ignored).toBe('frog is not installed on `acme/app`')
-    expect(instance.files(consumer)[`${dir}/a.md`]).toBeTruthy()
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeTruthy()
   })
 })
 
@@ -159,7 +189,7 @@ describe('cross-repo', () => {
 test('behavior: an issue with no marker is ignored', async () => {
   const instance = await github(
     { [consumer]: [{ title: 'Filed by hand' }] },
-    { files: { [consumer]: { [`${dir}/a.md`]: entry({ issue: `${consumer}#1` }) } } },
+    { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
   )
 
   const outcome = await issues({

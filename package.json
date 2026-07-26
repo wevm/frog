@@ -46,8 +46,7 @@
     "dist",
     "src",
     "SKILL.md",
-    "schema.json",
-    "manifest.schema.json"
+    "schema.json"
   ],
   "exports": {
     ".": {
@@ -63,7 +62,6 @@
   "dependencies": {
     "@clack/prompts": "catalog:",
     "@octokit/rest": "catalog:",
-    "human-id": "catalog:",
     "incur": "catalog:",
     "yaml": "catalog:"
   },

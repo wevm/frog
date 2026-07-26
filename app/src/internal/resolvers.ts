@@ -1,28 +1,27 @@
-import { Config, Github, Manifest, type Target } from 'frog'
+import { Config, Github, type Target } from 'frog'
 import type { Octokit } from 'octokit'
-import * as cache from './cache.js'
 
 /** Where the npm registry serves package metadata. */
 export const registry = 'https://registry.npmjs.org'
 
 /**
- * Reads a package's manifest from the npm registry.
+ * Repository a package declares, from the npm registry.
  *
  * The App has no `node_modules` to inspect, so the offline path the CLI uses does not exist here. The
- * registry preserves non-standard top-level fields, so `frog` survives publication and the same
- * consent data is available over HTTP.
+ * registry serves the same `repository` field, which is where a package names the repository its issues
+ * belong on.
  *
- * Resolved at `latest` rather than the version a consumer has pinned. Whether a project accepts friction
- * is not something that varies by patch release, and resolving a range here would mean reading the
+ * Resolved at `latest` rather than the version a consumer has pinned. Which repository a package belongs
+ * to is not something that varies by patch release, and resolving a range here would mean reading the
  * consumer's lockfile.
  *
  * @param name - npm package name.
- * @returns The manifest, or `undefined` when the package declares none.
+ * @returns The repository as `owner/name`, or `undefined` when the package declares none on GitHub.
  */
 export async function fromRegistry(
   name: string,
   options: { timeout?: number | undefined; url?: string | undefined } = {},
-): Promise<Manifest.Manifest | undefined> {
+): Promise<string | undefined> {
   const { timeout = 5_000, url = registry } = options
 
   // Only the slash is escaped: the registry expects `@scope%2Fname`, not a fully encoded path.
@@ -31,21 +30,37 @@ export async function fromRegistry(
     .catch(() => undefined)
   if (!response?.ok) return undefined
 
-  const document = (await response.json().catch(() => undefined)) as { frog?: unknown } | undefined
-  if (!document?.frog) return undefined
+  const document = (await response.json().catch(() => undefined)) as
+    | {
+        bugs?: { url?: string } | string
+        homepage?: string
+        repository?: { url?: string } | string
+      }
+    | undefined
+  if (!document) return undefined
 
-  const manifest = Manifest.from(document.frog)
-  return manifest ? Manifest.named(manifest, name) : undefined
+  const { bugs, homepage, repository } = document
+  const candidates = [
+    typeof repository === 'string' ? repository : repository?.url,
+    homepage,
+    typeof bugs === 'string' ? bugs : bugs?.url,
+  ]
+
+  for (const candidate of candidates) {
+    const repo = Github.parseRepository(candidate)
+    if (repo) return repo
+  }
+  return undefined
 }
 
 /**
  * Builds the resolver stack `Target.resolve` needs, backed by the API and the registry.
  *
- * The same three lookups the CLI supplies from disk, over the network instead. Every consent gate is
+ * The same two lookups the CLI supplies from disk, over the network instead. Every consent gate is
  * unchanged, which is the point of `Target` taking them as arguments.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, cache: store = cache.memory(), client, registry: url, self } = options
+  const { allowedRepos, client, registry: url, self } = options
 
   return {
     allowedRepos,
@@ -60,9 +75,7 @@ export function resolvers(options: resolvers.Options): Target.resolve.Options {
         return undefined
       }
     },
-    // In memory: there is no filesystem here, and an isolate stays warm across deliveries.
-    readHost: (host) => Manifest.fetchDocument(host, { cache: store }),
-    readPackage: (name) => fromRegistry(name, ...(url ? [{ url }] : [])),
+    readRepo: (name) => fromRegistry(name, ...(url ? [{ url }] : [])),
     self,
   }
 }
@@ -72,8 +85,6 @@ export declare namespace resolvers {
   type Options = {
     /** Targets the sender may file against, from its base-branch config. */
     allowedRepos: readonly string[]
-    /** Where to keep fetched well-known documents. Defaults to a fresh in-memory store. */
-    cache?: Manifest.Cache | undefined
     /** Installation client for the sender repository. */
     client: Octokit
     /** Registry base URL. Overridden in tests. */

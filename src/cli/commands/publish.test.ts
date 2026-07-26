@@ -38,7 +38,7 @@ test('behavior: files a pending entry and writes the link back', async () => {
   expect(Github.parseMarker(issue?.body)).toEqual({
     hash: Github.hash('Filters ignored'),
     origin: repo,
-    path: '.agents/friction-log/a.md',
+    path: '.agents/friction-log/a/friction.md',
   })
 })
 
@@ -128,7 +128,9 @@ test('behavior: --no-commit leaves the link uncommitted', async () => {
   )
 
   expect(result.committed).toBe(false)
-  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain('.agents/friction-log/a.md')
+  expect(await helpers.git(['status', '--porcelain'], cwd)).toContain(
+    '.agents/friction-log/a/friction.md',
+  )
 })
 
 test('behavior: --dry-run files nothing and writes nothing', async () => {
@@ -159,19 +161,30 @@ test('behavior: defers entries over the ceiling', async () => {
 describe('cross-repo', () => {
   const upstream = 'wevm/viem'
 
-  /** Installs a package that declares it accepts friction. */
-  async function install(cwd: string, name: string, frog: unknown): Promise<void> {
+  /** Installs a package that names the repository its issues belong on. */
+  async function install(cwd: string, name: string, repo: string): Promise<void> {
     await helpers.writeFile(
       `node_modules/${name}/package.json`,
-      JSON.stringify({ frog, name }),
+      JSON.stringify({ name, repository: `https://github.com/${repo}` }),
       cwd,
     )
   }
 
+  /** The upstream repository, with its inbound policy committed where consent is now read from. */
+  function accepts(
+    inbound: unknown = { enabled: true },
+    options: { pushAccess?: readonly string[] | undefined } = {},
+  ) {
+    return {
+      files: { [upstream]: { [Config.file]: JSON.stringify({ inbound }) } },
+      ...(options.pushAccess ? { pushAccess: options.pushAccess } : {}),
+    }
+  }
+
   test('behavior: files on the target named by an installed package', async () => {
     const cwd = await helpers.repo({ remote })
-    const instance = await github()
-    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    const instance = await github({}, accepts())
+    await install(cwd, 'viem', upstream)
     await helpers.writeFile(
       Config.file,
       JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
@@ -192,11 +205,11 @@ describe('cross-repo', () => {
 
   test('behavior: applies the labels the receiver asked for', async () => {
     const cwd = await helpers.repo({ remote })
-    const instance = await github()
-    await install(cwd, 'viem', {
-      inbound: { enabled: true, labels: ['friction', 'from-consumer'] },
-      repo: upstream,
-    })
+    const instance = await github(
+      {},
+      accepts({ enabled: true, labels: ['friction', 'from-consumer'] }),
+    )
+    await install(cwd, 'viem', upstream)
     await helpers.writeFile(
       Config.file,
       JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
@@ -218,8 +231,8 @@ describe('cross-repo', () => {
 
   test('behavior: records the consumer repository as the origin', async () => {
     const cwd = await helpers.repo({ remote })
-    const instance = await github()
-    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    const instance = await github({}, accepts())
+    await install(cwd, 'viem', upstream)
     await helpers.writeFile(
       Config.file,
       JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
@@ -241,7 +254,7 @@ describe('cross-repo', () => {
   /** A consumer repository set up to report upstream. */
   async function consumer(name: string) {
     const cwd = await helpers.repo({ remote: `git@github.com:${name}.git` })
-    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await install(cwd, 'viem', upstream)
     await helpers.writeFile(
       Config.file,
       JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
@@ -253,7 +266,7 @@ describe('cross-repo', () => {
   // GitHub drops labels for a token without push access, which is every consumer reporting upstream.
   // Dedupe must not depend on a label that never got applied.
   test('behavior: two consumers reporting the same friction land on one issue', async () => {
-    const instance = await github({}, { pushAccess: [] })
+    const instance = await github({}, accepts({ enabled: true }, { pushAccess: [] }))
 
     const first = await consumer('acme/app')
     await Store.write(
@@ -275,7 +288,7 @@ describe('cross-repo', () => {
   })
 
   test('behavior: reports that the receiver labels could not be applied', async () => {
-    const instance = await github({}, { pushAccess: [] })
+    const instance = await github({}, accepts({ enabled: true }, { pushAccess: [] }))
     const cwd = await consumer('acme/app')
     await Store.write(
       { body, severity: 'minor', target: 'viem', title: 'Filters are ignored' },
@@ -290,8 +303,8 @@ describe('cross-repo', () => {
 
   test('behavior: defers a target the sender has not allowlisted', async () => {
     const cwd = await helpers.repo({ remote })
-    const instance = await github()
-    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    const instance = await github({}, accepts())
+    await install(cwd, 'viem', upstream)
     await Store.write(
       { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
       { id: 'a', root: cwd },
@@ -307,8 +320,8 @@ describe('cross-repo', () => {
 
   test('behavior: defers a target that has opted out', async () => {
     const cwd = await helpers.repo({ remote })
-    const instance = await github()
-    await install(cwd, 'viem', { inbound: false, repo: upstream })
+    const instance = await github({}, accepts({ enabled: false }))
+    await install(cwd, 'viem', upstream)
     await helpers.writeFile(
       Config.file,
       JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
@@ -341,10 +354,10 @@ describe('cross-repo', () => {
 
   test('behavior: one commit covers entries filed across two repositories', async () => {
     const cwd = await helpers.repo({ remote })
-    const instance = await github()
+    const instance = await github({}, accepts())
     await helpers.writeFile('a.txt', 'a', cwd)
     await helpers.commit('init', cwd)
-    await install(cwd, 'viem', { inbound: true, repo: upstream })
+    await install(cwd, 'viem', upstream)
     await helpers.writeFile(
       Config.file,
       JSON.stringify({ outbound: { allowedRepos: [upstream] } }),

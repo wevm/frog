@@ -15,6 +15,29 @@ describe('split', () => {
   })
 })
 
+describe('parseRepository', () => {
+  // Every shape below was taken from a real `repository` field or git remote, not invented.
+  test.for([
+    ['git+https://github.com/wevm/viem.git', 'wevm/viem'],
+    ['https://github.com/wevm/viem', 'wevm/viem'],
+    ['git@github.com:wevm/viem.git', 'wevm/viem'],
+    ['ssh://git@github.com/wevm/viem.git', 'wevm/viem'],
+    ['git://github.com/wevm/viem.git', 'wevm/viem'],
+    // A monorepo package pointing at its own subdirectory rather than the repository root.
+    ['https://github.com/changesets/changesets/tree/main/packages/config', 'changesets/changesets'],
+    ['github:eemeli/yaml', 'eemeli/yaml'],
+    ['lydell/js-tokens', 'lydell/js-tokens'],
+    // Only GitHub resolves: an issue cannot be filed anywhere else.
+    ['https://gitlab.com/foo/bar.git', undefined],
+    ['https://bitbucket.org/foo/bar', undefined],
+    ['not a repository', undefined],
+    ['', undefined],
+    [undefined, undefined],
+  ] as const)('behavior: %s', ([value, expected]) => {
+    expect(Github.parseRepository(value)).toBe(expected)
+  })
+})
+
 describe('hash', () => {
   // Pinned deliberately. If this value changes, every marker on every already-published issue stops
   // matching and dedupe silently starts opening duplicates.
@@ -40,10 +63,10 @@ describe('marker', () => {
     const marker = {
       hash: 'a3f9c1e20b47',
       origin: 'acme/app',
-      path: '.agents/friction-log/lazy-squids-chew.md',
+      path: '.agents/friction-log/lazy-squids-chew/friction.md',
     }
     expect(Github.renderMarker(marker)).toMatchInlineSnapshot(
-      `"<!-- frog:v1 hash=a3f9c1e20b47 path=.agents/friction-log/lazy-squids-chew.md origin=acme/app -->"`,
+      `"<!-- frog:v1 hash=a3f9c1e20b47 path=.agents/friction-log/lazy-squids-chew/friction.md origin=acme/app -->"`,
     )
     expect(Github.parseMarker(Github.renderMarker(marker))).toEqual(marker)
   })
@@ -69,7 +92,11 @@ describe('renderBody and parseBody', () => {
     expect(
       Github.renderBody({
         body: '## Description\n\nThe filter was swallowed.',
-        marker: { hash: 'abc123', origin: 'acme/app', path: '.agents/friction-log/one.md' },
+        marker: {
+          hash: 'abc123',
+          origin: 'acme/app',
+          path: '.agents/friction-log/one/friction.md',
+        },
         provenance: { author: 'Test User', pr: 'acme/app#42', sha: '0123456789abcdef' },
       }),
     ).toMatchInlineSnapshot(`
@@ -77,7 +104,7 @@ describe('renderBody and parseBody', () => {
 
       The filter was swallowed.
 
-      <!-- frog:v1 hash=abc123 path=.agents/friction-log/one.md origin=acme/app -->
+      <!-- frog:v1 hash=abc123 path=.agents/friction-log/one/friction.md origin=acme/app -->
 
       ---
 

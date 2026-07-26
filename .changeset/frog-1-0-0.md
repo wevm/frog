@@ -11,7 +11,8 @@ The name previously belonged to the Farcaster Frames framework, now archived at 
 + npx frog log --publish --title '`pnpm test -- <files>` ignores file filters'
 ```
 
-Friction in an upstream project can be reported there instead, when it has declared that it accepts reports:
+Friction in an upstream project can be reported there instead, when that project has committed a
+`.agents/friction-log/config.json` accepting inbound reports:
 
 ```sh
 frog targets          # dependencies that accept reports

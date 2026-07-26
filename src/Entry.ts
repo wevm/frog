@@ -1,4 +1,3 @@
-import { humanId } from 'human-id'
 import { z } from 'incur'
 import * as YAML from 'yaml'
 
@@ -15,7 +14,7 @@ export type Severity = (typeof severities)[number]
 /** Schema for {@link Severity}. */
 export const Severity = z.enum(severities)
 
-/** Frontmatter of an entry file. */
+/** Frontmatter of an entry's write-up. */
 export type Frontmatter = {
   /** Linked issue as `owner/name#number`. Written by publishing, absent while pending. */
   issue?: string | undefined
@@ -55,7 +54,7 @@ export const Frontmatter: z.ZodType<Frontmatter> = z.object({
 export type Entry = Frontmatter & {
   /** Markdown body: everything after the frontmatter block. */
   body: string
-  /** Filename without the `.md` extension. */
+  /** Id of the entry, which is the name of the directory holding it. */
   id: string
 }
 
@@ -68,7 +67,7 @@ export type Entry = Frontmatter & {
 const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
 
 /**
- * Parses an entry file's contents.
+ * Parses an entry's write-up.
  *
  * @example
  * ```ts
@@ -104,7 +103,7 @@ export function parse(contents: string, options: parse.Options): Entry {
 export declare namespace parse {
   /** Options for {@link parse}. */
   type Options = {
-    /** Filename without the `.md` extension. Named in errors so they point at a real file. */
+    /** Entry id. Named in errors so they point at a real entry. */
     id: string
   }
 }
@@ -138,41 +137,94 @@ export function serialize(entry: serialize.Options): string {
 }
 
 export declare namespace serialize {
-  /** The entry to serialize. The id lives in the filename, so it is not part of the contents. */
+  /** The entry to serialize. The id is the directory name, so it is not part of the contents. */
   type Options = Omit<Entry, 'id'>
 }
 
+/** Words a slug keeps. Enough to recognize the entry, short enough to stay scannable in a path. */
+const maxWords = 3
+
+/** Hard bound on slug length, for a title whose words are pathologically long. */
+const maxSlug = 48
+
 /**
- * Generates a collision-resistant, human-readable id for a new entry.
+ * Turns a title into a path-safe slug.
  *
- * Nothing parses the id. It exists only so two branches writing entries at the same time don't
- * conflict, which is exactly why sequential ids were a mistake.
+ * The first few words only: the full title lives in the write-up, so the directory name just has to be
+ * recognizable at a glance. Never empty, because a title of nothing but punctuation still has to name a
+ * directory.
  *
- * @returns A hyphenated lowercase id, such as `lazy-squids-chew`.
+ * @param title - Title as written.
+ * @returns Up to three lowercased words joined by hyphens.
  */
-export function newId(): string {
-  return humanId({ capitalize: false, separator: '-' })
+export function slug(title: string): string {
+  const words = normalizeTitle(title).split(' ').filter(Boolean)
+  return words.slice(0, maxWords).join('-').slice(0, maxSlug) || 'friction'
+}
+
+/**
+ * Builds an id for a new entry: when the friction was hit, then the title.
+ *
+ * Timestamped rather than numbered because entries are deleted when their friction is resolved, so a
+ * sequence counter would hand the same number to something unrelated. A timestamp is never reused, sorts
+ * oldest-first as plain text, and two branches logging at once still get distinct ids.
+ *
+ * @returns An id such as `20260725143012-filters-are-ignored`.
+ */
+export function newId(options: newId.Options): string {
+  const { date = new Date(), title } = options
+
+  const pad = (value: number) => `${value}`.padStart(2, '0')
+
+  // Local time, not UTC: friction hit late in the evening belongs to the day the reporter was working.
+  const stamp = [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+  ].join('')
+
+  return `${stamp}-${slug(title)}`
+}
+
+export declare namespace newId {
+  /** Options for {@link newId}. */
+  type Options = {
+    /** When the friction was hit. Defaults to now. */
+    date?: Date | undefined
+    /** Title of the entry, which becomes the readable part of the id. */
+    title: string
+  }
 }
 
 /**
  * Section scaffold for a new entry.
  *
- * Nothing enforces these sections. They exist so an entry lands as something actionable rather
- * than a one-line complaint, which is what a flat friction log tends to produce.
+ * Nothing enforces these sections. They exist so an entry lands as something reproducible rather than a
+ * one-line complaint, which is what a flat friction log tends to produce. Expectation is separated from
+ * description on purpose: friction is the gap between the two, and naming both is what turns a
+ * complaint into a report somebody can act on.
  */
 export const template = `## Description
 
-What you expected, what happened instead, and the exact error text if there was one.
+What happened, with the exact error text if there was one.
 
-## Reproduction
+## Expectation
 
-The smallest steps or snippet that shows it.
+What should have happened instead, and what led you to expect it.
 
-## Workaround
+## Steps to reproduce
 
-What you did instead, if anything.
+The shortest path from a clean checkout to the failure.
 
-## Suggested fix
+## Minimal reproducible example
+
+The smallest code that still fails, with every unrelated dependency and file removed. Put it in
+\`artifacts/\` and reference it here, so a reader runs it directly instead of reconstructing it.
+
+## Suggestion
 
 The smallest durable change that would remove this friction.
 `

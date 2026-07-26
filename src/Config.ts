@@ -82,7 +82,6 @@ export const Schema = z.object({
     })
     .prefault({})
     .describe('Issue label applied for each severity.'),
-  site: z.url().optional().describe('Site serving `/.well-known/frog.json`.'),
   sync: z
     .object({
       closeOnDelete: z
@@ -110,10 +109,37 @@ export type Config = z.output<typeof Schema>
 export type WrittenConfig = z.input<typeof Schema>
 
 /**
+ * How a project accepts inbound friction.
+ *
+ * Derived from {@link Schema} rather than declared again, so the committed config and the shape consent is
+ * checked against cannot drift.
+ */
+export type Inbound = Config['inbound']
+
+/**
+ * Whether `sender` is allowed to report friction to a project.
+ *
+ * @param inbound - The target's declared inbound policy.
+ * @param sender - Repository doing the reporting, as `owner/name`.
+ * @returns Whether the report is allowed. An `allowFrom` entry may be an `owner/*` glob.
+ */
+export function allows(inbound: Inbound, sender: string | undefined): boolean {
+  if (!inbound.enabled) return false
+  if (!inbound.allowFrom?.length) return true
+  if (!sender) return false
+
+  return inbound.allowFrom.some((pattern) => {
+    if (pattern === sender) return true
+    const [owner, name] = pattern.split('/')
+    return name === '*' && sender.startsWith(`${owner}/`)
+  })
+}
+
+/**
  * Normalizes already-loaded config.
  *
  * The one chokepoint between written and normalized config, so anything reading config over the
- * network (the App, a corroboration check) gets identical defaults to the CLI reading it off disk.
+ * network (the App, a consent check on a target) gets identical defaults to the CLI reading it off disk.
  */
 export function from(value: unknown, options: from.Options = {}): Config {
   const written = value ?? {}

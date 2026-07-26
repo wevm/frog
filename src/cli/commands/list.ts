@@ -8,7 +8,7 @@ import * as context from '../internal/context.js'
 const State = z.enum(['linked', 'pending'])
 
 export const list = Cli.create('list', {
-  description: 'List recorded friction.',
+  description: 'List entries with their state.',
   options: z.object({
     cwd: context.cwdOption,
     since: z.string().min(1).optional().describe('Only entries added since this git ref.'),
@@ -23,6 +23,10 @@ export const list = Cli.create('list', {
   output: z.object({
     entries: z.array(
       z.object({
+        artifacts: z
+          .array(z.string())
+          .optional()
+          .describe('Reproduction files, when the entry has any. Runnable as they are.'),
         id: z.string(),
         issue: z.string().optional().describe('Linked issue, absent while pending.'),
         severity: z.string(),
@@ -62,17 +66,27 @@ export const list = Cli.create('list', {
       ? new Set(changed.value.map(Store.toId).filter((id): id is string => Boolean(id)))
       : undefined
 
-    const listed = entries.value
+    const selected = entries.value
       .filter((entry) => !ids || ids.has(entry.id))
-      .map((entry) => ({
-        id: entry.id,
-        severity: entry.severity,
-        state: entry.issue ? ('linked' as const) : ('pending' as const),
-        title: entry.title,
-        ...(entry.issue ? { issue: entry.issue } : {}),
-        ...(entry.target ? { target: entry.target } : {}),
-      }))
-      .filter((entry) => !c.options.state || entry.state === c.options.state)
+      .filter(
+        (entry) => !c.options.state || (entry.issue ? 'linked' : 'pending') === c.options.state,
+      )
+
+    const listed = await Promise.all(
+      selected.map(async (entry) => {
+        const files = await Store.files(entry.id, { root })
+        const artifacts = files.filter((file) => file.startsWith(`${Store.toArtifacts(entry.id)}/`))
+        return {
+          id: entry.id,
+          severity: entry.severity,
+          state: entry.issue ? ('linked' as const) : ('pending' as const),
+          title: entry.title,
+          ...(artifacts.length ? { artifacts } : {}),
+          ...(entry.issue ? { issue: entry.issue } : {}),
+          ...(entry.target ? { target: entry.target } : {}),
+        }
+      }),
+    )
 
     return {
       entries: listed,

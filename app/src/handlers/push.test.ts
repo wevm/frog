@@ -36,7 +36,7 @@ async function run(url: string, options: { installed?: Record<string, Octokit> }
 test('behavior: files pending entries and writes the link back in one commit', async () => {
   const instance = await github(
     {},
-    { files: { [repo]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [repo]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   const outcome = await run(instance.url)
@@ -45,7 +45,7 @@ test('behavior: files pending entries and writes the link back in one commit', a
   expect(outcome.committed).toBeTruthy()
   expect(instance.messages(repo)).toEqual(['initial', 'chore: link friction log to issues'])
 
-  const written = instance.files(repo)[`${dir}/a.md`] ?? ''
+  const written = instance.files(repo)[`${dir}/a/friction.md`] ?? ''
   expect(Entry.parse(written, { id: 'a' }).issue).toBe(`${repo}#1`)
 })
 
@@ -53,7 +53,7 @@ test('behavior: files pending entries and writes the link back in one commit', a
 test('behavior: the write-back does not cause a second commit', async () => {
   const instance = await github(
     {},
-    { files: { [repo]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [repo]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)
@@ -75,7 +75,7 @@ test('behavior: an entry filed on a pull request gets its link on merge', async 
         },
       ],
     },
-    { files: { [repo]: { [`${dir}/a.md`]: entry('Filters ignored') } } },
+    { files: { [repo]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   const outcome = await run(instance.url)
@@ -83,14 +83,18 @@ test('behavior: an entry filed on a pull request gets its link on merge', async 
   // Commented, not created: the issue already existed from the pull request run.
   expect(outcome.commented).toEqual([{ id: 'a', issue: `${repo}#1` }])
   expect(instance.issues.get(repo)).toHaveLength(1)
-  const written = instance.files(repo)[`${dir}/a.md`] ?? ''
+  const written = instance.files(repo)[`${dir}/a/friction.md`] ?? ''
   expect(Entry.parse(written, { id: 'a' }).issue).toBe(`${repo}#1`)
 })
 
 test('behavior: nothing pending makes no commit', async () => {
   const instance = await github(
     {},
-    { files: { [repo]: { [`${dir}/a.md`]: entry('Filters ignored', { issue: `${repo}#7` }) } } },
+    {
+      files: {
+        [repo]: { [`${dir}/a/friction.md`]: entry('Filters ignored', { issue: `${repo}#7` }) },
+      },
+    },
   )
 
   const outcome = await run(instance.url)
@@ -105,11 +109,12 @@ test('behavior: a deferred entry keeps its file untouched', async () => {
     {
       files: {
         [repo]: {
-          [`${dir}/a.md`]: entry('Upstream friction', { target: 'viem' }),
+          [`${dir}/a/friction.md`]: entry('Upstream friction', { target: 'viem' }),
           [`${dir}/config.json`]: JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
         },
+        [upstream]: { [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }) },
       },
-      packages: { viem: { inbound: true, repo: upstream } },
+      packages: { viem: upstream },
     },
   )
 
@@ -117,7 +122,7 @@ test('behavior: a deferred entry keeps its file untouched', async () => {
 
   expect(outcome.deferred[0]?.reason).toContain('`outbound.auto` is off')
   expect(outcome.committed).toBeUndefined()
-  expect(instance.files(repo)[`${dir}/a.md`]).not.toContain('issue:')
+  expect(instance.files(repo)[`${dir}/a/friction.md`]).not.toContain('issue:')
 })
 
 test('behavior: an upstream filing writes the link into this repository', async () => {
@@ -126,19 +131,20 @@ test('behavior: an upstream filing writes the link into this repository', async 
     {
       files: {
         [repo]: {
-          [`${dir}/a.md`]: entry('Upstream friction', { target: 'viem' }),
+          [`${dir}/a/friction.md`]: entry('Upstream friction', { target: 'viem' }),
           [`${dir}/config.json`]: JSON.stringify({
             outbound: { allowedRepos: [upstream], auto: true },
           }),
         },
+        [upstream]: { [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }) },
       },
-      packages: { viem: { inbound: true, repo: upstream } },
+      packages: { viem: upstream },
     },
   )
 
   const outcome = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
   expect(outcome.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
-  const written = instance.files(repo)[`${dir}/a.md`] ?? ''
+  const written = instance.files(repo)[`${dir}/a/friction.md`] ?? ''
   expect(Entry.parse(written, { id: 'a' }).issue).toBe(`${upstream}#1`)
 })

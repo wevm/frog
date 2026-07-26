@@ -12,6 +12,33 @@ async function seed(cwd: string): Promise<void> {
   )
 }
 
+test('behavior: reports which entries ship a reproduction', async () => {
+  const cwd = await helpers.repo()
+  await seed(cwd)
+  await helpers.writeFile(`${Store.toArtifacts('a')}/repro.ts`, 'export {}\n', cwd)
+
+  const result = await cli.data<{ entries: { artifacts?: string[]; id: string }[] }>([
+    'list',
+    '--cwd',
+    cwd,
+  ])
+
+  expect(result.entries.map((entry) => [entry.id, entry.artifacts])).toMatchInlineSnapshot(`
+    [
+      [
+        "a",
+        [
+          ".agents/friction-log/a/artifacts/repro.ts",
+        ],
+      ],
+      [
+        "b",
+        undefined,
+      ],
+    ]
+  `)
+})
+
 test('behavior: lists entries with local state', async () => {
   const cwd = await helpers.repo()
   await seed(cwd)

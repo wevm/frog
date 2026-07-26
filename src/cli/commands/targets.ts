@@ -1,27 +1,31 @@
 import { Cli, z } from 'incur'
 import { attempt } from '../internal/attempt.js'
+import * as cache from '../internal/cache.js'
 import * as context from '../internal/context.js'
+import * as octokit from '../internal/octokit.js'
 import * as target from '../internal/target.js'
 
 export const targets = Cli.create('targets', {
   description: 'List dependencies that accept friction reports.',
+  env: z.object({
+    GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
+    GITHUB_API_URL: z
+      .string()
+      .optional()
+      .describe('API base URL. Set automatically inside Actions.'),
+    XDG_CACHE_HOME: z.string().optional().describe('Where consent lookups are cached.'),
+    GITHUB_TOKEN: z.string().optional().describe('Token used to read each dependency config.'),
+  }),
   options: z.object({
     cwd: context.cwdOption,
-    probe: z
-      .boolean()
-      .optional()
-      .describe("Also fetch well-known documents from each dependency's homepage. Costs network."),
+    token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
   }),
-  examples: [
-    { description: 'Which dependencies accept reports' },
-    { description: 'Include projects that only advertise on a site', options: { probe: true } },
-  ],
+  examples: [{ description: 'Which dependencies accept reports' }],
   hint: 'Report to one of these with `frog log --target <name>`.',
   output: z.object({
     targets: z.array(
       z.object({
-        kind: z.enum(['npm', 'well-known']).describe('How the declaration was found.'),
-        name: z.string().describe('Package name, or host.'),
+        name: z.string().describe('Package name.'),
         repo: z.string().describe('Repository issues are filed on.'),
       }),
     ),
@@ -29,8 +33,19 @@ export const targets = Cli.create('targets', {
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
 
+    // Consent lives on the target repository, so this needs a client. Unauthenticated works, at 60
+    // requests an hour, which the day-long cache is what keeps within reach.
+    const token = await octokit.token({
+      env: c.env,
+      ...(c.options.token ? { token: c.options.token } : {}),
+    })
+    const client = octokit.client({
+      ...(token ? { token } : {}),
+      ...(c.env.GITHUB_API_URL ? { baseUrl: c.env.GITHUB_API_URL } : {}),
+    })
+
     const found = await attempt(
-      target.accepting({ root, ...(c.options.probe ? { probe: true } : {}) }),
+      target.accepting({ client, root, store: cache.file(cache.dir(c.env)) }),
     )
     if (!found.ok) return c.error({ code: found.code, message: found.message })
 

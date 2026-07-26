@@ -29,8 +29,8 @@ describe('read', () => {
           [repo]: {
             'README.md': '# app',
             [`${dir}/README.md`]: 'docs, not an entry',
-            [`${dir}/a.md`]: entry('Filters ignored'),
-            [`${dir}/b.md`]: entry('Slow install'),
+            [`${dir}/a/friction.md`]: entry('Filters ignored'),
+            [`${dir}/b/friction.md`]: entry('Slow install'),
           },
         },
       },
@@ -58,8 +58,8 @@ describe('read', () => {
       {
         files: {
           [repo]: {
-            [`${dir}/broken.md`]: '# no frontmatter\n',
-            [`${dir}/good.md`]: entry('Filters ignored'),
+            [`${dir}/broken/friction.md`]: '# no frontmatter\n',
+            [`${dir}/good/friction.md`]: entry('Filters ignored'),
           },
         },
       },
@@ -87,8 +87,8 @@ describe('commit', () => {
         files: {
           [repo]: {
             'README.md': '# app',
-            [`${dir}/gone.md`]: entry('Resolved'),
-            [`${dir}/stays.md`]: entry('Filters ignored'),
+            [`${dir}/gone/friction.md`]: entry('Resolved'),
+            [`${dir}/stays/friction.md`]: entry('Filters ignored'),
           },
         },
       },
@@ -96,17 +96,22 @@ describe('commit', () => {
 
     const sha = await Repository.commit(client(instance.url), {
       branch: 'main',
-      deletes: [`${dir}/gone.md`],
-      message: 'chore: sync friction log with issues',
+      deletes: [`${dir}/gone/friction.md`],
+      message: 'chore: sync friction log',
       repo,
-      writes: [{ contents: entry('Filters ignored', 'Rewritten.'), path: `${dir}/stays.md` }],
+      writes: [
+        { contents: entry('Filters ignored', 'Rewritten.'), path: `${dir}/stays/friction.md` },
+      ],
     })
 
     expect(sha).toBeTruthy()
-    expect(Object.keys(instance.files(repo)).sort()).toEqual([`${dir}/stays.md`, 'README.md'])
-    expect(instance.files(repo)[`${dir}/stays.md`]).toContain('Rewritten.')
+    expect(Object.keys(instance.files(repo)).sort()).toEqual([
+      `${dir}/stays/friction.md`,
+      'README.md',
+    ])
+    expect(instance.files(repo)[`${dir}/stays/friction.md`]).toContain('Rewritten.')
     // One commit, not one per file.
-    expect(instance.messages(repo)).toEqual(['initial', 'chore: sync friction log with issues'])
+    expect(instance.messages(repo)).toEqual(['initial', 'chore: sync friction log'])
   })
 
   test('behavior: what it writes is what read gets back', async () => {
@@ -117,7 +122,7 @@ describe('commit', () => {
       branch: 'main',
       message: 'chore: link friction log to issues',
       repo,
-      writes: [{ contents: entry('Filters ignored'), path: `${dir}/a.md` }],
+      writes: [{ contents: entry('Filters ignored'), path: `${dir}/a/friction.md` }],
     })
 
     const { entries } = await Repository.read(octokit, { repo })
@@ -140,8 +145,8 @@ describe('commit', () => {
 
     await Repository.commit(client(instance.url), {
       branch: 'main',
-      deletes: [`${dir}/never-existed.md`],
-      message: 'chore: sync friction log with issues',
+      deletes: [`${dir}/never-existed/friction.md`],
+      message: 'chore: sync friction log',
       repo,
     })
 

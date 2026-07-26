@@ -1,36 +1,27 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import * as Cache from '../../Cache.js'
 import * as Config from '../../Config.js'
 import type * as Github from '../../Github.js'
 import * as GithubModule from '../../Github.js'
-import * as Manifest from '../../Manifest.js'
-import * as cache from './cache.js'
 import type * as Target from '../../Target.js'
+
+/** Concurrent config lookups. Bounded so scanning a large dependency list does not open one socket each. */
+const concurrency = 8
 
 /**
  * Builds the resolver stack `Target.resolve` needs.
  *
- * The CLI reads packages off disk, hosts over HTTP, and repository config through the REST API. The
- * App will supply its own three, which is why `Target` takes them rather than importing any of it.
+ * The CLI resolves package names off disk and reads committed config through the REST API. The App
+ * supplies its own pair, which is why `Target` takes them rather than importing any of it.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, cache: cached = true, client, root, self } = options
+  const { allowedRepos, client, root, self, store } = options
 
   return {
     allowedRepos,
-    async readConfig(repo) {
-      const contents = await GithubModule.fetchFile(client, { path: Config.file, repo }).catch(
-        () => undefined,
-      )
-      if (!contents) return undefined
-      try {
-        return Config.from(JSON.parse(contents)).inbound
-      } catch {
-        return undefined
-      }
-    },
-    readHost: (host) => Manifest.fetchDocument(host, ...(cached ? [{ cache: cache.file() }] : [])),
-    readPackage: (name) => Manifest.fromPackage(name, { root }),
+    readConfig: reader({ client, ...(store ? { store } : {}) }),
+    readRepo: (name) => repoOf(name, root),
     self,
   }
 }
@@ -40,22 +31,69 @@ export declare namespace resolvers {
   type Options = {
     /** Targets this repository may file against, from config. */
     allowedRepos: readonly string[]
-    /** Read cached well-known documents. */
-    cache?: boolean | undefined
     /** Authenticated client, for reading a target repository's committed config. */
     client: Github.Client
     /** Repository root, holding `node_modules`. */
     root: string
     /** This repository, as `owner/name`. */
     self: string | undefined
+    /** Where to keep config lookups. Absent reads fresh every time. */
+    store?: Cache.Cache | undefined
+  }
+}
+
+/**
+ * Reads a repository's committed inbound policy, optionally through a cache.
+ *
+ * A repository that accepts nothing is cached as such. Most do not accept inbound friction, so caching
+ * the absence is what stops the second run re-asking about every dependency.
+ *
+ * Only pass a store when listing. Filing must read consent fresh, or a day-old yes would authorize an
+ * issue on a project that has since opted out.
+ */
+export function reader(
+  options: reader.Options,
+): (repo: string) => Promise<Config.Inbound | undefined> {
+  const { client, now = () => Date.now(), store } = options
+
+  return async (repo) => {
+    if (store) {
+      const hit = await Cache.read<Config.Inbound | null>(store, repo, now())
+      if (hit !== undefined) return hit ?? undefined
+    }
+
+    const inbound = await (async () => {
+      const contents = await GithubModule.fetchFile(client, { path: Config.file, repo }).catch(
+        () => undefined,
+      )
+      if (!contents) return undefined
+      try {
+        return Config.from(JSON.parse(contents)).inbound
+      } catch {
+        return undefined
+      }
+    })()
+
+    if (store) await Cache.write(store, repo, inbound ?? null, now())
+    return inbound
+  }
+}
+
+export declare namespace reader {
+  /** Options for {@link reader}. */
+  type Options = {
+    /** Authenticated client. */
+    client: Github.Client
+    /** Current time, for cache expiry. */
+    now?: (() => number) | undefined
+    /** Where to keep lookups. Absent reads fresh every time. */
+    store?: Cache.Cache | undefined
   }
 }
 
 /** A dependency that declares it accepts friction. */
 export type Accepting = {
-  /** How it was discovered. */
-  kind: 'npm' | 'well-known'
-  /** Package name, or host. */
+  /** Package name. */
   name: string
   /** Repository issues are filed on. */
   repo: string
@@ -64,12 +102,13 @@ export type Accepting = {
 /**
  * Dependencies that accept friction reports.
  *
- * Scans the declared dependencies rather than walking `node_modules`, which keeps this a handful of
- * file reads instead of thousands. This is what the generated skill lists, so an agent never has to
- * recall which upstreams take reports.
+ * Scans the declared dependencies rather than walking `node_modules`, which keeps the disk half of this a
+ * handful of reads instead of thousands. Consent then costs one API call per distinct repository, cached
+ * for a day. This is what the generated skill lists, so an agent never has to recall which upstreams take
+ * reports.
  */
 export async function accepting(options: accepting.Options): Promise<readonly Accepting[]> {
-  const { probe = false, root } = options
+  const { client, root, store } = options
 
   const own = await fs
     .readFile(path.join(root, 'package.json'), 'utf8')
@@ -84,62 +123,84 @@ export async function accepting(options: accepting.Options): Promise<readonly Ac
     ]),
   ].sort()
 
-  const found: Accepting[] = []
-  for (const name of names) {
-    const manifest = await Manifest.fromPackage(name, { root })
-    if (manifest?.inbound.enabled) {
-      found.push({ kind: 'npm', name, repo: manifest.repo })
-      continue
-    }
-    if (!probe) continue
+  const resolved = (
+    await Promise.all(
+      names.map(async (name) => {
+        const repo = await repoOf(name, root)
+        return repo ? { name, repo } : undefined
+      }),
+    )
+  ).filter((entry): entry is Accepting => entry !== undefined)
 
-    // Only reached with --probe: a package with no manifest may still be fronted by a site that has
-    // one, which is how a docs site or an API becomes reportable.
-    const homepage = await homepageOf(name, root)
-    if (!homepage) continue
-    const lookup = await Manifest.fetchDocument(homepage, { cache: cache.file() })
-    if (lookup.ok && lookup.manifest.inbound.enabled)
-      found.push({ kind: 'well-known', name: homepage, repo: lookup.manifest.repo })
+  // Several packages of one monorepo share a repository, and asking about it once is enough.
+  const repos = [...new Set(resolved.map((entry) => entry.repo))]
+  const read = reader({ client, ...(store ? { store } : {}) })
+
+  const accepts = new Set<string>()
+  for (let index = 0; index < repos.length; index += concurrency) {
+    const batch = repos.slice(index, index + concurrency)
+    const inbounds = await Promise.all(batch.map((repo) => read(repo).catch(() => undefined)))
+    batch.forEach((repo, offset) => {
+      if (inbounds[offset]?.enabled) accepts.add(repo)
+    })
   }
-  return found
+
+  return resolved.filter((entry) => accepts.has(entry.repo))
 }
 
 export declare namespace accepting {
   /** Options for {@link accepting}. */
   type Options = {
-    /** Also fetch well-known documents from each dependency's homepage. Costs network. */
-    probe?: boolean | undefined
+    /** Authenticated client, for reading each dependency's committed config. */
+    client: Github.Client
     /** Repository root, holding `package.json` and `node_modules`. */
     root: string
+    /** Where to keep config lookups. Absent reads fresh every time. */
+    store?: Cache.Cache | undefined
   }
 }
 
 type Dependencies = {
+  bugs?: { url?: string | undefined } | string | undefined
   dependencies?: Record<string, string> | undefined
   devDependencies?: Record<string, string> | undefined
   homepage?: string | undefined
   peerDependencies?: Record<string, string> | undefined
+  repository?: { url?: string | undefined } | string | undefined
 }
 
-/** Homepage host declared by an installed package. */
-async function homepageOf(name: string, root: string): Promise<string | undefined> {
+/**
+ * Repository an installed package declares.
+ *
+ * `repository` is the field npm defines for this, and it resolves 98.5% of what is actually installed
+ * here. `homepage` and `bugs` are tried after it for the handful that omit it, since a project that
+ * points either at GitHub has named its repository just as clearly.
+ */
+async function repoOf(name: string, root: string): Promise<string | undefined> {
   const contents = await fs
     .readFile(path.join(root, 'node_modules', name, 'package.json'), 'utf8')
     .catch(() => undefined)
   if (!contents) return undefined
 
-  const homepage = (() => {
+  const declared = (() => {
     try {
-      return (JSON.parse(contents) as Dependencies).homepage
+      return JSON.parse(contents) as Dependencies
     } catch {
       return undefined
     }
   })()
-  if (!homepage) return undefined
+  if (!declared) return undefined
 
-  try {
-    return new URL(homepage).origin
-  } catch {
-    return undefined
+  const { bugs, homepage, repository } = declared
+  const candidates = [
+    typeof repository === 'string' ? repository : repository?.url,
+    homepage,
+    typeof bugs === 'string' ? bugs : bugs?.url,
+  ]
+
+  for (const candidate of candidates) {
+    const repo = GithubModule.parseRepository(candidate)
+    if (repo) return repo
   }
+  return undefined
 }

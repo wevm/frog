@@ -208,7 +208,7 @@ export declare namespace file {
     /** Labels to apply, overriding the sender's. Set when a target named its own. */
     labels?: readonly string[] | undefined
     /**
-     * Repository holding the entry files, as `owner/name`.
+     * Repository holding the entries, as `owner/name`.
      *
      * Distinct from `repo`, which is where the issue is filed. They differ whenever friction is
      * reported upstream, and the marker records this one so a closed issue can find its mirror.

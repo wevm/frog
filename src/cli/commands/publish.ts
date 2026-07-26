@@ -14,10 +14,13 @@ function toPr(value: string, repo: string): string {
 }
 
 export const publish = Cli.create('publish', {
-  description: 'File recorded friction as GitHub issues.',
+  description: 'File pending entries as GitHub issues.',
   env: z.object({
     GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
-    GITHUB_API_URL: z.string().optional().describe('API base URL. Set for you inside Actions.'),
+    GITHUB_API_URL: z
+      .string()
+      .optional()
+      .describe('API base URL. Set automatically inside Actions.'),
     GITHUB_TOKEN: z
       .string()
       .optional()
@@ -89,7 +92,7 @@ export const publish = Cli.create('publish', {
       return c.error({
         ...ready,
         cta: {
-          commands: [{ command: 'publish', description: 'Pass --token once you have one' }],
+          commands: [{ command: 'publish', description: 'Pass --token once one is available' }],
           description: 'Run `gh auth login`, or:',
         },
       })

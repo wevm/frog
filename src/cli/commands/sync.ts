@@ -8,10 +8,13 @@ import * as context from '../internal/context.js'
 import * as publisher from '../internal/publish.js'
 
 export const sync = Cli.create('sync', {
-  description: 'Reconcile recorded friction against issue state.',
+  description: 'Reconcile entries against issue state.',
   env: z.object({
     GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
-    GITHUB_API_URL: z.string().optional().describe('API base URL. Set for you inside Actions.'),
+    GITHUB_API_URL: z
+      .string()
+      .optional()
+      .describe('API base URL. Set automatically inside Actions.'),
     GITHUB_TOKEN: z
       .string()
       .optional()
@@ -56,7 +59,7 @@ export const sync = Cli.create('sync', {
       return c.error({
         ...ready,
         cta: {
-          commands: [{ command: 'sync', description: 'Pass --token once you have one' }],
+          commands: [{ command: 'sync', description: 'Pass --token once one is available' }],
           description: 'Run `gh auth login`, or:',
         },
       })
@@ -118,9 +121,10 @@ export const sync = Cli.create('sync', {
     if (c.options.dryRun || Sync.empty(plan))
       return c.ok({ cleared, committed: false, removed, updated })
 
-    // Staged before unlinking, so tracked entries have their deletion recorded. `ignoreUnmatch`
-    // covers entries that were never committed, which are then removed from disk below.
-    await Git.rm(removed.map(Store.toPath), { cwd: root, ignoreUnmatch: true })
+    // Staged before unlinking, so tracked entries have their deletion recorded. The whole directory
+    // goes, artifacts included. `ignoreUnmatch` covers entries that were never committed, which are
+    // then removed from disk below.
+    await Git.rm(removed.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
     for (const id of removed) await Store.remove(id, { root })
 
     for (const entry of [...plan.write, ...plan.clearLink])
@@ -130,7 +134,7 @@ export const sync = Cli.create('sync', {
     const committed = await (async () => {
       if (!(c.options.commit ?? config.commit)) return false
       await Git.add(touched, { cwd: root })
-      return Git.commit('chore: sync friction log with issues', { cwd: root })
+      return Git.commit('chore: sync friction log', { cwd: root })
     })()
 
     return c.ok(

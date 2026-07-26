@@ -1,22 +1,23 @@
-import http from 'node:http'
 import * as cli from '../../../test/cli.js'
+import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
-import * as Manifest from '../../Manifest.js'
+import * as Config from '../../Config.js'
 
-type Listed = { targets: { kind: string; name: string; repo: string }[] }
+type Listed = { targets: { name: string; repo: string }[] }
 
-/** Declares a dependency, and installs it with the given `frog` field. */
+/** Installs a dependency declaring the given repository, in whichever field. */
 async function install(
   cwd: string,
   name: string,
-  options: { frog?: unknown; homepage?: string } = {},
+  options: { bugs?: string; homepage?: string; repository?: string } = {},
 ): Promise<void> {
   await helpers.writeFile(
     `node_modules/${name}/package.json`,
     JSON.stringify({
       name,
-      ...(options.frog ? { frog: options.frog } : {}),
+      ...(options.bugs ? { bugs: { url: options.bugs } } : {}),
       ...(options.homepage ? { homepage: options.homepage } : {}),
+      ...(options.repository ? { repository: { type: 'git', url: options.repository } } : {}),
     }),
     cwd,
   )
@@ -26,23 +27,46 @@ async function declare(cwd: string, dependencies: Record<string, string>): Promi
   await helpers.writeFile('package.json', JSON.stringify({ dependencies, name: 'app' }), cwd)
 }
 
-test('behavior: lists dependencies that accept reports', async () => {
+/** A repository that has committed its consent, or opted out. */
+function config(enabled: boolean): string {
+  return JSON.stringify({ inbound: { enabled } })
+}
+
+function env(url: string, cache: string): Record<string, string> {
+  return { GITHUB_API_URL: url, GITHUB_TOKEN: 'test-token', XDG_CACHE_HOME: cache }
+}
+
+test('behavior: lists dependencies whose repositories accept reports', async () => {
   const cwd = await helpers.repo()
   await declare(cwd, { ox: '^1.0.0', typescript: '^5.0.0', viem: '^2.0.0' })
-  await install(cwd, 'viem', { frog: { inbound: true, repo: 'wevm/viem' } })
-  await install(cwd, 'ox', { frog: { inbound: true, repo: 'wevm/ox' } })
-  await install(cwd, 'typescript')
+  await install(cwd, 'viem', { repository: 'git+https://github.com/wevm/viem.git' })
+  await install(cwd, 'ox', { repository: 'github:wevm/ox' })
+  await install(cwd, 'typescript', { repository: 'https://github.com/microsoft/TypeScript' })
 
-  expect(await cli.data<Listed>(['targets', '--cwd', cwd])).toMatchInlineSnapshot(`
+  const instance = await github(
+    {},
+    {
+      files: {
+        'microsoft/TypeScript': { [Config.file]: config(false) },
+        'wevm/ox': { [Config.file]: config(true) },
+        'wevm/viem': { [Config.file]: config(true) },
+      },
+    },
+  )
+
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result).toMatchInlineSnapshot(`
     {
       "targets": [
         {
-          "kind": "npm",
           "name": "ox",
           "repo": "wevm/ox",
         },
         {
-          "kind": "npm",
           "name": "viem",
           "repo": "wevm/viem",
         },
@@ -51,52 +75,117 @@ test('behavior: lists dependencies that accept reports', async () => {
   `)
 })
 
-test('behavior: skips a dependency that has opted out', async () => {
+test('behavior: a dependency declaring no GitHub repository is skipped without a lookup', async () => {
   const cwd = await helpers.repo()
-  await declare(cwd, { viem: '^2.0.0' })
-  await install(cwd, 'viem', { frog: { inbound: false, repo: 'wevm/viem' } })
+  await declare(cwd, { private: '^1.0.0' })
+  await install(cwd, 'private', { repository: 'https://gitlab.com/acme/private.git' })
 
-  expect((await cli.data<Listed>(['targets', '--cwd', cwd])).targets).toEqual([])
+  const instance = await github()
+
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([])
+  expect(instance.requests).toEqual([])
+})
+
+test('behavior: falls back to homepage, then bugs', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { one: '^1.0.0', two: '^1.0.0' })
+  await install(cwd, 'one', { homepage: 'https://github.com/wevm/one' })
+  await install(cwd, 'two', { bugs: 'https://github.com/wevm/two/issues' })
+
+  const instance = await github(
+    {},
+    {
+      files: {
+        'wevm/one': { [Config.file]: config(true) },
+        'wevm/two': { [Config.file]: config(true) },
+      },
+    },
+  )
+
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([
+    { name: 'one', repo: 'wevm/one' },
+    { name: 'two', repo: 'wevm/two' },
+  ])
 })
 
 test('behavior: no dependencies lists nothing', async () => {
-  expect((await cli.data<Listed>(['targets', '--cwd', await helpers.repo()])).targets).toEqual([])
+  const instance = await github()
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', await helpers.repo()],
+    env(instance.url, await helpers.tmpdir()),
+  )
+  expect(result.targets).toEqual([])
 })
 
-test('behavior: does not touch the network without --probe', async () => {
+test('behavior: a second run is served from the cache', async () => {
   const cwd = await helpers.repo()
   await declare(cwd, { viem: '^2.0.0' })
-  // An unroutable homepage: reaching for it at all would fail or hang.
-  await install(cwd, 'viem', { homepage: 'http://127.0.0.1:1' })
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
 
-  expect((await cli.data<Listed>(['targets', '--cwd', cwd])).targets).toEqual([])
+  const instance = await github({}, { files: { 'wevm/viem': { [Config.file]: config(true) } } })
+  const cache = await helpers.tmpdir()
+
+  await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+  const first = instance.requests.length
+  expect(first).toBeGreaterThan(0)
+
+  const second = await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+
+  expect(second.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
+  expect(instance.requests.length).toBe(first)
 })
 
-test('behavior: --probe finds a project that only advertises on its site', async () => {
+test('behavior: a repository that accepts nothing is not re-asked', async () => {
   const cwd = await helpers.repo()
-
-  const server = http.createServer((request, response) => {
-    const url = new URL(request.url ?? '/', 'http://localhost')
-    if (url.pathname !== `/${Manifest.wellKnown}`) {
-      response.writeHead(404)
-      response.end()
-      return
-    }
-    response.writeHead(200, { 'content-type': 'application/json' })
-    response.end(JSON.stringify({ inbound: true, name: 'viem', repo: 'wevm/viem', version: 1 }))
-  })
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-  onTestFinished(() => new Promise<void>((resolve) => server.close(() => resolve())))
-  const address = server.address()
-  if (address === null || typeof address === 'string') throw new Error('Server has no port.')
-  const origin = `http://127.0.0.1:${address.port}`
-
   await declare(cwd, { viem: '^2.0.0' })
-  await install(cwd, 'viem', { homepage: `${origin}/docs` })
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
 
-  const result = await cli.data<Listed>(['targets', '--probe', '--cwd', cwd], {
-    XDG_CACHE_HOME: await helpers.tmpdir(),
+  // No config committed at all, which is the common case and the one worth caching.
+  const instance = await github()
+  const cache = await helpers.tmpdir()
+
+  await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+  const first = instance.requests.length
+
+  const second = await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+
+  expect(second.targets).toEqual([])
+  expect(instance.requests.length).toBe(first)
+})
+
+test('behavior: one repository behind several packages is asked about once', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { '@changesets/cli': '^2.0.0', '@changesets/config': '^3.0.0' })
+  await install(cwd, '@changesets/cli', {
+    repository: 'https://github.com/changesets/changesets/tree/main/packages/cli',
+  })
+  await install(cwd, '@changesets/config', {
+    repository: 'https://github.com/changesets/changesets/tree/main/packages/config',
   })
 
-  expect(result.targets).toEqual([{ kind: 'well-known', name: origin, repo: 'wevm/viem' }])
+  const instance = await github(
+    {},
+    { files: { 'changesets/changesets': { [Config.file]: config(true) } } },
+  )
+
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([
+    { name: '@changesets/cli', repo: 'changesets/changesets' },
+    { name: '@changesets/config', repo: 'changesets/changesets' },
+  ])
+  expect(instance.requests.filter((request) => request.path.includes('contents')).length).toBe(1)
 })

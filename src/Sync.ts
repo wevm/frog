@@ -95,7 +95,7 @@ export declare namespace plan {
     /** Labels applied to every issue, from config. */
     labels: readonly string[]
     /**
-     * Repository holding the entry files, as `owner/name`. Defaults to `repo`.
+     * Repository holding the entries, as `owner/name`. Defaults to `repo`.
      *
      * Differs from `repo` whenever friction was reported upstream: the issues are there, the files are
      * here. A marker records this one, so rebuilding a deleted file matches against it.

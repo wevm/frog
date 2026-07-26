@@ -33,14 +33,15 @@ export declare namespace token {
 }
 
 /** Builds a client. `baseUrl` comes from `GITHUB_API_URL`, which Actions sets for you. */
-export function client(options: client.Options): Github.Client {
+export function client(options: client.Options = {}): Github.Client {
   const { baseUrl, token } = options
-  return new Octokit({ auth: token, ...(baseUrl ? { baseUrl } : {}) }).rest
+  return new Octokit({ ...(token ? { auth: token } : {}), ...(baseUrl ? { baseUrl } : {}) }).rest
 }
 
 export declare namespace client {
   type Options = {
     baseUrl?: string | undefined
-    token: string
+    /** Absent reads anonymously, which public repository config allows at a lower rate limit. */
+    token?: string | undefined
   }
 }

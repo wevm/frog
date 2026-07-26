@@ -5,6 +5,11 @@ import * as Store from './Store.js'
 
 const entry = "---\ntitle: 'Filters are ignored'\n---\n\nBody.\n"
 
+/** Writes an entry's write-up, creating its directory. */
+function write(id: string, root: string, contents = entry) {
+  return writeFile(Store.toPath(id), contents, root)
+}
+
 describe('write', () => {
   test('behavior: mints an id and returns the repo-relative path', async () => {
     const root = await tmpdir()
@@ -12,8 +17,8 @@ describe('write', () => {
       { body: 'Body.', severity: 'minor', title: 'Filters are ignored' },
       { root },
     )
-    expect(id).toMatch(/^[a-z]+(-[a-z]+)+$/)
-    expect(file).toBe(`.agents/friction-log/${id}.md`)
+    expect(id).toMatch(/^\d{14}-filters-are-ignored$/)
+    expect(file).toBe(`.agents/friction-log/${id}/friction.md`)
     expect(await fs.readFile(path.join(root, file), 'utf8')).toMatchInlineSnapshot(`
       "---
       title: 'Filters are ignored'
@@ -34,6 +39,44 @@ describe('write', () => {
     expect(id).toBe('known-id')
   })
 
+  test('behavior: a second entry with the same title does not overwrite the first', async () => {
+    const root = await tmpdir()
+    const entry = { body: 'Body.', severity: 'minor', title: 'Filters are ignored' } as const
+
+    const first = await Store.write(entry, { root })
+    const second = await Store.write({ ...entry, body: 'Different.' }, { root })
+
+    // Claiming the directory is what keeps these apart when both land in the same second.
+    expect(second.id).not.toBe(first.id)
+    expect((await Store.get(first.id, { root })).body).toBe('Body.')
+    expect((await Store.get(second.id, { root })).body).toBe('Different.')
+  })
+
+  test('behavior: concurrent writes of one title all land', async () => {
+    const root = await tmpdir()
+    const entry = { body: 'Body.', severity: 'minor', title: 'Filters are ignored' } as const
+
+    const written = await Promise.all(Array.from({ length: 5 }, () => Store.write(entry, { root })))
+
+    expect(new Set(written.map((value) => value.id)).size).toBe(5)
+    expect((await Store.list({ root })).length).toBe(5)
+  })
+
+  test('behavior: rewriting leaves artifacts alone', async () => {
+    const root = await tmpdir()
+    await write('one', root)
+    await writeFile(`${Store.toArtifacts('one')}/repro.ts`, 'export {}\n', root)
+
+    await Store.write({ body: 'Body.', severity: 'minor', title: 'Slow' }, { id: 'one', root })
+
+    expect(await Store.files('one', { root })).toMatchInlineSnapshot(`
+      [
+        ".agents/friction-log/one/artifacts/repro.ts",
+        ".agents/friction-log/one/friction.md",
+      ]
+    `)
+  })
+
   test('behavior: round trips through get', async () => {
     const root = await tmpdir()
     const entry = {
@@ -50,20 +93,9 @@ describe('write', () => {
 describe('list', () => {
   test('behavior: returns sorted ids and skips non-entries', async () => {
     const root = await tmpdir()
-    for (const name of [
-      'apple.md',
-      'zebra.md',
-      'middle.md',
-      'README.md',
-      'TEMPLATE.md',
-      'AGENTS.md',
-      'CLAUDE.md',
-      'GEMINI.md',
-      '.hidden.md',
-      'config.json',
-      'notes.txt',
-    ])
-      await writeFile(`.agents/friction-log/${name}`, entry, root)
+    for (const id of ['apple', 'zebra', 'middle', '.hidden']) await write(id, root)
+    for (const name of ['README.md', 'TEMPLATE.md', 'config.json', 'notes.txt'])
+      await writeFile(`${Store.dir}/${name}`, entry, root)
 
     expect(await Store.list({ root })).toMatchInlineSnapshot(`
       [
@@ -74,6 +106,14 @@ describe('list', () => {
     `)
   })
 
+  test('behavior: a directory without a write-up is not an entry', async () => {
+    const root = await tmpdir()
+    await write('real', root)
+    await writeFile(`${Store.toArtifacts('stray')}/repro.ts`, 'export {}\n', root)
+
+    expect(await Store.list({ root })).toEqual(['real'])
+  })
+
   test('behavior: a missing directory is not an error', async () => {
     expect(await Store.list({ root: await tmpdir() })).toEqual([])
   })
@@ -82,44 +122,91 @@ describe('list', () => {
 describe('read', () => {
   test('behavior: parses every entry', async () => {
     const root = await tmpdir()
-    await writeFile('.agents/friction-log/one.md', entry, root)
-    await writeFile('.agents/friction-log/two.md', entry, root)
+    await write('one', root)
+    await write('two', root)
     expect((await Store.read({ root })).map((entry) => entry.id)).toEqual(['one', 'two'])
   })
 
   test('error: surfaces the first malformed entry', async () => {
     const root = await tmpdir()
-    await writeFile('.agents/friction-log/broken.md', '# no frontmatter\n', root)
+    await write('broken', root, '# no frontmatter\n')
     await expect(Store.read({ root })).rejects.toThrowErrorMatchingInlineSnapshot(
       `[Entry.MalformedError: Entry \`broken\` has no valid YAML frontmatter block.]`,
     )
   })
 })
 
-describe('remove', () => {
-  test('behavior: reports whether the file was there', async () => {
+describe('files', () => {
+  test('behavior: lists the write-up and every artifact', async () => {
     const root = await tmpdir()
-    await writeFile('.agents/friction-log/one.md', entry, root)
+    await write('one', root)
+    await writeFile(`${Store.toArtifacts('one')}/repro.ts`, 'export {}\n', root)
+    await writeFile(`${Store.toArtifacts('one')}/nested/fixture.json`, '{}\n', root)
+
+    expect(await Store.files('one', { root })).toMatchInlineSnapshot(`
+      [
+        ".agents/friction-log/one/artifacts/nested/fixture.json",
+        ".agents/friction-log/one/artifacts/repro.ts",
+        ".agents/friction-log/one/friction.md",
+      ]
+    `)
+  })
+
+  test('behavior: a missing entry has no files', async () => {
+    expect(await Store.files('nope', { root: await tmpdir() })).toEqual([])
+  })
+})
+
+describe('remove', () => {
+  test('behavior: reports whether the entry was there', async () => {
+    const root = await tmpdir()
+    await write('one', root)
     expect(await Store.remove('one', { root })).toBe(true)
     expect(await Store.remove('one', { root })).toBe(false)
+  })
+
+  test('behavior: takes the artifacts with it', async () => {
+    const root = await tmpdir()
+    await write('one', root)
+    await writeFile(`${Store.toArtifacts('one')}/repro.ts`, 'export {}\n', root)
+
+    expect(await Store.remove('one', { root })).toBe(true)
+    expect(await Store.files('one', { root })).toEqual([])
+  })
+})
+
+describe('toDir', () => {
+  test('behavior: builds a repo-relative directory', () => {
+    expect(Store.toDir('lazy-squids-chew')).toBe('.agents/friction-log/lazy-squids-chew')
   })
 })
 
 describe('toPath', () => {
   test('behavior: builds a repo-relative path', () => {
-    expect(Store.toPath('lazy-squids-chew')).toBe('.agents/friction-log/lazy-squids-chew.md')
+    expect(Store.toPath('lazy-squids-chew')).toBe(
+      '.agents/friction-log/lazy-squids-chew/friction.md',
+    )
+  })
+})
+
+describe('toArtifacts', () => {
+  test('behavior: builds a repo-relative directory', () => {
+    expect(Store.toArtifacts('lazy-squids-chew')).toBe(
+      '.agents/friction-log/lazy-squids-chew/artifacts',
+    )
   })
 })
 
 describe('toId', () => {
   test.for([
-    ['.agents/friction-log/lazy-squids-chew.md', 'lazy-squids-chew'],
+    ['.agents/friction-log/lazy-squids-chew/friction.md', 'lazy-squids-chew'],
+    ['.agents/friction-log/lazy-squids-chew/artifacts/repro.ts', undefined],
+    ['.agents/friction-log/friction.md', undefined],
     ['.agents/friction-log/README.md', undefined],
-    ['.agents/friction-log/TEMPLATE.md', undefined],
-    ['.agents/friction-log/config.json', undefined],
-    ['.agents/friction-log/.hidden.md', undefined],
-    ['.agents/friction-log/nested/one.md', undefined],
-    ['.agents/other/one.md', undefined],
+    ['.agents/friction-log/one.md', undefined],
+    ['.agents/friction-log/.hidden/friction.md', undefined],
+    ['.agents/friction-log/nested/deep/friction.md', undefined],
+    ['.agents/other/one/friction.md', undefined],
     ['src/index.ts', undefined],
   ] as const)('behavior: %s', ([file, expected]) => {
     expect(Store.toId(file)).toBe(expected)

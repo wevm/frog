@@ -100,3 +100,26 @@ describe('resolve', () => {
     )
   })
 })
+
+describe('allows', () => {
+  const sender = 'acme/app'
+
+  test.for<[Config.Inbound, string | undefined, boolean]>([
+    // A project that has not opted in accepts nothing, whatever else it says.
+    [{ enabled: false }, sender, false],
+    [{ allowFrom: [sender], enabled: false }, sender, false],
+    // Opted in with no allowlist accepts anyone, including a sender that cannot name itself.
+    [{ enabled: true }, sender, true],
+    [{ enabled: true }, undefined, true],
+    [{ allowFrom: [], enabled: true }, sender, true],
+    // An allowlist is exact, or an `owner/*` glob.
+    [{ allowFrom: [sender], enabled: true }, sender, true],
+    [{ allowFrom: ['other/app'], enabled: true }, sender, false],
+    [{ allowFrom: ['acme/*'], enabled: true }, 'acme/other', true],
+    [{ allowFrom: ['acme/*'], enabled: true }, 'other/app', false],
+    // An allowlist cannot match a sender that is unknown.
+    [{ allowFrom: [sender], enabled: true }, undefined, false],
+  ])('behavior: %o from %s', ([inbound, from, expected]) => {
+    expect(Config.allows(inbound, from)).toBe(expected)
+  })
+})

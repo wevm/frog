@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import * as Github from './Github.js'
 
 const exec = promisify(execFile)
 
@@ -27,9 +28,6 @@ export async function root(options: Options = {}): Promise<string | undefined> {
   }
 }
 
-/** Matches GitHub remotes in ssh, scp, and https form. */
-const remoteRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?$/
-
 /**
  * Repository behind the `origin` remote.
  *
@@ -38,10 +36,7 @@ const remoteRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?$/
  */
 export async function repo(options: Options = {}): Promise<string | undefined> {
   const url = await git(['remote', 'get-url', 'origin'], options).catch(() => '')
-  const match = remoteRegex.exec(url)
-  if (!match) return undefined
-  const [, owner, name] = match
-  return `${owner}/${name}`
+  return Github.parseRepository(url)
 }
 
 /**
@@ -133,12 +128,14 @@ export async function add(files: readonly string[], options: Options = {}): Prom
 /**
  * Stages the removal of paths, deleting them from the working tree.
  *
+ * Recursive, because an entry is a directory: git refuses a directory pathspec without `-r`.
+ *
  * @param files - Repository-relative paths. An empty list is a no-op.
  */
 export async function rm(files: readonly string[], options: rm.Options = {}): Promise<void> {
   if (files.length === 0) return
   const flags = options.ignoreUnmatch ? ['--ignore-unmatch'] : []
-  await git(['rm', '--quiet', ...flags, '--', ...files], options)
+  await git(['rm', '--quiet', '-r', ...flags, '--', ...files], options)
 }
 
 export declare namespace rm {

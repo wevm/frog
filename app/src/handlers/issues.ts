@@ -71,8 +71,8 @@ export async function issues(options: issues.Options): Promise<Outcome> {
 
   const committed = await Repository.commit(source, {
     branch,
-    deletes: plan.remove.map(Store.toPath),
-    message: 'chore: sync friction log with issues',
+    directories: plan.remove.map(Store.toDir),
+    message: 'chore: sync friction log',
     repo: origin,
     writes: [...plan.write, ...plan.clearLink].map((entry) => ({
       contents: Entry.serialize(entry),
