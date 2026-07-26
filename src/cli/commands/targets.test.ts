@@ -28,8 +28,8 @@ async function declare(cwd: string, dependencies: Record<string, string>): Promi
 }
 
 /** A repository that has committed its consent, or opted out. */
-function config(enabled: boolean): string {
-  return JSON.stringify({ inbound: { enabled } })
+function config(enabled: boolean, allowFrom?: readonly string[]): string {
+  return JSON.stringify({ inbound: { enabled, ...(allowFrom ? { allowFrom } : {}) } })
 }
 
 function env(url: string, cache: string): Record<string, string> {
@@ -85,6 +85,29 @@ test('behavior: includes optional dependencies', async () => {
   await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
 
   const instance = await github({}, { files: { 'wevm/viem': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
+})
+
+test('behavior: applies each receiver allowFrom policy', async () => {
+  const cwd = await helpers.repo({ remote: 'https://github.com/acme/app' })
+  await declare(cwd, { ox: '^1.0.0', viem: '^2.0.0' })
+  await install(cwd, 'ox', { repository: 'https://github.com/wevm/ox' })
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
+
+  const instance = await github(
+    {},
+    {
+      files: {
+        'wevm/ox': { [Config.file]: config(true, ['other/*']) },
+        'wevm/viem': { [Config.file]: config(true, ['acme/*']) },
+      },
+    },
+  )
   const result = await cli.data<Listed>(
     ['targets', '--cwd', cwd],
     env(instance.url, await helpers.tmpdir()),

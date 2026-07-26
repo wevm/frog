@@ -108,7 +108,7 @@ export type Accepting = {
  * reports.
  */
 export async function accepting(options: accepting.Options): Promise<readonly Accepting[]> {
-  const { client, root, store } = options
+  const { client, root, self, store } = options
 
   const own = await fs
     .readFile(path.join(root, 'package.json'), 'utf8')
@@ -142,7 +142,8 @@ export async function accepting(options: accepting.Options): Promise<readonly Ac
     const batch = repos.slice(index, index + concurrency)
     const inbounds = await Promise.all(batch.map((repo) => read(repo).catch(() => undefined)))
     batch.forEach((repo, offset) => {
-      if (inbounds[offset]?.enabled) accepts.add(repo)
+      const inbound = inbounds[offset]
+      if (inbound && Config.allows(inbound, self)) accepts.add(repo)
     })
   }
 
@@ -156,6 +157,8 @@ export declare namespace accepting {
     client: Github.Client
     /** Repository root, holding `package.json` and `node_modules`. */
     root: string
+    /** This repository, as `owner/name`, for applying each receiver's `allowFrom` policy. */
+    self: string | undefined
     /** Where to keep config lookups. Absent reads fresh every time. */
     store?: Cache.Cache | undefined
   }
