@@ -57,13 +57,10 @@ export function split(target: string): { owner: string; repo: string } {
 /** npm's shorthand forms: `owner/name`, optionally prefixed with `github:`. */
 const shorthandRegex = /^(?:github:)?([\w.-]+)\/([\w.-]+)$/
 
-/**
- * Matches GitHub in ssh, scp, and https form, with an optional `.git` suffix.
- *
- * Anything after the repository is discarded, which is what handles a monorepo package pointing at its
- * own subdirectory rather than the repository root.
- */
-const urlRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:[/#?].*)?$/
+/** Git's scp-like SSH form, which `URL` cannot parse. */
+const scpRegex = /^(?:[^@\s]+@)?github\.com:([\w.-]+)\/([\w.-]+?)(?:\.git)?$/
+
+const componentRegex = /^[\w.-]+$/
 
 /**
  * Normalizes a repository reference into `owner/name`.
@@ -77,14 +74,39 @@ const urlRegex = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:[/#?].*)?$/
  * @returns The repository as `owner/name`, or `undefined` when it is absent or not on GitHub. Only GitHub
  * resolves, because an issue can only be filed there.
  */
-export function parseRepository(value: string | undefined): string | undefined {
+export function parseRepository(
+  value: string | undefined,
+  options: parseRepository.Options = {},
+): string | undefined {
   if (!value) return undefined
 
-  const match = shorthandRegex.exec(value) ?? urlRegex.exec(value)
-  if (!match) return undefined
+  const shorthand = options.shorthand === false ? undefined : shorthandRegex.exec(value)
+  if (shorthand) return `${shorthand[1]}/${shorthand[2]}`
 
-  const [, owner, name] = match
-  return `${owner}/${name}`
+  const scp = scpRegex.exec(value)
+  if (scp) return `${scp[1]}/${scp[2]}`
+
+  try {
+    const url = new URL(value.startsWith('git+') ? value.slice(4) : value)
+    if (url.hostname.toLowerCase() !== 'github.com') return undefined
+
+    const [owner, rawName] = url.pathname.replace(/^\/+/, '').split('/')
+    const name = rawName?.replace(/\.git$/, '')
+    if (!owner || !name || !componentRegex.test(owner) || !componentRegex.test(name))
+      return undefined
+
+    return `${owner}/${name}`
+  } catch {
+    return undefined
+  }
+}
+
+export declare namespace parseRepository {
+  /** Parsing controls for contexts such as git remotes, where npm shorthand is not meaningful. */
+  type Options = {
+    /** Whether to accept npm's `owner/name` and `github:owner/name` shorthand. Defaults to `true`. */
+    shorthand?: boolean | undefined
+  }
 }
 
 /**

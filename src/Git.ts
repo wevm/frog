@@ -36,7 +36,7 @@ export async function root(options: Options = {}): Promise<string | undefined> {
  */
 export async function repo(options: Options = {}): Promise<string | undefined> {
   const url = await git(['remote', 'get-url', 'origin'], options).catch(() => '')
-  return Github.parseRepository(url)
+  return Github.parseRepository(url, { shorthand: false })
 }
 
 /**

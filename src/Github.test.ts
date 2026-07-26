@@ -23,11 +23,14 @@ describe('parseRepository', () => {
     ['git@github.com:wevm/viem.git', 'wevm/viem'],
     ['ssh://git@github.com/wevm/viem.git', 'wevm/viem'],
     ['git://github.com/wevm/viem.git', 'wevm/viem'],
+    ['https://github.com:443/wevm/viem', 'wevm/viem'],
     // A monorepo package pointing at its own subdirectory rather than the repository root.
     ['https://github.com/changesets/changesets/tree/main/packages/config', 'changesets/changesets'],
     ['github:eemeli/yaml', 'eemeli/yaml'],
     ['lydell/js-tokens', 'lydell/js-tokens'],
     // Only GitHub resolves: an issue cannot be filed anywhere else.
+    ['https://notgithub.com/foo/bar', undefined],
+    ['https://example.com/github.com/foo/bar', undefined],
     ['https://gitlab.com/foo/bar.git', undefined],
     ['https://bitbucket.org/foo/bar', undefined],
     ['not a repository', undefined],
@@ -35,6 +38,10 @@ describe('parseRepository', () => {
     [undefined, undefined],
   ] as const)('behavior: %s', ([value, expected]) => {
     expect(Github.parseRepository(value)).toBe(expected)
+  })
+
+  test('behavior: npm shorthand can be disabled for git remotes', () => {
+    expect(Github.parseRepository('wevm/viem', { shorthand: false })).toBeUndefined()
   })
 })
 
