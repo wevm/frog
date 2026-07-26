@@ -34,6 +34,13 @@ export const Schema = z.object({
         .array(z.string().min(1))
         .optional()
         .describe('Labels applied to inbound issues, in place of `labels`.'),
+      template: z
+        .string()
+        .min(1)
+        .optional()
+        .describe(
+          'Issue form reported friction should be written against, as a path or a filename under `.github/ISSUE_TEMPLATE`. Absent looks for `friction.yml`, then the only form there.',
+        ),
     })
     .prefault({})
     .describe('Whether and how this repository accepts friction reported by others.'),

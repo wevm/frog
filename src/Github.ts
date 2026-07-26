@@ -442,6 +442,29 @@ export async function listDirectories(
   client: Client,
   options: fetchFile.Options,
 ): Promise<readonly string[]> {
+  return listing(client, options, 'dir')
+}
+
+/**
+ * Lists the files directly inside a directory.
+ *
+ * @param client - Authenticated client for the repository.
+ * @returns Repository-relative paths of files, excluding subdirectories. Empty when the directory does
+ * not exist, which is the ordinary case for a repository with no issue templates.
+ */
+export async function listFiles(
+  client: Client,
+  options: fetchFile.Options,
+): Promise<readonly string[]> {
+  return listing(client, options, 'file')
+}
+
+/** Lists one kind of child, treating an absent directory as empty. */
+async function listing(
+  client: Client,
+  options: fetchFile.Options,
+  type: 'dir' | 'file',
+): Promise<readonly string[]> {
   try {
     const response = await client.repos.getContent({
       ...split(options.repo),
@@ -449,7 +472,7 @@ export async function listDirectories(
       ...(options.ref ? { ref: options.ref } : {}),
     })
     if (!Array.isArray(response.data)) return []
-    return response.data.filter((entry) => entry.type === 'dir').map((entry) => entry.path)
+    return response.data.filter((entry) => entry.type === type).map((entry) => entry.path)
   } catch (error) {
     if ((error as { status?: number }).status === 404) return []
     throw error

@@ -114,6 +114,11 @@ frog log --target viem --title '`getBalance` rejects a checksummed address'
 A target can also be a repository (`wevm/viem`), which is how you report to a project that is not a
 dependency. A target that has not opted in is refused, with the reason.
 
+**Naming a target scaffolds the entry from that project's issue form.** Omit `--body` and the entry is
+written with their headings, each one carrying an HTML comment saying what that field wants. Fill those in
+rather than replacing them: a project that asks for a version, or a link to a runnable reproduction, will
+usually close a report that skips it.
+
 **An upstream entry becomes a public issue on someone else's repository.** Write it for a maintainer who
 cannot see your code:
 

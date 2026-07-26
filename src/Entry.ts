@@ -199,35 +199,56 @@ export declare namespace newId {
   }
 }
 
+/** One prompt in the scaffold a new entry starts from. */
+export type Section = {
+  /** What the section asks for. */
+  description: string
+  /** Heading it appears under. */
+  label: string
+}
+
 /**
- * Section scaffold for a new entry.
+ * What a friction entry is asked for, in order.
  *
- * Nothing enforces these sections. They exist so an entry lands as something reproducible rather than a
- * one-line complaint, which is what a flat friction log tends to produce. Expectation is separated from
- * description on purpose: friction is the gap between the two, and naming both is what turns a
- * complaint into a report somebody can act on.
+ * Nothing enforces these. They exist so an entry lands as something reproducible rather than a one-line
+ * complaint, which is what a flat friction log tends to produce. Expectation is separated from
+ * description on purpose: friction is the gap between the two, and naming both is what turns a complaint
+ * into a report somebody can act on.
+ *
+ * Held as data because two things are rendered from it: the markdown scaffold below, and the issue form
+ * `init --library` publishes so a consumer's agent finds the same questions.
  */
-export const template = `## Description
+export const sections: readonly Section[] = [
+  {
+    description:
+      'A clear and concise account of what happened, with the exact error text if there was one.',
+    label: 'Description',
+  },
+  {
+    description: 'What should have happened instead, and what led you to expect it.',
+    label: 'Expectation',
+  },
+  {
+    description:
+      'The shortest path from a clean checkout to the failure, including the versions and package manager that matter.',
+    label: 'Steps to reproduce',
+  },
+  {
+    description:
+      'Required. The smallest code that still fails, with every unrelated dependency and file removed. Put it in `artifacts/` and reference it here. Reports without one are usually closed unread.',
+    label: 'Minimal reproducible example',
+  },
+  {
+    description:
+      'The smallest durable change that would remove this friction, and whether you intend to make it.',
+    label: 'Suggestion',
+  },
+]
 
-What happened, with the exact error text if there was one.
-
-## Expectation
-
-What should have happened instead, and what led you to expect it.
-
-## Steps to reproduce
-
-The shortest path from a clean checkout to the failure.
-
-## Minimal reproducible example
-
-The smallest code that still fails, with every unrelated dependency and file removed. Put it in
-\`artifacts/\` and reference it here, so a reader runs it directly instead of reconstructing it.
-
-## Suggestion
-
-The smallest durable change that would remove this friction.
-`
+/** Section scaffold a new entry starts from, rendered from {@link sections}. */
+export const template = `${sections
+  .map((section) => `## ${section.label}\n\n${section.description}`)
+  .join('\n\n')}\n`
 
 /**
  * Normalizes a title for duplicate detection: case, whitespace, and punctuation are noise.

@@ -33,6 +33,11 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "template": {
+          "description": "Issue form reported friction should be written against, as a path or a filename under `.github/ISSUE_TEMPLATE`. Absent looks for `friction.yml`, then the only form there.",
+          "type": "string",
+          "minLength": 1
         }
       }
     },

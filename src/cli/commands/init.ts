@@ -3,6 +3,7 @@ import path from 'node:path'
 import { Cli, z } from 'incur'
 import * as Config from '../../Config.js'
 import * as Entry from '../../Entry.js'
+import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 import * as context from '../internal/context.js'
 
@@ -76,6 +77,31 @@ const libraryConfig = `{
 }
 `
 
+/**
+ * The issue form a project serves so consumers report friction the way it wants.
+ *
+ * Rendered from the same sections as the entry scaffold, so the two cannot drift. A consumer's frog finds
+ * this by convention and writes its entry against it, and a human filing through the issue page gets the
+ * same questions.
+ */
+const form = `name: Friction
+description: Something about this project cost you time.
+labels: [friction]
+body:
+${Entry.sections
+  .map((section) =>
+    [
+      '  - type: textarea',
+      '    attributes:',
+      `      label: ${section.label}`,
+      `      description: ${section.description}`,
+      '    validations:',
+      `      required: ${section.label === 'Description'}`,
+    ].join('\n'),
+  )
+  .join('\n')}
+`
+
 export const init = Cli.create('init', {
   description: 'Create `.agents/friction-log` and its config.',
   options: z.object({
@@ -100,9 +126,12 @@ export const init = Cli.create('init', {
       [`${Store.dir}/README.md`, readme],
       [`${Store.dir}/TEMPLATE.md`, template],
       [Config.file, c.options.library ? libraryConfig : config],
+      // Only for a project accepting reports: it is what a consumer's frog writes its entry against.
+      ...(c.options.library ? ([[`${IssueForm.dir}/${IssueForm.filename}`, form]] as const) : []),
     ] as const
 
     await fs.mkdir(path.join(root, Store.dir), { recursive: true })
+    if (c.options.library) await fs.mkdir(path.join(root, IssueForm.dir), { recursive: true })
 
     const created: string[] = []
     const existing: string[] = []

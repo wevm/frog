@@ -5,6 +5,7 @@ import * as Store from '../../Store.js'
 import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
+import * as form from '../internal/form.js'
 import * as prompt from '../internal/prompt.js'
 import * as publisher from '../internal/publish.js'
 import * as stdin from '../internal/stdin.js'
@@ -137,7 +138,28 @@ export const log = Cli.create('log', {
       })
 
     const body = c.options.body ?? (input?.body || undefined)
-    if (!body && !interactive)
+
+    // An upstream project judges a report against its own issue form, so scaffold from that rather than
+    // from frog's sections. Fetched only when the answers would be used, and never fatal: a target that
+    // cannot be reached costs the scaffold, not the entry.
+    const upstream =
+      !body && c.options.target
+        ? await attempt(
+            form.scaffold(c.options.target, {
+              allowedRepos: config.outbound.allowedRepos,
+              env: c.env,
+              root,
+              self: repo,
+              ...(c.options.token ? { token: c.options.token } : {}),
+            }),
+          )
+        : undefined
+    const scaffold = upstream?.ok ? upstream.value : undefined
+
+    // A scaffold is the detail this is asking for, one question at a time, so it satisfies the guard.
+    // Without a terminal there is otherwise no way to reach a template at all, which would leave the
+    // upstream's questions unreachable by the agents this exists for.
+    if (!body && !scaffold && !interactive)
       return c.error({
         code: 'MISSING_BODY',
         message: 'A body is required. An entry with no detail is not actionable.',
@@ -176,7 +198,7 @@ export const log = Cli.create('log', {
 
     const { file, id } = await Store.write(
       {
-        body: body ?? Entry.template,
+        body: body ?? scaffold ?? Entry.template,
         severity,
         title,
         ...(c.options.label?.length ? { labels: c.options.label } : {}),

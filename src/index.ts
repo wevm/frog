@@ -10,6 +10,9 @@ export * as Config from './Config.js'
 /** The entry format: frontmatter, body, ids, and title normalization. */
 export * as Entry from './Entry.js'
 
+/** A project's GitHub issue form: parsing it, and rendering the entry scaffold it implies. */
+export * as IssueForm from './IssueForm.js'
+
 /** Git queries and mutations the CLI needs. The App uses the GitHub API instead. */
 export * as Git from './Git.js'
 

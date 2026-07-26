@@ -90,6 +90,145 @@ test('error: an unknown severity is rejected before anything is written', async 
   expect(await Store.list({ root: cwd })).toEqual([])
 })
 
+describe('--target', () => {
+  const upstream = 'wevm/viem'
+  const form = [
+    'name: Bug Report',
+    'body:',
+    '  - type: markdown',
+    '    attributes:',
+    '      value: Thanks for filing!',
+    '  - type: input',
+    '    attributes:',
+    '      label: Viem Version',
+    '    validations:',
+    '      required: true',
+    '  - type: textarea',
+    '    attributes:',
+    '      label: Current Behavior',
+    '',
+  ].join('\n')
+
+  /** A consumer that may report upstream, and an upstream that accepts. */
+  async function consumer() {
+    const cwd = await helpers.repo({ remote: 'git@github.com:acme/app.git' })
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    return cwd
+  }
+
+  function accepting(files: Record<string, string> = {}) {
+    return {
+      files: {
+        [upstream]: {
+          [Config.file]: JSON.stringify({ inbound: { enabled: true } }),
+          ...files,
+        },
+      },
+    }
+  }
+
+  test('behavior: scaffolds the entry from the target form', async () => {
+    const cwd = await consumer()
+    const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
+
+    const { id } = await cli.data<Logged>(['log', title, '--target', upstream, '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    // The upstream's questions, not frog's sections.
+    expect((await Store.get(id, { root: cwd })).body).toMatchInlineSnapshot(`
+      "### Viem Version
+
+      <!-- Required. -->
+
+      ### Current Behavior"
+    `)
+  })
+
+  test('behavior: a template named in the target config wins', async () => {
+    const cwd = await consumer()
+    const instance = await github(
+      {},
+      {
+        files: {
+          [upstream]: {
+            [Config.file]: JSON.stringify({
+              inbound: { enabled: true, template: 'friction.yml' },
+            }),
+            '.github/ISSUE_TEMPLATE/bug_report.yml': form,
+            '.github/ISSUE_TEMPLATE/friction.yml':
+              'name: Friction\nbody:\n  - type: textarea\n    attributes:\n      label: What broke\n',
+          },
+        },
+      },
+    )
+
+    const { id } = await cli.data<Logged>(['log', title, '--target', upstream, '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect((await Store.get(id, { root: cwd })).body).toBe('### What broke')
+  })
+
+  // A failing lookup must not throw. Without a scaffold there is simply nothing to write, which is
+  // exactly where a target-less `log` already stands.
+  test('error: an unreachable target asks for a body rather than failing', async () => {
+    const cwd = await consumer()
+    const instance = await github({}, { errors: { [upstream]: 500 } })
+
+    const result = await cli.error(['log', title, '--target', upstream, '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect(result.code).toBe('MISSING_BODY')
+    expect(await Store.list({ root: cwd })).toEqual([])
+  })
+
+  test('error: a target with no form asks for a body', async () => {
+    const cwd = await consumer()
+    const instance = await github({}, accepting())
+
+    const result = await cli.error(['log', title, '--target', upstream, '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect(result.code).toBe('MISSING_BODY')
+  })
+
+  test('behavior: a supplied body survives an unreachable target', async () => {
+    const cwd = await consumer()
+    const instance = await github({}, { errors: { [upstream]: 500 } })
+
+    const { id } = await cli.data<Logged>(
+      ['log', title, '--body', body, '--target', upstream, '--cwd', cwd],
+      { GITHUB_API_URL: instance.url, GITHUB_TOKEN: 'test-token' },
+    )
+
+    expect((await Store.get(id, { root: cwd })).body).toBe(body)
+  })
+
+  // Authoring is offline unless the scaffold would actually be used.
+  test('behavior: a supplied body fetches nothing', async () => {
+    const cwd = await consumer()
+    const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
+
+    await cli.data<Logged>(['log', title, '--body', body, '--target', upstream, '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect(instance.requests).toEqual([])
+  })
+})
+
 describe('--publish', () => {
   const repo = 'wevm/demo'
   const remote = `git@github.com:${repo}.git`

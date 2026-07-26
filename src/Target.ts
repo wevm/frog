@@ -28,6 +28,8 @@ export type Target = {
   labels?: readonly string[] | undefined
   /** Repository to file in, as `owner/name`. */
   repo: string
+  /** Issue form the receiver named, when it named one. */
+  template?: string | undefined
 }
 
 /** Why a target was refused, carrying a code the CLI surfaces directly. */
@@ -115,7 +117,12 @@ export async function resolve(
 
   return {
     ok: true,
-    target: { kind, repo, ...(inbound.labels ? { labels: inbound.labels } : {}) },
+    target: {
+      kind,
+      repo,
+      ...(inbound.labels ? { labels: inbound.labels } : {}),
+      ...(inbound.template ? { template: inbound.template } : {}),
+    },
   }
 }
 

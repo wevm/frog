@@ -3,6 +3,8 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import * as helpers from '../../../test/helpers.js'
 import * as Config from '../../Config.js'
+import * as Entry from '../../Entry.js'
+import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 
 test('behavior: scaffolds the directory', async () => {
@@ -50,4 +52,29 @@ test('behavior: re-running never clobbers local edits', async () => {
     ],
   })
   expect((await Config.resolve({ root: cwd })).maxPerRun).toBe(3)
+})
+
+describe('--library', () => {
+  test('behavior: publishes an issue form a consumer can author against', async () => {
+    const cwd = await helpers.repo()
+
+    const result = await cli.data<{ created: string[] }>(['init', '--library', '--cwd', cwd])
+
+    expect(result.created).toContain('.github/ISSUE_TEMPLATE/friction.yml')
+
+    // The form and the entry scaffold are rendered from one list of sections, so the questions a
+    // consumer is asked are the questions this project asks itself.
+    const contents = await fs.readFile(path.join(cwd, IssueForm.dir, IssueForm.filename), 'utf8')
+    const form = IssueForm.parse(contents)
+    expect(form?.fields.map((field) => field.label)).toEqual(
+      Entry.sections.map((section) => section.label),
+    )
+  })
+
+  test('behavior: plain init leaves the repository issue templates alone', async () => {
+    const cwd = await helpers.repo()
+    await cli.data(['init', '--cwd', cwd])
+
+    await expect(fs.readdir(path.join(cwd, IssueForm.dir))).rejects.toThrow()
+  })
 })

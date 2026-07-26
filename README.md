@@ -125,6 +125,9 @@ A package names its repository through the standard `repository` field, and cons
 repository's own default branch. So nothing a package says can send a report somewhere that has not itself
 agreed to receive one.
 
+Naming a target also scaffolds the entry from that project's GitHub issue form, so the report answers the
+questions it actually asks rather than frog's own. A project that names no form keeps frog's sections.
+
 ```sh
 frog targets
 frog log --target viem
@@ -132,8 +135,8 @@ frog log --target viem
 
 ### Accept Inbound Logs
 
-Marks this repository as accepting friction from the projects that depend on it. One committed file, with
-nothing to publish and no site to serve.
+Marks this repository as accepting friction from the projects that depend on it, and publishes
+`.github/ISSUE_TEMPLATE/friction.yml` so a consumer's report arrives in the shape this project wants.
 
 ```sh
 frog init --library
