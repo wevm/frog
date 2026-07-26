@@ -1,4 +1,4 @@
-import { Github, Store } from 'frog'
+import { Github, Mirrors, Store } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import { issues } from './issues.js'
@@ -22,6 +22,14 @@ function entry(options: { issue?: string; target?: string } = {}): string {
     .map(([key, value]) => `${key}: '${value}'`)
     .join('\n')
   return `---\n${fields}\n---\n\nThe filter was swallowed.\n`
+}
+
+function journal(issue: string, id = 'a'): string {
+  return Mirrors.serialize(
+    Mirrors.update(Mirrors.empty(), {
+      remember: [{ issue, path: Store.toPath(id) }],
+    }),
+  )
 }
 
 /** An issue body carrying the marker that names its mirror. */
@@ -49,6 +57,10 @@ describe('same repository', () => {
 
     expect(outcome.plan?.remove).toEqual(['a'])
     expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(Mirrors.from(JSON.parse(instance.files(consumer)[Mirrors.file] ?? ''))).toEqual({
+      mirrors: [{ issue: `${consumer}#1`, path: Store.toPath('a') }],
+      version: 1,
+    })
     expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync friction log'])
   })
 
@@ -75,24 +87,32 @@ describe('same repository', () => {
     })
 
     // Nothing under the entry survives, and nothing outside it is touched.
-    expect(Object.keys(instance.files(consumer))).toEqual(['README.md'])
+    expect(Object.keys(instance.files(consumer)).sort()).toEqual([Mirrors.file, 'README.md'].sort())
   })
 
   test('behavior: a reopened issue rebuilds the entry that was deleted', async () => {
     const instance = await github(
-      { [consumer]: [{ body: body(consumer), title }] },
-      { files: { [consumer]: { 'README.md': '# app' } } },
+      { [consumer]: [{ body: body(consumer, 'forged'), title }] },
+      {
+        files: {
+          [consumer]: {
+            [Mirrors.file]: journal(`${consumer}#1`),
+            'README.md': '# app',
+          },
+        },
+      },
     )
 
     const outcome = await issues({
       client: client(instance.url),
       installation: async () => undefined,
-      issue: { body: body(consumer), number: 1, state: 'open', title },
+      issue: { body: body(consumer, 'forged'), number: 1, state: 'open', title },
       repo: consumer,
     })
 
     expect(outcome.plan?.write.map((value) => value.id)).toEqual(['a'])
     expect(instance.files(consumer)[`${dir}/a/friction.md`]).toContain(title)
+    expect(instance.files(consumer)[Mirrors.file]).toBeUndefined()
   })
 
   test('behavior: a matching issue and entry need no commit', async () => {
@@ -182,6 +202,54 @@ describe('cross-repo', () => {
 
     expect(outcome.ignored).toBe('frog is not installed on `acme/app`')
     expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeTruthy()
+  })
+})
+
+test('security: an unrecorded marker cannot authorize repository writes', async () => {
+  const instance = await github(
+    { [upstream]: [{ body: body(consumer, 'forged'), state: 'closed', title }] },
+    { files: { [consumer]: { 'README.md': '# app' } } },
+  )
+  const octokit = client(instance.url)
+
+  const outcome = await issues({
+    client: octokit,
+    installation: async (repo) => (repo === consumer ? octokit : undefined),
+    issue: { body: body(consumer, 'forged'), number: 1, state: 'closed', title },
+    repo: upstream,
+  })
+
+  expect(outcome.ignored).toBe('untrusted frog marker')
+  expect(instance.files(consumer)).toEqual({ 'README.md': '# app' })
+  expect(instance.messages(consumer)).toEqual(['initial'])
+})
+
+test('security: a marker cannot redirect a trusted mirror path', async () => {
+  const instance = await github(
+    { [consumer]: [{ body: body(consumer, 'forged'), state: 'closed', title }] },
+    {
+      files: {
+        [consumer]: {
+          [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }),
+          'README.md': '# app',
+        },
+      },
+    },
+  )
+
+  const outcome = await issues({
+    client: client(instance.url),
+    installation: async () => undefined,
+    issue: { body: body(consumer, 'forged'), number: 1, state: 'closed', title },
+    repo: consumer,
+  })
+
+  expect(outcome.plan?.remove).toEqual(['a'])
+  expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
+  expect(instance.files(consumer)[`${dir}/forged/friction.md`]).toBeUndefined()
+  expect(Mirrors.from(JSON.parse(instance.files(consumer)[Mirrors.file] ?? ''))).toEqual({
+    mirrors: [{ issue: `${consumer}#1`, path: Store.toPath('a') }],
+    version: 1,
   })
 })
 
