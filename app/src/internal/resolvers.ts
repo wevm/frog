@@ -58,11 +58,14 @@ export async function fromRegistry(
  * unchanged, which is the point of `Target` taking them as arguments.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, client, registry: url, self } = options
+  const { allowedRepos, installation, registry: url, self } = options
 
   return {
     allowedRepos,
     async readConfig(repo) {
+      const client = await installation(repo)
+      if (!client) throw new InstallationMissingError(repo)
+
       const contents = await Github.fetchFile(client.rest, { path: Config.file, repo })
       if (!contents) return undefined
       try {
@@ -81,11 +84,23 @@ export declare namespace resolvers {
   type Options = {
     /** Targets the sender may file against, from its base-branch config. */
     allowedRepos: readonly string[]
-    /** Installation client for the sender repository. */
-    client: Octokit
+    /** Resolves the installation client authorized to read each target repository. */
+    installation: (repo: string) => Promise<Octokit | undefined>
     /** Registry base URL. Overridden in tests. */
     registry?: string | undefined
     /** The sender repository, as `owner/name`. */
     self: string
+  }
+}
+
+/** Signals that target consent could not be read because the App is not installed there. */
+export class InstallationMissingError extends Error {
+  /** Repository whose installation is missing. */
+  repo: string
+
+  constructor(repo: string) {
+    super(`frog is not installed on \`${repo}\`.`)
+    this.name = 'InstallationMissingError'
+    this.repo = repo
   }
 }

@@ -33,8 +33,48 @@ describe('fromRegistry', () => {
 describe('resolvers', () => {
   test('error: propagates a transient target config failure', async () => {
     const instance = await github({}, { errors: { [upstream]: 503 } })
-    const stack = resolvers({ allowedRepos: [upstream], client: client(instance.url), self })
+    const stack = resolvers({
+      allowedRepos: [upstream],
+      installation: async () => client(instance.url),
+      self,
+    })
 
     await expect(stack.readConfig(upstream)).rejects.toMatchObject({ status: 503 })
+  })
+
+  test('behavior: reads private consent with the target installation client', async () => {
+    const sender = await github()
+    const target = await github(
+      {},
+      {
+        files: {
+          [upstream]: {
+            '.agents/friction-log/config.json': JSON.stringify({ inbound: { enabled: true } }),
+          },
+        },
+      },
+    )
+    const stack = resolvers({
+      allowedRepos: [upstream],
+      installation: async () => client(target.url),
+      self,
+    })
+
+    await expect(stack.readConfig(upstream)).resolves.toEqual({ enabled: true })
+    expect(sender.requests).toEqual([])
+    expect(target.requests.some((request) => request.path.includes('/contents/'))).toBe(true)
+  })
+
+  test('error: reports a missing target installation', async () => {
+    const stack = resolvers({
+      allowedRepos: [upstream],
+      installation: async () => undefined,
+      self,
+    })
+
+    await expect(stack.readConfig(upstream)).rejects.toMatchObject({
+      message: 'frog is not installed on `wevm/viem`.',
+      repo: upstream,
+    })
   })
 })

@@ -25,9 +25,17 @@ export type Filing = {
 export async function file(options: file.Options): Promise<Filing> {
   const { actor, client, config, entries, installation, origin, pr, registry } = options
 
+  const clients = new Map<string, Octokit | undefined>([[origin, client]])
+  const installed = async (repo: string): Promise<Octokit | undefined> => {
+    if (clients.has(repo)) return clients.get(repo)
+    const target = await installation(repo)
+    clients.set(repo, target)
+    return target
+  }
+
   const stack = resolvers.resolvers({
     allowedRepos: config.outbound.allowedRepos,
-    client,
+    installation: installed,
     self: origin,
     ...(registry ? { registry } : {}),
   })
@@ -41,7 +49,14 @@ export async function file(options: file.Options): Promise<Filing> {
   }[] = []
 
   for (const entry of entries) {
-    const resolution = await Target.resolve(entry.target, stack)
+    const resolution = await Target.resolve(entry.target, stack).catch((error: unknown) => {
+      if (error instanceof resolvers.InstallationMissingError) {
+        deferred.push({ id: entry.id, reason: error.message })
+        return undefined
+      }
+      throw error
+    })
+    if (!resolution) continue
     if (!resolution.ok) {
       deferred.push({ id: entry.id, reason: resolution.message })
       continue
@@ -66,26 +81,21 @@ export async function file(options: file.Options): Promise<Filing> {
   const created: comment.Link[] = []
   const links = new Map<string, string>()
 
-  const clients = new Map<string, Octokit>([[origin, client]])
   for (const destination of new Set(candidates.map((candidate) => candidate.destination))) {
-    if (clients.has(destination)) continue
-
-    const target = await installation(destination)
-    if (target) clients.set(destination, target)
-    else {
-      for (const candidate of candidates.filter((entry) => entry.destination === destination))
-        deferred.push({
-          id: candidate.entry.id,
-          reason: `frog is not installed on \`${destination}\`.`,
-        })
-    }
+    const target = await installed(destination)
+    if (target) continue
+    for (const candidate of candidates.filter((entry) => entry.destination === destination))
+      deferred.push({
+        id: candidate.entry.id,
+        reason: `frog is not installed on \`${destination}\`.`,
+      })
   }
 
   /** Grouped after every gate, so deferred entries do not consume the per-run ceiling. */
   const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
   let accepted = 0
   for (const candidate of candidates) {
-    if (!clients.has(candidate.destination)) continue
+    if (!clients.get(candidate.destination)) continue
     if (accepted >= config.maxPerRun) {
       deferred.push({
         id: candidate.entry.id,
