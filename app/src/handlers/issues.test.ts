@@ -140,6 +140,26 @@ describe('same repository', () => {
     expect(instance.messages(consumer)).toEqual(['initial'])
   })
 
+  test('behavior: a delayed close event cannot overwrite current reopened state', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'open', title }] },
+      { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
+    )
+
+    const outcome = await issues({
+      client: client(instance.url),
+      installation: async () => undefined,
+      // This is the older queued snapshot. `Sync.state` must refetch after acquiring the lease.
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    expect(outcome.plan?.remove).toEqual([])
+    expect(outcome.committed).toBeUndefined()
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeTruthy()
+    expect(instance.messages(consumer)).toEqual(['initial'])
+  })
+
   // Runs on every issue event, so a second pass must change nothing.
   test('behavior: reconciling twice makes one commit', async () => {
     const instance = await github(

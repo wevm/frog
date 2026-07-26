@@ -17,6 +17,24 @@
       "storage": "sqlite",
     },
   },
+  "queues": {
+    "producers": [
+      {
+        "binding": "WEBHOOKS",
+        "queue": "frog-webhooks",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "frog-webhooks",
+        "max_batch_size": 10,
+        "max_batch_timeout": 1,
+        "max_retries": 20,
+        "dead_letter_queue": "frog-webhooks-dlq",
+        "retry_delay": 30,
+      },
+    ],
+  },
   // Octokit reaches for Node built-ins, and the package layer imports `node:fs` for the offline
   // package lookup the App never takes.
   "compatibility_flags": ["nodejs_compat"],

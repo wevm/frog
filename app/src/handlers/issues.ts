@@ -62,8 +62,8 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     if (!bindings.some((binding) => binding.issue === current))
       return { ignored: 'untrusted frog marker', origin }
 
-    // Listed from the repository the issue is in, which is not where the files are. `Sync.state`
-    // confirms any linked issue the listing misses, so a label edit is not mistaken for a deletion.
+    // This runs inside the origin lease and refetches current issue state. The delivered snapshot only
+    // routes us here, so an older close cannot overwrite a newer reopen.
     const target = await config.read(client, { repo })
     const label = target.inbound.labels?.[0] ?? settings.labels[0] ?? 'friction'
 

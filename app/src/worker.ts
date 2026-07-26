@@ -1,6 +1,11 @@
+import { Github } from 'frog'
 import { create } from './App.js'
+import * as Delivery from './Delivery.js'
 import { WebhookCoordinator } from './WebhookCoordinator.js'
+import * as dispatch from './internal/dispatch.js'
+import * as deliveryQueue from './internal/queue.js'
 import * as serialization from './internal/serialize.js'
+import * as webhook from './internal/webhook.js'
 
 /** Bindings the Worker needs, set as secrets. */
 export type Env = {
@@ -12,6 +17,8 @@ export type Env = {
   WEBHOOK_SECRET: string
   /** Persistent delivery claims and repository mutation leases. */
   COORDINATOR: serialization.Namespace
+  /** Durable queue of verified, compact webhook deliveries. */
+  WEBHOOKS: Queue<Delivery.Delivery>
 }
 
 /**
@@ -37,53 +44,65 @@ function app(env: Env): ReturnType<typeof create> {
 }
 
 /** A verified event accepted by Octokit's webhook dispatcher. */
-export type Delivery = Parameters<ReturnType<typeof create>['webhooks']['receive']>[0]
+export type WebhookEvent = Parameters<ReturnType<typeof create>['webhooks']['receive']>[0]
+
+function runDelivery(env: Env, id: string, operation: () => Promise<void>) {
+  return serialization.delivery(env.COORDINATOR, { id, operation })
+}
 
 /** Dispatches one verified delivery behind its persistent idempotency claim. */
-export function processDelivery(env: Env, event: Delivery) {
-  return serialization.delivery(env.COORDINATOR, {
-    id: event.id,
-    operation: () => app(env).webhooks.receive(event),
+export function processDelivery(env: Env, event: WebhookEvent) {
+  return runDelivery(env, event.id, () => app(env).webhooks.receive(event))
+}
+
+async function processQueued(env: Env, delivery: Delivery.Delivery) {
+  return dispatch.queued(env.COORDINATOR, delivery, {
+    expand: (queued) =>
+      Delivery.toEvent(queued, {
+        issue: async (reference) => {
+          const client = await app(env).getInstallationOctokit(reference.installation)
+          const response = await client.rest.issues.get({
+            ...Github.split(reference.repo),
+            issue_number: reference.issue,
+          })
+          return response.data
+        },
+      }),
+    // The projection deliberately contains only fields our handlers read. Keep the OpenAPI escape
+    // hatch at this one boundary rather than letting unvalidated payloads flow through the App.
+    receive: (event) => app(env).webhooks.receive(event as unknown as WebhookEvent),
   })
 }
 
 /**
- * Receives webhook deliveries.
+ * Accepts and consumes webhook deliveries.
  *
- * Deliveries are verified and dispatched directly rather than through `createNodeMiddleware`, which
- * mounts its own routes under a path prefix and would fight a single endpoint. `request.text()` gives
- * the exact bytes GitHub signed; a parsed body re-serialized would not reliably match.
+ * Fetch verifies the exact signed bytes and durably enqueues a compact projection. Queue claims each
+ * delivery before expanding and dispatching it through Octokit's registered handlers.
  */
-export default {
+const worker = {
   async fetch(request: Request, env: Env): Promise<Response> {
-    if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
-
     const id = request.headers.get('x-github-delivery')
     const name = request.headers.get('x-github-event')
-    const signature = request.headers.get('x-hub-signature-256')
-    if (!id || !name || !signature) return new Response('Bad Request', { status: 400 })
-
-    const body = await request.text()
-    if (!(await app(env).webhooks.verify(body, signature)))
-      return new Response('Bad Request', { status: 400 })
-
-    let payload: unknown
     try {
-      payload = JSON.parse(body)
-    } catch {
-      return new Response('Bad Request', { status: 400 })
-    }
-
-    try {
-      // The signature proves the payload came from GitHub. Octokit validates and routes the event name.
-      const event = { id, name, payload } as Delivery
-      const result = await processDelivery(env, event)
-      return Response.json({ ok: true }, { status: result.status === 'processing' ? 202 : 200 })
+      return await webhook.receive(request, {
+        enqueue: (delivery) => env.WEBHOOKS.send(delivery, { contentType: 'json' }),
+        error: (error, context) => console.error('Webhook enqueue failed.', context, error),
+        verify: (body, signature) => app(env).webhooks.verify(body, signature),
+      })
     } catch (error) {
-      console.error(error)
-      return new Response('Internal Server Error', { status: 500 })
+      console.error('Webhook ingress failed.', { delivery: id, event: name }, error)
+      return new Response('Service Unavailable', { status: 503 })
     }
   },
-}
+
+  async queue(batch: MessageBatch<Delivery.Delivery>, env: Env): Promise<void> {
+    await deliveryQueue.consume(batch.messages, {
+      error: (error, context) => console.error('Webhook processing failed.', context, error),
+      process: (delivery) => processQueued(env, delivery),
+    })
+  },
+} satisfies ExportedHandler<Env, Delivery.Delivery>
 
 export { WebhookCoordinator }
+export default worker
