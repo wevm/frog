@@ -67,6 +67,13 @@ describe('from', () => {
     )
   })
 
+  test.each([
+    ['inbound.allowFrom', { inbound: { allowFrom: ['acme/*/typo'] } }],
+    ['outbound.allowedRepos', { outbound: { allowedRepos: ['wevm/*/typo'] } }],
+  ])('error: rejects a malformed %s entry', (_, value) => {
+    expect(() => Config.from(value)).toThrow(Config.InvalidError)
+  })
+
   test('error: rejects a non-positive maxPerRun', () => {
     expect(() => Config.from({ maxPerRun: 0 })).toThrowErrorMatchingInlineSnapshot(
       `[Config.InvalidError: \`.agents/friction-log/config.json\` is invalid. maxPerRun: Too small: expected number to be >0]`,
