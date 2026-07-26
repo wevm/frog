@@ -1,0 +1,25 @@
+name: Prerelease
+on: [push, pull_request]
+
+permissions: {}
+
+jobs:
+  build:
+    name: Prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Prerelease
+        run: |
+          pnpm build
+          pnpm dlx pkg-pr-new publish --pnpm

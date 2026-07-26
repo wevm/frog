@@ -1,50 +1,68 @@
 name: Verify
-
 on:
-  pull_request:
-  push:
-    branches: [main]
-
-# Cancel superseded runs on a branch, but never on main.
-concurrency:
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
-  group: ${{ github.workflow }}-${{ github.ref }}
+  workflow_call:
+  workflow_dispatch:
 
 permissions: {}
 
 jobs:
-  verify:
+  checks:
+    name: Checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
-      - uses: actions/checkout@v6
+      - name: Clone repository
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v4
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
 
-      - uses: actions/setup-node@v6
+      # Not `pnpm check`, which passes `--fix` and would rewrite the checkout instead of failing.
+      - name: Check code
+        run: pnpm exec vp check
+
+      - name: Check types
+        run: pnpm check:types
+
+      - name: Check app types
+        run: pnpm --dir app check:types
+
+      - name: Check docs
+        run: pnpm check:docs
+
+      - name: Build
+        run: pnpm build
+
+      # The Worker has to bundle, which the unit tests cannot tell us.
+      - name: Bundle the app
+        run: pnpm --dir app exec wrangler deploy --dry-run
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
         with:
-          cache: pnpm
-          node-version: 22
+          persist-credentials: false
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
 
-      # Git identity: the git layer's tests commit in throwaway repositories.
+      # The git layer's tests commit in throwaway repositories, which needs an identity.
       - name: Configure git
         run: |
           git config --global user.name 'frog'
           git config --global user.email 'frog@users.noreply.github.com'
 
-      - run: pnpm check:types
-      - run: pnpm --dir app check:types
-      - run: pnpm check:docs
-      - run: pnpm test --run
-
-      # Formatting and lint, without the `--fix` the local script uses.
-      - run: pnpm exec vp check
-
-      # The Worker has to bundle, which the unit tests cannot tell us.
-      - run: pnpm build
-      - run: pnpm --dir app exec wrangler deploy --dry-run
+      - name: Run tests
+        run: pnpm test --run
+        env:
+          CI: true
