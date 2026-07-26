@@ -1,6 +1,7 @@
 import { Cli, z } from 'incur'
 import * as Git from '../../Git.js'
 import * as Github from '../../Github.js'
+import * as Mirrors from '../../Mirrors.js'
 import * as Store from '../../Store.js'
 import * as Sync from '../../Sync.js'
 import { attempt } from '../internal/attempt.js'
@@ -48,6 +49,8 @@ export const sync = Cli.create('sync', {
 
     const entries = await attempt(Store.read({ root }))
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
+    const mirrors = await attempt(Mirrors.resolve({ root }))
+    if (!mirrors.ok) return c.error({ code: mirrors.code, message: mirrors.message })
 
     const ready = await publisher.prepare({
       config,
@@ -73,16 +76,26 @@ export const sync = Cli.create('sync', {
         ...entries.value
           .map((entry) => (entry.issue ? Github.parseLink(entry.issue)?.repo : undefined))
           .filter((repo): repo is string => repo !== undefined),
+        ...mirrors.value.mirrors
+          .map((mirror) => Github.parseLink(mirror.issue)?.repo)
+          .filter((repo): repo is string => repo !== undefined),
       ]),
     ]
 
     const plans: Sync.Plan[] = []
+    const forget: Mirrors.Mirror[] = []
     for (const destination of destinations) {
+      const remembered = mirrors.value.mirrors.filter(
+        (mirror) => Github.parseLink(mirror.issue)?.repo === destination,
+      )
       const issues = await attempt(
         Sync.state({
           entries: entries.value,
           get: (issue) => Github.get(ready.client, { issue, repo: destination }),
           list: () => Github.list(ready.client, { label: ready.label, repo: destination }),
+          remembered: remembered
+            .map((mirror) => Github.parseLink(mirror.issue)?.issue)
+            .filter((issue): issue is number => issue !== undefined),
           repo: destination,
         }),
       )
@@ -100,10 +113,19 @@ export const sync = Cli.create('sync', {
           entries: entries.value,
           issues: issues.value,
           labels: config.labels,
+          mirrors: remembered,
           // The files are always here, whichever repository the issues are in.
           origin: ready.repo,
           repo: destination,
           severityLabels: config.severityLabels,
+        }),
+      )
+
+      const found = new Set(issues.value.map((issue) => issue.number))
+      forget.push(
+        ...remembered.filter((mirror) => {
+          const link = Github.parseLink(mirror.issue)
+          return Boolean(link && !found.has(link.issue))
         }),
       )
     }
@@ -118,7 +140,22 @@ export const sync = Cli.create('sync', {
     const removed = [...new Set(plan.remove)]
     const updated = plan.write.map((entry) => entry.id)
 
-    if (c.options.dryRun || Sync.empty(plan))
+    const byId = new Map(entries.value.map((entry) => [entry.id, entry]))
+    const remember: Mirrors.Mirror[] = []
+    for (const id of removed) {
+      const entry = byId.get(id)
+      if (entry?.issue) remember.push({ issue: entry.issue, path: Store.toPath(entry.id) })
+    }
+    forget.push(
+      ...plan.write
+        .filter((entry): entry is typeof entry & { issue: string } => Boolean(entry.issue))
+        .map((entry) => ({ issue: entry.issue, path: Store.toPath(entry.id) })),
+    )
+
+    const nextMirrors = Mirrors.update(mirrors.value, { forget, remember })
+    const mirrorsChanged = Mirrors.serialize(nextMirrors) !== Mirrors.serialize(mirrors.value)
+
+    if (c.options.dryRun || (Sync.empty(plan) && !mirrorsChanged))
       return c.ok({ cleared, committed: false, removed, updated })
 
     // Staged before unlinking, so tracked entries have their deletion recorded. The whole directory
@@ -129,8 +166,10 @@ export const sync = Cli.create('sync', {
 
     for (const entry of [...plan.write, ...plan.clearLink])
       await Store.write(entry, { id: entry.id, root })
+    if (mirrorsChanged) await Mirrors.write(nextMirrors, { root })
 
     const touched = [...plan.write, ...plan.clearLink].map((entry) => Store.toPath(entry.id))
+    if (mirrorsChanged) touched.push(Mirrors.file)
     const committed = await (async () => {
       if (!(c.options.commit ?? config.commit)) return false
       await Git.add(touched, { cwd: root })
