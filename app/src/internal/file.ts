@@ -3,6 +3,7 @@ import { Github, Store, Target } from 'frog'
 import type { Octokit } from 'octokit'
 import type * as comment from './comment.js'
 import * as resolvers from './resolvers.js'
+import * as serialization from './serialize.js'
 
 /** What filing a set of entries did. */
 export type Filing = {
@@ -23,7 +24,18 @@ export type Filing = {
  * comments, the other writes the links back. The gates themselves must not differ between them.
  */
 export async function file(options: file.Options): Promise<Filing> {
-  const { actor, client, config, entries, installation, origin, pr, registry } = options
+  const {
+    actor,
+    client,
+    config,
+    delivery,
+    entries,
+    installation,
+    origin,
+    pr,
+    registry,
+    serialize = serialization.direct,
+  } = options
 
   const clients = new Map<string, Octokit | undefined>([[origin, client]])
   const installed = async (repo: string): Promise<Octokit | undefined> => {
@@ -117,38 +129,41 @@ export async function file(options: file.Options): Promise<Filing> {
     const target = clients.get(destination)
     if (!target) continue
 
-    const applied = group.labels?.length ? group.labels : config.labels
-    const matcher = await Github.matcher(target.rest, {
-      label: applied[0] ?? 'friction',
-      repo: destination,
-    })
-    /** Filed during this run, so two entries with one title collapse onto one issue. */
-    const seen = new Map<string, Github.Issue>()
-
-    for (const entry of group.entries) {
-      const hash = Github.hash(entry.title)
-      const existing = seen.get(hash) ?? (await matcher.match(entry.title))
-
-      const result = await Github.publish(target.rest, {
-        entry: entry,
-        labels: Github.toLabels({
-          entry: entry,
-          labels: applied,
-          severityLabels: config.severityLabels,
-        }),
-        // `origin` is where the file lives, which is not the destination when reporting upstream.
-        marker: { hash, origin, path: Store.toPath(entry.id) },
-        provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
+    await serialize(destination, async () => {
+      const applied = group.labels?.length ? group.labels : config.labels
+      const matcher = await Github.matcher(target.rest, {
+        label: applied[0] ?? 'friction',
         repo: destination,
-        ...(existing ? { existing } : {}),
       })
+      /** Filed during this run, so two entries with one title collapse onto one issue. */
+      const seen = new Map<string, Github.Issue>()
 
-      const issue = Github.toLink({ issue: result.issue, repo: destination })
-      links.set(entry.id, issue)
-      ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
+      for (const entry of group.entries) {
+        const hash = Github.hash(entry.title)
+        const existing = seen.get(hash) ?? (await matcher.match(entry.title))
 
-      if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
-    }
+        const result = await Github.publish(target.rest, {
+          entry,
+          labels: Github.toLabels({
+            entry,
+            labels: applied,
+            severityLabels: config.severityLabels,
+          }),
+          // `origin` is where the file lives, which is not the destination when reporting upstream.
+          marker: { hash, origin, path: Store.toPath(entry.id) },
+          provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
+          repo: destination,
+          ...(delivery ? { occurrence: `${delivery}:${entry.id}` } : {}),
+          ...(existing ? { existing } : {}),
+        })
+
+        const issue = Github.toLink({ issue: result.issue, repo: destination })
+        links.set(entry.id, issue)
+        ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
+
+        if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
+      }
+    })
   }
 
   return { commented, created, deferred, links }
@@ -163,6 +178,8 @@ export declare namespace file {
     client: Octokit
     /** Normalized config, read from the default branch. */
     config: Config.Config
+    /** GitHub delivery id used to make each external publish occurrence replay-safe. */
+    delivery?: string | undefined
     /** Entries to resolve and file. Already free of linked ones. */
     entries: readonly Entry.Entry[]
     /** Resolves an installation client for another repository. */
@@ -173,6 +190,8 @@ export declare namespace file {
     pr?: string | undefined
     /** Registry base URL. Overridden in tests. */
     registry?: string | undefined
+    /** Serializes conflicting writes by destination repository. */
+    serialize?: serialization.Serialize | undefined
   }
 }
 

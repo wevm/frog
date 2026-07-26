@@ -133,6 +133,19 @@ describe('renderBody and parseBody', () => {
     `)
   })
 
+  test('behavior: renders a stable replay marker without changing the parsed body', () => {
+    const rendered = Github.renderBody({
+      body: 'Body.',
+      marker: { hash: 'abc123' },
+      occurrence: 'delivery-1:entry-a',
+    })
+
+    expect(rendered).toContain(
+      '<!-- frog:occurrence:v1 1285780025c132555ee8a247a8a04563e822a8aa64727236c8bb42b72f963d60 -->',
+    )
+    expect(Github.parseBody(rendered)).toBe('Body.')
+  })
+
   // The reopen edge of sync rebuilds a file from its issue, so this inverse must hold exactly.
   test.for([
     'Body.',
@@ -326,13 +339,14 @@ describe('find', () => {
       ],
     })
 
-    // Deliberately a title the search would not match, so only the marker can identify it.
+    // Deliberately a different title, so only the marker can identify it.
     const found = await Github.find(client(instance.url), {
       hash: Github.hash(title),
       repo,
       title: 'Anything',
     })
     expect(found?.number).toBe(1)
+    expect(instance.requests).not.toContainEqual({ method: 'GET', path: '/search/issues' })
   })
 
   test('behavior: finds an unlabelled issue whose title normalizes the same', async () => {
@@ -533,5 +547,75 @@ describe('publish', () => {
     }
 
     expect(instance.issues.get(repo)).toHaveLength(1)
+  })
+
+  test('behavior: replay after issue creation does not add a hit-again comment', async () => {
+    const instance = await github({}, { pushAccess: [] })
+    const octokit = client(instance.url)
+    const occurrence = 'delivery-1:entry-a'
+
+    const first = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence,
+      repo,
+    })
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(title)
+    const replayed = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence,
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(first).toEqual({ issue: 1, status: 'created' })
+    expect(replayed).toEqual({ issue: 1, status: 'created' })
+    expect(instance.issues.get(repo)).toHaveLength(1)
+    expect(instance.comments(repo, 1)).toEqual([])
+  })
+
+  test('behavior: replay after commenting does not add the comment twice', async () => {
+    const instance = await github({
+      [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
+    })
+    const octokit = client(instance.url)
+    const existing = (await Github.index(octokit, { label: 'friction', repo })).get(
+      Github.hash(title),
+    )
+    if (!existing) throw new Error('Expected seeded issue.')
+
+    for (let index = 0; index < 100; index++)
+      await octokit.issues.createComment({
+        ...Github.split(repo),
+        body: `Existing comment ${index}.`,
+        issue_number: existing.number,
+      })
+
+    const publish = (occurrence: string) =>
+      Github.publish(octokit, {
+        entry,
+        existing,
+        labels: ['friction'],
+        marker: { hash: Github.hash(title) },
+        occurrence,
+        repo,
+      })
+
+    await expect(publish('delivery-1:entry-a')).resolves.toEqual({
+      issue: 1,
+      status: 'commented',
+    })
+    await expect(publish('delivery-1:entry-a')).resolves.toEqual({
+      issue: 1,
+      status: 'commented',
+    })
+    expect(instance.comments(repo, 1)).toHaveLength(101)
+
+    await publish('delivery-2:entry-a')
+    expect(instance.comments(repo, 1)).toHaveLength(102)
   })
 })

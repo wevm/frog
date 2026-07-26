@@ -3,6 +3,20 @@
   "name": "frog",
   "main": "src/worker.ts",
   "compatibility_date": "2026-07-01",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "COORDINATOR",
+        "class_name": "WebhookCoordinator",
+      },
+    ],
+  },
+  "exports": {
+    "WebhookCoordinator": {
+      "type": "durable-object",
+      "storage": "sqlite",
+    },
+  },
   // Octokit reaches for Node built-ins, and the package layer imports `node:fs` for the offline
   // package lookup the App never takes.
   "compatibility_flags": ["nodejs_compat"],

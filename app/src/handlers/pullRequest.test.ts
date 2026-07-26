@@ -2,6 +2,7 @@ import { Github } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import { marker } from '../internal/comment.js'
+import type { Serialize } from '../internal/serialize.js'
 import { pullRequest } from './pullRequest.js'
 
 const base = 'acme/app'
@@ -27,18 +28,44 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 }
 
 /** Runs the handler against one repository, with no other installation available. */
-async function run(url: string, options: { installed?: Record<string, Octokit> | undefined } = {}) {
+async function run(
+  url: string,
+  options: {
+    delivery?: string | undefined
+    installed?: Record<string, Octokit> | undefined
+    serialize?: Serialize | undefined
+  } = {},
+) {
   const octokit = client(url)
   return pullRequest({
     actor: '@contributor',
     base,
     baseRef: 'main',
     client: octokit,
+    ...(options.delivery ? { delivery: options.delivery } : {}),
     head: 'main',
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
     registry: `${url}/registry`,
+    ...(options.serialize ? { serialize: options.serialize } : {}),
   })
+}
+
+function serial(): Serialize {
+  let tail = Promise.resolve()
+  return async (_repo, operation) => {
+    const previous = tail
+    let release = () => {}
+    tail = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    await previous
+    try {
+      return await operation()
+    } finally {
+      release()
+    }
+  }
 }
 
 test('behavior: files pending entries and comments once', async () => {
@@ -94,6 +121,23 @@ test('behavior: a second run opens no issue and adds no comment', async () => {
 
   expect(second.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 42)).toHaveLength(1)
+})
+
+test('behavior: concurrent deliveries with the same title open one issue', async () => {
+  const instance = await github(
+    {},
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+  const serialize = serial()
+
+  await Promise.all([
+    run(instance.url, { delivery: 'delivery-1', serialize }),
+    run(instance.url, { delivery: 'delivery-2', serialize }),
+  ])
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(1)
   expect(instance.comments(base, 42)).toHaveLength(1)
 })
 

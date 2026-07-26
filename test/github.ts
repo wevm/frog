@@ -277,10 +277,12 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       if (comment && request.method === 'GET') {
         const key = `${comment[1]}/${comment[2]}#${comment[3]}`
         const listed = comments.filter((entry) => entry.key === key)
+        const page = Number(url.searchParams.get('page') ?? '1')
+        const perPage = Number(url.searchParams.get('per_page') ?? '30')
         return json(
           response,
           200,
-          listed.map(({ body, id }) => ({ body, id })),
+          listed.slice((page - 1) * perPage, page * perPage).map(({ body, id }) => ({ body, id })),
         )
       }
 

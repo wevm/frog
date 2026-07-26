@@ -1,4 +1,6 @@
 import { create } from './App.js'
+import { WebhookCoordinator } from './WebhookCoordinator.js'
+import * as serialization from './internal/serialize.js'
 
 /** Bindings the Worker needs, set as secrets. */
 export type Env = {
@@ -8,6 +10,8 @@ export type Env = {
   PRIVATE_KEY: string
   /** Webhook secret, used to verify every delivery. */
   WEBHOOK_SECRET: string
+  /** Persistent delivery claims and repository mutation leases. */
+  COORDINATOR: serialization.Namespace
 }
 
 /**
@@ -23,12 +27,24 @@ function app(env: Env): ReturnType<typeof create> {
 
   const created = create({
     appId: env.APP_ID,
+    coordinator: env.COORDINATOR,
     // Newlines do not survive an environment variable, so they are restored here.
     privateKey: env.PRIVATE_KEY.replace(/\\n/g, '\n'),
     secret: env.WEBHOOK_SECRET,
   })
   apps.set(env.APP_ID, created)
   return created
+}
+
+/** A verified event accepted by Octokit's webhook dispatcher. */
+export type Delivery = Parameters<ReturnType<typeof create>['webhooks']['receive']>[0]
+
+/** Dispatches one verified delivery behind its persistent idempotency claim. */
+export function processDelivery(env: Env, event: Delivery) {
+  return serialization.delivery(env.COORDINATOR, {
+    id: event.id,
+    operation: () => app(env).webhooks.receive(event),
+  })
 }
 
 /**
@@ -47,21 +63,27 @@ export default {
     const signature = request.headers.get('x-hub-signature-256')
     if (!id || !name || !signature) return new Response('Bad Request', { status: 400 })
 
+    const body = await request.text()
+    if (!(await app(env).webhooks.verify(body, signature)))
+      return new Response('Bad Request', { status: 400 })
+
+    let payload: unknown
     try {
-      await app(env).webhooks.verifyAndReceive({
-        id,
-        // The delivered event set is wider than what is registered; unregistered names are ignored.
-        name: name as 'push',
-        payload: await request.text(),
-        signature,
-      })
+      payload = JSON.parse(body)
+    } catch {
+      return new Response('Bad Request', { status: 400 })
+    }
+
+    try {
+      // The signature proves the payload came from GitHub. Octokit validates and routes the event name.
+      const event = { id, name, payload } as Delivery
+      const result = await processDelivery(env, event)
+      return Response.json({ ok: true }, { status: result.status === 'processing' ? 202 : 200 })
     } catch (error) {
-      // GitHub redelivers a failed delivery, and every handler is idempotent, so a 500 is the correct
-      // way to ask for that retry.
       console.error(error)
       return new Response('Internal Server Error', { status: 500 })
     }
-
-    return Response.json({ ok: true })
   },
 }
+
+export { WebhookCoordinator }

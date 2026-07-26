@@ -1,6 +1,7 @@
 import { Github, Mirrors, Store } from 'frog'
 import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
+import type { Serialize } from '../internal/serialize.js'
 import { issues } from './issues.js'
 
 const consumer = 'acme/app'
@@ -47,12 +48,18 @@ describe('same repository', () => {
       { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
     )
     const octokit = client(instance.url)
+    const repositories: string[] = []
+    const serialize: Serialize = async (repo, operation) => {
+      repositories.push(repo)
+      return operation()
+    }
 
     const outcome = await issues({
       client: octokit,
       installation: async () => undefined,
       issue: { body: body(consumer), number: 1, state: 'closed', title },
       repo: consumer,
+      serialize,
     })
 
     expect(outcome.plan?.remove).toEqual(['a'])
@@ -62,6 +69,7 @@ describe('same repository', () => {
       version: 1,
     })
     expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync friction log'])
+    expect(repositories).toEqual([consumer])
   })
 
   test('behavior: closing takes the reproduction with it', async () => {
