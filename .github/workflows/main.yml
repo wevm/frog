@@ -12,6 +12,9 @@ permissions: {}
 jobs:
   verify:
     name: Verify
+    # Granted at the call site: a called workflow may not request more than the calling job holds.
+    permissions:
+      contents: read
     uses: ./.github/workflows/verify.yml
     secrets: inherit
 

@@ -6,6 +6,9 @@ permissions: {}
 jobs:
   build:
     name: Prerelease
+    # pkg-pr-new resolves the run through its public API, which cannot see a private repository. This
+    # turns itself on when the repository goes public.
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
