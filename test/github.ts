@@ -222,6 +222,15 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         return json(response, 200, found)
       }
 
+      if (one && request.method === 'PATCH') {
+        const repo = `${one[1]}/${one[2]}`
+        const found = (issues.get(repo) ?? []).find((issue) => issue.number === Number(one[3]))
+        if (!found) return json(response, 404, { message: 'Not Found' })
+        const payload = await readBody<{ state?: 'closed' | 'open' }>(request)
+        if (payload.state) found.state = payload.state
+        return json(response, 200, found)
+      }
+
       if (list && request.method === 'GET') {
         const repo = `${list[1]}/${list[2]}`
         const label = url.searchParams.get('labels')

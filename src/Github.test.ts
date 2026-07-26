@@ -487,6 +487,34 @@ describe('publish', () => {
     `)
   })
 
+  test('behavior: reopens a closed issue before commenting', async () => {
+    const instance = await github({
+      [repo]: [
+        {
+          body: Github.renderMarker({ hash: Github.hash(title) }),
+          state: 'closed',
+          title: 'Already filed',
+        },
+      ],
+    })
+    const octokit = client(instance.url)
+    const existing = (await Github.index(octokit, { label: 'friction', repo })).get(
+      Github.hash(title),
+    )
+
+    const result = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(result).toEqual({ issue: 1, status: 'commented' })
+    expect(instance.issues.get(repo)?.[0]?.state).toBe('open')
+    expect(instance.comments(repo, 1)).toHaveLength(1)
+  })
+
   test('behavior: publishing twice through the index never duplicates', async () => {
     const instance = await github()
     const octokit = client(instance.url)

@@ -659,6 +659,13 @@ export async function publish(client: Client, options: publish.Options): Promise
   })
 
   if (existing) {
+    if (existing.state !== 'open')
+      await client.issues.update({
+        ...split(repo),
+        issue_number: existing.number,
+        state: 'open',
+      })
+
     const note = [
       'Hit again',
       provenance?.author ? `by ${provenance.author}` : undefined,
