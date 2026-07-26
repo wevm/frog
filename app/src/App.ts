@@ -31,8 +31,9 @@ export function create(options: create.Options): App {
       const client = await app.getInstallationOctokit(found.data.id)
       clients.set(repo, client)
       return client
-    } catch {
-      return undefined
+    } catch (error) {
+      if ((error as { status?: number }).status === 404) return undefined
+      throw error
     }
   }
 

@@ -204,6 +204,29 @@ test('behavior: a repository that accepts nothing is not re-asked', async () => 
   expect(instance.requests.length).toBe(first)
 })
 
+test('behavior: a transient config failure is not cached as rejection', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { viem: '^2.0.0' })
+  await install(cwd, 'viem', { repository: 'https://github.com/wevm/viem' })
+
+  const errors: Record<string, number> = { 'wevm/viem': 503 }
+  const instance = await github(
+    {},
+    {
+      errors,
+      files: { 'wevm/viem': { [Config.file]: config(true) } },
+    },
+  )
+  const cache = await helpers.tmpdir()
+
+  const first = await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+  expect(first.targets).toEqual([])
+
+  delete errors['wevm/viem']
+  const second = await cli.data<Listed>(['targets', '--cwd', cwd], env(instance.url, cache))
+  expect(second.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
+})
+
 test('behavior: one repository behind several packages is asked about once', async () => {
   const cwd = await helpers.repo()
   await declare(cwd, { '@changesets/cli': '^2.0.0', '@changesets/config': '^3.0.0' })

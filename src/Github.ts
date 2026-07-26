@@ -510,8 +510,9 @@ export async function defaultBranch(
   try {
     const response = await client.repos.get(split(options.repo))
     return response.data.default_branch
-  } catch {
-    return undefined
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) return undefined
+    throw error
   }
 }
 

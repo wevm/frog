@@ -299,6 +299,25 @@ describe('permissions', () => {
   })
 })
 
+describe('defaultBranch', () => {
+  test('behavior: returns the default branch', async () => {
+    const instance = await github()
+    expect(await Github.defaultBranch(client(instance.url), { repo })).toBe('main')
+  })
+
+  test('behavior: undefined when the repository does not exist', async () => {
+    const instance = await github({}, { errors: { [repo]: 404 } })
+    expect(await Github.defaultBranch(client(instance.url), { repo })).toBeUndefined()
+  })
+
+  test('error: propagates a transient repository failure', async () => {
+    const instance = await github({}, { errors: { [repo]: 503 } })
+    await expect(Github.defaultBranch(client(instance.url), { repo })).rejects.toMatchObject({
+      status: 503,
+    })
+  })
+})
+
 describe('find', () => {
   test('behavior: finds an unlabelled issue by its marker', async () => {
     const instance = await github({

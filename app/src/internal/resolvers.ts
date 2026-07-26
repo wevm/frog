@@ -25,19 +25,17 @@ export async function fromRegistry(
   const { timeout = 5_000, url = registry } = options
 
   // Only the slash is escaped: the registry expects `@scope%2Fname`, not a fully encoded path.
-  const response = await globalThis
-    .fetch(`${url}/${name.replace('/', '%2F')}/latest`, { signal: AbortSignal.timeout(timeout) })
-    .catch(() => undefined)
-  if (!response?.ok) return undefined
+  const response = await globalThis.fetch(`${url}/${name.replace('/', '%2F')}/latest`, {
+    signal: AbortSignal.timeout(timeout),
+  })
+  if (response.status === 404) return undefined
+  if (!response.ok) throw new Error(`npm registry returned ${response.status} for \`${name}\`.`)
 
-  const document = (await response.json().catch(() => undefined)) as
-    | {
-        bugs?: { url?: string } | string
-        homepage?: string
-        repository?: { url?: string } | string
-      }
-    | undefined
-  if (!document) return undefined
+  const document = (await response.json()) as {
+    bugs?: { url?: string } | string
+    homepage?: string
+    repository?: { url?: string } | string
+  }
 
   const { bugs, homepage, repository } = document
   const candidates = [
@@ -65,9 +63,7 @@ export function resolvers(options: resolvers.Options): Target.resolve.Options {
   return {
     allowedRepos,
     async readConfig(repo) {
-      const contents = await Github.fetchFile(client.rest, { path: Config.file, repo }).catch(
-        () => undefined,
-      )
+      const contents = await Github.fetchFile(client.rest, { path: Config.file, repo })
       if (!contents) return undefined
       try {
         return Config.from(JSON.parse(contents)).inbound

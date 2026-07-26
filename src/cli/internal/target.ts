@@ -63,9 +63,7 @@ export function reader(
     }
 
     const inbound = await (async () => {
-      const contents = await GithubModule.fetchFile(client, { path: Config.file, repo }).catch(
-        () => undefined,
-      )
+      const contents = await GithubModule.fetchFile(client, { path: Config.file, repo })
       if (!contents) return undefined
       try {
         return Config.from(JSON.parse(contents)).inbound
