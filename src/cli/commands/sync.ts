@@ -134,7 +134,10 @@ export const sync = Cli.create('sync', {
     const committed = await (async () => {
       if (!(c.options.commit ?? config.commit)) return false
       await Git.add(touched, { cwd: root })
-      return Git.commit('chore: sync friction log', { cwd: root })
+      return Git.commit('chore: sync friction log', {
+        cwd: root,
+        files: [...removed.map(Store.toDir), ...touched],
+      })
     })()
 
     return c.ok(

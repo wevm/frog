@@ -120,7 +120,7 @@ describe('add, rm, and commit', () => {
     const file = Store.toPath('one')
     await helpers.writeFile(file, entry, cwd)
     await Git.add([file], { cwd })
-    expect(await Git.commit('log friction', { cwd })).toBe(true)
+    expect(await Git.commit('log friction', { cwd, files: [file] })).toBe(true)
     expect(await helpers.git(['show', '--name-only', '--format=%s', 'HEAD'], cwd)).toContain(file)
   })
 
@@ -131,7 +131,7 @@ describe('add, rm, and commit', () => {
     await helpers.commit('log friction', cwd)
 
     await Git.rm([file], { cwd })
-    expect(await Git.commit('resolve friction', { cwd })).toBe(true)
+    expect(await Git.commit('resolve friction', { cwd, files: [file] })).toBe(true)
     expect(await helpers.git(['ls-files'], cwd)).not.toContain(file)
   })
 
@@ -139,7 +139,19 @@ describe('add, rm, and commit', () => {
     const cwd = await helpers.repo()
     await helpers.writeFile('a.txt', 'a', cwd)
     await helpers.commit('add a', cwd)
-    expect(await Git.commit('nothing to do', { cwd })).toBe(false)
+    expect(await Git.commit('nothing to do', { cwd, files: [Store.dir] })).toBe(false)
+  })
+
+  test('behavior: commit preserves unrelated staged changes', async () => {
+    const cwd = await helpers.repo()
+    const file = Store.toPath('one')
+    await helpers.writeFile(file, entry, cwd)
+    await helpers.writeFile('unrelated.txt', 'keep staged', cwd)
+    await Git.add([file, 'unrelated.txt'], { cwd })
+
+    expect(await Git.commit('log friction', { cwd, files: [file] })).toBe(true)
+    expect(await helpers.git(['show', '--name-only', '--format=', 'HEAD'], cwd)).toBe(file)
+    expect(await helpers.git(['diff', '--cached', '--name-only'], cwd)).toBe('unrelated.txt')
   })
 
   test('behavior: add and rm are no-ops for an empty list', async () => {

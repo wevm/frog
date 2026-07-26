@@ -168,7 +168,7 @@ export const publish = Cli.create('publish', {
       if (!(c.options.commit ?? config.commit) || c.options.dryRun || written.length === 0)
         return false
       await Git.add(written, { cwd: root })
-      return Git.commit('chore: link friction log to issues', { cwd: root })
+      return Git.commit('chore: link friction log to issues', { cwd: root, files: written })
     })()
 
     return c.ok(
