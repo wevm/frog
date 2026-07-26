@@ -133,6 +133,26 @@ describe('resolve', () => {
       )
       expect(result.ok === false && result.code).toBe('TARGET_NOT_ACCEPTING')
     })
+
+    test('error: rejects a repository target with extra path segments before lookup', async () => {
+      let looked = false
+      const result = await Target.resolve(
+        'wevm/viem/tree/main',
+        options({
+          allowedRepos: ['wevm/*'],
+          readConfig: async () => {
+            looked = true
+            return { enabled: true }
+          },
+        }),
+      )
+      expect(result).toEqual({
+        code: 'TARGET_UNKNOWN',
+        message: '`wevm/viem/tree/main` is not a repository. Name it as `owner/name`.',
+        ok: false,
+      })
+      expect(looked).toBe(false)
+    })
   })
 
   describe('urls', () => {
