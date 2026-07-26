@@ -4,6 +4,10 @@
   <img alt="frog" src=".github/logo-light.svg" width="100%" height="140px">
 </picture>
 
+<p align="center">
+  Automated friction logging for agents.
+</p>
+
 <br/>
 
 <p align="center">
@@ -24,8 +28,6 @@
 <p align="center">
   <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#quick-prompt">Quick Prompt</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#license">License</a>
 </p>
-
-Automated friction logging for agents.
 
 ## Problem
 
