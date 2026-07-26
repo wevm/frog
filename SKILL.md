@@ -6,9 +6,9 @@ command: frog
 
 # frog
 
-Log friction the moment you hit it. Each entry is a file in `.agents/friction-log/`, filed where it can
-be acted on and deleted once the friction is resolved. So the directory is a live list of what is still
-outstanding, including in dependencies.
+Log friction the moment you hit it. Each entry is a directory in `.agents/friction-log/`, filed where it
+can be acted on and deleted once the friction is resolved. So the directory is a live list of what is
+still outstanding, including in dependencies.
 
 ## When to log
 
@@ -50,15 +50,23 @@ frog log --publish --severity major <<'EOF'
 ## Description
 
 `pnpm test -- src/foo.test.ts` ran all 1,200 tests. The `--` is consumed by pnpm, so the filter never
-reaches Vitest.
+reaches Vitest, and nothing warns.
 
-## Workaround
+## Expectation
 
-`pnpm exec vitest run src/foo.test.ts`
+The filter reaches the runner, as `pnpm test --help` and every other script in the repo imply.
 
-## Suggested fix
+## Steps to reproduce
 
-Document the targeted-test syntax in the script help, or forward arguments past `--`.
+`pnpm test -- src/foo.test.ts` in a fresh checkout.
+
+## Minimal reproducible example
+
+See `artifacts/`.
+
+## Suggestion
+
+Forward arguments past `--`, or document `pnpm exec vitest run <files>` in the script help.
 EOF
 ```
 
@@ -79,6 +87,15 @@ filters` is.
 the context to answer questions. Without a token the entry is still written, and gets filed when the
 work lands.
 
+## Ship the reproduction
+
+`log` writes the entry to `.agents/friction-log/<timestamp>-<title>/friction.md` and returns that path
+along with an `artifacts` one beside it. Anything that reproduces the friction goes in `artifacts/`: a script, a failing
+test, the config that triggers it, a minimal project. Then reference it from the write-up.
+
+Keep it as small as it can be while still failing, and make it runnable as it stands. A reproduction that
+has to be rebuilt from prose usually is not, and then nothing happens to the entry.
+
 ## Reporting upstream
 
 Most friction is not in the code you are editing. It is in the libraries, docs, and services you are
@@ -94,15 +111,15 @@ That lists the dependencies that have declared they accept reports. Then name on
 frog log --target viem --title '`getBalance` rejects a checksummed address'
 ```
 
-A target can also be a repository (`wevm/viem`) or a host (`viem.sh`), which is how a docs site or an
-HTTP API is reported. A target that has not opted in is refused, with the reason.
+A target can also be a repository (`wevm/viem`), which is how you report to a project that is not a
+dependency. A target that has not opted in is refused, with the reason.
 
 **An upstream entry becomes a public issue on someone else's repository.** Write it for a maintainer who
 cannot see your code:
 
 - No internal paths, service names, or repository-specific detail.
 - A reproduction that stands alone, ideally against a fresh project.
-- Nothing you would not put in a public bug report.
+- Nothing you would not put in a public bug report, artifacts included.
 
 ## What a good entry looks like
 
@@ -111,9 +128,11 @@ Name the exact failure, so it is searchable. Say what you did instead. Suggest t
 > `@effect/vitest`'s `layer(...)` merges `TestClock` by default, which stalls the real `@effect/sql-pg`
 > pool timers, so every test dies with "All fibers interrupted without error".
 >
-> **Workaround:** `layer(l, { excludeTestServices: true })` for integration groups against real services.
+> **Expectation:** a layer providing real services keeps real timers.
 >
-> **Suggested fix:** skip `TestClock` when the layer provides real services.
+> **Reproduction:** `artifacts/pool.test.ts`, which fails on `pnpm vitest run`.
+>
+> **Suggestion:** skip `TestClock` when the layer provides real services.
 
 The error string is what makes that useful: the next person hits it and finds this.
 

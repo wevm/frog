@@ -83,7 +83,7 @@ Deployed as a Cloudflare Worker. The endpoint is a Fetch handler, so it needs no
 5. **Run `frog init`** in each repository, so the App has a config and a directory to read.
 
 `nodejs_compat` is enabled because the title hash uses `node:crypto`, and the package layer imports
-`node:fs` for the offline lookup the App never takes. The bundle is around 200 KiB gzipped.
+`node:fs` for the disk reads the App never takes. The bundle is around 200 KiB gzipped.
 
 Run it locally against a real workerd with `pnpm dev`.
 

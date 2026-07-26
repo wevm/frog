@@ -1,4 +1,10 @@
-# frog
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset=".github/logo-light.svg">
+  <img alt="frog" src=".github/logo-light.svg" width="100%" height="140px">
+</picture>
+
+<br/>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/frog">
@@ -16,7 +22,7 @@
 </p>
 
 <p align="center">
-  <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#license">License</a>
+  <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#quick-prompt">Quick Prompt</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#license">License</a>
 </p>
 
 Automated friction logging for agents.
@@ -32,12 +38,21 @@ list goes unread.
 
 ## Solution
 
-frog gives the agent somewhere to put it. Entries are markdown files in `.agents/friction-log/`, committed
-with the code and written the moment friction is hit. The agent reads them before it starts guessing.
+Frog gives the agent somewhere to put it. Each entry is a directory in `.agents/friction-log/` holding the
+write-up and whatever reproduces it, committed with the code and written the moment friction is hit. The
+agent reads them before it starts guessing.
 
 Each entry is then filed as an issue, so somebody owns it, and deleted once that issue closes, so the log
 only ever holds what is still unresolved. Friction in a dependency can be reported to that project instead,
 if it has opted in.
+
+## Quick Prompt
+
+Prompt your agent:
+
+```txt
+Run `npx frog init` and `npx frog skills add`, then log friction as you hit it from now on.
+```
 
 ## Install
 
@@ -61,124 +76,100 @@ frog init
 
 ## Usage
 
-### Log Friction
+### Add Logs
+
+Records one friction as an entry: a directory holding the write-up and anything needed to reproduce it.
+Prompts for the details in a terminal, or takes them as flags.
+
+`--publish` files it as an issue immediately. Otherwise it stays pending until the next `frog publish`.
 
 ```sh
 frog log
 ```
 
-In a terminal that asks for the title and severity, then opens `$EDITOR` for the body. Without a terminal
-there is nothing to prompt, so pipe the entry in instead, shaped like a commit message: first line the
-title, the rest the body.
-
-```sh
-frog log --publish --severity major <<'EOF'
-`pnpm test -- <files>` ignores file filters and runs the whole suite
-
-The `--` is consumed by pnpm, so the filter never reaches Vitest, and it doesn't warn.
-
-Workaround: `pnpm exec vitest run src/foo.test.ts`
-EOF
+```
+.agents/friction-log/20260725143012-pnpm-test-files/
+  friction.md     the write-up
+  artifacts/      optional, whatever reproduces it
 ```
 
-Nothing is quoted that way, so an apostrophe in the body is harmless. `--title` and `--body` still work if
-you would rather pass flags.
+### View Logs
 
-`--publish` files it immediately, so the maintainer sees it while you still have the context to answer
-questions. Without a token the entry is still written, and gets filed when the work lands.
-
-Every issue carries a hidden marker holding a hash of the normalized title, so `Filters ignored` and
-`  FILTERS   ignored!  ` are the same friction. A repeat comments on the existing issue instead of opening
-another, which makes publishing safe to run as often as you like.
-
-### Read What Is Known
+Shows every unresolved entry: what it is, whether it has been filed, where it is targeted, and whether it
+ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as a CI check.
 
 ```sh
 frog list
 ```
 
-Everything still unresolved, including friction in dependencies. It is a plain directory of markdown, so an
-agent can grep it, and there is no index file to fall out of step with what is actually there.
+### Skills and MCP
 
-### Lifecycle
+Teaches agents **when** to log, which is the part they cannot infer. The rule is _log when you worked around
+something_; see [`SKILL.md`](./SKILL.md) for the full trigger.
 
-```
-(no file) ──log──► PENDING ──publish──► OPEN ──issue closed──► (no file)
-                  no issue:            issue: o/r#N            resolved
-```
-
-The file carries an `issue:` link once it is filed, mirrors what happens to that issue, and is deleted once
-the friction is resolved. Reopening rebuilds it, because the issue body _is_ the entry body plus a footer.
-
-Publishing means GitHub issues today. Nothing about the log format assumes that.
-
-### Teach Agents When To Log
+`mcp add` exposes each command as a typed tool, so agents call frog directly rather than composing shell.
 
 ```sh
 frog skills add
 frog mcp add
 ```
 
-The skill carries the part that decides whether any of this happens: **when** to log. The short version is
-_log when you worked around something_. A workaround is the sharpest evidence of friction, and the moment
-you hit it is the only time the exact error text is still in context. See [`SKILL.md`](./SKILL.md) for the
-whole trigger, and for what not to log.
+### Logging Upstream
 
-Every command returns a structured envelope, and nothing an agent needs sits behind a prompt: piped input
-and flags cover the whole surface, so it never has to answer a question it cannot see.
+Files friction against another project instead of your own. A target is an npm package or an `owner/repo`,
+and it has to have opted in: `targets` lists the ones your dependencies declare.
 
-### Report Friction Upstream
-
-Most friction is not in your own code. It is in the libraries, docs, and services you are integrating, and
-it can be reported where it can actually be fixed.
+A package names its repository through the standard `repository` field, and consent is then read from that
+repository's own default branch. So nothing a package says can send a report somewhere that has not itself
+agreed to receive one.
 
 ```sh
-frog targets                     # which dependencies accept reports
-frog log --target viem --title '`getBalance` rejects a checksummed address'
+frog targets
+frog log --target viem
 ```
 
-A project declares itself a target in two places, both derived from one config file: `package.json#frog`,
-which ships in every npm tarball so consent is a filesystem read with no API call, and
-`/.well-known/frog.json`, which covers docs sites, HTTP APIs, and non-npm ecosystems where there is no
-`node_modules` entry to inspect.
+### Accept Inbound Logs
 
-Consent is never taken on trust. A well-known document may only claim a repository that independently
-confirms it, or a compromised site could aim every consumer at somebody else's issue tracker. The sender
-opts in too, from its default branch, so a pull request cannot name its own destination.
-
-### Become A Target
+Marks this repository as accepting friction from the projects that depend on it. One committed file, with
+nothing to publish and no site to serve.
 
 ```sh
-frog init --library     # accept friction from consumers
-frog manifest           # print the well-known document to serve
+frog init --library
 ```
 
-### Automate With The GitHub App
+## CLI Reference
 
-On a `pull_request` from a fork, `GITHUB_TOKEN`'s write permissions are downgraded to read _after_
-job-level `permissions:` resolve, so `issues: write` in a workflow is silently ignored. frog ships a GitHub
-App instead, which authenticates as an installation and is never subject to that clamp. It is also the only
-thing that can react to an issue closing, which is what deletes a resolved entry.
+```
+frog — Automated friction logging for agents.
 
-| Event                    | Behavior                                                               |
-| ------------------------ | ---------------------------------------------------------------------- |
-| `pull_request`           | Files what the pull request introduces. One comment, updated in place. |
-| `push` to default branch | Files anything still pending, and commits the `issue:` links.          |
-| `issues`                 | Reconciles the files mirroring that issue, wherever they live.         |
+Usage: frog <command>
 
-See [`app/README.md`](./app/README.md) for setup.
+Commands:
+  init     Create `.agents/friction-log` and its config.
+  list     List entries with their state.
+  log      Write a friction entry.
+  publish  File pending entries as GitHub issues.
+  sync     Reconcile entries against issue state.
+  targets  List dependencies that accept friction reports.
 
-### Commands
+Integrations:
+  completions  Generate shell completion script
+  mcp          Register as MCP server (add, doctor)
+  skills       Sync skill files to agents (add, list)
 
-| Command    | Purpose                                                              |
-| ---------- | -------------------------------------------------------------------- |
-| `init`     | Set up `.agents/friction-log/`. `--library` makes the repo a target. |
-| `log`      | Write an entry. `--publish` files it immediately.                    |
-| `list`     | Pending, open, and stale entries. Exits 1 on a malformed entry.      |
-| `targets`  | Which dependencies accept friction reports.                          |
-| `manifest` | Print the well-known document.                                       |
-| `publish`  | File pending entries.                                                |
-| `sync`     | Reconcile local files against issue state.                           |
+Global Options:
+  --filter-output <keys>              Filter output by key paths (e.g. foo,bar.baz,a[0,3])
+  --format <toon|json|yaml|md|jsonl>  Output format
+  --full-output                       Show full output envelope
+  --help                              Show help
+  --llms, --llms-full                 Print LLM-readable manifest
+  --mcp                               Start as MCP stdio server
+  --schema                            Show JSON Schema for command
+  --token-count                       Print token count of output (instead of output)
+  --token-limit <n>                   Limit output to n tokens
+  --token-offset <n>                  Skip first n tokens of output
+  --version                           Show version
+```
 
 ## License
 
