@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import { z } from 'incur'
 import { tmpdir, writeFile } from '../test/helpers.js'
 import * as Config from './Config.js'
 
@@ -106,6 +108,19 @@ describe('resolve', () => {
       `[Config.MalformedError: \`.agents/friction-log/config.json\` is not valid JSON.]`,
     )
   })
+})
+
+test('schema.json matches the written config schema', async () => {
+  const committed = JSON.parse(
+    await fs.readFile(new URL('../schema.json', import.meta.url), 'utf8'),
+  ) as unknown
+  const generated = {
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    title: 'frog config',
+    ...z.toJSONSchema(Config.Schema, { io: 'input', target: 'draft-7' }),
+  }
+
+  expect(committed).toEqual(generated)
 })
 
 describe('allows', () => {

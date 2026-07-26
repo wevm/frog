@@ -16,7 +16,9 @@ export type Mirror = {
 
 /** Versioned journal persisted in a repository. */
 export type State = {
+  /** Deleted mirrors available for restoration. */
   mirrors: readonly Mirror[]
+  /** Journal format version. */
   version: 1
 }
 
@@ -112,7 +114,9 @@ export async function write(state: State, options: Store.Options): Promise<void>
 
 /** Thrown when the journal is valid JSON but not a supported recovery state. */
 export class InvalidError extends Error {
+  /** Stable error name. */
   override name = 'Mirrors.InvalidError'
+  /** Machine-readable error code. */
   code = 'INVALID_SYNC_STATE' as const
 
   constructor(detail: string) {
@@ -122,7 +126,9 @@ export class InvalidError extends Error {
 
 /** Thrown when the journal is not parseable JSON. */
 export class MalformedError extends Error {
+  /** Stable error name. */
   override name = 'Mirrors.MalformedError'
+  /** Machine-readable error code. */
   code = 'MALFORMED_SYNC_STATE' as const
 
   constructor(cause: Error) {
