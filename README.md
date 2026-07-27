@@ -50,19 +50,6 @@ if it has opted in.
 
 ## Workflow
 
-```mermaid
-flowchart LR
-    subgraph Agent
-        A[Hit friction] --> B[frog log] --> C[Commit and open PR]
-    end
-    subgraph frog
-        C --> D[/Comment and file the issue/] --> E[/Link it on the branch/]
-    end
-    subgraph Resolve
-        E --> F[Fix and close] --> G[/Open a sync PR/] --> H[Merge, entry gone]
-    end
-```
-
 Every step below happened in [wevm/frog-demo](https://github.com/wevm/frog-demo), a hello-world server
 whose config loader turned a missing environment variable into the string `"undefined"`. Only the three
 merges were human.
