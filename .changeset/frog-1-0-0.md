@@ -1,5 +1,0 @@
----
-'frog': major
----
-
-Initial release
