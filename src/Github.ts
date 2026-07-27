@@ -729,9 +729,10 @@ export async function publish(client: Client, options: publish.Options): Promise
   })
 
   if (existing) {
-    // Only a still-open issue can be answered by a replay. A closed one carries the same markers but
-    // needs reopening first.
-    if (occurrence && existing.state === 'open') {
+    // A replay of a report already made, whatever the issue's state. Reopening here would fight a
+    // maintainer who closed the issue while its entry was still in the log, on every push. A genuine
+    // recurrence carries a new entry id, so its occurrence differs and it falls through to reopen.
+    if (occurrence) {
       const occurrenceMarker = renderOccurrence(occurrence)
       if (existing.body?.includes(occurrenceMarker))
         return { issue: existing.number, status: 'created' }
