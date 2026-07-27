@@ -48,8 +48,31 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     if (!branch) return { ignored: `cannot read \`${origin}\``, origin }
 
     const settings = await config.read(source, { repo: origin })
-    const { entries } = await Repository.read(source, { ref: branch, repo: origin })
-    const remembered = await mirrors.read(source, { ref: branch, repo: origin })
+    const review = settings.pullRequest.enabled
+
+    // Pending state lives on the reconciling branch, so that is what a later event has to plan against: an
+    // issue that closes and then reopens before the review merges must be able to reverse the deletion
+    // already queued there, not plan against a default branch that still has the entry.
+    //
+    // With no review open the branch is the leftover of a merge, and a squash leaves it on a history the
+    // base no longer descends from. Resetting it first is what stops that stale tree deciding the diff.
+    const queued = review
+      ? await Repository.review(source, {
+          base: branch,
+          branch: settings.pullRequest.branch,
+          repo: origin,
+        })
+      : undefined
+    if (review && !queued)
+      await Repository.reset(source, {
+        base: branch,
+        branch: settings.pullRequest.branch,
+        repo: origin,
+      })
+
+    const ref = queued ? settings.pullRequest.branch : branch
+    const { entries } = await Repository.read(source, { ref, repo: origin })
+    const remembered = await mirrors.read(source, { ref, repo: origin })
 
     const bindings: Mirrors.Mirror[] = remembered.mirrors.filter(
       (binding) => Github.parseLink(binding.issue)?.repo === repo,
@@ -117,9 +140,6 @@ export async function issues(options: issues.Options): Promise<Outcome> {
 
     if (Sync.empty(plan) && !mirrorsChanged) return { origin, plan }
 
-    // A protected default branch refuses a direct push, so the reconciliation can go through a pull
-    // request instead: one branch and one pull request, accumulating, rather than one per closure.
-    const review = settings.pullRequest.enabled
     const committed = await Repository.commit(source, {
       branch: review ? settings.pullRequest.branch : branch,
       deletes: mirrorsChanged && nextMirrors.mirrors.length === 0 ? [Mirrors.file] : [],

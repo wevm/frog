@@ -15,6 +15,11 @@ export type Instance = {
   files: (repo: string, branch?: string) => Record<string, string>
   /** Issues by `owner/name`, in creation order. */
   issues: Map<string, Issue[]>
+  /**
+   * Lands a pull request on its base and leaves the branch behind, as a squash merge with no branch
+   * cleanup does.
+   */
+  merge: (repo: string, number: number) => void
   /** Commit messages by `owner/name`, newest last. */
   messages: (repo: string, branch?: string) => readonly string[]
   /** Every request received, for asserting call counts. */
@@ -151,7 +156,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     head: string
     number: number
     repo: string
-    state: 'open'
+    state: 'closed' | 'open'
     title: string
   }[] = []
   const comments: { body: string; id: number; key: string }[] = []
@@ -559,6 +564,23 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       }
       return collected
     },
+    merge(repo, number) {
+      const review = reviews.find((entry) => entry.repo === repo && entry.number === number)
+      if (!review) return
+      review.state = 'closed'
+
+      // The base takes the branch's tree, and the branch ref is left exactly where it was.
+      const head = refs.get(`${repo}#${review.head}`)
+      const commit = commits.get(head ?? '')
+      if (!commit) return
+      const sha = nextSha()
+      commits.set(sha, {
+        message: `Merge pull request #${number}`,
+        parent: refs.get(`${repo}#${review.base}`),
+        tree: commit.tree,
+      })
+      refs.set(`${repo}#${review.base}`, sha)
+    },
     requests,
     reviews(repo) {
       return reviews
@@ -569,7 +591,20 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     write(repo, path, contents, branch = 'main') {
       const sha = blobSha(contents)
       blobs.set(sha, contents)
-      treeOf(repo, branch).set(path, sha)
+
+      // A new tree and a new commit, rather than an edit in place: trees are shared by content here, so
+      // mutating one would silently edit every branch that happens to hold the same tree.
+      const tree = new Map(treeOf(repo, branch))
+      tree.set(path, sha)
+      const treeId = treeSha(tree)
+      trees.set(treeId, tree)
+      const commit = nextSha()
+      commits.set(commit, {
+        message: `write ${path}`,
+        parent: refs.get(`${repo}#${branch}`),
+        tree: treeId,
+      })
+      refs.set(`${repo}#${branch}`, commit)
     },
   }
 }

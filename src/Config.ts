@@ -52,7 +52,9 @@ export const Schema = z.object({
     .int()
     .positive()
     .default(10)
-    .describe('Ceiling on issues filed in a single publish run, so a runaway agent cannot spray.'),
+    .describe(
+      'Ceiling on issues filed in one publish run, or in one webhook delivery. A batch limit rather than a total: a second delivery gets its own allowance, and anything over the ceiling is deferred rather than dropped.',
+    ),
   outbound: z
     .object({
       allowedRepos: z

@@ -21,7 +21,7 @@ function client(url: string): Octokit {
 /** Branch reconciliation lands on, now that a pull request is the default. */
 const synced = 'frog/sync'
 
-function entry(options: { issue?: string; target?: string } = {}): string {
+function entry(options: { issue?: string; target?: string; title?: string } = {}): string {
   const fields = Object.entries({ severity: 'minor', title, ...options })
     .map(([key, value]) => `${key}: '${value}'`)
     .join('\n')
@@ -411,6 +411,78 @@ describe('pullRequest', () => {
     const files = instance.files(consumer, 'frog/sync')
     expect(files[`${dir}/a/friction.md`]).toBeUndefined()
     expect(files[`${dir}/b/friction.md`]).toBeUndefined()
+  })
+
+  // The reopen has to reverse a deletion that is still only queued. Planning against the default branch
+  // would see the entry present and the issue open, decide nothing was needed, and leave the deletion in
+  // the review to be merged against an issue that is open again.
+  test('behavior: a reopen before the merge reverses the queued deletion', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      repo({ [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) }),
+    )
+    const octokit = client(instance.url)
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toBeUndefined()
+
+    const issue = instance.issues.get(consumer)?.[0]
+    if (issue) issue.state = 'open'
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'open', title },
+      repo: consumer,
+    })
+
+    // Back on the branch, so merging the review is a no-op rather than a deletion.
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toContain(title)
+    expect(instance.reviews(consumer)).toHaveLength(1)
+  })
+
+  // A merge that keeps the branch leaves it holding a tree the base has since moved past. Building the
+  // next reconciliation on that stale tree writes a pull request that reverts whatever landed in between.
+  test('behavior: a branch left behind by a merge is reset before reuse', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      repo({ [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) }),
+    )
+    const octokit = client(instance.url)
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    const [review] = instance.reviews(consumer)
+    expect(review).toBeDefined()
+    instance.merge(consumer, review?.number ?? 0)
+
+    // Unrelated work lands on the default branch while the stale branch still exists.
+    instance.write(consumer, `${dir}/b/friction.md`, entry({ title: 'Second friction' }))
+
+    const issue = instance.issues.get(consumer)?.[0]
+    if (issue) issue.state = 'open'
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'open', title },
+      repo: consumer,
+    })
+
+    // Both, because the branch was reset to the default branch before the restore was committed on it.
+    const files = instance.files(consumer, synced)
+    expect(files[`${dir}/a/friction.md`]).toContain(title)
+    expect(files[`${dir}/b/friction.md`]).toContain('Second friction')
   })
 
   test('behavior: opting out commits to the default branch', async () => {
