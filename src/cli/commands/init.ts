@@ -7,10 +7,11 @@ import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 import * as context from '../internal/context.js'
 
-/** The rule to paste into `AGENTS.md`. */
-export const rule =
-  'Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
-  '`frog log`. Run `frog list` first to see what is already known.'
+/** The rules to paste into `AGENTS.md`. */
+export const rules =
+  '- Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
+  '`frog log`.\n- Do not add global, system, or internal friction.\n' +
+  '- Run `frog list` first to see what is already known.'
 
 /** Where to install the GitHub App, which is what makes filing and reconciling automatic. */
 const install = 'https://github.com/apps/frog-fm/installations/new'
@@ -50,9 +51,9 @@ write-up. The next reader runs the reproduction instead of rebuilding it.
 
 ## For Agents
 
-Add this to \`AGENTS.md\`:
+Add this to \`AGENTS.md\` under the appropriate section:
 
-> ${rule}
+${rules}
 
 Managed by [Frog](https://github.com/wevm/frog).
 `
@@ -145,11 +146,10 @@ export const init = Cli.create('init', {
       { created, existing },
       {
         cta: {
-          commands: [
-            { command: 'log', description: 'Write the first entry' },
-            { command: 'skills add', description: 'Install the skill that says when to log' },
-          ],
-          description: `Install the GitHub App at ${install} to file and reconcile automatically, then:`,
+          commands: [{ command: 'log', description: 'Write the first entry' }],
+          description:
+            `Install the GitHub App at ${install} and add this to \`AGENTS.md\` under the appropriate section:\n\n` +
+            `${rules}\n\nThen:`,
         },
       },
     )
