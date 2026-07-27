@@ -53,6 +53,33 @@ test('behavior: records severity, target, and labels', async () => {
   })
 })
 
+// A project that publishes a form has said how it wants friction written. That answer should hold for
+// its own entries too, not only for whoever reports to it.
+test('behavior: scaffolds from this repository own issue form', async () => {
+  const cwd = await helpers.repo()
+  await helpers.writeFile(
+    '.github/ISSUE_TEMPLATE/friction.yml',
+    [
+      'name: Friction',
+      'description: Something cost you time.',
+      'body:',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: What Broke',
+      '      description: The thing that cost you time.',
+    ].join('\n'),
+    cwd,
+  )
+
+  const { id } = await cli.data<Logged>(['log', title, '--cwd', cwd])
+
+  expect((await Store.get(id, { root: cwd })).body).toMatchInlineSnapshot(`
+    "### What Broke
+
+    <!-- The thing that cost you time. -->"
+  `)
+})
+
 test('error: a title is required', async () => {
   const cwd = await helpers.repo()
   expect(await cli.error(['log', '--body', body, '--cwd', cwd])).toMatchInlineSnapshot(`

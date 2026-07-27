@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import * as Config from '../../Config.js'
 import * as Github from '../../Github.js'
 import * as IssueForm from '../../IssueForm.js'
@@ -59,4 +61,27 @@ export declare namespace scaffold {
     /** Explicit token, overriding the environment. */
     token?: string | undefined
   }
+}
+
+/**
+ * Renders the scaffold an entry about this repository should be written against.
+ *
+ * The same discovery as an upstream target, off disk rather than over the API. A project that publishes
+ * a form has already said how it wants friction written, and that answer should not differ depending on
+ * who is doing the writing.
+ *
+ * @param root - Repository root.
+ * @returns The scaffold, or `undefined` when this repository publishes no form.
+ */
+export async function own(root: string): Promise<string | undefined> {
+  const form = await IssueForm.find({
+    list: (at) =>
+      fs
+        .readdir(path.join(root, at))
+        .then((names) => names.map((name) => `${at}/${name}`))
+        .catch(() => []),
+    read: (at) => fs.readFile(path.join(root, at), 'utf8').catch(() => undefined),
+  })
+
+  return form ? IssueForm.scaffold(form) : undefined
 }

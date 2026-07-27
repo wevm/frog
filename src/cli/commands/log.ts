@@ -142,6 +142,10 @@ export const log = Cli.create('log', {
     // An upstream project judges a report against its own issue form, so scaffold from that rather than
     // from frog's sections. Fetched only when the answers would be used, and never fatal: a target that
     // cannot be reached costs the scaffold, not the entry.
+    // This repository's own form when there is no target, so a project that publishes one gets it used
+    // for its own entries too rather than only by whoever reports to it.
+    const own = !body && !c.options.target ? await attempt(form.own(root)) : undefined
+
     const upstream =
       !body && c.options.target
         ? await attempt(
@@ -154,7 +158,8 @@ export const log = Cli.create('log', {
             }),
           )
         : undefined
-    const scaffold = upstream?.ok ? upstream.value : undefined
+    const scaffold =
+      (upstream?.ok ? upstream.value : undefined) ?? (own?.ok ? own.value : undefined)
 
     // A scaffold is the detail this is asking for, one question at a time, so it satisfies the guard.
     // Without a terminal there is otherwise no way to reach a template at all, which would leave the

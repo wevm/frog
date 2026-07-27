@@ -36,7 +36,7 @@ frog list    # what is already known
 frog log     # add one
 \`\`\`
 
-Follow [\`TEMPLATE.md\`](./TEMPLATE.md). Ids are when the friction was hit plus its title, so this
+\`frog log\` writes the sections to fill in. Ids are when the friction was hit plus its title, so this
 directory reads oldest-first and shows at a glance how long something has gone unresolved.
 
 Put anything that reproduces the friction in that entry's \`${Store.artifacts}/\` and reference it from the
@@ -50,16 +50,6 @@ Add this to \`AGENTS.md\`:
 
 Managed by [frog](https://github.com/wevm/frog).
 `
-
-const template = `---
-title: 'One line, specific enough to search for'
-severity: minor # blocker | major | minor
-# target: viem  # an upstream package or owner/repo. Omit for this repository.
-# labels:
-#   - tooling
----
-
-${Entry.template}`
 
 const schema = 'https://unpkg.com/frog/schema.json'
 
@@ -124,7 +114,6 @@ export const init = Cli.create('init', {
 
     const files = [
       [`${Store.dir}/README.md`, readme],
-      [`${Store.dir}/TEMPLATE.md`, template],
       [Config.file, c.options.library ? libraryConfig : config],
       // Only for a project accepting reports: it is what a consumer's frog writes its entry against.
       ...(c.options.library ? ([[`${IssueForm.dir}/${IssueForm.filename}`, form]] as const) : []),
