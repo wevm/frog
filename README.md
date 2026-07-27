@@ -52,22 +52,14 @@ if it has opted in.
 
 ```mermaid
 flowchart LR
-    subgraph Author
-        A[Hit friction] --> B[frog log]
-        B --> C[Commit with the work]
-        C --> D[Open PR]
+    subgraph Agent
+        A[Hit friction] --> B[frog log] --> C[Commit and open PR]
     end
     subgraph frog
-        D --> E{{Comment on the PR}}
-        E --> F[/File the issue/]
-        F --> G[Link it on your branch]
+        C --> D[/Comment and file the issue/] --> E[/Link it on the branch/]
     end
     subgraph Resolve
-        G --> H[Merge]
-        H --> I[Fix it]
-        I --> J[Close the issue]
-        J --> K[/Open a sync PR/]
-        K --> L[Merge, log is clean]
+        E --> F[Fix and close] --> G[/Open a sync PR/] --> H[Merge, entry gone]
     end
 ```
 
