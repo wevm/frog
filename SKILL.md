@@ -129,18 +129,41 @@ cannot see your code:
 
 ## What a good entry looks like
 
-Name the exact failure, so it is searchable. Say what you did instead. Suggest the smallest durable fix.
+The test is whether someone else can act on it without asking you a single question.
 
+Vague, and the kind of thing that gets closed unread:
+
+> ## Current Behavior
+>
+> Tests are flaky with Effect.
+
+Specific, using the headings the template gives you:
+
+> ## Expected Behavior
+>
+> A layer providing real services keeps real timers.
+>
+> ## Current Behavior
+>
 > `@effect/vitest`'s `layer(...)` merges `TestClock` by default, which stalls the real `@effect/sql-pg`
-> pool timers, so every test dies with "All fibers interrupted without error".
+> pool timers. Every test in the group dies with `All fibers interrupted without error`.
 >
-> **Expected:** a layer providing real services keeps real timers.
+> ## Possible Solution
 >
-> **Reproduction:** `artifacts/pool.test.ts`, which fails on `pnpm vitest run`.
+> Skip `TestClock` when the layer provides real services. Happy to open the PR.
 >
-> **Suggestion:** skip `TestClock` when the layer provides real services.
+> ## Minimal Reproducible Example
+>
+> `artifacts/pool.test.ts`. Fails under `pnpm vitest run`, passes with `excludeTestServices: true`.
+>
+> ## Context
+>
+> Every integration suite against a real database was unrunnable, so we disabled them in CI and shipped
+> for two weeks without them.
 
-The error string is what makes that useful: the next person hits it and finds this.
+Three things carry it. The exact error string, so the next person who hits it finds this instead of
+starting over. A reproduction that runs as it stands. And a Context saying what it cost, which is what
+decides whether anyone picks it up.
 
 ## What not to log
 

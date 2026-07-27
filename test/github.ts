@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import http from 'node:http'
 
 /**
@@ -14,12 +15,21 @@ export type Instance = {
   files: (repo: string, branch?: string) => Record<string, string>
   /** Issues by `owner/name`, in creation order. */
   issues: Map<string, Issue[]>
+  /**
+   * Lands a pull request on its base and leaves the branch behind, as a squash merge with no branch
+   * cleanup does.
+   */
+  merge: (repo: string, number: number) => void
   /** Commit messages by `owner/name`, newest last. */
   messages: (repo: string, branch?: string) => readonly string[]
   /** Every request received, for asserting call counts. */
   requests: Request[]
   /** Base URL to hand Octokit. */
   url: string
+  /** Pull requests opened through the API, in creation order. */
+  reviews: (
+    repo: string,
+  ) => readonly { base: string; head: string; number: number; title: string }[]
   /** Replaces a file on a branch, for asserting what happens once an entry is edited. */
   write: (repo: string, path: string, contents: string, branch?: string) => void
 }
@@ -140,6 +150,15 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     )
   }
 
+  /** Pull requests opened through the API, for the reconciling one. */
+  const reviews: {
+    base: string
+    head: string
+    number: number
+    repo: string
+    state: 'closed' | 'open'
+    title: string
+  }[] = []
   const comments: { body: string; id: number; key: string }[] = []
   const requests: Request[] = []
 
@@ -152,20 +171,36 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   let objects = 0
   const nextSha = () => `sha${(objects += 1).toString().padStart(4, '0')}`
 
+  /** Sha of a blob's contents, so rewriting a file with the same bytes changes nothing. */
+  const blobSha = (contents: string) =>
+    `blob${createHash('sha256').update(contents).digest('hex').slice(0, 8)}`
+
+  /** Sha of a tree's contents, so an unchanged tree keeps its identity. */
+  const treeSha = (tree: Map<string, string>) =>
+    `tree${createHash('sha256')
+      .update(
+        [...tree]
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([path, blob]) => `${path}\u0000${blob}`)
+          .join('\u0001'),
+      )
+      .digest('hex')
+      .slice(0, 8)}`
+
   for (const [repo, contents] of Object.entries({
     ...Object.fromEntries(Object.keys(options.head ?? {}).map((repo) => [repo, {}])),
     ...options.files,
   })) {
     const tree = new Map<string, string>()
     for (const [path, body] of Object.entries(contents)) {
-      const sha = nextSha()
+      const sha = blobSha(body)
       blobs.set(sha, body)
       tree.set(path, sha)
     }
-    const treeSha = nextSha()
-    trees.set(treeSha, tree)
+    const initial = treeSha(tree)
+    trees.set(initial, tree)
     const commitSha = nextSha()
-    commits.set(commitSha, { message: 'initial', tree: treeSha })
+    commits.set(commitSha, { message: 'initial', tree: initial })
     refs.set(`${repo}#main`, commitSha)
   }
 
@@ -178,14 +213,14 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   for (const [repo, contents] of Object.entries(options.head ?? {})) {
     const tree = new Map(treeOf(repo, 'main'))
     for (const [path, body] of Object.entries(contents)) {
-      const sha = nextSha()
+      const sha = blobSha(body)
       blobs.set(sha, body)
       tree.set(path, sha)
     }
-    const treeSha = nextSha()
-    trees.set(treeSha, tree)
+    const headTree = treeSha(tree)
+    trees.set(headTree, tree)
     const commitSha = nextSha()
-    commits.set(commitSha, { message: 'head', parent: refs.get(`${repo}#main`), tree: treeSha })
+    commits.set(commitSha, { message: 'head', parent: refs.get(`${repo}#main`), tree: headTree })
     refs.set(`${repo}#head`, commitSha)
   }
 
@@ -213,6 +248,40 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const declared = options.packages?.[name]
         if (declared === undefined) return json(response, 404, { message: 'Not Found' })
         return json(response, 200, { name, repository: `https://github.com/${declared}` })
+      }
+
+      // Pull requests, for the reconciling one the App keeps open.
+      const pullPaths = /^\/repos\/([^/]+)\/([^/]+)\/pulls$/.exec(url.pathname)
+      if (pullPaths) {
+        const name = `${pullPaths[1]}/${pullPaths[2]}`
+        if (request.method === 'GET') {
+          const head = url.searchParams.get('head')
+          const wanted = head?.includes(':') ? head.slice(head.indexOf(':') + 1) : head
+          return json(
+            response,
+            200,
+            reviews.filter(
+              (review) =>
+                review.repo === name &&
+                review.state === 'open' &&
+                (!wanted || review.head === wanted),
+            ),
+          )
+        }
+        if (request.method === 'POST') {
+          const payload = await readBody<{ base?: string; head?: string; title?: string }>(request)
+          const number = nextNumber(name)
+          const review = {
+            base: payload.base ?? 'main',
+            head: payload.head ?? '',
+            number,
+            repo: name,
+            state: 'open' as const,
+            title: payload.title ?? '',
+          }
+          reviews.push(review)
+          return json(response, 201, review)
+        }
       }
 
       // `repos.get`, for whether this token may label issues here.
@@ -382,6 +451,20 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           })
         }
 
+        if (rest === 'refs' && request.method === 'POST') {
+          const payload = await readBody<{ ref?: string; sha?: string }>(request)
+          const created = /^refs\/heads\/(.+)$/.exec(payload.ref ?? '')
+          if (!created?.[1] || !payload.sha)
+            return json(response, 422, { message: 'Unprocessable Entity' })
+          if (refs.has(`${name}#${created[1]}`))
+            return json(response, 422, { message: 'Reference already exists' })
+          refs.set(`${name}#${created[1]}`, payload.sha)
+          return json(response, 201, {
+            object: { sha: payload.sha, type: 'commit' },
+            ref: payload.ref,
+          })
+        }
+
         const readTree = /^trees\/(.+)$/.exec(rest)
         if (readTree && request.method === 'GET') {
           const tree = trees.get(readTree[1] ?? '')
@@ -401,14 +484,12 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
 
         if (rest === 'blobs' && request.method === 'POST') {
           const payload = await readBody<{ content?: string; encoding?: string }>(request)
-          const sha = nextSha()
-          blobs.set(
-            sha,
-            Buffer.from(
-              payload.content ?? '',
-              payload.encoding === 'base64' ? 'base64' : 'utf8',
-            ).toString('utf8'),
-          )
+          const decoded = Buffer.from(
+            payload.content ?? '',
+            payload.encoding === 'base64' ? 'base64' : 'utf8',
+          ).toString('utf8')
+          const sha = blobSha(decoded)
+          blobs.set(sha, decoded)
           return json(response, 201, { sha })
         }
 
@@ -424,7 +505,9 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
             if (entry.sha === null) base.delete(entry.path)
             else if (entry.sha) base.set(entry.path, entry.sha)
           }
-          const sha = nextSha()
+          // Content-addressed, as git is: an identical tree gets an identical sha, which is what lets a
+          // caller notice a commit would change nothing.
+          const sha = treeSha(base)
           trees.set(sha, base)
           return json(response, 201, { sha })
         }
@@ -481,12 +564,47 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       }
       return collected
     },
+    merge(repo, number) {
+      const review = reviews.find((entry) => entry.repo === repo && entry.number === number)
+      if (!review) return
+      review.state = 'closed'
+
+      // The base takes the branch's tree, and the branch ref is left exactly where it was.
+      const head = refs.get(`${repo}#${review.head}`)
+      const commit = commits.get(head ?? '')
+      if (!commit) return
+      const sha = nextSha()
+      commits.set(sha, {
+        message: `Merge pull request #${number}`,
+        parent: refs.get(`${repo}#${review.base}`),
+        tree: commit.tree,
+      })
+      refs.set(`${repo}#${review.base}`, sha)
+    },
     requests,
+    reviews(repo) {
+      return reviews
+        .filter((review) => review.repo === repo)
+        .map(({ base, head, number, title }) => ({ base, head, number, title }))
+    },
     url: `http://127.0.0.1:${address.port}`,
     write(repo, path, contents, branch = 'main') {
-      const sha = nextSha()
+      const sha = blobSha(contents)
       blobs.set(sha, contents)
-      treeOf(repo, branch).set(path, sha)
+
+      // A new tree and a new commit, rather than an edit in place: trees are shared by content here, so
+      // mutating one would silently edit every branch that happens to hold the same tree.
+      const tree = new Map(treeOf(repo, branch))
+      tree.set(path, sha)
+      const treeId = treeSha(tree)
+      trees.set(treeId, tree)
+      const commit = nextSha()
+      commits.set(commit, {
+        message: `write ${path}`,
+        parent: refs.get(`${repo}#${branch}`),
+        tree: treeId,
+      })
+      refs.set(`${repo}#${branch}`, commit)
     },
   }
 }

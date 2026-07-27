@@ -30,7 +30,7 @@ export const publish = Cli.create('publish', {
     commit: z
       .boolean()
       .optional()
-      .describe('Commit the issue links. Defaults to the `commit` config value.'),
+      .describe('Commit the issue links. On by default; pass `--no-commit` to leave them staged.'),
     cwd: context.cwdOption,
     dryRun: z.boolean().optional().describe('Report what would be filed without filing it.'),
     max: z.coerce
@@ -167,8 +167,7 @@ export const publish = Cli.create('publish', {
 
     // One commit, however many destinations were involved.
     const committed = await (async () => {
-      if (!(c.options.commit ?? config.commit) || c.options.dryRun || written.length === 0)
-        return false
+      if (c.options.commit === false || c.options.dryRun || written.length === 0) return false
       await Git.add(written, { cwd: root })
       return Git.commit('chore: link friction log to issues', { cwd: root, files: written })
     })()

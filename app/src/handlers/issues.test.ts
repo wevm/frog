@@ -18,7 +18,10 @@ function client(url: string): Octokit {
   })
 }
 
-function entry(options: { issue?: string; target?: string } = {}): string {
+/** Branch reconciliation lands on, now that a pull request is the default. */
+const synced = 'frog/sync'
+
+function entry(options: { issue?: string; target?: string; title?: string } = {}): string {
   const fields = Object.entries({ severity: 'minor', title, ...options })
     .map(([key, value]) => `${key}: '${value}'`)
     .join('\n')
@@ -63,12 +66,12 @@ describe('same repository', () => {
     })
 
     expect(outcome.plan?.remove).toEqual(['a'])
-    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
-    expect(Mirrors.from(JSON.parse(instance.files(consumer)[Mirrors.file] ?? ''))).toEqual({
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(Mirrors.from(JSON.parse(instance.files(consumer, synced)[Mirrors.file] ?? ''))).toEqual({
       mirrors: [{ issue: `${consumer}#1`, path: Store.toPath('a') }],
       version: 1,
     })
-    expect(instance.messages(consumer)).toEqual(['initial', 'chore: sync friction log'])
+    expect(instance.messages(consumer, synced)).toEqual(['initial', 'chore: sync friction log'])
     expect(repositories).toEqual([consumer])
   })
 
@@ -95,7 +98,9 @@ describe('same repository', () => {
     })
 
     // Nothing under the entry survives, and nothing outside it is touched.
-    expect(Object.keys(instance.files(consumer)).sort()).toEqual([Mirrors.file, 'README.md'].sort())
+    expect(Object.keys(instance.files(consumer, synced)).sort()).toEqual(
+      [Mirrors.file, 'README.md'].sort(),
+    )
   })
 
   test('behavior: a reopened issue rebuilds the entry that was deleted', async () => {
@@ -119,8 +124,8 @@ describe('same repository', () => {
     })
 
     expect(outcome.plan?.write.map((value) => value.id)).toEqual(['a'])
-    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toContain(title)
-    expect(instance.files(consumer)[Mirrors.file]).toBeUndefined()
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toContain(title)
+    expect(instance.files(consumer, synced)[Mirrors.file]).toBeUndefined()
   })
 
   test('behavior: a matching issue and entry need no commit', async () => {
@@ -177,7 +182,7 @@ describe('same repository', () => {
     const second = await issues(event)
 
     expect(second.committed).toBeUndefined()
-    expect(instance.messages(consumer)).toHaveLength(2)
+    expect(instance.messages(consumer, synced)).toHaveLength(2)
   })
 })
 
@@ -205,7 +210,7 @@ describe('cross-repo', () => {
 
     expect(outcome.origin).toBe(consumer)
     expect(outcome.plan?.remove).toEqual(['a'])
-    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toBeUndefined()
   })
 
   // Without an installation on the consumer there is no token to write with.
@@ -273,9 +278,9 @@ test('security: a marker cannot redirect a trusted mirror path', async () => {
   })
 
   expect(outcome.plan?.remove).toEqual(['a'])
-  expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
-  expect(instance.files(consumer)[`${dir}/forged/friction.md`]).toBeUndefined()
-  expect(Mirrors.from(JSON.parse(instance.files(consumer)[Mirrors.file] ?? ''))).toEqual({
+  expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toBeUndefined()
+  expect(instance.files(consumer, synced)[`${dir}/forged/friction.md`]).toBeUndefined()
+  expect(Mirrors.from(JSON.parse(instance.files(consumer, synced)[Mirrors.file] ?? ''))).toEqual({
     mirrors: [{ issue: `${consumer}#1`, path: Store.toPath('a') }],
     version: 1,
   })
@@ -315,4 +320,193 @@ test('behavior: an issue whose marker has no path is ignored', async () => {
   })
 
   expect(outcome.ignored).toBe('no frog marker')
+})
+
+describe('pullRequest', () => {
+  const review = JSON.stringify({ pullRequest: { branch: synced } })
+
+  /** A consumer that reconciles through review rather than by pushing to its default branch. */
+  function repo(entries: Record<string, string>) {
+    return {
+      files: {
+        [consumer]: { [`${dir}/config.json`]: review, ...entries },
+      },
+    }
+  }
+
+  test('behavior: a closed issue opens a pull request and leaves the default branch alone', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      repo({ [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) }),
+    )
+
+    const outcome = await issues({
+      client: client(instance.url),
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    // The entry is gone on the reconciling branch, and still there on the default one.
+    expect(instance.files(consumer, 'frog/sync')[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toContain('issue:')
+    expect(instance.messages(consumer)).toEqual(['initial'])
+
+    expect(outcome.pullRequest).toBeDefined()
+    expect(instance.reviews(consumer)).toEqual([
+      {
+        base: 'main',
+        head: 'frog/sync',
+        number: outcome.pullRequest,
+        title: 'chore: sync friction log',
+      },
+    ])
+  })
+
+  // Three closures, one review. The point of a long-lived branch rather than one per event.
+  test('behavior: a second closure accumulates on the same pull request', async () => {
+    const instance = await github(
+      {
+        [consumer]: [
+          { body: body(consumer, 'a'), state: 'closed', title },
+          // Still open, so the first reconciliation has no reason to touch its entry.
+          { body: body(consumer, 'b'), state: 'open', title },
+        ],
+      },
+      repo({
+        [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }),
+        [`${dir}/b/friction.md`]: entry({ issue: `${consumer}#2` }),
+      }),
+    )
+    const octokit = client(instance.url)
+
+    const first = await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+    // The second issue closes later, which is the case one long-lived branch exists to handle.
+    const issue = instance.issues.get(consumer)?.[1]
+    if (issue) issue.state = 'closed'
+
+    const second = await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer, 'b'), number: 2, state: 'closed', title },
+      repo: consumer,
+    })
+
+    expect(second.pullRequest).toBe(first.pullRequest)
+    expect(instance.reviews(consumer)).toHaveLength(1)
+    // Two closures, two commits, one branch. Rebuilding from the default branch each time would lose
+    // the first deletion instead of stacking on it.
+    expect(instance.messages(consumer, 'frog/sync')).toEqual([
+      'initial',
+      'chore: sync friction log',
+      'chore: sync friction log',
+    ])
+
+    // Both deletions on the one branch.
+    const files = instance.files(consumer, 'frog/sync')
+    expect(files[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(files[`${dir}/b/friction.md`]).toBeUndefined()
+  })
+
+  // The reopen has to reverse a deletion that is still only queued. Planning against the default branch
+  // would see the entry present and the issue open, decide nothing was needed, and leave the deletion in
+  // the review to be merged against an issue that is open again.
+  test('behavior: a reopen before the merge reverses the queued deletion', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      repo({ [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) }),
+    )
+    const octokit = client(instance.url)
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toBeUndefined()
+
+    const issue = instance.issues.get(consumer)?.[0]
+    if (issue) issue.state = 'open'
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'open', title },
+      repo: consumer,
+    })
+
+    // Back on the branch, so merging the review is a no-op rather than a deletion.
+    expect(instance.files(consumer, synced)[`${dir}/a/friction.md`]).toContain(title)
+    expect(instance.reviews(consumer)).toHaveLength(1)
+  })
+
+  // A merge that keeps the branch leaves it holding a tree the base has since moved past. Building the
+  // next reconciliation on that stale tree writes a pull request that reverts whatever landed in between.
+  test('behavior: a branch left behind by a merge is reset before reuse', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      repo({ [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) }),
+    )
+    const octokit = client(instance.url)
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    const [review] = instance.reviews(consumer)
+    expect(review).toBeDefined()
+    instance.merge(consumer, review?.number ?? 0)
+
+    // Unrelated work lands on the default branch while the stale branch still exists.
+    instance.write(consumer, `${dir}/b/friction.md`, entry({ title: 'Second friction' }))
+
+    const issue = instance.issues.get(consumer)?.[0]
+    if (issue) issue.state = 'open'
+
+    await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'open', title },
+      repo: consumer,
+    })
+
+    // Both, because the branch was reset to the default branch before the restore was committed on it.
+    const files = instance.files(consumer, synced)
+    expect(files[`${dir}/a/friction.md`]).toContain(title)
+    expect(files[`${dir}/b/friction.md`]).toContain('Second friction')
+  })
+
+  test('behavior: opting out commits to the default branch', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      {
+        files: {
+          [consumer]: {
+            [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }),
+            [`${dir}/config.json`]: JSON.stringify({ pullRequest: false }),
+          },
+        },
+      },
+    )
+
+    const outcome = await issues({
+      client: client(instance.url),
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    expect(outcome.pullRequest).toBeUndefined()
+    expect(instance.reviews(consumer)).toEqual([])
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
+  })
 })

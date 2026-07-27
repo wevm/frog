@@ -17,7 +17,7 @@ friction is resolved. A workflow cannot observe that at all on another repositor
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pull_request` opened, reopened, synchronize | Files the entries the pull request adds or edits, comparing its head against its base. Posts or updates one comment, and none at all when it changes no entry. Writes nothing to the branch. |
 | `push` to the default branch                 | Files anything still pending and commits the `issue:` links.                                                                                                                                 |
-| `issues` closed, reopened, edited            | Reconciles the files mirroring that issue, in whichever repository holds them.                                                                                                               |
+| `issues` closed, reopened, edited            | Reconciles the files mirroring that issue, in whichever repository holds them, through one accumulating pull request. Set `pullRequest: false` to commit to the default branch instead.      |
 
 The head commit is read from the **base** repository, which GitHub makes it reachable from. That is what
 lets a fork's entries be read without the installation having any access to the fork.

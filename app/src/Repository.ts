@@ -85,8 +85,24 @@ export async function commit(
 
   const { owner, repo: name } = Github.split(repo)
 
-  const reference = await client.rest.git.getRef({ owner, ref: `heads/${branch}`, repo: name })
-  const head = reference.data.object.sha
+  // The reconciling branch may not exist yet, and is created from `base` when it does not. Committing on
+  // top of it when it does is what lets one pull request accumulate several closures.
+  const reference = await client.rest.git
+    .getRef({ owner, ref: `heads/${branch}`, repo: name })
+    .catch((error: { status?: number }) => {
+      if (error.status !== 404 || !options.base) throw error
+      return undefined
+    })
+
+  const head =
+    reference?.data.object.sha ??
+    (
+      await client.rest.git.getRef({
+        owner,
+        ref: `heads/${options.base as string}`,
+        repo: name,
+      })
+    ).data.object.sha
   const parent = await client.rest.git.getCommit({ commit_sha: head, owner, repo: name })
 
   // A directory has to be expanded into its blobs: the API deletes paths, not trees. Read from the base
@@ -141,6 +157,10 @@ export async function commit(
     ],
   })
 
+  // Nothing to say. A plan that plans against a ref other than the one it commits to, or a redelivery
+  // reaching here at all, would otherwise stack an empty commit per delivery.
+  if (tree.data.sha === parent.data.tree.sha) return undefined
+
   const created = await client.rest.git.createCommit({
     message,
     owner,
@@ -149,12 +169,20 @@ export async function commit(
     tree: tree.data.sha,
   })
 
-  await client.rest.git.updateRef({
-    owner,
-    ref: `heads/${branch}`,
-    repo: name,
-    sha: created.data.sha,
-  })
+  if (reference)
+    await client.rest.git.updateRef({
+      owner,
+      ref: `heads/${branch}`,
+      repo: name,
+      sha: created.data.sha,
+    })
+  else
+    await client.rest.git.createRef({
+      owner,
+      ref: `refs/heads/${branch}`,
+      repo: name,
+      sha: created.data.sha,
+    })
 
   return created.data.sha
 }
@@ -164,6 +192,8 @@ export declare namespace commit {
   type Options = {
     /** Branch to commit on, without a `refs/heads/` prefix. */
     branch: string
+    /** Branch to create `branch` from when it does not exist yet. Absent requires it to exist. */
+    base?: string | undefined
     /** Repository-relative paths to delete. */
     deletes?: readonly string[] | undefined
     /** Repository-relative directories to delete, expanded to every file beneath them. */
@@ -174,5 +204,122 @@ export declare namespace commit {
     repo: string
     /** Files to write, replacing any existing contents. */
     writes?: readonly { contents: string; path: string }[] | undefined
+  }
+}
+
+/**
+ * Number of the reconciling pull request, when one is open.
+ *
+ * Asked before committing, because the answer decides whether the branch carries pending state worth
+ * building on or is the leftover of a merge.
+ *
+ * @param client - Installation client for the repository.
+ * @returns The number, or `undefined` when nothing is open.
+ */
+export async function review(
+  client: Octokit,
+  options: review.Options,
+): Promise<number | undefined> {
+  const { base, branch, repo } = options
+  const { owner, repo: name } = Github.split(repo)
+
+  const open = await client.rest.pulls.list({
+    base,
+    head: `${owner}:${branch}`,
+    owner,
+    repo: name,
+    state: 'open',
+  })
+  return open.data[0]?.number
+}
+
+export declare namespace review {
+  /** Options for {@link review}. */
+  type Options = {
+    /** Branch the pull request merges into. */
+    base: string
+    /** Branch the reconciling commits land on. */
+    branch: string
+    /** Repository holding both, as `owner/name`. */
+    repo: string
+  }
+}
+
+/**
+ * Points a branch back at its base, discarding whatever it held.
+ *
+ * A squash merge leaves the branch behind with a history that is no longer an ancestor of the base, so a
+ * later commit on it is diffed from a merge base that predates the merge. Restoring an entry there
+ * produces no diff at all, and the restoration is silently lost. Resetting first is what keeps a retained
+ * branch from poisoning the next reconciliation.
+ *
+ * @param client - Installation client for the repository.
+ * @returns Whether a branch was there to reset.
+ */
+export async function reset(client: Octokit, options: review.Options): Promise<boolean> {
+  const { base, branch, repo } = options
+  const { owner, repo: name } = Github.split(repo)
+
+  const target = await client.rest.git
+    .getRef({ owner, ref: `heads/${branch}`, repo: name })
+    .catch((error: { status?: number }) => {
+      if (error.status === 404) return undefined
+      throw error
+    })
+  if (!target) return false
+
+  const source = await client.rest.git.getRef({ owner, ref: `heads/${base}`, repo: name })
+  if (target.data.object.sha === source.data.object.sha) return true
+
+  await client.rest.git.updateRef({
+    force: true,
+    owner,
+    ref: `heads/${branch}`,
+    repo: name,
+    sha: source.data.object.sha,
+  })
+  return true
+}
+
+/**
+ * Opens the reconciling pull request, or finds the one already open.
+ *
+ * One long-lived branch and one pull request, updated in place, so closing three issues produces one
+ * review rather than three. The same shape the changesets bot uses for its version pull request.
+ *
+ * @param client - Installation client for the repository.
+ * @returns The pull request number.
+ */
+export async function upsert(client: Octokit, options: upsert.Options): Promise<number> {
+  const { base, branch, repo, title } = options
+  const { owner, repo: name } = Github.split(repo)
+
+  const existing = await review(client, { base, branch, repo })
+  if (existing) return existing
+
+  const created = await client.rest.pulls.create({
+    base,
+    body: options.body,
+    head: branch,
+    owner,
+    repo: name,
+    title,
+  })
+  return created.data.number
+}
+
+export declare namespace upsert {
+  /** Options for {@link upsert}. */
+  type Options = {
+    /** Branch the pull request merges into. */
+    base: string
+    /** Branch the reconciling commits land on. */
+    branch: string
+    /** Description, used only when opening. */
+    body: string
+    /** Repository holding both branches, as `owner/name`. */
+    repo: string
+    /** Title, used only when opening. */
+    title: string
   }
 }

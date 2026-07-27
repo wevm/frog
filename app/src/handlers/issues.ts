@@ -15,6 +15,8 @@ export type Outcome = {
   origin?: string | undefined
   /** The plan that was applied. */
   plan?: Sync.Plan | undefined
+  /** Pull request carrying the reconciliation, when `pullRequest` is on. */
+  pullRequest?: number | undefined
 }
 
 /**
@@ -46,8 +48,31 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     if (!branch) return { ignored: `cannot read \`${origin}\``, origin }
 
     const settings = await config.read(source, { repo: origin })
-    const { entries } = await Repository.read(source, { ref: branch, repo: origin })
-    const remembered = await mirrors.read(source, { ref: branch, repo: origin })
+    const review = settings.pullRequest.enabled
+
+    // Pending state lives on the reconciling branch, so that is what a later event has to plan against: an
+    // issue that closes and then reopens before the review merges must be able to reverse the deletion
+    // already queued there, not plan against a default branch that still has the entry.
+    //
+    // With no review open the branch is the leftover of a merge, and a squash leaves it on a history the
+    // base no longer descends from. Resetting it first is what stops that stale tree deciding the diff.
+    const queued = review
+      ? await Repository.review(source, {
+          base: branch,
+          branch: settings.pullRequest.branch,
+          repo: origin,
+        })
+      : undefined
+    if (review && !queued)
+      await Repository.reset(source, {
+        base: branch,
+        branch: settings.pullRequest.branch,
+        repo: origin,
+      })
+
+    const ref = queued ? settings.pullRequest.branch : branch
+    const { entries } = await Repository.read(source, { ref, repo: origin })
+    const remembered = await mirrors.read(source, { ref, repo: origin })
 
     const bindings: Mirrors.Mirror[] = remembered.mirrors.filter(
       (binding) => Github.parseLink(binding.issue)?.repo === repo,
@@ -116,11 +141,12 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     if (Sync.empty(plan) && !mirrorsChanged) return { origin, plan }
 
     const committed = await Repository.commit(source, {
-      branch,
+      branch: review ? settings.pullRequest.branch : branch,
       deletes: mirrorsChanged && nextMirrors.mirrors.length === 0 ? [Mirrors.file] : [],
       directories: plan.remove.map(Store.toDir),
       message: 'chore: sync friction log',
       repo: origin,
+      ...(review ? { base: branch } : {}),
       writes: [
         ...[...plan.write, ...plan.clearLink].map((entry) => ({
           contents: Entry.serialize(entry),
@@ -132,7 +158,25 @@ export async function issues(options: issues.Options): Promise<Outcome> {
       ],
     })
 
-    return { origin, plan, ...(committed ? { committed } : {}) }
+    const pullRequest =
+      review && committed
+        ? await Repository.upsert(source, {
+            base: branch,
+            body:
+              'Entries whose issues have closed, and entries restored because an issue reopened.\n\n' +
+              'Merging keeps the friction log true. Until then it lists friction that is already resolved.',
+            branch: settings.pullRequest.branch,
+            repo: origin,
+            title: 'chore: sync friction log',
+          })
+        : undefined
+
+    return {
+      origin,
+      plan,
+      ...(committed ? { committed } : {}),
+      ...(pullRequest ? { pullRequest } : {}),
+    }
   })
 }
 
