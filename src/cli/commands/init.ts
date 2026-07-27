@@ -12,6 +12,9 @@ export const rule =
   'Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
   '`frog log`. Run `frog list` first to see what is already known.'
 
+/** Where to install the GitHub App. Nothing is filed or reconciled until it is installed. */
+const install = 'https://github.com/apps/frog-fm/installations/new'
+
 const readme = `# Friction log
 
 Friction hit while working in this repository, one directory per item:
@@ -27,6 +30,9 @@ to it. The whole directory is deleted once the friction is resolved. Every entry
 outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index.
+
+Filing needs the [frog GitHub App](${install}) installed on this repository. Until it is, entries are
+written and committed as normal but nothing is filed or reconciled.
 
 ## Logging Friction
 
@@ -107,6 +113,11 @@ export const init = Cli.create('init', {
   output: z.object({
     created: z.array(z.string()).describe('Files written.'),
     existing: z.array(z.string()).describe('Files left alone.'),
+    install: z
+      .string()
+      .describe(
+        'Install the GitHub App here. Entries stay local until it is installed on this repository.',
+      ),
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
@@ -135,7 +146,7 @@ export const init = Cli.create('init', {
     }
 
     return c.ok(
-      { created, existing },
+      { created, existing, install },
       {
         cta: {
           commands: [

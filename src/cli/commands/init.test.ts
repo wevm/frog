@@ -16,6 +16,7 @@ test('behavior: scaffolds the directory', async () => {
         ".agents/friction-log/config.json",
       ],
       "existing": [],
+      "install": "https://github.com/apps/frog-fm/installations/new",
     }
   `)
 
