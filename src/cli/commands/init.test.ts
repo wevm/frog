@@ -19,11 +19,27 @@ test('behavior: scaffolds the directory', async () => {
     }
   `)
 
-  // Nothing is filed until the App is installed, and the failure is silent, so the one place a user
-  // is certain to look has to say so.
+  // Nothing is filed until the App is installed, and agents need the rule to log future friction.
   const { envelope } = await cli.run(['init', '--cwd', await helpers.repo()])
-  const cta = envelope.meta?.['cta'] as { description?: string } | undefined
-  expect(cta?.description).toContain('https://github.com/apps/frog-fm/installations/new')
+  const cta = envelope.meta?.['cta'] as
+    | {
+        commands?: { command?: string; description?: string }[]
+        description?: string
+      }
+    | undefined
+  expect(cta?.description).toMatchInlineSnapshot(`
+    "Install the GitHub App at https://github.com/apps/frog-fm/installations/new and add this to \`AGENTS.md\` under the appropriate section:
+
+    - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`frog log\`.
+    - Do not add global, system, or internal friction.
+    - Run \`frog list\` first to see what is already known.
+
+    Then:"
+  `)
+  expect(cta?.commands?.[0]).toEqual({
+    command: 'frog log',
+    description: 'Write the first entry',
+  })
 
   // The scaffolded config must validate against the schema it advertises.
   expect(await Config.resolve({ root: cwd })).toEqual(Config.from({}))

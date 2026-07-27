@@ -69,7 +69,7 @@ health endpoint hit a config loader that turns a missing environment variable in
 Prompt your agent:
 
 ```txt
-Run `npx frog init` and `npx frog skills add`, then log friction as you hit it from now on.
+Run `npx frog init`, and set up Frog in this project.
 ```
 
 ## Install
