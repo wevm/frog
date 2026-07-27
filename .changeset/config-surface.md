@@ -1,5 +1,0 @@
----
-'frog': patch
----
-
-Updated config.

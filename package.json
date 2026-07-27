@@ -24,7 +24,7 @@
   "[!start-pkg]": "",
   "name": "frog",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "description": "Automated friction logging for agents.",
   "repository": {
