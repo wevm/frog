@@ -1,3 +1,4 @@
+import type { Entry } from 'frog'
 import type { Octokit } from 'octokit'
 import * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
@@ -32,8 +33,16 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   } = options
 
   const settings = await config.read(client, { ref: baseRef, repo: base })
-  const { entries, malformed } = await Repository.read(client, { ref: head, repo: base })
-  const { linked, pending } = filing.partition(entries)
+  const contents = await Repository.read(client, { ref: head, repo: base })
+
+  // Only what this pull request actually changed. Reading the head alone would report every entry the
+  // base branch already carries, and file issues for any of them still unpublished, crediting them to
+  // whoever happened to open an unrelated pull request.
+  const before = await Repository.read(client, { ref: baseRef, repo: base })
+  const changed = introduced(contents.entries, before.entries)
+
+  const malformed = contents.malformed
+  const { linked, pending } = filing.partition(changed)
 
   const filed = await filing.file({
     client,
@@ -59,6 +68,18 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   if (body) await serialize(base, () => comment.upsert(client, { body, pr, repo: base }))
 
   return report
+}
+
+/** Entries a pull request adds or edits, by comparing its head against the branch it targets. */
+function introduced(
+  head: readonly Entry.Entry[],
+  base: readonly Entry.Entry[],
+): readonly Entry.Entry[] {
+  const existing = new Map(base.map((entry) => [entry.id, entry]))
+  return head.filter((entry) => {
+    const previous = existing.get(entry.id)
+    return !previous || previous.body !== entry.body || previous.title !== entry.title
+  })
 }
 
 export declare namespace pullRequest {

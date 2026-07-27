@@ -83,6 +83,13 @@ export type Options = {
    */
   files?: Record<string, Record<string, string>> | undefined
   /**
+   * Contents of a pull request head, as `{ 'owner/name': { path: contents } }`.
+   *
+   * Seeded on a `head` branch so a test can express what a pull request changes, which is what separates
+   * the entries it introduces from the ones its base branch already carries.
+   */
+  head?: Record<string, Record<string, string>> | undefined
+  /**
    * Repository each npm package declares, served at `/registry/<name>/latest`, keyed by package name.
    *
    * The App has no `node_modules`, so it resolves a package to its repository through the registry.
@@ -145,7 +152,10 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   let objects = 0
   const nextSha = () => `sha${(objects += 1).toString().padStart(4, '0')}`
 
-  for (const [repo, contents] of Object.entries(options.files ?? {})) {
+  for (const [repo, contents] of Object.entries({
+    ...Object.fromEntries(Object.keys(options.head ?? {}).map((repo) => [repo, {}])),
+    ...options.files,
+  })) {
     const tree = new Map<string, string>()
     for (const [path, body] of Object.entries(contents)) {
       const sha = nextSha()
@@ -163,6 +173,20 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   const treeOf = (repo: string, branch: string) => {
     const commit = commits.get(refs.get(`${repo}#${branch}`) ?? '')
     return trees.get(commit?.tree ?? '') ?? new Map<string, string>()
+  }
+
+  for (const [repo, contents] of Object.entries(options.head ?? {})) {
+    const tree = new Map(treeOf(repo, 'main'))
+    for (const [path, body] of Object.entries(contents)) {
+      const sha = nextSha()
+      blobs.set(sha, body)
+      tree.set(path, sha)
+    }
+    const treeSha = nextSha()
+    trees.set(treeSha, tree)
+    const commitSha = nextSha()
+    commits.set(commitSha, { message: 'head', parent: refs.get(`${repo}#main`), tree: treeSha })
+    refs.set(`${repo}#head`, commitSha)
   }
 
   const server = http.createServer((request, response) => {
