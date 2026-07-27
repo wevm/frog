@@ -52,7 +52,7 @@ if it has opted in.
 
 See a demonstration in [wevm/frog-demo](https://github.com/wevm/frog-demo), where an agent adding a
 health endpoint hit a config loader that turns a missing environment variable into the string
-`"undefined"`, and logged it on the way past. Only the three merges were human.
+`"undefined"`, and logged it on the way past.
 
 | Step | What happens | Example |
 | --- | --- | --- |
@@ -63,9 +63,6 @@ health endpoint hit a config loader that turns a missing environment variable in
 | 5 | You fix the friction and close the issue | [#3](https://github.com/wevm/frog-demo/pull/3) |
 | 6 | frog opens a pull request deleting the resolved entry | [#4](https://github.com/wevm/frog-demo/pull/4) |
 | 7 | Merging leaves the log holding only what is still unresolved | [`e4ac13d`](https://github.com/wevm/frog-demo/commit/e4ac13d) |
-
-The pull request at step 3 was about the feature, not the friction. The entry travelled with it because
-that is when the friction was hit.
 
 ## Quick Prompt
 
