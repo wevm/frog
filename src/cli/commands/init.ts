@@ -113,11 +113,6 @@ export const init = Cli.create('init', {
   output: z.object({
     created: z.array(z.string()).describe('Files written.'),
     existing: z.array(z.string()).describe('Files left alone.'),
-    install: z
-      .string()
-      .describe(
-        'Install the GitHub App here. Entries stay local until it is installed on this repository.',
-      ),
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
@@ -146,14 +141,14 @@ export const init = Cli.create('init', {
     }
 
     return c.ok(
-      { created, existing, install },
+      { created, existing },
       {
         cta: {
           commands: [
             { command: 'log', description: 'Write the first entry' },
             { command: 'skills add', description: 'Install the skill that says when to log' },
           ],
-          description: 'Next:',
+          description: `Install the GitHub App at ${install} so entries are filed, then:`,
         },
       },
     )
