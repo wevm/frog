@@ -21,6 +21,3 @@ catalog:
 allowBuilds:
   esbuild: true
   workerd: true
-
-minimumReleaseAgeExclude:
-  - incur@0.4.20
