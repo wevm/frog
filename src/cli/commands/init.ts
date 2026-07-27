@@ -16,19 +16,7 @@ export const rules =
 /** Where to install the GitHub App, which is what makes filing and reconciling automatic. */
 const install = 'https://github.com/apps/frog-fm/installations/new'
 
-const appAutomation = `Install the [Frog GitHub App](${install}) and entries are reported, linked, and removed as their issues
-close, without anyone running anything. Without it, run \`frog publish\` and \`frog sync\` yourself with a
-GitHub token.`
-
-const actionAutomation = `The workflow at \`.github/workflows/frog.yml\` reports, links, and removes entries with this
-repository's \`GITHUB_TOKEN\`. It handles same-repository friction only; install the
-[Frog GitHub App](${install}) for cross-repository reporting and pull-request comments. Before the
-first run, enable "Allow GitHub Actions to create and approve pull requests" under Settings > Actions >
-General. Pull-request checks need a write user to approve each action-created run.`
-
-const automationComparison = `## GitHub App or Action-only?
-
-Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
+const automationComparison = `Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
 processing. Choose **Action-only** when same-repository automation and avoiding an external write grant
 matter most. Running both is safe but redundant because they share occurrence keys.
 
@@ -43,7 +31,7 @@ matter most. Running both is safe but redundant because they share occurrence ke
 | Setup | Needs the App installed with its requested repository permissions. | Needs workflow write permissions and Actions-created pull requests enabled. |
 | Operations | Requires the Worker, queues, secrets, and App installation. | Uses Actions minutes and installs Frog from npm; no service to run. |`
 
-function readme(options: { action: boolean }): string {
+function readme(): string {
   return `# Friction log
 
 Friction hit while working in this repository, one directory per item:
@@ -60,9 +48,28 @@ outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index.
 
-${options.action ? actionAutomation : appAutomation}
+## Choose Automation
+
+Prompt the user to choose one automation method. Do not install the App or add a workflow before they
+answer.
 
 ${automationComparison}
+
+### GitHub App
+
+Install the [Frog GitHub App](${install}) and entries are reported, linked, and removed as their issues
+close, without anyone running anything.
+
+### Action-only
+
+Create \`.github/workflows/frog.yml\`:
+
+\`\`\`yaml
+${workflow}\`\`\`
+
+The workflow uses this repository's \`GITHUB_TOKEN\` and handles same-repository friction only. Before
+the first run, enable "Allow GitHub Actions to create and approve pull requests" under Settings >
+Actions > General. Pull-request checks need a write user to approve each action-created run.
 
 ## Logging Friction
 
@@ -94,7 +101,7 @@ on:
     types: [closed, reopened]
   workflow_dispatch:
   schedule:
-    - cron: '17 3 * * *'
+    - cron: '0 0 * * *'
 
 concurrency:
   group: frog
@@ -119,7 +126,7 @@ jobs:
           persist-credentials: false
           ref: \${{ github.event.repository.default_branch }}
 
-      - name: File and reconcile friction
+      - name: Report and reconcile friction
         uses: wevm/frog/action@v1
 `
 
@@ -167,10 +174,6 @@ ${Entry.sections
 export const init = Cli.create('init', {
   description: 'Create `.agents/friction-log` and its config.',
   options: z.object({
-    action: z
-      .boolean()
-      .optional()
-      .describe('Add a workflow that files and reconciles same-repository friction.'),
     cwd: context.cwdOption,
     library: z
       .boolean()
@@ -179,7 +182,6 @@ export const init = Cli.create('init', {
   }),
   examples: [
     { description: 'Set up Frog' },
-    { description: 'Use the action', options: { action: true } },
     { description: 'Become a friction target', options: { library: true } },
   ],
   output: z.object({
@@ -190,16 +192,13 @@ export const init = Cli.create('init', {
     const { root } = await context.resolve({ cwd: c.options.cwd })
 
     const files = [
-      [`${Store.dir}/README.md`, readme({ action: c.options.action === true })],
+      [`${Store.dir}/README.md`, readme()],
       [Config.file, c.options.library ? libraryConfig : config],
-      ...(c.options.action ? ([['.github/workflows/frog.yml', workflow]] as const) : ([] as const)),
       // Only for a project accepting reports: a consumer's Frog writes its entry against it.
       ...(c.options.library ? ([[`${IssueForm.dir}/${IssueForm.filename}`, form]] as const) : []),
     ] as const
 
     await fs.mkdir(path.join(root, Store.dir), { recursive: true })
-    if (c.options.action)
-      await fs.mkdir(path.join(root, '.github', 'workflows'), { recursive: true })
     if (c.options.library) await fs.mkdir(path.join(root, IssueForm.dir), { recursive: true })
 
     const created: string[] = []
@@ -220,9 +219,10 @@ export const init = Cli.create('init', {
       {
         cta: {
           commands: [{ command: 'log', description: 'Write the first entry' }],
-          description: c.options.action
-            ? `Commit \`.github/workflows/frog.yml\` and add this to \`AGENTS.md\` under the appropriate section:\n\n${rules}\n\nThen:`
-            : `Install the GitHub App at ${install} and add this to \`AGENTS.md\` under the appropriate section:\n\n${rules}\n\nThen:`,
+          description:
+            `Prompt the user to choose the GitHub App or Action-only setup described in \`${Store.dir}/README.md\`. ` +
+            `Do not install the App or add a workflow before they answer.\n\n` +
+            `Add this to \`AGENTS.md\` under the appropriate section:\n\n${rules}\n\nThen:`,
         },
       },
     )

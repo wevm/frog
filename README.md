@@ -69,7 +69,8 @@ health endpoint hit a config loader that turns a missing environment variable in
 Prompt your agent:
 
 ```txt
-Run `npx frog init`, and set up Frog in this project.
+Run `npx frog init`, prompt me to choose between the GitHub App and Action-only automation, then set up
+Frog in this project.
 ```
 
 ## Install
@@ -92,13 +93,12 @@ Then, once per repository:
 frog init
 ```
 
-Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) for the complete
-workflow, including pull-request comments and cross-repository reporting. If an outside App cannot have
-write access, use the repository-owned action instead:
+Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
+changing repository access or adding a workflow:
 
-```bash
-frog init --action
-```
+- Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) for pull-request
+  comments, forks, and cross-repository reporting.
+- Use the Action-only workflow below for same-repository automation without an external App write grant.
 
 ## Usage
 
@@ -203,10 +203,49 @@ Global Options:
 ## Action-only Mode
 
 > [!NOTE]
-> `frog init --action` adds `.github/workflows/frog.yml`. The workflow runs
-> [`wevm/frog/action@v1`](./action/action.yml) with the repository's own `GITHUB_TOKEN`, then reports
-> pending entries, reconciles issue state, and pushes the resulting commits. Frog is installed under
-> `RUNNER_TEMP`, isolated from the repository's dependencies.
+> `frog init` describes both methods without choosing one. For Action-only, create
+> `.github/workflows/frog.yml`:
+>
+> ```yaml
+> name: Frog
+> on:
+>   push:
+>   issues:
+>     types: [closed, reopened]
+>   workflow_dispatch:
+>   schedule:
+>     - cron: '0 0 * * *'
+>
+> concurrency:
+>   group: frog
+>   cancel-in-progress: false
+>
+> permissions: {}
+>
+> jobs:
+>   frog:
+>     name: Frog
+>     if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+>     runs-on: ubuntu-latest
+>     permissions:
+>       contents: write
+>       issues: write
+>       pull-requests: write
+>
+>     steps:
+>       - name: Clone repository
+>         uses: actions/checkout@v6
+>         with:
+>           persist-credentials: false
+>           ref: ${{ github.event.repository.default_branch }}
+>
+>       - name: Report and reconcile friction
+>         uses: wevm/frog/action@v1
+> ```
+>
+> The workflow uses the repository's own `GITHUB_TOKEN` to report pending entries, reconcile issue state,
+> and push the resulting commits. Frog is installed under `RUNNER_TEMP`, isolated from the repository's
+> dependencies.
 >
 > ### GitHub App or Action-only?
 >

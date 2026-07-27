@@ -5,7 +5,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions: {}
 
@@ -36,7 +36,6 @@ jobs:
         uses: ./.github/actions/install-dependencies
 
       - name: PR or publish
-        id: changesets
         uses: changesets/action@v1
         with:
           commit: 'chore: version packages'
@@ -45,21 +44,6 @@ jobs:
           version: pnpm changeset:version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update action tags
-        if: steps.changesets.outputs.published == 'true'
-        env:
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
-        run: |
-          version="$(jq -r '.[] | select(.name == "frog") | .version' <<< "$PUBLISHED_PACKAGES")"
-          if [[ -z "$version" || "$version" == 'null' ]]; then exit 0; fi
-
-          major="${version%%.*}"
-          git tag "v$version" "$GITHUB_SHA"
-          git tag --force "v$major" "$GITHUB_SHA"
-          git push --atomic origin \
-            "refs/tags/v$version:refs/tags/v$version" \
-            "+refs/tags/v$major:refs/tags/v$major"
 
   deploy:
     name: Deploy

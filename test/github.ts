@@ -564,9 +564,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   })
 
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-  ;(globalThis as { onTestFinished?: typeof onTestFinished }).onTestFinished?.(
-    () => new Promise<void>((resolve) => server.close(() => resolve())),
-  )
+  onTestFinished(() => new Promise<void>((resolve) => server.close(() => resolve())))
 
   const address = server.address()
   if (address === null || typeof address === 'string') throw new Error('Server has no port.')

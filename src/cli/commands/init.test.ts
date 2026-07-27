@@ -19,7 +19,7 @@ test('behavior: scaffolds the directory', async () => {
     }
   `)
 
-  // Nothing is filed until the App is installed, and agents need the rule to log future friction.
+  // Automation changes repository access or workflows, so init leaves that choice to the user.
   const { envelope } = await cli.run(['init', '--cwd', await helpers.repo()])
   const cta = envelope.meta?.['cta'] as
     | {
@@ -28,7 +28,9 @@ test('behavior: scaffolds the directory', async () => {
       }
     | undefined
   expect(cta?.description).toMatchInlineSnapshot(`
-    "Install the GitHub App at https://github.com/apps/frog-fm/installations/new and add this to \`AGENTS.md\` under the appropriate section:
+    "Prompt the user to choose the GitHub App or Action-only setup described in \`.agents/friction-log/README.md\`. Do not install the App or add a workflow before they answer.
+
+    Add this to \`AGENTS.md\` under the appropriate section:
 
     - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`frog log\`.
     - Do not add global, system, or internal friction.
@@ -41,9 +43,14 @@ test('behavior: scaffolds the directory', async () => {
     description: 'Write the first entry',
   })
   const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
-  expect(readme).toContain('## GitHub App or Action-only?')
+  expect(readme).toContain('## Choose Automation')
+  expect(readme).toContain('Prompt the user to choose one automation method')
   expect(readme).toContain('| Scope | Cross-repository reporting')
   expect(readme).toContain('Choose **Action-only**')
+  expect(readme).toContain('### GitHub App')
+  expect(readme).toContain('### Action-only')
+  expect(readme).toContain('Create `.github/workflows/frog.yml`')
+  expect(readme).toContain('uses: wevm/frog/action@v1')
 
   // The scaffolded config must validate against the schema it advertises.
   expect(await Config.resolve({ root: cwd })).toEqual(Config.from({}))
@@ -60,6 +67,17 @@ test('behavior: re-running never clobbers local edits', async () => {
     existing: ['.agents/friction-log/README.md', '.agents/friction-log/config.json'],
   })
   expect((await Config.resolve({ root: cwd })).maxPerRun).toBe(3)
+})
+
+test('behavior: leaves the automation choice alone', async () => {
+  const cwd = await helpers.repo()
+  const workflow = path.join(cwd, '.github/workflows/frog.yml')
+  await fs.mkdir(path.dirname(workflow), { recursive: true })
+  await fs.writeFile(workflow, 'custom\n', 'utf8')
+
+  await cli.data(['init', '--cwd', cwd])
+
+  expect(await fs.readFile(workflow, 'utf8')).toBe('custom\n')
 })
 
 describe('--library', () => {
@@ -84,80 +102,5 @@ describe('--library', () => {
     await cli.data(['init', '--cwd', cwd])
 
     await expect(fs.readdir(path.join(cwd, IssueForm.dir))).rejects.toThrow()
-  })
-})
-
-describe('--action', () => {
-  test('behavior: publishes a same-repository workflow and action instructions', async () => {
-    const cwd = await helpers.repo()
-
-    const { envelope } = await cli.run(['init', '--action', '--cwd', cwd])
-    if (!envelope.ok) throw new Error(envelope.error.message)
-
-    expect(envelope.data).toMatchInlineSnapshot(`
-      {
-        "created": [
-          ".agents/friction-log/README.md",
-          ".agents/friction-log/config.json",
-          ".github/workflows/frog.yml",
-        ],
-        "existing": [],
-      }
-    `)
-
-    const cta = envelope.meta?.['cta'] as
-      | {
-          commands?: { command?: string; description?: string }[]
-          description?: string
-        }
-      | undefined
-    expect(cta?.description).toMatchInlineSnapshot(`
-      "Commit \`.github/workflows/frog.yml\` and add this to \`AGENTS.md\` under the appropriate section:
-
-      - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`frog log\`.
-      - Do not add global, system, or internal friction.
-      - Run \`frog list\` first to see what is already known.
-
-      Then:"
-    `)
-    expect(cta?.commands?.[0]).toEqual({
-      command: 'frog log',
-      description: 'Write the first entry',
-    })
-
-    const readme = await fs.readFile(path.join(cwd, '.agents/friction-log/README.md'), 'utf8')
-    expect(readme).toContain('The workflow at `.github/workflows/frog.yml`')
-    expect(readme).toContain('same-repository friction only')
-    expect(readme).toContain('## GitHub App or Action-only?')
-    expect(readme).toContain('Choose the **GitHub App**')
-
-    const workflow = await fs.readFile(path.join(cwd, '.github/workflows/frog.yml'), 'utf8')
-    expect(workflow).toContain('types: [closed, reopened]')
-    expect(workflow).toContain(
-      "if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch",
-    )
-    expect(workflow).toContain('cancel-in-progress: false')
-    expect(workflow).toContain('persist-credentials: false')
-    expect(workflow).toContain('ref: ${{ github.event.repository.default_branch }}')
-    expect(workflow).toContain('uses: wevm/frog/action@v1')
-
-    // The action is a scaffold choice, not repository policy.
-    expect(await Config.resolve({ root: cwd })).toEqual(Config.from({}))
-  })
-
-  test('behavior: re-running never clobbers the workflow', async () => {
-    const cwd = await helpers.repo()
-    await cli.data(['init', '--action', '--cwd', cwd])
-    await fs.writeFile(path.join(cwd, '.github/workflows/frog.yml'), 'custom\n', 'utf8')
-
-    expect(await cli.data(['init', '--action', '--cwd', cwd])).toMatchObject({
-      created: [],
-      existing: [
-        '.agents/friction-log/README.md',
-        '.agents/friction-log/config.json',
-        '.github/workflows/frog.yml',
-      ],
-    })
-    expect(await fs.readFile(path.join(cwd, '.github/workflows/frog.yml'), 'utf8')).toBe('custom\n')
   })
 })

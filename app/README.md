@@ -12,9 +12,9 @@ It is also the only option that can react to `issues.closed` in another reposito
 deletes an upstream entry once the friction is resolved. A same-repository workflow can subscribe to
 that event locally, but cannot observe it across the repository boundary.
 
-For same-repository automation, `frog init --action` generates a workflow that uses the repository's own
-token. It reports after merge and cannot follow a target into another repository. Use the App for
-pull-request comments, fork reports, and cross-repository reconciliation.
+For same-repository automation, a repository can instead run `wevm/frog/action@v1` with its own token. It
+reports after merge and cannot follow a target into another repository. Use the App for pull-request
+comments, fork reports, and cross-repository reconciliation.
 
 ## What each event does
 
