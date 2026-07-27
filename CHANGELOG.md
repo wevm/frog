@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.5
+
+### Patch Changes
+
+- 425454f: Added a default friction issue form to every `frog init` scaffold.
+
 ## 1.0.4
 
 ### Patch Changes
