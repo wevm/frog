@@ -362,7 +362,7 @@ describe('pullRequest', () => {
       title: 'chore: sync friction log',
     })
     expect(description).toMatchInlineSnapshot(`
-      "Opened by the [frog](https://github.com/wevm/frog) GitHub App. Merging syncs the friction log with its issues.
+      "Opened by the [frog](https://github.com/wevm/frog) GitHub App.
 
       ## Resolved
 
