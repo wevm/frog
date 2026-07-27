@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
@@ -10,10 +12,10 @@ const remote = `git@github.com:${repo}.git`
 const body = '## Description\n\nThe filter was swallowed.'
 
 type Outcome = {
-  commented: { id: string; issue: string }[]
+  commented: { id: string; issue: string; title: string }[]
   committed: boolean
-  created: { id: string; issue: string }[]
-  deferred: { id: string; reason: string }[]
+  created: { id: string; issue: string; title: string }[]
+  deferred: { code: string; id: string; reason: string }[]
   unlabelled: string[]
 }
 
@@ -28,7 +30,7 @@ test('behavior: files a pending entry and writes the link back', async () => {
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#1` }])
+  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Filters ignored' }])
   expect(result.commented).toEqual([])
   expect((await Store.get('a', { root: cwd })).issue).toBe(`${repo}#1`)
 
@@ -66,7 +68,7 @@ test('behavior: comments rather than duplicating when an issue already covers it
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-  expect(result.commented).toEqual([{ id: 'a', issue: `${repo}#1` }])
+  expect(result.commented).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Filters ignored' }])
   expect(instance.issues.get(repo)).toHaveLength(1)
   expect(instance.comments(repo, 1)).toHaveLength(1)
 })
@@ -95,9 +97,146 @@ test('behavior: two entries with the same title in one run collapse onto one iss
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#1` }])
-  expect(result.commented).toEqual([{ id: 'b', issue: `${repo}#1` }])
+  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Filters ignored' }])
+  expect(result.commented).toEqual([
+    { id: 'b', issue: `${repo}#1`, title: '  FILTERS   ignored!  ' },
+  ])
   expect(instance.issues.get(repo)).toHaveLength(1)
+})
+
+test('behavior: a same-destination failure preserves earlier links and defers the tail', async () => {
+  const cwd = await helpers.repo({ remote })
+  const errors = {} as Record<string, number>
+  let requests = 0
+  Object.defineProperty(errors, repo, {
+    get() {
+      requests += 1
+      return requests < 5 ? undefined : 403
+    },
+  })
+  const instance = await github({}, { errors })
+  for (const id of ['a', 'b', 'c'])
+    await Store.write({ body, severity: 'minor', title: `Friction ${id}` }, { id, root: cwd })
+  await helpers.commit('log friction', cwd)
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+  expect(result).toMatchObject({
+    committed: true,
+    created: [{ id: 'a', issue: `${repo}#1`, title: 'Friction a' }],
+    deferred: [
+      {
+        code: 'NOT_AUTHORIZED',
+        id: 'b',
+        reason: 'The token was rejected for `wevm/demo`. It needs write access to issues.',
+      },
+      {
+        code: 'NOT_AUTHORIZED',
+        id: 'c',
+        reason: 'The token was rejected for `wevm/demo`. It needs write access to issues.',
+      },
+    ],
+  })
+  expect((await Store.get('a', { root: cwd })).issue).toBe(`${repo}#1`)
+  expect((await Store.get('b', { root: cwd })).issue).toBeUndefined()
+  expect((await Store.get('c', { root: cwd })).issue).toBeUndefined()
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect(
+    instance.requests.filter(
+      (request) => request.method === 'GET' && request.path === `/repos/${repo}`,
+    ),
+  ).toHaveLength(1)
+  expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
+})
+
+test('behavior: a filed issue consumes the ceiling when writing its link fails', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github()
+  for (const id of ['a', 'b'])
+    await Store.write({ body, severity: 'minor', title: `Friction ${id}` }, { id, root: cwd })
+  await helpers.commit('log friction', cwd)
+  await fs.chmod(path.join(cwd, Store.toPath('a')), 0o444)
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
+
+  expect(result).toMatchObject({
+    committed: false,
+    created: [{ id: 'a', issue: `${repo}#1`, title: 'Friction a' }],
+    deferred: [
+      {
+        code: 'PUBLISH_FAILED',
+        id: 'a',
+      },
+      {
+        code: 'OVER_CEILING',
+        id: 'b',
+        reason: 'over the ceiling of 1 per run',
+      },
+    ],
+  })
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
+  expect((await Store.get('b', { root: cwd })).issue).toBeUndefined()
+})
+
+test('behavior: an ambiguous issue response consumes the ceiling', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github({}, { disconnectIssueCreates: [repo] })
+  for (const id of ['a', 'b'])
+    await Store.write({ body, severity: 'minor', title: `Friction ${id}` }, { id, root: cwd })
+  await helpers.commit('log friction', cwd)
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
+
+  expect(result).toMatchObject({
+    committed: false,
+    created: [],
+    deferred: [
+      {
+        code: 'PUBLISH_FAILED',
+        id: 'a',
+      },
+      {
+        code: 'OVER_CEILING',
+        id: 'b',
+        reason: 'over the ceiling of 1 per run',
+      },
+    ],
+  })
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
+  expect((await Store.get('b', { root: cwd })).issue).toBeUndefined()
+})
+
+test('behavior: a replayed issue does not consume the next run ceiling', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github()
+  for (const id of ['a', 'b'])
+    await Store.write({ body, severity: 'minor', title: `Friction ${id}` }, { id, root: cwd })
+  await helpers.commit('log friction', cwd)
+
+  await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
+  await Store.write({ body, severity: 'minor', title: 'Friction a' }, { id: 'a', root: cwd })
+
+  const preview = await cli.data<Outcome>(
+    ['publish', '--cwd', cwd, '--max', '1', '--dry-run'],
+    env(instance.url),
+  )
+  expect(preview.commented).toEqual([])
+  expect(preview.deferred).toEqual([])
+  expect(preview.created).toEqual([
+    { id: 'a', issue: `${repo}#1`, title: 'Friction a' },
+    { id: 'b', issue: '(new)', title: 'Friction b' },
+  ])
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
+
+  expect(result.created).toEqual([
+    { id: 'a', issue: `${repo}#1`, title: 'Friction a' },
+    { id: 'b', issue: `${repo}#2`, title: 'Friction b' },
+  ])
+  expect(instance.issues.get(repo)).toHaveLength(2)
+  expect(instance.comments(repo, 1)).toEqual([])
 })
 
 test('behavior: commits the links by default', async () => {
@@ -132,6 +271,24 @@ test('behavior: --no-commit leaves the link uncommitted', async () => {
   )
 })
 
+test('behavior: replaying an unlinked checkout adds no repeat comment', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github()
+  await Store.write({ body, severity: 'minor', title: 'Filters ignored' }, { id: 'a', root: cwd })
+  await helpers.commit('log friction', cwd)
+
+  await cli.data<Outcome>(['publish', '--cwd', cwd, '--no-commit'], env(instance.url))
+  await helpers.git(['restore', '--', Store.toPath('a')], cwd)
+  const replayed = await cli.data<Outcome>(
+    ['publish', '--cwd', cwd, '--no-commit'],
+    env(instance.url),
+  )
+
+  expect(replayed.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Filters ignored' }])
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect(instance.comments(repo, 1)).toEqual([])
+})
+
 test('behavior: --dry-run files nothing and writes nothing', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github()
@@ -139,7 +296,7 @@ test('behavior: --dry-run files nothing and writes nothing', async () => {
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--dry-run'], env(instance.url))
 
-  expect(result.created).toEqual([{ id: 'a', issue: '(new)' }])
+  expect(result.created).toEqual([{ id: 'a', issue: '(new)', title: 'Filters ignored' }])
   expect(instance.issues.get(repo)).toBeUndefined()
   expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
 })
@@ -153,7 +310,9 @@ test('behavior: defers entries over the ceiling', async () => {
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '2'], env(instance.url))
 
   expect(result.created).toHaveLength(2)
-  expect(result.deferred).toEqual([{ id: 'c', reason: 'over the ceiling of 2 per run' }])
+  expect(result.deferred).toEqual([
+    { code: 'OVER_CEILING', id: 'c', reason: 'over the ceiling of 2 per run' },
+  ])
   expect(instance.issues.get(repo)).toHaveLength(2)
 })
 
@@ -168,9 +327,10 @@ test('behavior: a refused entry does not consume the ceiling', async () => {
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
 
-  expect(result.created).toEqual([{ id: 'b', issue: `${repo}#1` }])
+  expect(result.created).toEqual([{ id: 'b', issue: `${repo}#1`, title: 'Can file' }])
   expect(result.deferred).toEqual([
     {
+      code: 'TARGET_UNKNOWN',
       id: 'a',
       reason:
         '`missing` is not installed, or declares no GitHub repository. Name the repository instead, as `owner/name`.',
@@ -217,7 +377,9 @@ describe('cross-repo', () => {
 
     const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-    expect(result.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
+    expect(result.created).toEqual([
+      { id: 'a', issue: `${upstream}#1`, title: 'Upstream friction' },
+    ])
     expect(instance.issues.get(upstream)?.[0]?.title).toBe('Upstream friction')
     // The consumer's repository gets nothing.
     expect(instance.issues.get(repo)).toBeUndefined()
@@ -298,8 +460,12 @@ describe('cross-repo', () => {
     )
     const secondResult = await cli.data<Outcome>(['publish', '--cwd', second], env(instance.url))
 
-    expect(firstResult.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
-    expect(secondResult.commented).toEqual([{ id: 'b', issue: `${upstream}#1` }])
+    expect(firstResult.created).toEqual([
+      { id: 'a', issue: `${upstream}#1`, title: 'Filters ignored' },
+    ])
+    expect(secondResult.commented).toEqual([
+      { id: 'b', issue: `${upstream}#1`, title: '  FILTERS   ignored!  ' },
+    ])
     expect(instance.issues.get(upstream)).toHaveLength(1)
   })
 
@@ -329,7 +495,11 @@ describe('cross-repo', () => {
     const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
     expect(result.deferred).toEqual([
-      { id: 'a', reason: '`wevm/viem` is not listed in `outbound.allowedRepos`.' },
+      {
+        code: 'TARGET_NOT_ALLOWED',
+        id: 'a',
+        reason: '`wevm/viem` is not listed in `outbound.allowedRepos`.',
+      },
     ])
     expect(instance.issues.get(upstream)).toBeUndefined()
   })
@@ -395,6 +565,111 @@ describe('cross-repo', () => {
       'chore: sync friction log',
     )
   })
+
+  test('behavior: one destination failure preserves successful links', async () => {
+    const cwd = await helpers.repo({ remote })
+    const errors = {} as Record<string, number>
+    let upstreamRequests = 0
+    Object.defineProperty(errors, upstream, {
+      get() {
+        upstreamRequests += 1
+        return upstreamRequests === 1 ? undefined : 403
+      },
+    })
+    const instance = await github(
+      {},
+      {
+        errors,
+        files: {
+          [upstream]: {
+            [Config.file]: JSON.stringify({ inbound: { enabled: true } }),
+          },
+        },
+      },
+    )
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write({ body, severity: 'minor', title: 'Ours' }, { id: 'a', root: cwd })
+    await Store.write(
+      { body, severity: 'minor', target: upstream, title: 'Theirs' },
+      { id: 'b', root: cwd },
+    )
+    await helpers.commit('log friction', cwd)
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result).toMatchObject({
+      committed: true,
+      created: [{ id: 'a', issue: `${repo}#1`, title: 'Ours' }],
+      deferred: [
+        {
+          code: 'NOT_AUTHORIZED',
+          id: 'b',
+          reason: 'The token was rejected for `wevm/viem`. It needs write access to issues.',
+        },
+      ],
+    })
+    expect((await Store.get('a', { root: cwd })).issue).toBe(`${repo}#1`)
+    expect((await Store.get('b', { root: cwd })).issue).toBeUndefined()
+    expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
+  })
+
+  test('behavior: a failed first destination leaves its ceiling slot for the next entry', async () => {
+    const cwd = await helpers.repo({ remote })
+    const errors = {} as Record<string, number>
+    let upstreamRequests = 0
+    Object.defineProperty(errors, upstream, {
+      get() {
+        upstreamRequests += 1
+        return upstreamRequests === 1 ? undefined : 403
+      },
+    })
+    const instance = await github(
+      {},
+      {
+        errors,
+        files: {
+          [upstream]: {
+            [Config.file]: JSON.stringify({ inbound: { enabled: true } }),
+          },
+        },
+      },
+    )
+    await helpers.writeFile(
+      Config.file,
+      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
+      cwd,
+    )
+    await Store.write(
+      { body, severity: 'minor', target: upstream, title: 'Fails first' },
+      { id: 'a', root: cwd },
+    )
+    await Store.write({ body, severity: 'minor', title: 'Files second' }, { id: 'b', root: cwd })
+    await helpers.commit('log friction', cwd)
+
+    const result = await cli.data<Outcome>(
+      ['publish', '--cwd', cwd, '--max', '1'],
+      env(instance.url),
+    )
+
+    expect(result).toMatchObject({
+      committed: true,
+      created: [{ id: 'b', issue: `${repo}#1`, title: 'Files second' }],
+      deferred: [
+        {
+          code: 'NOT_AUTHORIZED',
+          id: 'a',
+          reason: 'The token was rejected for `wevm/viem`. It needs write access to issues.',
+        },
+      ],
+    })
+    expect(result.deferred.some((entry) => entry.code === 'OVER_CEILING')).toBe(false)
+    expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
+    expect((await Store.get('b', { root: cwd })).issue).toBe(`${repo}#1`)
+  })
 })
 
 test('behavior: records the pull request in the issue body', async () => {
@@ -428,32 +703,63 @@ test('error: no token available', async () => {
   expect(instance.issues.get(repo)).toBeUndefined()
 })
 
+test('error: no git identity files nothing', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github()
+  await helpers.git(['config', 'user.email', ''], cwd)
+  await Store.write({ body, severity: 'minor', title: 'Filters ignored' }, { id: 'a', root: cwd })
+
+  expect((await cli.error(['publish', '--cwd', cwd], env(instance.url))).code).toBe(
+    'NO_GIT_IDENTITY',
+  )
+  expect(instance.requests).toEqual([])
+  expect(instance.issues.get(repo)).toBeUndefined()
+})
+
+test('error: a failed commit is reported', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github()
+  await Store.write({ body, severity: 'minor', title: 'Filters ignored' }, { id: 'a', root: cwd })
+  await helpers.commit('log friction', cwd)
+  await helpers.git(['config', 'commit.gpgsign', 'true'], cwd)
+  await helpers.git(['config', 'gpg.program', '/usr/bin/false'], cwd)
+
+  expect((await cli.error(['publish', '--cwd', cwd], env(instance.url))).code).toBe('COMMIT_FAILED')
+})
+
 // Octokit's own message is `Not Found - <docs url>`, which names neither the repository nor a fix.
-test('error: a repository the token cannot see', async () => {
+test('behavior: a repository the token cannot see is deferred', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github({}, { errors: { [repo]: 404 } })
   await Store.write({ body, severity: 'minor', title: 'Filters ignored' }, { id: 'a', root: cwd })
 
-  expect(await cli.error(['publish', '--cwd', cwd], env(instance.url))).toMatchInlineSnapshot(`
-    {
-      "code": "REPO_NOT_FOUND",
-      "message": "Cannot see \`wevm/demo\`. Either it does not exist, or the token cannot access it.",
-    }
-  `)
+  expect((await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))).deferred)
+    .toMatchInlineSnapshot(`
+      [
+        {
+          "code": "REPO_NOT_FOUND",
+          "id": "a",
+          "reason": "Cannot see \`wevm/demo\`. Either it does not exist, or the token cannot access it.",
+        },
+      ]
+    `)
 })
 
-test('error: a token without issue write access', async () => {
+test('behavior: a token without issue write access is deferred', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github({}, { errors: { [repo]: 403 } })
   await Store.write({ body, severity: 'minor', title: 'Filters ignored' }, { id: 'a', root: cwd })
 
-  expect(await cli.error(['publish', '--cwd', cwd], env(instance.url))).toMatchInlineSnapshot(`
-    {
-      "code": "NOT_AUTHORIZED",
-      "message": "The token was rejected for \`wevm/demo\`. It needs write access to issues.",
-      "retryable": true,
-    }
-  `)
+  expect((await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))).deferred)
+    .toMatchInlineSnapshot(`
+      [
+        {
+          "code": "NOT_AUTHORIZED",
+          "id": "a",
+          "reason": "The token was rejected for \`wevm/demo\`. It needs write access to issues.",
+        },
+      ]
+    `)
 })
 
 test('behavior: nothing pending needs no token', async () => {

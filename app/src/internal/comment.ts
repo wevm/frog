@@ -9,6 +9,16 @@ import type { Octokit } from 'octokit'
  */
 export const marker = '<!-- frog:comment -->'
 
+/** An entry left pending, and why. */
+export type Deferred = {
+  /** Machine-readable reason. */
+  code: string
+  /** Entry id. */
+  id: string
+  /** Human-readable reason. */
+  reason: string
+}
+
 /** What a pull request run did, as reported back on the pull request. */
 export type Report = {
   /** Entries that landed on an issue already covering them. */
@@ -16,7 +26,7 @@ export type Report = {
   /** Entries filed as new issues. */
   created: readonly Link[]
   /** Entries left pending, and why. */
-  deferred: readonly { id: string; reason: string }[]
+  deferred: readonly Deferred[]
   /** Entries that already carried an issue link before this run. */
   linked: readonly Link[]
   /** Entries that could not be parsed, and why. */

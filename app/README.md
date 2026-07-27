@@ -2,14 +2,19 @@
 
 The GitHub App. Files recorded friction as issues, and keeps the files and the issues in sync.
 
-## Why an App rather than an Action
+## Why the App is richer
 
 On a `pull_request` from a fork, `GITHUB_TOKEN`'s write permissions are downgraded to read _after_
 job-level `permissions:` are resolved, so `issues: write` in a workflow is silently ignored and filing
 returns 403. An App authenticates as an installation and is never subject to that clamp.
 
-It is also the only thing that can react to `issues.closed`, which is what deletes an entry once the
-friction is resolved. A workflow cannot observe that at all on another repository.
+It is also the only option that can react to `issues.closed` in another repository, which is what
+deletes an upstream entry once the friction is resolved. A same-repository workflow can subscribe to
+that event locally, but cannot observe it across the repository boundary.
+
+For same-repository automation, `frog init --action` generates a workflow that uses the repository's own
+token. It reports after merge and cannot follow a target into another repository. Use the App for
+pull-request comments, fork reports, and cross-repository reconciliation.
 
 ## What each event does
 

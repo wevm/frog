@@ -5,11 +5,13 @@ import * as Github from '../../Github.js'
 import * as Store from '../../Store.js'
 import * as octokit from './octokit.js'
 
-export type Link = { id: string; issue: string }
+export type Link = { id: string; issue: string; title: string }
 
 export type Outcome = {
   /** Entries that landed on an issue already covering them. */
   commented: Link[]
+  /** Entries whose GitHub mutation succeeded or may have happened. */
+  consumed: number
   created: Link[]
   /** Destinations whose labels were dropped because the token cannot label there. */
   unlabelled: string[]
@@ -119,8 +121,8 @@ export declare namespace prepare {
  * Existing issues are indexed once for the whole run. An entry whose hash is already indexed gets a
  * comment instead of a duplicate, so this is safe to run repeatedly over the same entries.
  *
- * A failure part-way through throws, leaving already-filed entries with their links on disk and the
- * rest pending. Re-running picks up where it stopped.
+ * A failure part-way through throws {@link PartialError}, carrying the completed links and the entries
+ * that were not filed. Re-running picks up where it stopped.
  */
 export async function file(options: file.Options): Promise<Outcome> {
   const { client, config, dryRun, entries, label, origin, pr, repo, root } = options
@@ -133,56 +135,91 @@ export async function file(options: file.Options): Promise<Outcome> {
   const [author, sha] = await Promise.all([Git.author({ cwd: root }), Git.head({ cwd: root })])
 
   const commented: Link[] = []
+  let consumed = 0
   const created: Link[] = []
   const written: string[] = []
   /** Filed during this run, so two entries with one title collapse onto one issue. */
   const seen = new Map<string, Github.Issue>()
-
-  for (const entry of entries) {
-    const hash = Github.hash(entry.title)
-    const existing = seen.get(hash) ?? (await matcher.match(entry.title))
-    const path = Store.toPath(entry.id)
-
-    if (dryRun) {
-      const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
-      ;(existing ? commented : created).push({ id: entry.id, issue: link })
-      continue
-    }
-
-    // An entry logged moments ago is not committed, so fall back to the local identity and HEAD.
-    const provenance = (await Git.provenance(path, { cwd: root })) ?? {
-      ...(author ? { author } : {}),
-      ...(sha ? { sha } : {}),
-    }
-
-    const result = await Github.publish(client, {
-      entry: entry,
-      labels: Github.toLabels({
-        entry: entry,
-        labels: applied,
-      }),
-      // `origin` is the repository holding the file, not the destination when reporting upstream. A
-      // wrong value leaves a closed issue unable to find its mirror.
-      marker: { hash, origin, path, severity: entry.severity },
-      provenance: { ...provenance, ...(pr ? { pr } : {}) },
-      repo,
-      ...(existing ? { existing } : {}),
-    })
-
-    const issue = Github.toLink({ issue: result.issue, repo })
-    await Store.write({ ...entry, issue }, { id: entry.id, root })
-    written.push(path)
-    ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
-
-    if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
-  }
-
-  return {
+  const outcome = (): Outcome => ({
     commented,
+    consumed,
     created,
     written,
-    unlabelled: !matcher.labelled && applied.length > 0 && !dryRun ? [repo] : [],
+    unlabelled:
+      !matcher.labelled && applied.length > 0 && !dryRun && commented.length + created.length > 0
+        ? [repo]
+        : [],
+  })
+
+  for (const [index, entry] of entries.entries()) {
+    let reserved = false
+    try {
+      const hash = Github.hash(entry.title)
+      const existing = seen.get(hash) ?? (await matcher.match(entry.title))
+      const occurrence = Github.occurrence({ entry, origin })
+      const path = Store.toPath(entry.id)
+
+      if (dryRun) {
+        const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
+        const status = existing
+          ? await Github.findOccurrence(client, { existing, occurrence, repo })
+          : undefined
+        const category = status ?? (existing ? 'commented' : 'created')
+        ;(category === 'commented' ? commented : created).push({
+          id: entry.id,
+          issue: link,
+          title: entry.title,
+        })
+        if (!status) consumed += 1
+        continue
+      }
+
+      // An entry logged moments ago is not committed, so fall back to the local identity and HEAD.
+      const provenance = (await Git.provenance(path, { cwd: root })) ?? {
+        ...(author ? { author } : {}),
+        ...(sha ? { sha } : {}),
+      }
+
+      reserved = true
+      const result = await Github.publish(client, {
+        entry: entry,
+        labels: Github.toLabels({
+          entry: entry,
+          labels: applied,
+        }),
+        // `origin` is the repository holding the file, not the destination when reporting upstream. A
+        // wrong value leaves a closed issue unable to find its mirror.
+        marker: { hash, origin, path, severity: entry.severity },
+        occurrence,
+        provenance: { ...provenance, ...(pr ? { pr } : {}) },
+        repo,
+        ...(existing ? { existing } : {}),
+      })
+      if (result.mutated) consumed += 1
+      reserved = false
+
+      const issue = Github.toLink({ issue: result.issue, repo })
+      ;(result.status === 'commented' ? commented : created).push({
+        id: entry.id,
+        issue,
+        title: entry.title,
+      })
+      await Store.write({ ...entry, issue }, { id: entry.id, root })
+      written.push(path)
+
+      if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
+    } catch (error) {
+      // Once the request starts, a transport failure cannot prove GitHub did not apply it.
+      if (reserved) consumed += 1
+      throw new PartialError({
+        cause: error,
+        entries: entries.slice(index),
+        outcome: outcome(),
+      })
+    }
   }
+
+  return outcome()
 }
 
 export declare namespace file {
@@ -207,5 +244,25 @@ export declare namespace file {
     pr?: string | undefined
     /** Repository root. */
     root: string
+  }
+}
+
+/** Filing failure carrying progress made before the failed entry. */
+export class PartialError extends Error {
+  /** Failed and unattempted entries, in their original order. */
+  entries: readonly Entry.Entry[]
+  /** Filing progress completed before the failure. */
+  outcome: Outcome
+  /** HTTP status supplied by Octokit, when present. */
+  status?: number | undefined
+
+  constructor(options: { cause: unknown; entries: readonly Entry.Entry[]; outcome: Outcome }) {
+    const cause = options.cause instanceof Error ? options.cause : new Error(String(options.cause))
+    super(cause.message, { cause })
+    this.name = 'publisher.PartialError'
+    this.entries = options.entries
+    this.outcome = options.outcome
+    const status = (cause as Error & { status?: number }).status
+    if (typeof status === 'number') this.status = status
   }
 }

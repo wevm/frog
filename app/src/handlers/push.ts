@@ -16,7 +16,7 @@ export type Outcome = {
   /** Entries filed as new issues. */
   created: readonly comment.Link[]
   /** Entries left pending, and why. */
-  deferred: readonly { id: string; reason: string }[]
+  deferred: readonly comment.Deferred[]
   /** Reconciling pull request the links went to, when the default branch is not written directly. */
   pullRequest?: number | undefined
 }

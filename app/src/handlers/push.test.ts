@@ -183,6 +183,7 @@ test('behavior: a deferred entry keeps its file untouched', async () => {
 
   const outcome = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
+  expect(outcome.deferred[0]?.code).toBe('OUTBOUND_DISABLED')
   expect(outcome.deferred[0]?.reason).toContain('`outbound.enabled` is off')
   expect(outcome.committed).toBeUndefined()
   expect(instance.files(repo)[`${dir}/a/friction.md`]).not.toContain('issue:')

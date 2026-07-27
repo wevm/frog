@@ -56,6 +56,27 @@ describe('author', () => {
   })
 })
 
+describe('identity', () => {
+  test('behavior: returns the configured committer identity', async () => {
+    expect(await Git.identity({ cwd: await helpers.repo() })).toEqual({
+      email: 'test@example.com',
+      name: 'Test User',
+    })
+  })
+
+  test('behavior: undefined when the committer email is missing', async () => {
+    const cwd = await helpers.repo()
+    await helpers.git(['config', 'user.email', ''], cwd)
+    expect(await Git.identity({ cwd })).toBeUndefined()
+  })
+
+  test('behavior: undefined when the committer name is missing', async () => {
+    const cwd = await helpers.repo()
+    await helpers.git(['config', 'user.name', ''], cwd)
+    expect(await Git.identity({ cwd })).toBeUndefined()
+  })
+})
+
 describe('provenance', () => {
   test('behavior: reports the commit that added the file', async () => {
     const cwd = await helpers.repo()

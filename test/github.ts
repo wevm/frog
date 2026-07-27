@@ -84,6 +84,8 @@ async function readBody<value extends object>(request: http.IncomingMessage): Pr
 }
 
 export type Options = {
+  /** Repositories whose issue-create response disconnects after applying the write. */
+  disconnectIssueCreates?: readonly string[] | undefined
   /** Repositories that respond with an error status, keyed by `owner/name`. */
   errors?: Record<string, number> | undefined
   /**
@@ -378,6 +380,10 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           title: payload.title ?? '',
         }
         issues.set(repo, [...(issues.get(repo) ?? []), issue])
+        if (options.disconnectIssueCreates?.includes(repo)) {
+          request.socket.destroy()
+          return
+        }
         return json(response, 201, issue)
       }
 
@@ -558,7 +564,9 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   })
 
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-  onTestFinished(() => new Promise<void>((resolve) => server.close(() => resolve())))
+  ;(globalThis as { onTestFinished?: typeof onTestFinished }).onTestFinished?.(
+    () => new Promise<void>((resolve) => server.close(() => resolve())),
+  )
 
   const address = server.address()
   if (address === null || typeof address === 'string') throw new Error('Server has no port.')

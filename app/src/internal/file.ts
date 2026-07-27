@@ -12,7 +12,7 @@ export type Filing = {
   /** Entries filed as new issues. */
   created: comment.Link[]
   /** Entries left pending, and why. */
-  deferred: { id: string; reason: string }[]
+  deferred: comment.Deferred[]
   /** Issue link for each entry that got one, keyed by entry id. */
   links: Map<string, string>
 }
@@ -51,7 +51,7 @@ export async function file(options: file.Options): Promise<Filing> {
     ...(registry ? { registry } : {}),
   })
 
-  const deferred: { id: string; reason: string }[] = []
+  const deferred: comment.Deferred[] = []
 
   const candidates: {
     destination: string
@@ -62,14 +62,14 @@ export async function file(options: file.Options): Promise<Filing> {
   for (const entry of entries) {
     const resolution = await Target.resolve(entry.target, stack).catch((error: unknown) => {
       if (error instanceof resolvers.InstallationMissingError) {
-        deferred.push({ id: entry.id, reason: error.message })
+        deferred.push({ code: error.code, id: entry.id, reason: error.message })
         return undefined
       }
       throw error
     })
     if (!resolution) continue
     if (!resolution.ok) {
-      deferred.push({ id: entry.id, reason: resolution.message })
+      deferred.push({ code: resolution.code, id: entry.id, reason: resolution.message })
       continue
     }
 
@@ -87,6 +87,7 @@ export async function file(options: file.Options): Promise<Filing> {
     if (target) continue
     for (const candidate of candidates.filter((entry) => entry.destination === destination))
       deferred.push({
+        code: 'INSTALLATION_MISSING',
         id: candidate.entry.id,
         reason: `Frog is not installed on \`${destination}\`.`,
       })
@@ -99,6 +100,7 @@ export async function file(options: file.Options): Promise<Filing> {
     if (!clients.get(candidate.destination)) continue
     if (accepted >= config.maxPerRun) {
       deferred.push({
+        code: 'OVER_CEILING',
         id: candidate.entry.id,
         reason: `over the ceiling of ${config.maxPerRun} per run`,
       })
@@ -139,9 +141,9 @@ export async function file(options: file.Options): Promise<Filing> {
           }),
           // `origin` is where the entry file lives, not the destination when reporting upstream.
           marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
+          occurrence: Github.occurrence({ entry, origin }),
           provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
           repo: destination,
-          occurrence: occurrenceOf({ entry, origin }),
           ...(existing ? { existing } : {}),
         })
 
@@ -155,20 +157,6 @@ export async function file(options: file.Options): Promise<Filing> {
   }
 
   return { commented, created, deferred, links }
-}
-
-/**
- * Stable key for one report of one friction, making a repeat comment idempotent.
- *
- * Keyed on the entry rather than the delivery. A pull request receives one delivery per push, so a
- * delivery-keyed occurrence would add a "Hit again" comment per push for an entry nobody touched.
- *
- * Includes the body so an edited entry reports again. The body goes in verbatim because `Github.hash`
- * normalizes for titles, discarding the punctuation and case that distinguish a meaningful edit.
- */
-function occurrenceOf(options: { entry: Entry.Entry; origin: string }): string {
-  const { entry, origin } = options
-  return [origin, entry.id, entry.body].join(':')
 }
 
 export declare namespace file {

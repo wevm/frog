@@ -65,6 +65,24 @@ describe('hash', () => {
   })
 })
 
+describe('occurrence', () => {
+  // Pinned deliberately. The App and CLI hash this exact value, so changing its bytes would make a
+  // repository running both modes report the same entry twice.
+  test('behavior: is stable', () => {
+    expect(
+      Github.occurrence({
+        entry: {
+          body: 'Body:\n\nunchanged.',
+          id: 'entry-a',
+          severity: 'minor',
+          title: 'A friction',
+        },
+        origin: 'acme/app',
+      }),
+    ).toBe('acme/app:entry-a:Body:\n\nunchanged.')
+  })
+})
+
 describe('marker', () => {
   test('behavior: round trips every field', () => {
     const marker = {
@@ -404,6 +422,23 @@ describe('find', () => {
       await Github.find(client(instance.url), { hash: Github.hash(title), repo, title }),
     ).toBeUndefined()
   })
+
+  test('behavior: caps pagination at 50 pages', async () => {
+    const seeded = Array.from({ length: 5_001 }, (_, index) => ({
+      labels: [],
+      title: index === 5_000 ? title : `Unrelated ${index}`,
+    }))
+    const instance = await github({ [repo]: seeded })
+
+    expect(
+      await Github.find(client(instance.url), { hash: Github.hash(title), repo, title }),
+    ).toBeUndefined()
+    expect(
+      instance.requests.filter(
+        (request) => request.method === 'GET' && request.path === '/repos/wevm/viem/issues',
+      ),
+    ).toHaveLength(50)
+  })
 })
 
 describe('index', () => {
@@ -487,7 +522,7 @@ describe('publish', () => {
       repo,
     })
 
-    expect(result).toEqual({ issue: 1, status: 'created' })
+    expect(result).toEqual({ issue: 1, mutated: true, status: 'created' })
 
     const created = instance.issues.get(repo)?.[0]
     expect(created?.title).toBe(title)
@@ -518,7 +553,7 @@ describe('publish', () => {
       ...(existing ? { existing } : {}),
     })
 
-    expect(result).toEqual({ issue: 1, status: 'commented' })
+    expect(result).toEqual({ issue: 1, mutated: true, status: 'commented' })
     expect(instance.issues.get(repo)).toHaveLength(1)
     expect(instance.comments(repo, 1)).toMatchInlineSnapshot(`
       [
@@ -555,7 +590,7 @@ describe('publish', () => {
       ...(existing ? { existing } : {}),
     })
 
-    expect(result).toEqual({ issue: 1, status: 'commented' })
+    expect(result).toEqual({ issue: 1, mutated: true, status: 'commented' })
     expect(instance.issues.get(repo)?.[0]?.state).toBe('open')
     expect(instance.comments(repo, 1)).toHaveLength(1)
   })
@@ -603,8 +638,8 @@ describe('publish', () => {
       ...(existing ? { existing } : {}),
     })
 
-    expect(first).toEqual({ issue: 1, status: 'created' })
-    expect(replayed).toEqual({ issue: 1, status: 'created' })
+    expect(first).toEqual({ issue: 1, mutated: true, status: 'created' })
+    expect(replayed).toEqual({ issue: 1, mutated: false, status: 'created' })
     expect(instance.issues.get(repo)).toHaveLength(1)
     expect(instance.comments(repo, 1)).toEqual([])
   })
@@ -636,7 +671,7 @@ describe('publish', () => {
       ...(existing ? { existing } : {}),
     })
 
-    expect(recurrence).toEqual({ issue: 1, status: 'created' })
+    expect(recurrence).toEqual({ issue: 1, mutated: false, status: 'created' })
     expect(instance.issues.get(repo)?.[0]?.state).toBe('closed')
     expect(instance.comments(repo, 1)).toEqual([])
   })
@@ -667,7 +702,7 @@ describe('publish', () => {
       ...(existing ? { existing } : {}),
     })
 
-    expect(recurrence).toEqual({ issue: 1, status: 'commented' })
+    expect(recurrence).toEqual({ issue: 1, mutated: true, status: 'commented' })
     expect(instance.issues.get(repo)?.[0]?.state).toBe('open')
     expect(instance.comments(repo, 1)).toHaveLength(1)
   })
@@ -701,10 +736,12 @@ describe('publish', () => {
 
     await expect(publish('delivery-1:entry-a')).resolves.toEqual({
       issue: 1,
+      mutated: true,
       status: 'commented',
     })
     await expect(publish('delivery-1:entry-a')).resolves.toEqual({
       issue: 1,
+      mutated: false,
       status: 'commented',
     })
     expect(instance.comments(repo, 1)).toHaveLength(101)
