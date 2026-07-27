@@ -1,5 +1,12 @@
 # frog
 
+## 1.0.4
+
+### Patch Changes
+
+- 74df03e: Added action-only automation and setup guidance, idempotent occurrence tracking, git identity preflights, coded deferrals, resilient reconciliation, and richer CLI outputs for same-repository friction.
+- 2cb0be3: Directed agents to install the GitHub App and update `AGENTS.md` after `init`.
+
 ## 1.0.3
 
 ### Patch Changes
