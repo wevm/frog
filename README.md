@@ -50,9 +50,9 @@ if it has opted in.
 
 ## Workflow
 
-Every step below happened in [wevm/frog-demo](https://github.com/wevm/frog-demo), a hello-world server
-whose config loader turned a missing environment variable into the string `"undefined"`. Only the three
-merges were human.
+See a demonstration in [wevm/frog-demo](https://github.com/wevm/frog-demo), a hello-world server whose
+config loader turned a missing environment variable into the string `"undefined"`. Only the three merges
+were human.
 
 | Step | What happens | Example |
 | --- | --- | --- |
