@@ -353,14 +353,21 @@ describe('pullRequest', () => {
     expect(instance.messages(consumer)).toEqual(['initial'])
 
     expect(outcome.pullRequest).toBeDefined()
-    expect(instance.reviews(consumer)).toEqual([
-      {
-        base: 'main',
-        head: 'frog/sync',
-        number: outcome.pullRequest,
-        title: 'chore: sync friction log',
-      },
-    ])
+    const [review] = instance.reviews(consumer)
+    const { body: description, ...opened } = review ?? {}
+    expect(opened).toEqual({
+      base: 'main',
+      head: 'frog/sync',
+      number: outcome.pullRequest,
+      title: 'chore: sync friction log',
+    })
+    expect(description).toMatchInlineSnapshot(`
+      "Opened by the [frog](https://github.com/wevm/frog) GitHub App. Merging syncs the friction log with its issues.
+
+      ## Resolved
+
+      -   [acme/app#1](https://github.com/acme/app/issues/1) Filters ignored"
+    `)
   })
 
   // Three closures, one review. The point of a long-lived branch rather than one per event.
@@ -411,6 +418,11 @@ describe('pullRequest', () => {
     const files = instance.files(consumer, 'frog/sync')
     expect(files[`${dir}/a/friction.md`]).toBeUndefined()
     expect(files[`${dir}/b/friction.md`]).toBeUndefined()
+
+    // And the description covers both, not just the closure that opened it.
+    const description = instance.reviews(consumer)[0]?.body ?? ''
+    expect(description).toContain(`[${consumer}#1](https://github.com/${consumer}/issues/1)`)
+    expect(description).toContain(`[${consumer}#2](https://github.com/${consumer}/issues/2)`)
   })
 
   // The reopen has to reverse a deletion that is still only queued. Planning against the default branch

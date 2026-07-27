@@ -29,7 +29,7 @@ export type Instance = {
   /** Pull requests opened through the API, in creation order. */
   reviews: (
     repo: string,
-  ) => readonly { base: string; head: string; number: number; title: string }[]
+  ) => readonly { base: string; body: string; head: string; number: number; title: string }[]
   /** Replaces a file on a branch, for asserting what happens once an entry is edited. */
   write: (repo: string, path: string, contents: string, branch?: string) => void
 }
@@ -153,6 +153,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   /** Pull requests opened through the API, for the reconciling one. */
   const reviews: {
     base: string
+    body: string
     head: string
     number: number
     repo: string
@@ -269,10 +270,16 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           )
         }
         if (request.method === 'POST') {
-          const payload = await readBody<{ base?: string; head?: string; title?: string }>(request)
+          const payload = await readBody<{
+            base?: string
+            body?: string
+            head?: string
+            title?: string
+          }>(request)
           const number = nextNumber(name)
           const review = {
             base: payload.base ?? 'main',
+            body: payload.body ?? '',
             head: payload.head ?? '',
             number,
             repo: name,
@@ -282,6 +289,19 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           reviews.push(review)
           return json(response, 201, review)
         }
+      }
+
+      const pullPath = /^\/repos\/([^/]+)\/([^/]+)\/pulls\/(\d+)$/.exec(url.pathname)
+      if (pullPath && request.method === 'PATCH') {
+        const name = `${pullPath[1]}/${pullPath[2]}`
+        const payload = await readBody<{ body?: string; title?: string }>(request)
+        const review = reviews.find(
+          (candidate) => candidate.repo === name && candidate.number === Number(pullPath[3]),
+        )
+        if (!review) return json(response, 404, { message: 'Not Found' })
+        if (payload.body !== undefined) review.body = payload.body
+        if (payload.title !== undefined) review.title = payload.title
+        return json(response, 200, review)
       }
 
       // `repos.get`, for whether this token may label issues here.
@@ -585,7 +605,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     reviews(repo) {
       return reviews
         .filter((review) => review.repo === repo)
-        .map(({ base, head, number, title }) => ({ base, head, number, title }))
+        .map(({ base, body, head, number, title }) => ({ base, body, head, number, title }))
     },
     url: `http://127.0.0.1:${address.port}`,
     write(repo, path, contents, branch = 'main') {
