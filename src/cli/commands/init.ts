@@ -31,7 +31,7 @@ outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index.
 
-Install the [frog GitHub App](${install}) and entries are filed, linked, and removed as their issues
+Install the [Frog GitHub App](${install}) and entries are filed, linked, and removed as their issues
 close, without anyone running anything. Without it, run \`frog publish\` and \`frog sync\` yourself with a
 GitHub token.
 
