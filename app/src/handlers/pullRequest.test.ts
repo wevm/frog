@@ -31,7 +31,6 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 async function run(
   url: string,
   options: {
-    delivery?: string | undefined
     installed?: Record<string, Octokit> | undefined
     serialize?: Serialize | undefined
   } = {},
@@ -42,7 +41,6 @@ async function run(
     base,
     baseRef: 'main',
     client: octokit,
-    ...(options.delivery ? { delivery: options.delivery } : {}),
     head: 'head',
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
@@ -140,8 +138,8 @@ test('behavior: a second run opens no issue and adds no comment', async () => {
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
-  await run(instance.url, { delivery: 'delivery-1' })
-  const second = await run(instance.url, { delivery: 'delivery-2' })
+  await run(instance.url)
+  const second = await run(instance.url)
 
   expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
@@ -157,7 +155,7 @@ test('behavior: many pushes to one pull request leave one issue and no comments'
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
-  for (const delivery of ['one', 'two', 'three', 'four']) await run(instance.url, { delivery })
+  for (let attempt = 0; attempt < 4; attempt++) await run(instance.url)
 
   expect(instance.issues.get(base)).toHaveLength(1)
   expect(instance.comments(base, 1)).toHaveLength(0)
@@ -170,15 +168,15 @@ test('behavior: an edited entry comments once', async () => {
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
-  await run(instance.url, { delivery: 'delivery-1' })
+  await run(instance.url)
   instance.write(
     base,
     `${dir}/a/friction.md`,
     entry('Filters ignored').replace('swallowed', 'dropped'),
     'head',
   )
-  await run(instance.url, { delivery: 'delivery-2' })
-  await run(instance.url, { delivery: 'delivery-3' })
+  await run(instance.url)
+  await run(instance.url)
 
   expect(instance.issues.get(base)).toHaveLength(1)
   expect(instance.comments(base, 1)).toHaveLength(1)
@@ -200,9 +198,9 @@ test('behavior: an edit of only punctuation still comments', async () => {
   const after = before.replace('pnpm test src', 'pnpm test -- src')
 
   instance.write(base, `${dir}/a/friction.md`, before, 'head')
-  await run(instance.url, { delivery: 'delivery-1' })
+  await run(instance.url)
   instance.write(base, `${dir}/a/friction.md`, after, 'head')
-  await run(instance.url, { delivery: 'delivery-2' })
+  await run(instance.url)
 
   expect(instance.comments(base, 1)).toHaveLength(1)
 })
@@ -214,10 +212,7 @@ test('behavior: concurrent deliveries with the same title open one issue', async
   )
   const serialize = serial()
 
-  await Promise.all([
-    run(instance.url, { delivery: 'delivery-1', serialize }),
-    run(instance.url, { delivery: 'delivery-2', serialize }),
-  ])
+  await Promise.all([run(instance.url, { serialize }), run(instance.url, { serialize })])
 
   expect(instance.issues.get(base)).toHaveLength(1)
   expect(instance.comments(base, 1)).toHaveLength(0)
@@ -330,17 +325,20 @@ describe('cross-repo', () => {
     }
   }
 
-  test('behavior: defers upstream filing when outbound.auto is off', async () => {
-    const instance = await github({}, seed({ outbound: { allowedRepos: [upstream] } }))
+  test('behavior: refuses upstream filing when outbound is disabled', async () => {
+    const instance = await github(
+      {},
+      seed({ outbound: { allowedRepos: [upstream], enabled: false } }),
+    )
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
-    expect(report.deferred[0]?.reason).toContain('`outbound.auto` is off')
+    expect(report.deferred[0]?.reason).toContain('`outbound.enabled` is off')
     expect(instance.issues.get(upstream)).toBeUndefined()
   })
 
-  test('behavior: files upstream when outbound.auto is on', async () => {
-    const instance = await github({}, seed({ outbound: { allowedRepos: [upstream], auto: true } }))
+  test('behavior: files upstream without waiting for a human', async () => {
+    const instance = await github({}, seed({ outbound: { allowedRepos: [upstream] } }))
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 

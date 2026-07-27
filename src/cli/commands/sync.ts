@@ -117,7 +117,6 @@ export const sync = Cli.create('sync', {
           // The files are always here, whichever repository the issues are in.
           origin: ready.repo,
           repo: destination,
-          severityLabels: config.severityLabels,
         }),
       )
 

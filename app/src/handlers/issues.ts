@@ -115,7 +115,6 @@ export async function issues(options: issues.Options): Promise<Outcome> {
       // The files are in `origin`; issues are in `repo`. They differ when reporting upstream.
       origin,
       repo,
-      severityLabels: settings.severityLabels,
     })
 
     const byId = new Map(entries.map((entry) => [entry.id, entry]))

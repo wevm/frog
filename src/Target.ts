@@ -64,6 +64,7 @@ export type Resolution =
  * Two gates guard a target that is not this repository. The receiver must have committed a config
  * accepting inbound friction, and may restrict who reports. And the sender must have listed the target in
  * `outbound.allowedRepos`, read from the base branch so a pull request cannot name its own destination.
+ * Setting `outbound.enabled` to false refuses every target but this repository.
  *
  * @returns The target, or a refusal naming which gate stopped it.
  */
@@ -71,7 +72,7 @@ export async function resolve(
   value: string | undefined,
   options: resolve.Options,
 ): Promise<Resolution> {
-  const { allowedRepos, readConfig, self } = options
+  const { outbound, readConfig, self } = options
 
   // No target means this repository, which needs nobody's consent.
   if (!value) {
@@ -91,6 +92,15 @@ export async function resolve(
 
   if (repo === self) return { ok: true, target: { kind: 'self', repo } }
 
+  // Checked before asking the target for consent: there is no point spending a request on a report this
+  // repository has switched off sending.
+  if (!outbound.enabled)
+    return {
+      code: 'OUTBOUND_DISABLED',
+      message: `\`${repo}\` cannot be reported: \`outbound.enabled\` is off.`,
+      ok: false,
+    }
+
   const inbound = await readConfig(repo)
   if (!inbound)
     return {
@@ -108,7 +118,7 @@ export async function resolve(
       ok: false,
     }
 
-  if (!allowed(allowedRepos, repo))
+  if (!allowed(outbound.allowedRepos, repo))
     return {
       code: 'TARGET_NOT_ALLOWED',
       message: `\`${repo}\` is not listed in \`outbound.allowedRepos\`.`,
@@ -129,8 +139,8 @@ export async function resolve(
 export declare namespace resolve {
   /** Options for {@link resolve}. */
   type Options = {
-    /** Targets this repository may file against, from the sender's base-branch config. */
-    allowedRepos: readonly string[]
+    /** Whether this repository reports outbound at all, and where, from its base-branch config. */
+    outbound: Config.Outbound
     /**
      * Reads a repository's committed inbound policy from its default branch.
      *

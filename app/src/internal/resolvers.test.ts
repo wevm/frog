@@ -34,7 +34,7 @@ describe('resolvers', () => {
   test('error: propagates a transient target config failure', async () => {
     const instance = await github({}, { errors: { [upstream]: 503 } })
     const stack = resolvers({
-      allowedRepos: [upstream],
+      outbound: { allowedRepos: [upstream], enabled: true },
       installation: async () => client(instance.url),
       self,
     })
@@ -55,7 +55,7 @@ describe('resolvers', () => {
       },
     )
     const stack = resolvers({
-      allowedRepos: [upstream],
+      outbound: { allowedRepos: [upstream], enabled: true },
       installation: async () => client(target.url),
       self,
     })
@@ -67,7 +67,7 @@ describe('resolvers', () => {
 
   test('error: reports a missing target installation', async () => {
     const stack = resolvers({
-      allowedRepos: [upstream],
+      outbound: { allowedRepos: [upstream], enabled: true },
       installation: async () => undefined,
       self,
     })

@@ -96,7 +96,7 @@ export const publish = Cli.create('publish', {
     // Each entry's target is resolved through the consent gates before anything is filed, and entries
     // are grouped by destination so one repository costs one index lookup however many entries it has.
     const resolvers = target.resolvers({
-      allowedRepos: config.outbound.allowedRepos,
+      outbound: config.outbound,
       client: ready.client,
       root,
       self: ready.repo,
@@ -169,7 +169,7 @@ export const publish = Cli.create('publish', {
     const committed = await (async () => {
       if (c.options.commit === false || c.options.dryRun || written.length === 0) return false
       await Git.add(written, { cwd: root })
-      return Git.commit('chore: link friction log to issues', { cwd: root, files: written })
+      return Git.commit('chore: sync friction log', { cwd: root, files: written })
     })()
 
     return c.ok(

@@ -34,11 +34,12 @@ test('behavior: files a pending entry and writes the link back', async () => {
 
   const issue = instance.issues.get(repo)?.[0]
   expect(issue?.title).toBe('Filters ignored')
-  expect(issue?.labels).toEqual(['friction', 'friction:major'])
+  expect(issue?.labels).toEqual(['friction'])
   expect(Github.parseMarker(issue?.body)).toEqual({
     hash: Github.hash('Filters ignored'),
     origin: repo,
     path: '.agents/friction-log/a/friction.md',
+    severity: 'major',
   })
 })
 
@@ -110,9 +111,7 @@ test('behavior: commits the links by default', async () => {
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
   expect(result.committed).toBe(true)
-  expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe(
-    'chore: link friction log to issues',
-  )
+  expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe('chore: sync friction log')
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
 })
 
@@ -243,11 +242,7 @@ describe('cross-repo', () => {
 
     await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-    expect(instance.issues.get(upstream)?.[0]?.labels).toEqual([
-      'friction',
-      'from-consumer',
-      'friction:minor',
-    ])
+    expect(instance.issues.get(upstream)?.[0]?.labels).toEqual(['friction', 'from-consumer'])
   })
 
   test('behavior: records the consumer repository as the origin', async () => {
@@ -397,7 +392,7 @@ describe('cross-repo', () => {
     expect(result.committed).toBe(true)
     expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
     expect((await helpers.git(['log', '--format=%s'], cwd)).split('\n')[0]).toBe(
-      'chore: link friction log to issues',
+      'chore: sync friction log',
     )
   })
 })

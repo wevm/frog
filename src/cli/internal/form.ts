@@ -1,3 +1,4 @@
+import * as Config from '../../Config.js'
 import * as Github from '../../Github.js'
 import * as IssueForm from '../../IssueForm.js'
 import * as Target from '../../Target.js'
@@ -21,7 +22,7 @@ export async function scaffold(
   value: string,
   options: scaffold.Options,
 ): Promise<string | undefined> {
-  const { allowedRepos, env, root, self } = options
+  const { env, outbound, root, self } = options
 
   const token = await octokit.token({ env, ...(options.token ? { token: options.token } : {}) })
   const client = octokit.client({
@@ -29,10 +30,7 @@ export async function scaffold(
     ...(env.GITHUB_API_URL ? { baseUrl: env.GITHUB_API_URL } : {}),
   })
 
-  const resolution = await Target.resolve(
-    value,
-    target.resolvers({ allowedRepos, client, root, self }),
-  )
+  const resolution = await Target.resolve(value, target.resolvers({ client, outbound, root, self }))
   // A refused target is reported by publishing, which says why. Here it only means there is no form to
   // write against, and the entry still has to be written.
   if (!resolution.ok || resolution.target.kind === 'self') return undefined
@@ -50,8 +48,8 @@ export async function scaffold(
 export declare namespace scaffold {
   /** Options for {@link scaffold}. */
   type Options = {
-    /** Targets this repository may file against, from config. */
-    allowedRepos: readonly string[]
+    /** Outbound policy from config: whether to report at all, and where. */
+    outbound: Config.Outbound
     /** Environment, for the API base URL and the token. */
     env: octokit.token.Options['env'] & { GITHUB_API_URL?: string | undefined }
     /** Repository root, holding `node_modules`. */

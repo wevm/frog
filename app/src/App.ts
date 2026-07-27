@@ -58,7 +58,6 @@ export function create(options: create.Options): App {
         base: payload.repository.full_name,
         baseRef: payload.pull_request.base.ref,
         client: octokit,
-        delivery: id,
         head: payload.pull_request.head.sha,
         installation,
         pr: payload.number,
@@ -80,7 +79,6 @@ export function create(options: create.Options): App {
     await push({
       branch,
       client: octokit,
-      delivery: id,
       installation,
       repo: payload.repository.full_name,
       ...(registry ? { registry } : {}),

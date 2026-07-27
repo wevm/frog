@@ -58,10 +58,10 @@ export async function fromRegistry(
  * unchanged, which is the point of `Target` taking them as arguments.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, installation, registry: url, self } = options
+  const { outbound, installation, registry: url, self } = options
 
   return {
-    allowedRepos,
+    outbound,
     async readConfig(repo) {
       const client = await installation(repo)
       if (!client) throw new InstallationMissingError(repo)
@@ -82,8 +82,8 @@ export function resolvers(options: resolvers.Options): Target.resolve.Options {
 export declare namespace resolvers {
   /** Options for {@link resolvers}. */
   type Options = {
-    /** Targets the sender may file against, from its base-branch config. */
-    allowedRepos: readonly string[]
+    /** Sender's outbound policy, from its base-branch config. */
+    outbound: Config.Outbound
     /** Resolves the installation client authorized to read each target repository. */
     installation: (repo: string) => Promise<Octokit | undefined>
     /** Registry base URL. Overridden in tests. */

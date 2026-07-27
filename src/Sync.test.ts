@@ -6,12 +6,6 @@ import * as Sync from './Sync.js'
 
 const repo = 'wevm/demo'
 const labels = ['friction']
-const severityLabels = {
-  blocker: 'friction:blocker',
-  major: 'friction:major',
-  minor: 'friction:minor',
-} as const
-
 function entry(overrides: Partial<Entry.Entry> = {}): Entry.Entry {
   return { body: 'Body.', id: 'a', severity: 'minor', title: 'Filters ignored', ...overrides }
 }
@@ -20,9 +14,14 @@ function issue(overrides: Partial<Github.Issue> = {}): Github.Issue {
   return {
     body: Github.renderBody({
       body: 'Body.',
-      marker: { hash: Github.hash('Filters ignored'), origin: repo, path: Store.toPath('a') },
+      marker: {
+        hash: Github.hash('Filters ignored'),
+        origin: repo,
+        path: Store.toPath('a'),
+        severity: 'minor',
+      },
     }),
-    labels: ['friction', 'friction:minor'],
+    labels: ['friction'],
     number: 1,
     state: 'open',
     title: 'Filters ignored',
@@ -41,7 +40,6 @@ function plan(
     labels,
     ...(mirrors ? { mirrors } : {}),
     repo,
-    severityLabels,
   })
 }
 
@@ -90,7 +88,24 @@ describe('plan', () => {
   })
 
   test('behavior: an open issue with no local file is rebuilt', () => {
-    const result = plan([], [issue({ labels: ['friction', 'friction:blocker', 'tooling'] })])
+    const result = plan(
+      [],
+      [
+        issue({
+          // Severity rides in the marker now, so this is what proves it survives a rebuild.
+          body: Github.renderBody({
+            body: 'Body.',
+            marker: {
+              hash: Github.hash('Filters ignored'),
+              origin: repo,
+              path: Store.toPath('a'),
+              severity: 'blocker',
+            },
+          }),
+          labels: ['friction', 'tooling'],
+        }),
+      ],
+    )
     expect(result.write).toEqual([
       {
         body: 'Body.',
@@ -207,7 +222,7 @@ describe('plan across repositories', () => {
         body: 'Body.',
         marker: { hash: Github.hash('Filters ignored'), origin: repo, path: Store.toPath('a') },
       }),
-      labels: ['friction', 'friction:minor'],
+      labels: ['friction'],
       number: 1,
       state: 'open',
       title: 'Filters ignored',
@@ -216,7 +231,7 @@ describe('plan across repositories', () => {
   }
 
   function across(entries: readonly Entry.Entry[], issues: readonly Github.Issue[]): Sync.Plan {
-    return Sync.plan({ entries, issues, labels, origin: repo, repo: upstream, severityLabels })
+    return Sync.plan({ entries, issues, labels, origin: repo, repo: upstream })
   }
 
   test('behavior: an upstream issue that closed removes the entry mirroring it', () => {

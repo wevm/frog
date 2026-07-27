@@ -120,7 +120,7 @@ describe('commit', () => {
 
     await Repository.commit(octokit, {
       branch: 'main',
-      message: 'chore: link friction log to issues',
+      message: 'chore: sync friction log',
       repo,
       writes: [{ contents: entry('Filters ignored'), path: `${dir}/a/friction.md` }],
     })

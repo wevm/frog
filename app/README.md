@@ -30,19 +30,18 @@ handler again, and a fork's branch is unreachable anyway. Links land when the wo
 Filing on another repository needs an installation there. No installation means no token, so the App
 cannot file where it has not been installed: consent enforced by GitHub rather than by configuration.
 
-Beyond that it stays opt-in on the sender's side. Add the target to `outbound.allowedRepos`, and set
-`outbound.auto` to file without a human:
+Beyond that it stays opt-in on the sender's side. Name the target in `outbound.allowedRepos`, and the
+App files there without waiting for a human:
 
 ```jsonc
 // .agents/friction-log/config.json in the reporting repository
 {
-  "outbound": { "allowedRepos": ["wevm/viem"], "auto": true },
+  "outbound": { "allowedRepos": ["wevm/viem"] },
 }
 ```
 
-`auto` is off by default because an entry written in a private repository can carry detail that should
-not become a public issue unread. Within one organization that risk does not apply, so `wevm/*` on both
-sides gives unattended reporting.
+The list is empty by default, so nothing leaves a repository until it names somewhere to send. Set
+`outbound.enabled` to `false` to switch reporting off without emptying the list.
 
 The receiving repository opts in separately:
 

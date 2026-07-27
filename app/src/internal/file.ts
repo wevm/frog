@@ -45,7 +45,7 @@ export async function file(options: file.Options): Promise<Filing> {
   }
 
   const stack = resolvers.resolvers({
-    allowedRepos: config.outbound.allowedRepos,
+    outbound: config.outbound,
     installation: installed,
     self: origin,
     ...(registry ? { registry } : {}),
@@ -74,16 +74,6 @@ export async function file(options: file.Options): Promise<Filing> {
     }
 
     const { labels, repo: destination } = resolution.target
-
-    // Filing upstream unattended is opt-in per sender. An entry written in a private repository can
-    // carry detail that should not become a public issue without somebody reading it first.
-    if (destination !== origin && !config.outbound.auto) {
-      deferred.push({
-        id: entry.id,
-        reason: `\`${destination}\` is upstream, and \`outbound.auto\` is off. Run \`frog publish\`.`,
-      })
-      continue
-    }
 
     candidates.push({ destination, entry, ...(labels ? { labels } : {}) })
   }
@@ -146,10 +136,9 @@ export async function file(options: file.Options): Promise<Filing> {
           labels: Github.toLabels({
             entry,
             labels: applied,
-            severityLabels: config.severityLabels,
           }),
           // `origin` is where the file lives, which is not the destination when reporting upstream.
-          marker: { hash, origin, path: Store.toPath(entry.id) },
+          marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
           provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
           repo: destination,
           occurrence: occurrenceOf({ entry, origin, ...(pr ? { pr } : {}) }),
