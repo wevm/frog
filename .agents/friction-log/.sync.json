@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "mirrors": [
-    {
-      "issue": "wevm/frog#4",
-      "path": ".agents/friction-log/20260727105533-wrangler-disables-the/friction.md"
-    }
-  ]
-}
