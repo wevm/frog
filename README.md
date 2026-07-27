@@ -102,6 +102,22 @@ health endpoint hit a config loader that turns a missing environment variable in
 | 6    | Frog opens a pull request deleting the resolved entry                           | [#4](https://github.com/wevm/frog-demo/pull/4)                |
 | 7    | Merging leaves the log holding only what is still unresolved                    | [`e4ac13d`](https://github.com/wevm/frog-demo/commit/e4ac13d) |
 
+<details>
+<summary>Action-only workflow</summary>
+
+Action-only uses the repository's workflow and `GITHUB_TOKEN`, without installing the Frog GitHub App:
+
+| Step | What happens                                                                                                   | Example                                                                                                                             |
+| ---- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Run `frog init`, choose Action-only, and add `.github/workflows/frog.yml`.                                     | [`5a3142b`](https://github.com/wevm/frog-demo-action/commit/5a3142b)                                                                |
+| 2    | An agent hits friction and runs `frog log`; the report uses the repository's friction issue form.              | [`friction.md`](https://github.com/wevm/frog-demo-action/blob/5a3142b/.agents/friction-log/20260728085722-load-turns-a/friction.md) |
+| 3    | Frog reports the friction as an issue and opens or updates one accumulating `frog/sync` pull request.          | [#1](https://github.com/wevm/frog-demo-action/issues/1) · [#2](https://github.com/wevm/frog-demo-action/pull/2)                     |
+| 4    | A fix closes the issue.                                                                                        | [#3](https://github.com/wevm/frog-demo-action/pull/3)                                                                               |
+| 5    | The issue event or next scheduled run updates the same `frog/sync` pull request to delete the resolved report. | [#2](https://github.com/wevm/frog-demo-action/pull/2)                                                                               |
+| 6    | Merging leaves the log holding only unresolved reports.                                                        | [`900ea2c`](https://github.com/wevm/frog-demo-action/commit/900ea2c)                                                                |
+
+</details>
+
 ## Usage
 
 ### Add Logs
