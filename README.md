@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#quick-prompt">Quick Prompt</a> · <a href="#install">Install</a> · <a href="#workflow">Workflow</a> · <a href="#usage">Usage</a> · <a href="#action-only-mode">Action-only Mode</a> · <a href="#license">License</a>
+  <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#quick-prompt">Quick Prompt</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a>
 </p>
 
 ## Problem
