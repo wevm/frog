@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.2
+
+### Patch Changes
+
+- 13dfe8f: Pointed `init` at the GitHub App installation, in its call to action and in the friction log it scaffolds.
+
 ## 1.0.1
 
 ### Patch Changes
