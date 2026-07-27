@@ -3,6 +3,14 @@
   "name": "frog",
   "main": "src/worker.ts",
   "compatibility_date": "2026-07-01",
+  // A path-scoped route rather than a custom domain, which would claim the whole hostname. `wevm.dev`
+  // already resolves every subdomain through Cloudflare, so this needs no DNS record of its own.
+  "routes": [
+    {
+      "pattern": "frog.wevm.dev/github",
+      "zone_name": "wevm.dev",
+    },
+  ],
   "durable_objects": {
     "bindings": [
       {
