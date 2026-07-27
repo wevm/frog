@@ -79,11 +79,11 @@ export function plan(options: plan.Options): Plan {
 
     // Without a remembered binding the marker is the only record of the path, so it has to prove it
     // belongs to this issue. A marker pasted in from elsewhere names a path this issue never had, and
-    // its hash gives that away: frog derives the hash from the title it filed under.
+    // its hash gives that away: Frog derives the hash from the title it filed under.
     const owns = marker?.hash === Github.hash(issue.title)
     const paths = remembered.get(issue.number) ?? (owns && marker?.path ? [marker.path] : [])
     for (const path of paths) {
-      // Without a remembered binding, only an issue frog itself filed can be rebuilt. The marker
+      // Without a remembered binding, only an issue Frog itself filed can be rebuilt. The marker
       // names the repository holding the file, so compare it against `origin`, not the issue repo.
       if (!remembered.has(issue.number) && marker?.origin && marker.origin !== origin) continue
       if (present.has(path)) continue
@@ -103,7 +103,7 @@ export declare namespace plan {
   type Options = {
     /** Every local entry, from `Store.read`. */
     entries: readonly Entry.Entry[]
-    /** Every issue frog manages in `repo`, from `Github.list`. */
+    /** Every issue Frog manages in `repo`, from `Github.list`. */
     issues: readonly Github.Issue[]
     /** Labels applied to every issue, from config. */
     labels: readonly string[]
@@ -166,7 +166,7 @@ export declare namespace state {
     entries: readonly Entry.Entry[]
     /** Fetches one issue by number, resolving to `undefined` when it does not exist. */
     get: (issue: number) => Promise<Github.Issue | undefined>
-    /** Lists the issues frog manages in `repo`. */
+    /** Lists the issues Frog manages in `repo`. */
     list: () => Promise<readonly Github.Issue[]>
     /** Issue numbers remembered after their final local mirrors were removed. */
     remembered?: readonly number[] | undefined

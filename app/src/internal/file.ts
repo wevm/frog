@@ -88,7 +88,7 @@ export async function file(options: file.Options): Promise<Filing> {
     for (const candidate of candidates.filter((entry) => entry.destination === destination))
       deferred.push({
         id: candidate.entry.id,
-        reason: `frog is not installed on \`${destination}\`.`,
+        reason: `Frog is not installed on \`${destination}\`.`,
       })
   }
 

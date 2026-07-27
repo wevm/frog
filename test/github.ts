@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import http from 'node:http'
 
 /**
- * A real HTTP server implementing the GitHub REST endpoints frog uses.
+ * A real HTTP server implementing the GitHub REST endpoints Frog uses.
  *
  * Not a mock: Octokit's `baseUrl` points here and makes genuine requests, so serialization,
  * pagination, and status codes are all exercised. `node:http` rather than a framework keeps this

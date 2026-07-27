@@ -167,7 +167,7 @@ describe('--target', () => {
       GITHUB_TOKEN: 'test-token',
     })
 
-    // The upstream's questions, not frog's sections.
+    // The upstream's questions, not Frog's sections.
     expect((await Store.get(id, { root: cwd })).body).toMatchInlineSnapshot(`
       "### Viem Version
 

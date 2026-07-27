@@ -2,7 +2,7 @@ import { Github, Store } from 'frog'
 import type { Octokit } from 'octokit'
 
 /**
- * Marks the one comment frog keeps on a pull request.
+ * Marks the one comment Frog keeps on a pull request.
  *
  * An explicit marker rather than a match on the bot's login, which can be renamed. It also leaves room
  * for a second kind of comment without confusing the two.

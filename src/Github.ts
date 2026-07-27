@@ -153,13 +153,13 @@ export const markerVersion = 'v1'
 
 const markerRegex = /<!--\s*frog:v1\s+([^>]*?)\s*-->/
 
-/** Every frog comment, for stripping a write-up that carries one of its own. */
+/** Every Frog comment, for stripping a write-up that carries one of its own. */
 const markerStripRegex = /\s*<!--\s*frog:[^>]*-->/g
 
 /**
  * Last marker in a body.
  *
- * frog appends its own after the write-up, so reading the last one means a marker embedded in
+ * Frog appends its own after the write-up, so reading the last one means a marker embedded in
  * author-controlled text cannot stand in for it.
  */
 function lastMarker(value: string): RegExpExecArray | undefined {
@@ -270,7 +270,7 @@ export function renderBody(options: renderBody.Options): string {
     .filter(Boolean)
     .join(' ')
 
-  const footer = `<sub>${credits}. Filed by [frog](https://github.com/wevm/frog).</sub>`
+  const footer = `<sub>${credits}. Filed by [Frog](https://github.com/wevm/frog).</sub>`
 
   const markers = [renderMarker(marker), occurrence ? renderOccurrence(occurrence) : undefined]
     .filter(Boolean)
@@ -600,7 +600,7 @@ export declare namespace find {
 }
 
 /**
- * Lists every issue frog manages in a repository.
+ * Lists every issue Frog manages in a repository.
  *
  * @param client - Authenticated client for the repository.
  * @returns Issues carrying the label, oldest first, with pull requests filtered out.
@@ -652,7 +652,7 @@ async function listAll(client: Client, options: { repo: string }): Promise<reado
 export declare namespace index {
   /** Options for {@link index}. */
   type Options = {
-    /** Label every frog issue in this repository carries. Dedupe keys off it. */
+    /** Label every Frog issue in this repository carries. Dedupe keys off it. */
     label: string
     /** Repository to index, as `owner/name`. */
     repo: string

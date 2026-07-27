@@ -18,7 +18,7 @@ import * as target from './target.js'
  *
  * @param value - The `--target` as written.
  * @returns The scaffold, or `undefined` when the target resolves to nothing, refuses reports, or has no
- * form frog can be sure of. Every one of those leaves frog's own sections in place.
+ * form Frog can be sure of. Every one of those leaves Frog's own sections in place.
  */
 export async function scaffold(
   value: string,

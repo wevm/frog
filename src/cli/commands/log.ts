@@ -138,7 +138,7 @@ export const log = Cli.create('log', {
 
     const body = c.options.body ?? (input?.body || undefined)
 
-    // Scaffold from the target's own issue form rather than from frog's sections. An upstream project
+    // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
     // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
     // an unreachable target costs the scaffold, not the entry.
     // With no target, use this repository's own form.

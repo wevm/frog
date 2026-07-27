@@ -2,7 +2,7 @@ import { type Entry, Github } from 'frog'
 import type { Octokit } from 'octokit'
 import * as Repository from '../Repository.js'
 
-const intro = 'Opened by the [frog](https://github.com/wevm/frog) GitHub App.'
+const intro = 'Opened by the [Frog](https://github.com/wevm/frog) GitHub App.'
 
 function link(entry: Entry.Entry): string {
   const parsed = entry.issue ? Github.parseLink(entry.issue) : undefined

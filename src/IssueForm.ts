@@ -114,9 +114,9 @@ function render(field: Field): string {
 /**
  * Picks the form to author against, from the files in a project's template directory.
  *
- * `friction.yml` takes precedence: a project that added one is speaking to frog directly. Failing
+ * `friction.yml` takes precedence: a project that added one is speaking to Frog directly. Failing
  * that, a lone form is used, and among several the one named for bugs. Anything less certain resolves
- * to nothing, leaving frog's own sections in place.
+ * to nothing, leaving Frog's own sections in place.
  *
  * @param paths - Repository-relative paths of everything in {@link dir}.
  * @returns The path to read, or `undefined` when no form is the obvious one.
@@ -142,8 +142,8 @@ export function choose(paths: readonly string[]): string | undefined {
  *
  * @param read - Reads a repository file, or `undefined` when it is not there.
  * @param list - Lists the files in a repository directory.
- * @returns The form, or `undefined` when the project has none frog can be sure of. Never throws: every
- * caller has frog's own sections to fall back on.
+ * @returns The form, or `undefined` when the project has none Frog can be sure of. Never throws: every
+ * caller has Frog's own sections to fall back on.
  */
 export async function find(options: find.Options): Promise<Form | undefined> {
   const { list, named, read } = options

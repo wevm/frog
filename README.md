@@ -1,7 +1,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset=".github/logo-light.svg">
-  <img alt="frog" src=".github/logo-light.svg" width="100%" height="140px">
+  <img alt="Frog" src=".github/logo-light.svg" width="100%" height="140px">
 </picture>
 
 <p align="center">
@@ -54,15 +54,15 @@ See a demonstration in [wevm/frog-demo](https://github.com/wevm/frog-demo), wher
 health endpoint hit a config loader that turns a missing environment variable into the string
 `"undefined"`, and logged it on the way past.
 
-| Step | What happens | Example |
-| --- | --- | --- |
-| 1 | Agent hits friction while working and runs `frog log` | — |
-| 2 | The entry commits alongside the change that provoked it | [`0de4ab6`](https://github.com/wevm/frog-demo/commit/0de4ab6) |
-| 3 | frog comments on the pull request, naming what it found | [#1](https://github.com/wevm/frog-demo/pull/1) |
-| 4 | frog files the issue and writes the `issue:` link onto the branch | [#2](https://github.com/wevm/frog-demo/issues/2) |
-| 5 | You fix the friction and close the issue | [#3](https://github.com/wevm/frog-demo/pull/3) |
-| 6 | frog opens a pull request deleting the resolved entry | [#4](https://github.com/wevm/frog-demo/pull/4) |
-| 7 | Merging leaves the log holding only what is still unresolved | [`e4ac13d`](https://github.com/wevm/frog-demo/commit/e4ac13d) |
+| Step | What happens                                                      | Example                                                       |
+| ---- | ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1    | Agent hits friction while working and runs `frog log`             | —                                                             |
+| 2    | The entry commits alongside the change that provoked it           | [`0de4ab6`](https://github.com/wevm/frog-demo/commit/0de4ab6) |
+| 3    | Frog comments on the pull request, naming what it found           | [#1](https://github.com/wevm/frog-demo/pull/1)                |
+| 4    | Frog files the issue and writes the `issue:` link onto the branch | [#2](https://github.com/wevm/frog-demo/issues/2)              |
+| 5    | You fix the friction and close the issue                          | [#3](https://github.com/wevm/frog-demo/pull/3)                |
+| 6    | Frog opens a pull request deleting the resolved entry             | [#4](https://github.com/wevm/frog-demo/pull/4)                |
+| 7    | Merging leaves the log holding only what is still unresolved      | [`e4ac13d`](https://github.com/wevm/frog-demo/commit/e4ac13d) |
 
 ## Quick Prompt
 
@@ -125,7 +125,7 @@ frog list
 Teaches agents **when** to log, which is the part they cannot infer. The rule is _log when you worked around
 something_; see [`SKILL.md`](./SKILL.md) for the full trigger.
 
-`mcp add` exposes each command as a typed tool, so agents call frog directly rather than composing shell.
+`mcp add` exposes each command as a typed tool, so agents call Frog directly rather than composing shell.
 
 ```sh
 frog skills add
@@ -142,7 +142,7 @@ repository's own default branch. So nothing a package says can send a report som
 agreed to receive one.
 
 Naming a target also scaffolds the entry from that project's GitHub issue form, so the report answers the
-questions it actually asks rather than frog's own. A project that names no form keeps frog's sections.
+questions it actually asks rather than Frog's own. A project that names no form keeps Frog's sections.
 
 ```sh
 frog targets

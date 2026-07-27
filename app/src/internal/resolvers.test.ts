@@ -73,7 +73,7 @@ describe('resolvers', () => {
     })
 
     await expect(stack.readConfig(upstream)).rejects.toMatchObject({
-      message: 'frog is not installed on `wevm/viem`.',
+      message: 'Frog is not installed on `wevm/viem`.',
       repo: upstream,
     })
   })

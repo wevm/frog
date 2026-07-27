@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "GitHub App that files frog as issues and keeps the two in sync.",
+  "description": "GitHub App that files friction as issues and keeps the two in sync.",
   "scripts": {
     "check:types": "tsc",
     "deploy": "wrangler deploy",

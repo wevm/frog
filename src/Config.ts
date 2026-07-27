@@ -31,7 +31,7 @@ export const Schema = z.object({
         .describe('Message for the commit reconciling the log against issue state.'),
     })
     .prefault({})
-    .describe('Messages for the commits frog makes on your behalf.'),
+    .describe('Messages for the commits Frog makes on your behalf.'),
   inbound: z
     .object({
       allowFrom: z

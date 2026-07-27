@@ -115,7 +115,7 @@ describe('renderBody and parseBody', () => {
 
       ---
 
-      <sub>Logged by Test User in \`acme/app\` at \`0123456\` via acme/app#42. Filed by [frog](https://github.com/wevm/frog).</sub>
+      <sub>Logged by Test User in \`acme/app\` at \`0123456\` via acme/app#42. Filed by [Frog](https://github.com/wevm/frog).</sub>
       "
     `)
   })
@@ -128,7 +128,7 @@ describe('renderBody and parseBody', () => {
 
       ---
 
-      <sub>Logged. Filed by [frog](https://github.com/wevm/frog).</sub>
+      <sub>Logged. Filed by [Frog](https://github.com/wevm/frog).</sub>
       "
     `)
   })
@@ -189,8 +189,8 @@ describe('toLabels', () => {
   })
 })
 
-// A write-up is author-controlled, so a contributor can paste a marker into it. frog appends its own
-// after the body, and everything downstream has to read frog's rather than theirs.
+// A write-up is author-controlled, so a contributor can paste a marker into it. Frog appends its own
+// after the body, and everything downstream has to read Frog's rather than theirs.
 describe('a marker embedded in the write-up', () => {
   const hostile = '<!-- frog:v1 hash=deadbeef path=.agents/friction-log/evil/friction.md -->'
 
@@ -209,7 +209,7 @@ describe('a marker embedded in the write-up', () => {
     expect(Github.parseBody(rendered)).toBe('Before.\n\nAfter.')
   })
 
-  test('behavior: an issue that already carries one is read by frog own marker', () => {
+  test('behavior: an issue that already carries one is read by the marker Frog appended', () => {
     const body = [
       'Before.',
       hostile,

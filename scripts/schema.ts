@@ -7,7 +7,7 @@ const root = path.join(import.meta.dirname, '..')
 
 // `io: 'input'` emits the written shape, where every field is optional. That is what a document on
 // disk is validated against, and what makes `$schema` useful in an editor.
-const schemas = [{ file: 'schema.json', schema: Config.Schema, title: 'frog config' }] as const
+const schemas = [{ file: 'schema.json', schema: Config.Schema, title: 'Frog config' }] as const
 
 for (const { file, schema, title } of schemas) {
   const json = {

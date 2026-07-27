@@ -111,7 +111,7 @@ test('schema.json matches the written config schema', async () => {
   ) as unknown
   const generated = {
     $schema: 'http://json-schema.org/draft-07/schema#',
-    title: 'frog config',
+    title: 'Frog config',
     ...z.toJSONSchema(Config.Schema, { io: 'input', target: 'draft-7' }),
   }
 

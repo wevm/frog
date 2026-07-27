@@ -408,7 +408,7 @@ describe('cross-repo', () => {
 
     const report = await run(instance.url)
 
-    expect(report.deferred[0]?.reason).toBe('frog is not installed on `wevm/viem`.')
+    expect(report.deferred[0]?.reason).toBe('Frog is not installed on `wevm/viem`.')
     expect(instance.issues.get(upstream)).toBeUndefined()
   })
 

@@ -233,7 +233,7 @@ describe('cross-repo', () => {
       repo: upstream,
     })
 
-    expect(outcome.ignored).toBe('frog is not installed on `acme/app`')
+    expect(outcome.ignored).toBe('Frog is not installed on `acme/app`')
     expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeTruthy()
   })
 })
@@ -252,7 +252,7 @@ test('security: an unrecorded marker cannot authorize repository writes', async 
     repo: upstream,
   })
 
-  expect(outcome.ignored).toBe('untrusted frog marker')
+  expect(outcome.ignored).toBe('untrusted Frog marker')
   expect(instance.files(consumer)).toEqual({ 'README.md': '# app' })
   expect(instance.messages(consumer)).toEqual(['initial'])
 })
@@ -300,7 +300,7 @@ test('behavior: an issue with no marker is ignored', async () => {
     repo: consumer,
   })
 
-  expect(outcome.ignored).toBe('no frog marker')
+  expect(outcome.ignored).toBe('no Frog marker')
   expect(instance.messages(consumer)).toEqual(['initial'])
 })
 
@@ -319,7 +319,7 @@ test('behavior: an issue whose marker has no path is ignored', async () => {
     repo: consumer,
   })
 
-  expect(outcome.ignored).toBe('no frog marker')
+  expect(outcome.ignored).toBe('no Frog marker')
 })
 
 describe('pullRequest', () => {
@@ -362,7 +362,7 @@ describe('pullRequest', () => {
       title: 'chore: sync friction log',
     })
     expect(description).toMatchInlineSnapshot(`
-      "Opened by the [frog](https://github.com/wevm/frog) GitHub App.
+      "Opened by the [Frog](https://github.com/wevm/frog) GitHub App.
 
       ## Resolved
 

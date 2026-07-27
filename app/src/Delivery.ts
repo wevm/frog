@@ -143,7 +143,7 @@ function action<Action extends string>(
   return allowed.find((candidate) => candidate === name)
 }
 
-/** Whether an event header names a webhook frog handles. */
+/** Whether an event header names a webhook Frog handles. */
 export function supports(name: string): name is Delivery['name'] {
   return name === 'issues' || name === 'pull_request' || name === 'push'
 }
@@ -296,7 +296,7 @@ export async function toEvent(
   }
 }
 
-/** Thrown when a signed or queued delivery does not match frog's supported projection. */
+/** Thrown when a signed or queued delivery does not match Frog's supported projection. */
 export class InvalidError extends Error {
   override readonly name = 'Delivery.InvalidError'
 
