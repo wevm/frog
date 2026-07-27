@@ -1,4 +1,4 @@
-import type { Entry } from 'frog'
+import { Entry, Store } from 'frog'
 import type { Octokit } from 'octokit'
 import * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
@@ -13,9 +13,12 @@ import * as Repository from '../Repository.js'
  * request's head commit reachable there, so this works for a fork without the installation needing any
  * access to that fork.
  *
- * Nothing is written back to the pull request branch, deliberately. A commit there would trigger
- * `synchronize` and run this again, and a fork's branch is unreachable to the App anyway. The `issue:`
- * link is written when the work lands, by the push handler.
+ * The `issue:` link is written straight onto the pull request's own branch, so the entry lands already
+ * filed and the merge needs no follow-up commit. That costs one extra `synchronize` delivery, on which
+ * the entry is already linked and so is neither re-filed nor re-reported.
+ *
+ * A fork's branch belongs to a repository the App has no installation on, so there the link still waits
+ * for the push handler to write it once the work has landed.
  *
  * @returns What happened, already reported on the pull request.
  */
@@ -25,6 +28,8 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     baseRef,
     client,
     head,
+    headRef,
+    headRepo,
     installation,
     pr,
     registry,
@@ -54,6 +59,25 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     ...(registry ? { registry } : {}),
     serialize,
   })
+
+  // Re-read under the repository lease: filing takes several requests, and the branch may have moved
+  // since this delivery's snapshot.
+  if (headRepo === base && filed.links.size > 0)
+    await serialize(base, async () => {
+      const current = await Repository.read(client, { ref: headRef, repo: base })
+      const writes = current.entries.flatMap((entry) => {
+        const issue = filed.links.get(entry.id)
+        if (!issue || entry.issue) return []
+        return [{ contents: Entry.serialize({ ...entry, issue }), path: Store.toPath(entry.id) }]
+      })
+
+      return Repository.commit(client, {
+        branch: headRef,
+        message: 'chore: link filed friction',
+        repo: base,
+        writes,
+      })
+    })
 
   const report: comment.Report = {
     commented: filed.commented,
@@ -98,6 +122,10 @@ export declare namespace pullRequest {
     client: Octokit
     /** Head commit sha, reachable from the base repository even for a fork. */
     head: string
+    /** Head branch, written to when it belongs to the base repository. */
+    headRef: string
+    /** Repository the head branch lives on, or `null` when a deleted fork owned it. */
+    headRepo: string | null
     /**
      * Resolves an installation client for another repository.
      *

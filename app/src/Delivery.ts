@@ -30,7 +30,7 @@ export type Delivery =
         number: number
         pull_request: {
           base: { ref: string }
-          head: { sha: string }
+          head: { ref: string; repo: { full_name: string } | null; sha: string }
           user: { login: string } | null
         }
         repository: Repository
@@ -98,6 +98,15 @@ function repository(payload: ObjectValue): Repository {
   return { full_name: fullName }
 }
 
+/** Just enough of a repository to name it, or `null` when the fork it lived on is gone. */
+function fullName(value: unknown, field: string): { full_name: string } | null {
+  if (value === null || value === undefined) return null
+  const repo = object(value, field)
+  return typeof repo['full_name'] === 'string' && repo['full_name']
+    ? { full_name: repo['full_name'] }
+    : null
+}
+
 function login(value: unknown, field: string): { login: string } | null {
   if (value === null || value === undefined) return null
   const user = object(value, field)
@@ -153,7 +162,11 @@ export function fromWebhook(options: {
         number: integer(payload['number'], 'number'),
         pull_request: {
           base: { ref: string(base['ref'], 'pull_request.base.ref') },
-          head: { sha: string(head['sha'], 'pull_request.head.sha') },
+          head: {
+            ref: string(head['ref'], 'pull_request.head.ref'),
+            repo: fullName(head['repo'], 'pull_request.head.repo'),
+            sha: string(head['sha'], 'pull_request.head.sha'),
+          },
           user: login(pull['user'], 'pull_request.user'),
         },
         repository: repo,

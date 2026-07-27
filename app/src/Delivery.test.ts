@@ -17,7 +17,7 @@ test('behavior: compacts a pull request delivery to the fields its handler reads
         pull_request: {
           base: { ref: 'main', repository: { ignored: true } },
           body: 'ignored',
-          head: { repo: { ignored: true }, sha: 'abc123' },
+          head: { ref: 'feature', repo: { full_name: 'fork/app', ignored: true }, sha: 'abc123' },
           user: { avatar_url: 'ignored', login: 'contributor' },
         },
         repository: { ...common.repository, description: 'ignored' },
@@ -32,7 +32,7 @@ test('behavior: compacts a pull request delivery to the fields its handler reads
       number: 7,
       pull_request: {
         base: { ref: 'main' },
-        head: { sha: 'abc123' },
+        head: { ref: 'feature', repo: { full_name: 'fork/app' }, sha: 'abc123' },
         user: { login: 'contributor' },
       },
       repository: { full_name: 'acme/app' },

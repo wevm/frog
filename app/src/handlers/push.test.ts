@@ -3,6 +3,7 @@ import { Octokit } from 'octokit'
 import { github } from '../../../test/github.js'
 import type { Serialize } from '../internal/serialize.js'
 import * as Repository from '../Repository.js'
+import { pullRequest } from './pullRequest.js'
 import { push } from './push.js'
 
 const repo = 'acme/app'
@@ -41,6 +42,37 @@ async function run(
     ...(options.serialize ? { serialize: options.serialize } : {}),
   })
 }
+
+// A fork's pull request files the issue but cannot be linked in place, so the entry reaches the default
+// branch still unlinked and the push handler reports it a second time. Both reports describe the same
+// entry, so the occurrence must be recognised rather than announced as a fresh hit.
+test('behavior: an entry filed from a pull request is not announced again on merge', async () => {
+  const contents = entry('Filters ignored')
+  const instance = await github({}, { head: { [repo]: { [`${dir}/a/friction.md`]: contents } } })
+
+  await pullRequest({
+    base: repo,
+    baseRef: 'main',
+    client: client(instance.url),
+    head: 'head',
+    headRef: 'head',
+    headRepo: 'contributor/app',
+    installation: async () => undefined,
+    pr: 42,
+    registry: `${instance.url}/registry`,
+  })
+  expect(instance.issues.get(repo)).toHaveLength(1)
+
+  // The merge lands the same unlinked entry on the default branch.
+  instance.write(repo, `${dir}/a/friction.md`, contents)
+  const outcome = await run(instance.url)
+
+  // Recognised as a replay of the filing that opened the issue, so no second issue and, above all, no
+  // "Hit again" on an issue that already says exactly this.
+  expect(outcome.created).toEqual([{ id: 'a', issue: `${repo}#1` }])
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect(instance.comments(repo, 1)).toEqual([])
+})
 
 test('behavior: files pending entries and writes the link back in one commit', async () => {
   const instance = await github(

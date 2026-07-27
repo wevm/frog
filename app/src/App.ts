@@ -59,6 +59,8 @@ export function create(options: create.Options): App {
         baseRef: payload.pull_request.base.ref,
         client: octokit,
         head: payload.pull_request.head.sha,
+        headRef: payload.pull_request.head.ref,
+        headRepo: payload.pull_request.head.repo?.full_name ?? null,
         installation,
         pr: payload.number,
         ...(registry ? { registry } : {}),

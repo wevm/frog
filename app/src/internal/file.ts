@@ -141,7 +141,7 @@ export async function file(options: file.Options): Promise<Filing> {
           marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
           provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
           repo: destination,
-          occurrence: occurrenceOf({ entry, origin, ...(pr ? { pr } : {}) }),
+          occurrence: occurrenceOf({ entry, origin }),
           ...(existing ? { existing } : {}),
         })
 
@@ -169,13 +169,9 @@ export async function file(options: file.Options): Promise<Filing> {
  * collapse edits that matter, such as adding the `--` a command was missing. `renderOccurrence` digests
  * the whole key anyway, so nothing is gained by hashing a part of it first.
  */
-function occurrenceOf(options: {
-  entry: Entry.Entry
-  origin: string
-  pr?: string | undefined
-}): string {
-  const { entry, origin, pr } = options
-  return [origin, pr ?? 'default', entry.id, entry.body].join(':')
+function occurrenceOf(options: { entry: Entry.Entry; origin: string }): string {
+  const { entry, origin } = options
+  return [origin, entry.id, entry.body].join(':')
 }
 
 export declare namespace file {
