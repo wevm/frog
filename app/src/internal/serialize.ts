@@ -14,7 +14,7 @@ export type Namespace = {
   getByName(name: string): Coordinator
 }
 
-/** Another delivery currently owns a conflicting repository mutation. */
+/** Thrown when another delivery already owns a conflicting repository mutation. */
 export class RepositoryBusyError extends Error {
   override readonly name = 'RepositoryBusyError'
 

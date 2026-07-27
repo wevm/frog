@@ -49,7 +49,7 @@ function normalize(mirrors: readonly Mirror[]): readonly Mirror[] {
 /**
  * Validates and normalizes a loaded journal.
  *
- * Unknown versions fail closed so recovery state is never silently discarded by older code.
+ * Unknown versions fail closed, so older code never silently discards recovery state.
  */
 export function from(value: unknown): State {
   if (!value || typeof value !== 'object' || Array.isArray(value))

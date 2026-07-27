@@ -95,7 +95,7 @@ test('error: a body is required when not interactive', async () => {
   expect(await cli.error(['log', title, '--cwd', cwd])).toMatchInlineSnapshot(`
     {
       "code": "MISSING_BODY",
-      "message": "A body is required. An entry with no detail is not actionable.",
+      "message": "A body is required.",
     }
   `)
 })

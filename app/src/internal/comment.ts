@@ -4,8 +4,8 @@ import type { Octokit } from 'octokit'
 /**
  * Marks the one comment frog keeps on a pull request.
  *
- * An explicit marker rather than matching on the bot's login: the login can be renamed, and a marker
- * also leaves room for a second kind of comment later without the two being confused.
+ * An explicit marker rather than a match on the bot's login, which can be renamed. It also leaves room
+ * for a second kind of comment without confusing the two.
  */
 export const marker = '<!-- frog:comment -->'
 
@@ -34,9 +34,7 @@ export type Link = {
 /**
  * Renders the comment body.
  *
- * Pure, so what a contributor reads is snapshot-testable without a webhook.
- *
- * @returns Markdown, or `undefined` when there is nothing worth saying.
+ * @returns Markdown, or `undefined` when there is nothing to report.
  */
 export function render(report: Report): string | undefined {
   const { commented, created, deferred, linked, malformed } = report
@@ -93,9 +91,6 @@ export function render(report: Report): string | undefined {
 
 /**
  * Posts the comment, or updates the one already there.
- *
- * Updating rather than appending is what keeps a branch that gets pushed twenty times from collecting
- * twenty comments.
  *
  * @param client - Installation client for the repository.
  */

@@ -12,8 +12,8 @@ export async function receive(request: Request, options: receive.Options): Promi
   const body = await request.text()
   if (!(await options.verify(body, signature))) return new Response('Unauthorized', { status: 401 })
 
-  // GitHub sends many event actions the App does not subscribe to. A verified unsupported delivery
-  // is accepted without parsing or queueing, as Octokit's dispatcher did before Queue was introduced.
+  // GitHub sends many event actions the App does not subscribe to. A verified unsupported delivery is
+  // accepted without parsing or queueing.
   if (!Delivery.supports(name))
     return Response.json({ accepted: true, queued: false }, { status: 202 })
 
@@ -36,8 +36,8 @@ export async function receive(request: Request, options: receive.Options): Promi
   if (Delivery.bytes(delivery) > Delivery.maxBytes)
     return new Response('Payload Too Large', { status: 413 })
 
-  // Awaiting this write is the durability boundary. Returning before Queue accepts the message would
-  // lose a delivery because GitHub does not automatically redeliver failed webhooks.
+  // Awaiting this write is the durability boundary. Returning before Queue accepts the message loses
+  // the delivery: GitHub does not automatically redeliver failed webhooks.
   try {
     await options.enqueue(delivery)
   } catch (error) {

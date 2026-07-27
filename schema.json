@@ -49,7 +49,7 @@
           }
         },
         "template": {
-          "description": "Issue form reported friction should be written against, as a path or a filename under `.github/ISSUE_TEMPLATE`. Absent looks for `friction.yml`, then the only form there.",
+          "description": "Issue form reported friction is written against, as a path or a filename under `.github/ISSUE_TEMPLATE`. Absent looks for `friction.yml`, then the only form there.",
           "type": "string",
           "minLength": 1
         }
@@ -66,7 +66,7 @@
     },
     "maxPerRun": {
       "default": 10,
-      "description": "Ceiling on issues filed in one publish run, or in one webhook delivery. A batch limit rather than a total: a second delivery gets its own allowance, and anything over the ceiling is deferred rather than dropped.",
+      "description": "Ceiling on issues filed in one publish run, or in one webhook delivery. A second delivery gets its own allowance, and anything over the ceiling is deferred rather than dropped.",
       "type": "integer",
       "exclusiveMinimum": 0,
       "maximum": 9007199254740991
@@ -94,7 +94,7 @@
     },
     "pullRequest": {
       "default": true,
-      "description": "Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which keeps the log true without a merge but fails outright where that branch is protected.",
+      "description": "Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which needs no merge but fails where that branch is protected.",
       "anyOf": [
         {
           "type": "boolean"

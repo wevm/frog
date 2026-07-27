@@ -2,13 +2,13 @@ import { spawn } from 'node:child_process'
 import * as clack from '@clack/prompts'
 
 /**
- * Bind every prompt to stderr so stdout stays a clean data channel for pipes and agents.
+ * Binds every prompt to stderr so stdout stays a clean data channel for pipes and agents.
  *
- * Spread this into each clack call rather than wrapping the library, so call sites stay obvious.
+ * Spread into each clack call.
  */
 export const stream = { output: process.stderr } as const
 
-/** True when we can prompt at all. */
+/** Whether the process can prompt at all. */
 export function interactive(): boolean {
   return Boolean(process.stdin.isTTY && process.stderr.isTTY)
 }
@@ -22,8 +22,7 @@ export function required<value>(value: value | symbol): value {
 /**
  * Opens `file` in an editor and waits.
  *
- * The editor edits the real entry rather than a scratch copy, so there is nothing to copy back and
- * nothing to lose if the editor dies.
+ * The editor edits the real entry, not a scratch copy.
  */
 export async function edit(file: string, options: edit.Options): Promise<void> {
   const { command } = options

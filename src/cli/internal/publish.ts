@@ -11,17 +11,9 @@ export type Outcome = {
   /** Entries that landed on an issue already covering them. */
   commented: Link[]
   created: Link[]
-  /**
-   * Destinations whose labels were dropped, because the token cannot label there.
-   *
-   * Surfaced so a receiver's `inbound.labels` silently not applying is visible.
-   */
+  /** Destinations whose labels were dropped because the token cannot label there. */
   unlabelled: string[]
-  /**
-   * Paths written, for the caller to stage.
-   *
-   * Filing may span several destinations, and those belong in one commit.
-   */
+  /** Paths written, for the caller to stage. */
   written: string[]
 }
 
@@ -37,8 +29,8 @@ export type Blocked = { code: string; message: string; retryable?: boolean | und
 /**
  * Resolves everything filing needs, or reports what is missing.
  *
- * Shared by `publish` and `log --publish` so the two cannot drift on which token wins or which label
- * dedupe keys off.
+ * Shared by `publish` and `log --publish` so the two cannot drift on which token takes precedence or
+ * which label dedupe keys off.
  */
 export async function prepare(options: prepare.Options): Promise<Blocked | Ready> {
   const { config, env, repo, token } = options
@@ -54,7 +46,7 @@ export async function prepare(options: prepare.Options): Promise<Blocked | Ready
   if (!label)
     return {
       code: 'NO_LABEL',
-      message: '`labels` must not be empty: it is how already-filed issues are found.',
+      message: '`labels` must not be empty. frog finds already-filed issues by the first one.',
     }
 
   const resolved = await octokit.token({ env, ...(token ? { token } : {}) })
@@ -78,8 +70,8 @@ export async function prepare(options: prepare.Options): Promise<Blocked | Ready
 /**
  * Turns an API failure into something a reader can act on.
  *
- * Octokit's own message for a missing repository is `Not Found - <docs url>`, which says nothing
- * about which repository or what to do about it.
+ * Octokit's own message for a missing repository is `Not Found - <docs url>`, which names neither the
+ * repository nor a fix.
  */
 export function toFailure(failure: toFailure.Options): Blocked {
   const { message, repo, status } = failure
@@ -124,12 +116,11 @@ export declare namespace prepare {
 /**
  * Files entries as issues and writes the `issue:` link back into each file.
  *
- * Existing issues are indexed once for the whole run rather than looked up per entry, and an entry
- * whose hash is already indexed gets a comment instead of a duplicate. That is what makes this safe
- * to run repeatedly over the same entries.
+ * Existing issues are indexed once for the whole run. An entry whose hash is already indexed gets a
+ * comment instead of a duplicate, so this is safe to run repeatedly over the same entries.
  *
  * A failure part-way through throws, leaving already-filed entries with their links on disk and the
- * rest pending. Nothing is lost, and re-running picks up where it stopped.
+ * rest pending. Re-running picks up where it stopped.
  */
 export async function file(options: file.Options): Promise<Outcome> {
   const { client, config, dryRun, entries, label, origin, pr, repo, root } = options
@@ -170,8 +161,8 @@ export async function file(options: file.Options): Promise<Outcome> {
         entry: entry,
         labels: applied,
       }),
-      // `origin` is the repository holding the file, which is not the destination when reporting
-      // upstream. Getting this wrong would leave a closed issue unable to find its mirror.
+      // `origin` is the repository holding the file, not the destination when reporting upstream. A
+      // wrong value leaves a closed issue unable to find its mirror.
       marker: { hash, origin, path, severity: entry.severity },
       provenance: { ...provenance, ...(pr ? { pr } : {}) },
       repo,
@@ -190,7 +181,6 @@ export async function file(options: file.Options): Promise<Outcome> {
     commented,
     created,
     written,
-    // Reported rather than swallowed: the receiver asked for these and did not get them.
     unlabelled: !matcher.labelled && applied.length > 0 && !dryRun ? [repo] : [],
   }
 }
@@ -209,8 +199,8 @@ export declare namespace file {
     /**
      * Repository holding the entries, as `owner/name`.
      *
-     * Distinct from `repo`, which is where the issue is filed. They differ whenever friction is
-     * reported upstream, and the marker records this one so a closed issue can find its mirror.
+     * Distinct from `repo`, where the issue is filed. They differ whenever friction is reported
+     * upstream.
      */
     origin: string
     /** Pull request this is filed from, as `owner/name#number`. */

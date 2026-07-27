@@ -35,7 +35,7 @@ export const sync = Cli.create('sync', {
     { description: 'Reconcile against issue state' },
     { description: 'See what would change', options: { dryRun: true } },
   ],
-  hint: 'Safe to run repeatedly, and safe to run on a schedule. The issue is always canonical.',
+  hint: 'Safe to run repeatedly. Issue state takes precedence.',
   output: z.object({
     cleared: z
       .array(z.string())
@@ -67,9 +67,9 @@ export const sync = Cli.create('sync', {
         },
       })
 
-    // Every repository these entries point at, not just this one. An entry reported upstream is
-    // mirrored here, so its issue closing has to be noticed here too. Own repository always included:
-    // a reopened issue whose file was deleted has nothing local to notice it by.
+    // Check every repository these entries point at, not just this one. An entry reported upstream is
+    // mirrored here, so its issue closing has to be noticed here too. Always include the own
+    // repository: a reopened issue whose file was deleted has nothing local to notice it by.
     const destinations = [
       ...new Set([
         ready.repo,
@@ -157,9 +157,9 @@ export const sync = Cli.create('sync', {
     if (c.options.dryRun || (Sync.empty(plan) && !mirrorsChanged))
       return c.ok({ cleared, committed: false, removed, updated })
 
-    // Staged before unlinking, so tracked entries have their deletion recorded. The whole directory
-    // goes, artifacts included. `ignoreUnmatch` covers entries that were never committed, which are
-    // then removed from disk below.
+    // Stage before unlinking so tracked entries have their deletion recorded. The whole directory
+    // goes, artifacts included. `ignoreUnmatch` covers entries that were never committed; those are
+    // removed from disk below.
     await Git.rm(removed.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
     for (const id of removed) await Store.remove(id, { root })
 

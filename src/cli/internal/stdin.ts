@@ -7,15 +7,15 @@ export const grace = 100
 /**
  * Reads piped input, or nothing when there is none.
  *
- * `isTTY` is not enough on its own, and neither is `fstat`. A terminal and `/dev/null` are character
- * devices and never have input. A redirected file certainly does, and reading one cannot block.
+ * `isTTY` alone is not enough: `/dev/null` is not a terminal and still has no input. Both are character
+ * devices, which is the test used here. A redirected file always has input, and reading one cannot block.
  *
- * Everything else has to prove itself within {@link grace}, because an open channel is not the same as an
- * arriving one. A parent that spawns this and holds the write end open without writing, which is what an
- * agent does, leaves standard input readable forever and never ended.
+ * A pipe or a socket has to produce its first byte within {@link grace}. A parent that spawns this and
+ * holds the write end open without writing, which is what an agent does, leaves standard input readable
+ * forever and never ended.
  *
- * The cost is that a producer slower than the deadline is treated as silent. That is the better failure:
- * a refusal naming `--title`, rather than a process that never returns.
+ * A producer slower than the deadline is treated as silent. That is the better failure: a refusal,
+ * not a process that never returns.
  *
  * @returns The input, or `undefined` when nothing was piped in.
  */
@@ -48,12 +48,11 @@ export declare namespace read {
 /**
  * Lets the process exit even though standard input is still open.
  *
- * Touching standard input references its handle, and the reference outlives the listeners: a parent that
- * spawns this and keeps the write end open would otherwise hold the process alive indefinitely after its
- * work is done, with the entry already written and nothing left to wait for.
+ * Touching standard input references its handle, and the reference outlives the listeners. A parent that
+ * spawns this and keeps the write end open would otherwise hold the process alive indefinitely.
  *
  * Only for a pipe or a socket. A file-backed standard input is an `fs.ReadStream`, which has no `unref`
- * at all, and needs none: a file always reaches its end.
+ * and needs none.
  */
 function release(): void {
   process.stdin.pause()
@@ -106,9 +105,8 @@ function arriving(stream: Readable, deadline: number): Promise<boolean> {
 /**
  * Splits piped input into a title and a body.
  *
- * Shaped like a commit message: the first line is the title, the rest is the body. That avoids asking a
- * caller to quote a multi-line string on a command line, where an apostrophe in the body ends the
- * argument and breaks the whole invocation.
+ * Shaped like a commit message: the first line is the title, the rest is the body. A caller never has to
+ * quote a multi-line string on a command line, where an apostrophe in the body would end the argument.
  *
  * @param contents - Piped input.
  * @returns The title and body, or `undefined` when there is no title to take.

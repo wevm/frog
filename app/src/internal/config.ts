@@ -4,12 +4,12 @@ import type { Octokit } from 'octokit'
 /**
  * Reads a repository's config.
  *
- * Always from a branch, never from a pull request head. A pull request must not get to say where its
+ * Always from a branch, never from a pull request head. A pull request must not control where its
  * issues go, who may receive them, or whether filing upstream is automatic.
  *
  * @param client - Installation client for the repository.
- * @returns Normalized config. A missing or unparseable file yields defaults, so a repository with no
- * config still works rather than failing closed on every event.
+ * @returns Normalized config. A missing or unparseable file yields defaults, so one broken config
+ * cannot stop the App handling events.
  */
 export async function read(client: Octokit, options: read.Options): Promise<Config.Config> {
   const { ref, repo } = options

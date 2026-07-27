@@ -2,11 +2,10 @@
 export const ttl = 24 * 60 * 60 * 1000
 
 /**
- * Somewhere to keep the answers to network lookups.
+ * Storage for the answers to network lookups.
  *
- * Injected rather than assumed, because the two callers have nothing in common: the CLI caches to disk
- * across runs, and the App runs where there is no filesystem at all. Keeping this out of the module also
- * keeps `node:fs` out of a Workers bundle.
+ * Injected because the CLI caches to disk across runs and the App runs where there is no filesystem.
+ * Keeping the implementation out of this module keeps `node:fs` out of a Workers bundle.
  */
 export type Cache = {
   /**
@@ -16,7 +15,7 @@ export type Cache = {
    */
   get: (key: string) => Promise<string | undefined>
   /**
-   * Writes a cached entry. Failures are the cache's business, not the caller's.
+   * Writes a cached entry. Failures are swallowed.
    *
    * @param key - What was looked up.
    * @param value - Serialized entry.
@@ -53,8 +52,7 @@ export async function read<value>(
 /**
  * Caches a value.
  *
- * Callers are expected to cache definitive absences too. Most repositories accept no inbound friction, so
- * caching that answer is what stops every run re-asking about the same dependencies.
+ * Callers are expected to cache definitive absences too.
  *
  * @param key - What was looked up.
  * @param at - Time of the lookup.

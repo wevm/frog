@@ -3,13 +3,13 @@ import * as YAML from 'yaml'
 /** Directory GitHub reads issue templates from. */
 export const dir = '.github/ISSUE_TEMPLATE'
 
-/** Filename a project can add to say how it wants friction reported, ahead of its other forms. */
+/** Filename a project adds to say how it wants friction reported, ahead of its other forms. */
 export const filename = 'friction.yml'
 
 /** Configuration file that sits alongside the forms and is not one. */
 const config = 'config.yml'
 
-/** Element types that collect an answer. `markdown` is instruction text, so it is not among them. */
+/** Element types that collect an answer. `markdown` is instruction text, so it is excluded. */
 const kinds = ['checkboxes', 'dropdown', 'input', 'textarea'] as const
 
 /** How a form element collects its answer. */
@@ -21,7 +21,7 @@ export type Field = {
   description?: string | undefined
   /** How the answer is collected. */
   kind: Kind
-  /** Heading the answer appears under, which is how a submitted form renders. */
+  /** Heading the answer appears under, as a submitted form renders it. */
   label: string
   /** Choices, for a `checkboxes` or `dropdown` field. */
   options?: readonly string[] | undefined
@@ -42,14 +42,12 @@ export type Form = {
 /**
  * Parses a GitHub issue form.
  *
- * Only the elements that collect an answer survive. A `markdown` block is instruction text for whoever is
- * filling the form in, and carrying it into an entry would put the project's own preamble into the issue
- * body it eventually files.
+ * Only the elements that collect an answer survive. Carrying a `markdown` block into an entry would
+ * put the project's own preamble into the issue body it eventually files.
  *
  * @param contents - The form's YAML.
  * @returns The form, or `undefined` when the YAML is unparseable or has no answerable field. Malformed
- * input is a miss rather than a throw: the caller falls back to frog's own sections, and a broken form
- * upstream must not stop an entry being written.
+ * input is a miss rather than a throw: a broken form upstream must not stop an entry being written.
  */
 export function parse(contents: string): Form | undefined {
   const document = (() => {
@@ -84,9 +82,7 @@ export function parse(contents: string): Form | undefined {
  * Shaped like GitHub's own rendering of a submitted form, `### Label` per field, so an entry written
  * against a project's form arrives looking like one filed through its issue page.
  *
- * Guidance is carried as HTML comments. They tell whoever writes the entry what the field wants, and they
- * render as nothing once the body reaches GitHub, so an unanswered prompt is invisible rather than
- * embarrassing.
+ * Guidance is carried as HTML comments, which render as nothing once the body reaches GitHub.
  *
  * @returns Markdown with a heading per field.
  */
@@ -118,10 +114,9 @@ function render(field: Field): string {
 /**
  * Picks the form to author against, from the files in a project's template directory.
  *
- * `friction.yml` wins because a project that added one is speaking to frog directly. Failing that, a
- * project with a single form has made the choice already, and a project with several is asked for the one
- * named for bugs. Anything less certain than that resolves to nothing, which leaves frog's own sections in
- * place rather than filing a feature request into a bug form.
+ * `friction.yml` takes precedence: a project that added one is speaking to frog directly. Failing
+ * that, a lone form is used, and among several the one named for bugs. Anything less certain resolves
+ * to nothing, leaving frog's own sections in place.
  *
  * @param paths - Repository-relative paths of everything in {@link dir}.
  * @returns The path to read, or `undefined` when no form is the obvious one.
@@ -142,8 +137,8 @@ export function choose(paths: readonly string[]): string | undefined {
 /**
  * Finds and parses the form a project wants friction written against.
  *
- * Three lookups, cheapest first. A named template costs one read. A conventional `friction.yml` costs
- * one more. Listing the directory is the last resort, and only reached for a project that has neither.
+ * Three lookups, cheapest first: the template the project named, then a conventional `friction.yml`,
+ * then a listing of the template directory.
  *
  * @param read - Reads a repository file, or `undefined` when it is not there.
  * @param list - Lists the files in a repository directory.
@@ -154,7 +149,7 @@ export async function find(options: find.Options): Promise<Form | undefined> {
   const { list, named, read } = options
 
   const candidates = [
-    // A bare filename is the common way to name one, so accept it alongside a full path.
+    // Accept a bare filename alongside a full path.
     named ? (named.includes('/') ? named : `${dir}/${named}`) : undefined,
     `${dir}/${filename}`,
   ].filter((path): path is string => path !== undefined)
@@ -217,7 +212,7 @@ function toField(element: Element): Field | undefined {
     )
     .filter((option): option is string => Boolean(option))
 
-  // A checkbox carries its own `required` per option, which is what makes the whole field required.
+  // A checkbox carries `required` per option, and any one of them makes the field required.
   const required =
     element.validations?.required === true ||
     (element.attributes?.options ?? []).some(

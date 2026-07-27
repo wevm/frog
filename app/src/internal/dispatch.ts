@@ -4,8 +4,8 @@ import * as serialization from './serialize.js'
 /**
  * Claims a queued delivery before expanding or dispatching it.
  *
- * Expansion may perform GitHub reads, so completed and concurrently processing duplicates must be
- * decided first. The expanded event must retain the original GitHub delivery id.
+ * Completed and concurrently processing duplicates are decided before expansion, which may perform
+ * GitHub reads. The expanded event must retain the original GitHub delivery id.
  */
 export function queued(
   namespace: serialization.Namespace,

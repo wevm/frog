@@ -18,9 +18,8 @@ function section(title: string, entries: readonly Entry.Entry[]): string | undef
 /**
  * Describes what merging the reconciling pull request would do.
  *
- * Derived from the branch rather than from the delivery that last wrote to it. One pull request
- * accumulates several closures, so a description built from one delivery would describe only the most
- * recent and quietly misrepresent the rest.
+ * Derived from the branch, not from the delivery that last wrote to it. One pull request accumulates
+ * several closures, and a delivery-derived description would cover only the most recent.
  *
  * @returns Markdown body.
  */

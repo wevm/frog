@@ -7,7 +7,7 @@ import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 import * as context from '../internal/context.js'
 
-/** The rule to paste into `AGENTS.md`, and the reason it says *when* rather than just *what*. */
+/** The rule to paste into `AGENTS.md`. */
 export const rule =
   'Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
   '`frog log`. Run `frog list` first to see what is already known.'
@@ -22,12 +22,11 @@ Friction hit while working in this repository, one directory per item:
   ${`${Store.artifacts}/`.padEnd(14)}optional, whatever reproduces it
 \`\`\`
 
-Filing an entry gives it an owner. The write-up then carries an \`issue:\` link, mirrors what happens to
-it, and the whole directory is deleted once the friction is resolved. So this is a live list of friction
-that is still outstanding, including friction in dependencies.
+Filing an entry gives it an owner. The write-up then carries an \`issue:\` link and mirrors what happens
+to it. The whole directory is deleted once the friction is resolved. Every entry left here is still
+outstanding, including friction in dependencies.
 
-Do not maintain an index here. This directory is the index, and it is kept true without anyone
-remembering to.
+Do not maintain an index here. This directory is the index.
 
 ## Logging Friction
 
@@ -36,11 +35,11 @@ frog list    # what is already known
 frog log     # add one
 \`\`\`
 
-\`frog log\` writes the sections to fill in. Ids are when the friction was hit plus its title, so this
-directory reads oldest-first and shows at a glance how long something has gone unresolved.
+\`frog log\` writes the sections to fill in. Each id is when the friction was hit plus its title, so
+the directory reads oldest-first.
 
 Put anything that reproduces the friction in that entry's \`${Store.artifacts}/\` and reference it from the
-write-up, so the next reader runs the reproduction instead of rebuilding it.
+write-up. The next reader runs the reproduction instead of rebuilding it.
 
 ## For Agents
 
@@ -71,8 +70,8 @@ const libraryConfig = `{
  * The issue form a project serves so consumers report friction the way it wants.
  *
  * Rendered from the same sections as the entry scaffold, so the two cannot drift. A consumer's frog finds
- * this by convention and writes its entry against it, and a human filing through the issue page gets the
- * same questions.
+ * it by convention and writes its entry against it. A human filing through the issue page gets the same
+ * questions.
  */
 const form = `name: Friction
 description: Something about this project cost you time.
@@ -115,7 +114,7 @@ export const init = Cli.create('init', {
     const files = [
       [`${Store.dir}/README.md`, readme],
       [Config.file, c.options.library ? libraryConfig : config],
-      // Only for a project accepting reports: it is what a consumer's frog writes its entry against.
+      // Only for a project accepting reports: a consumer's frog writes its entry against it.
       ...(c.options.library ? ([[`${IssueForm.dir}/${IssueForm.filename}`, form]] as const) : []),
     ] as const
 

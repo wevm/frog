@@ -1,7 +1,7 @@
 /** How long an active delivery or repository mutation owns its lease. */
 export const lease = 15 * 60 * 1_000
 
-/** Delivery ids outlive GitHub's three-day manual-redelivery window. */
+/** Retains delivery ids past GitHub's three-day manual-redelivery window. */
 export const retention = 7 * 24 * 60 * 60 * 1_000
 
 /** State held by one deterministically named coordinator object. */

@@ -5,8 +5,7 @@ import * as Entry from './Entry.js'
 /**
  * The slice of Octokit this module uses.
  *
- * Narrow on purpose: the App passes Probot's client, which is the same endpoint-methods object, so
- * neither caller has to construct the other's.
+ * Narrow so the App can pass Probot's client, which is the same endpoint-methods object.
  */
 export type Client = Pick<Octokit['rest'], 'issues' | 'repos'>
 
@@ -20,7 +19,7 @@ export type Label =
 
 /** The parts of a GitHub issue this module reads. */
 export type Issue = {
-  /** Issue body. `null` when GitHub has none, which is how the API reports an empty body. */
+  /** Issue body. `null` when the API reports an empty body. */
   body?: string | null | undefined
   /** Labels on the issue. */
   labels?: readonly Label[] | undefined
@@ -33,7 +32,7 @@ export type Issue = {
 }
 
 /**
- * Label names on an issue, flattening GitHub's two representations.
+ * Lists the label names on an issue, flattening GitHub's two representations.
  *
  * @returns Every label name, with unnamed entries dropped.
  */
@@ -65,14 +64,11 @@ const componentRegex = /^[\w.-]+$/
 /**
  * Normalizes a repository reference into `owner/name`.
  *
- * Handles what a package's `repository` field and a git remote actually contain in the wild: `git+https`,
- * `ssh`, `scp`, and `git` URLs, npm's `github:owner/name` and bare `owner/name` shorthands, and URLs
- * carrying a trailing subdirectory. Across the 790 packages installed here this resolves 98.5%, with the
- * remainder declaring no repository at all.
+ * Accepts `git+https`, `ssh`, `scp`, and `git` URLs, npm's `github:owner/name` and bare `owner/name`
+ * shorthands, and URLs carrying a trailing subdirectory.
  *
  * @param value - A repository URL or npm shorthand.
- * @returns The repository as `owner/name`, or `undefined` when it is absent or not on GitHub. Only GitHub
- * resolves, because an issue can only be filed there.
+ * @returns The repository as `owner/name`, or `undefined` when it is absent or not on GitHub.
  */
 export function parseRepository(
   value: string | undefined,
@@ -143,10 +139,7 @@ export function parseLink(link: string): { issue: number; repo: string } | undef
 }
 
 /**
- * Dedupe key for a title.
- *
- * Normalized first, so the same friction reported with different capitalization and punctuation
- * lands on one issue.
+ * Hashes a title into a dedupe key.
  *
  * @param title - Title as written.
  * @returns The first 12 hex characters of the normalized title's sha256.
@@ -155,12 +148,12 @@ export function hash(title: string): string {
   return createHash('sha256').update(Entry.normalizeTitle(title)).digest('hex').slice(0, 12)
 }
 
-/** Marker format version, so a future format change can be recognized rather than misread. */
+/** Marker format version, so a later format change is recognized rather than misread. */
 export const markerVersion = 'v1'
 
 const markerRegex = /<!--\s*frog:v1\s+([^>]*?)\s*-->/
 
-/** Version of the marker that makes one external publish occurrence replay-safe. */
+/** Format version of the marker that makes one external publish occurrence replay-safe. */
 const occurrenceVersion = 'v1'
 
 function renderOccurrence(occurrence: string): string {
@@ -171,17 +164,17 @@ function renderOccurrence(occurrence: string): string {
 /**
  * Hidden state carried in an issue body.
  *
- * This is the whole basis of idempotency and of sync: it is how a second publish recognizes an issue
- * it already filed, and how an issue event finds the file mirroring it.
+ * Lets a second publish recognize an issue it already filed, and an issue event find the file
+ * mirroring it.
  */
 export type Marker = {
   /** Dedupe key. */
   hash: string
   /** Repository holding the mirroring file. Lets an issue closed here sync a file elsewhere. */
   origin?: string | undefined
-  /** Path of the mirroring file, so close and reopen act without scanning. */
+  /** Path of the mirroring file. */
   path?: string | undefined
-  /** How much the friction hurt, so a reopen restores the entry at the severity it was filed with. */
+  /** How much the friction hurt. A reopen restores the entry at this severity. */
   severity?: Entry.Severity | undefined
 }
 
@@ -230,8 +223,7 @@ export function parseMarker(body: string | null | undefined): Marker | undefined
 /**
  * Who hit the friction, and where.
  *
- * Every field is optional: an entry logged moments ago is not committed yet, so none of this is
- * always knowable.
+ * Every field is optional: an entry logged moments ago is not committed yet.
  */
 export type Provenance = {
   /** Commit author name, or the GitHub actor when the App files on someone's behalf. */
@@ -288,7 +280,7 @@ export declare namespace renderBody {
 /**
  * Recovers the entry body from an issue body.
  *
- * The inverse of {@link renderBody}, which the reopen path depends on to rebuild a deleted file.
+ * The inverse of {@link renderBody}. The reopen path uses it to rebuild a deleted file.
  *
  * @param body - Issue body, which may be absent.
  * @returns The entry body. A body with no marker is returned trimmed but otherwise untouched.
@@ -322,8 +314,8 @@ export declare namespace toLabels {
 /**
  * Rebuilds an entry from the issue mirroring it.
  *
- * Used when an issue reopens after its file was deleted. `severity` and extra labels are recovered by
- * reversing {@link toLabels}; `target` cannot be, because nothing on the issue records it.
+ * Used when an issue reopens after its file was deleted. Severity comes from the marker and extra
+ * labels from reversing {@link toLabels}. `target` cannot be recovered: nothing on the issue records it.
  *
  * @returns The rebuilt entry, already linked to the issue.
  */
@@ -331,8 +323,8 @@ export function fromIssue(issue: Issue, options: fromIssue.Options): Entry.Entry
   const { id, labels, repo } = options
 
   const names = toLabelNames(issue)
-  // From the marker, not the labels: a label would be in the receiver's namespace, and cross-repo the
-  // two projects need not agree on what a severity is called.
+  // From the marker, not the labels: cross-repo, the two projects need not agree on what a severity
+  // is called.
   const severity = parseMarker(issue.body)?.severity ?? 'minor'
   const managed = new Set<string>(labels)
   const extra = names.filter((name) => !managed.has(name))
@@ -356,20 +348,19 @@ export declare namespace fromIssue {
     labels: readonly string[]
     /** Repository holding the issue, as `owner/name`. */
     repo: string
-    /** Label to apply for each severity, from config. Reversed to recover severity. */
   }
 }
 
 /**
  * Indexes existing friction issues by dedupe hash.
  *
- * Listing by label rather than searching: the search index is eventually consistent, so two publishes
- * moments apart can both miss and open duplicates. Listing is deterministic and paginates.
+ * Lists by label rather than searching. The search index is eventually consistent, so two publishes
+ * moments apart can both miss and open duplicates.
  *
- * Issues with no marker are indexed by their title hash, so an issue filed by hand still dedupes.
+ * Issues with no marker are indexed by their title hash. An issue filed by hand still dedupes.
  *
  * @param client - Authenticated client for the target repository.
- * @returns Issues keyed by dedupe hash. Where several share a hash, the canonical one wins: open
+ * @returns Issues keyed by dedupe hash. Where several share a hash, the canonical one is kept: open
  * before closed, then lowest number.
  */
 export async function index(client: Client, options: index.Options): Promise<Map<string, Issue>> {
@@ -380,7 +371,7 @@ function toIndex(issues: readonly Issue[]): Map<string, Issue> {
   const indexed = new Map<string, Issue>()
   for (const issue of issues) {
     const key = parseMarker(issue.body)?.hash ?? hash(issue.title)
-    // Prefer an open issue, then the lowest number, so comments land on the canonical one.
+    // Prefer an open issue, then the lowest number.
     const current = indexed.get(key)
     if (!current) indexed.set(key, issue)
     else if (current.state !== 'open' && issue.state === 'open') indexed.set(key, issue)
@@ -392,7 +383,7 @@ function toIndex(issues: readonly Issue[]): Map<string, Issue> {
 /**
  * Reads a file from a repository's default branch.
  *
- * Used to check whether a repository has committed a config accepting inbound friction. Always the
+ * Used to check whether a repository has committed a config accepting inbound friction. Reads the
  * default branch, never a pull request head: the untrusted side of a boundary must not get to say
  * where issues are filed.
  *
@@ -435,12 +426,12 @@ export declare namespace fetchFile {
 /**
  * Lists the directories directly inside a directory.
  *
- * An entry is a directory, so this is how entries are enumerated without cloning, which is what allows
- * reading a pull request head.
+ * An entry is a directory, so this enumerates entries without cloning, including at a pull request
+ * head.
  *
  * @param client - Authenticated client for the repository.
  * @returns Repository-relative paths of subdirectories, excluding files. Empty when the directory does
- * not exist, which is the ordinary case for a repository that has logged no friction.
+ * not exist.
  */
 export async function listDirectories(
   client: Client,
@@ -454,7 +445,7 @@ export async function listDirectories(
  *
  * @param client - Authenticated client for the repository.
  * @returns Repository-relative paths of files, excluding subdirectories. Empty when the directory does
- * not exist, which is the ordinary case for a repository with no issue templates.
+ * not exist.
  */
 export async function listFiles(
   client: Client,
@@ -484,11 +475,11 @@ async function listing(
 }
 
 /**
- * One issue by number.
+ * Reads one issue by number.
  *
- * Needed because {@link list} filters by label, so an issue that merely lost its label is
- * indistinguishable from one that never existed. Clearing a link on that basis would send the entry
- * back to pending and let the next publish open a duplicate.
+ * Needed because {@link list} filters by label: an issue that merely lost its label is
+ * indistinguishable from one that never existed. Clearing a link on that basis would let the next
+ * publish open a duplicate.
  *
  * @param client - Authenticated client for the repository.
  * @returns The issue, or `undefined` when it genuinely does not exist.
@@ -517,16 +508,15 @@ export declare namespace get {
 }
 
 /**
- * Whether the token may label issues in a repository.
+ * Checks whether the token may label issues in a repository.
  *
- * GitHub silently drops `labels` on issue creation for a token without push access, which is the
- * normal case when reporting friction upstream. That matters twice: the receiver's labels never get
- * applied, and {@link index} cannot find the issue afterwards, because it finds issues *by* that
- * label. {@link find} is the fallback.
+ * GitHub silently drops `labels` on issue creation for a token without push access, the normal case
+ * when reporting friction upstream. {@link index} then cannot find the issue afterwards, because it
+ * finds issues by that label. {@link find} is the fallback.
  *
  * @param client - Authenticated client for the repository.
- * @returns Whether labels will stick. Defaults to `false` when the answer cannot be read, since the
- * only consequence is choosing the slower, label-independent lookup.
+ * @returns Whether labels will stick. Defaults to `false` when the answer cannot be read, which only
+ * costs the slower, label-independent lookup.
  */
 export async function permissions(
   client: Client,
@@ -541,7 +531,7 @@ export async function permissions(
 }
 
 /**
- * A repository's default branch.
+ * Reads a repository's default branch.
  *
  * Needed to commit a reconciliation: an issue event says nothing about which branch mirrors it.
  *
@@ -564,8 +554,8 @@ export async function defaultBranch(
 /**
  * Finds the issue already covering a friction, without relying on a label.
  *
- * Lists issues directly rather than using GitHub's eventually consistent search index. It is only
- * used where {@link index} cannot work: a repository the token cannot label.
+ * Lists issues directly rather than using GitHub's eventually consistent search index. Used only
+ * where {@link index} cannot work: a repository the token cannot label.
  *
  * @param client - Authenticated client for the repository.
  * @returns The issue covering this friction, or `undefined`.
@@ -574,8 +564,7 @@ export async function find(client: Client, options: find.Options): Promise<Issue
   const { hash: key, repo } = options
   const candidates = await listAll(client, { repo })
 
-  // A marker is proof. A matching normalized title is the fallback, which is what catches an issue
-  // somebody filed by hand.
+  // A marker is proof. A matching normalized title is the fallback, catching an issue filed by hand.
   return (
     candidates.find((item) => parseMarker(item.body)?.hash === key) ??
     candidates.find((item) => hash(item.title) === key)
@@ -595,7 +584,7 @@ export declare namespace find {
 }
 
 /**
- * Every issue frog manages in a repository.
+ * Lists every issue frog manages in a repository.
  *
  * @param client - Authenticated client for the repository.
  * @returns Issues carrying the label, oldest first, with pull requests filtered out.
@@ -605,8 +594,7 @@ export async function list(client: Client, options: index.Options): Promise<read
 
   const collected: Issue[] = []
   // Paginated rather than one page of 100: missing an older issue would open a duplicate. The page
-  // ceiling is a runaway guard, not a real limit; 5,000 friction issues in one repository is not a
-  // case worth designing for.
+  // ceiling is a runaway guard, not a real limit.
   for (let page = 1; page <= 50; page++) {
     const response = await client.issues.listForRepo({
       ...split(repo),
@@ -652,7 +640,7 @@ export declare namespace index {
     label: string
     /** Repository to index, as `owner/name`. */
     repo: string
-    /** Which issues to consider. Defaults to `all`, so a closed issue still dedupes. */
+    /** Which issues to consider. Defaults to `all`, which dedupes against closed issues too. */
     state?: 'all' | 'open' | undefined
   }
 }
@@ -699,7 +687,7 @@ export async function matcher(client: Client, options: index.Options): Promise<M
       if (existing) return existing
 
       // Even a token with push access can encounter an issue whose configured label was removed.
-      // Fall back once per filing group so a replay still finds the side effect immediately.
+      // The fallback listing runs once per filing group, so a replay still finds the side effect.
       unlabelled ??= listAll(client, options).then(toIndex)
       return (await unlabelled).get(key)
     },
@@ -709,8 +697,8 @@ export async function matcher(client: Client, options: index.Options): Promise<M
 /**
  * Files an entry as an issue, or comments on the issue that already covers it.
  *
- * Commenting rather than opening a duplicate is what makes publishing idempotent, which is required:
- * a pull request `synchronize` event re-runs this over the same entries.
+ * Publishing has to be idempotent: a pull request `synchronize` event re-runs this over the same
+ * entries.
  *
  * @param client - Authenticated client for the target repository.
  * @returns The issue number and whether it was opened or commented on.
@@ -726,7 +714,7 @@ export async function publish(client: Client, options: publish.Options): Promise
 
   if (existing) {
     // Only a still-open issue can be answered by a replay. A closed one carries the same markers but
-    // needs reopening, so short-circuiting there would link an entry to an issue that stays closed.
+    // needs reopening first.
     if (occurrence && existing.state === 'open') {
       const occurrenceMarker = renderOccurrence(occurrence)
       if (existing.body?.includes(occurrenceMarker))

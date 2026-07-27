@@ -51,7 +51,7 @@ export async function head(options: Options = {}): Promise<string | undefined> {
 /**
  * Local committer name from git config.
  *
- * Used to attribute an entry that has not been committed yet, where there is no commit to read.
+ * Attributes an entry that has not been committed yet.
  *
  * @returns The name, or `undefined` when `user.name` is unset.
  */
@@ -79,8 +79,7 @@ const separator = '\u001f'
  * Reads the commit that *added* the file, so a later edit does not reattribute the report.
  *
  * @param file - Repository-relative path.
- * @returns The provenance, or `undefined` for a file that is not committed yet, leaving the caller to
- * decide what an unknown reporter renders as.
+ * @returns The provenance, or `undefined` for a file that is not committed yet.
  */
 export async function provenance(
   file: string,
@@ -146,8 +145,7 @@ export declare namespace rm {
     /**
      * Succeed for paths git does not track.
      *
-     * Reconciliation deletes entries that may never have been committed, where a strict `git rm`
-     * would fail on the pathspec.
+     * Reconciliation deletes entries that may never have been committed.
      */
     ignoreUnmatch?: boolean | undefined
   }
@@ -158,7 +156,6 @@ export declare namespace rm {
  *
  * @param message - Commit message.
  * @returns `true` when a commit was made, `false` when none of the requested paths were staged.
- * Reporting rather than throwing keeps a no-op run from looking like a failure.
  */
 export async function commit(message: string, options: commit.Options): Promise<boolean> {
   if (options.files.length === 0) return false

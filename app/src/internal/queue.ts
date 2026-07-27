@@ -2,7 +2,7 @@ import * as Delivery from '../Delivery.js'
 
 const maximumDelay = 60 * 60
 
-/** Retry delay for one failed Queue attempt, with a one-hour ceiling. */
+/** Computes the retry delay for one failed Queue attempt, capped at one hour. */
 export function retryDelay(attempts: number): number {
   return Math.min(30 * 2 ** Math.max(0, attempts - 1), maximumDelay)
 }
@@ -17,8 +17,8 @@ export async function consume(
       const delivery = Delivery.fromQueue(message.body)
       const result = await options.process(delivery)
       if (result.status === 'processing') {
-        // The active owner can still fail. Preserve this duplicate until that lease completes or
-        // expires instead of acknowledging the only attempt capable of recovery.
+        // The active owner can still fail. Keep this duplicate until that lease completes or expires.
+        // Acknowledging it would discard the only attempt capable of recovery.
         message.retry({ delaySeconds: retryDelay(message.attempts) })
       } else {
         message.ack()

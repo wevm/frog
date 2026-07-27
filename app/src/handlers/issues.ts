@@ -23,13 +23,12 @@ export type Outcome = {
 /**
  * Reconciles the files mirroring an issue after it changes.
  *
- * The marker names a candidate repository, then a committed entry or recovery record must prove that
- * repository already mirrors this exact issue. Paths always come from that repository-owned state.
- * This lets an upstream issue delete or restore its consumer mirror without allowing editable issue
- * text to authorize arbitrary writes.
+ * The marker only names a candidate repository. A committed entry or recovery record there must prove
+ * that repository already mirrors this exact issue, and paths always come from that repository-owned
+ * state. Editable issue text therefore cannot authorize arbitrary writes.
  *
- * The decisions come from `Sync.plan`, unchanged, so the App and the CLI cannot disagree about what a
- * closed or reopened issue means.
+ * Decisions come from `Sync.plan` unchanged, so the App and the CLI agree on what a closed or reopened
+ * issue means.
  *
  * @returns What happened, or why nothing did.
  */
@@ -51,12 +50,11 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     const settings = await config.read(source, { repo: origin })
     const review = settings.pullRequest.enabled
 
-    // Pending state lives on the reconciling branch, so that is what a later event has to plan against: an
-    // issue that closes and then reopens before the review merges must be able to reverse the deletion
-    // already queued there, not plan against a default branch that still has the entry.
+    // Plan against the reconciling branch, where pending state lives. An issue that closes and then
+    // reopens before the review merges has to reverse the deletion already queued there.
     //
-    // With no review open the branch is the leftover of a merge, and a squash leaves it on a history the
-    // base no longer descends from. Resetting it first is what stops that stale tree deciding the diff.
+    // With no review open the branch is the leftover of a merge. Reset it first: a squash leaves it on
+    // a history the base no longer descends from, and that stale tree would decide the diff.
     const queued = review
       ? await Repository.review(source, {
           base: branch,
@@ -88,7 +86,7 @@ export async function issues(options: issues.Options): Promise<Outcome> {
     if (!bindings.some((binding) => binding.issue === current))
       return { ignored: 'untrusted frog marker', origin }
 
-    // This runs inside the origin lease and refetches current issue state. The delivered snapshot only
+    // Runs inside the origin lease and refetches current issue state. The delivered snapshot only
     // routes us here, so an older close cannot overwrite a newer reopen.
     const target = await config.read(client, { repo })
     const label = target.inbound.labels?.[0] ?? settings.labels[0] ?? 'friction'
@@ -190,8 +188,7 @@ export declare namespace issues {
     /**
      * Resolves an installation client for another repository.
      *
-     * The files may live somewhere else entirely, and without an installation there the App cannot
-     * reconcile them.
+     * The files may live elsewhere, and the App cannot reconcile them without an installation there.
      */
     installation: (repo: string) => Promise<Octokit | undefined>
     /** The issue that changed, from the event payload. */

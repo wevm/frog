@@ -9,7 +9,7 @@ export const maxBytes = 127_800
 type Installation = { id: number }
 type Repository = { full_name: string }
 
-/** The compact, versioned webhook projection persisted in Queue. */
+/** Compact, versioned webhook projection persisted in Queue. */
 export type Delivery =
   | {
       id: string
@@ -103,7 +103,7 @@ function repository(payload: ObjectValue): Repository {
  *
  * A delivery queued before these fields existed decodes as an unwritable fork rather than throwing, so
  * an in-flight message survives the deployment that added them instead of retrying to the dead letter
- * queue. Without a branch to write to there is nothing to lose: the link is written when the work lands.
+ * queue. Nothing is lost: the link is written when the work lands.
  */
 function pullHead(value: ObjectValue): {
   ref: string
@@ -143,7 +143,7 @@ function action<Action extends string>(
   return allowed.find((candidate) => candidate === name)
 }
 
-/** Whether an event header names a webhook Frog handles. */
+/** Whether an event header names a webhook frog handles. */
 export function supports(name: string): name is Delivery['name'] {
   return name === 'issues' || name === 'pull_request' || name === 'push'
 }
@@ -261,8 +261,8 @@ export function bytes(delivery: Delivery): number {
 /**
  * Expands a queued delivery into the minimal event Octokit's handlers consume.
  *
- * Issue events are rehydrated only after the durable delivery claim is acquired. This supplies the
- * current marker for routing; reconciliation refetches again under the origin repository lease.
+ * Rehydrates an issue event only after the durable delivery claim is acquired, supplying the current
+ * marker for routing. Reconciliation refetches under the origin repository lease.
  */
 export async function toEvent(
   delivery: Delivery,
@@ -296,7 +296,7 @@ export async function toEvent(
   }
 }
 
-/** A signed or queued delivery does not match Frog's supported projection. */
+/** Thrown when a signed or queued delivery does not match frog's supported projection. */
 export class InvalidError extends Error {
   override readonly name = 'Delivery.InvalidError'
 
