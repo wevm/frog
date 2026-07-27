@@ -79,12 +79,12 @@ Then, once per repository:
 frog init
 ```
 
-> Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
-> changing repository access or adding a workflow:
->
-> - Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) for pull-request
->   comments, forks, and cross-repository reporting.
-> - Use the Action-only workflow below for same-repository automation without an external App write grant.
+Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
+changing repository access or adding a workflow:
+
+- Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) for pull-request
+  comments, forks, and cross-repository reporting.
+- Use the Action-only workflow below for same-repository automation without an external App write grant.
 
 ## Workflow
 
