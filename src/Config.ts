@@ -17,7 +17,6 @@ const repoAllowPattern = /^[\w.-]+\/(?:[\w.-]+|\*)$/
  * turns them into editor autocomplete for whoever is actually writing the config.
  */
 export const Schema = z.object({
-  commit: z.boolean().default(true).describe('Commit the file changes that publish and sync make.'),
   inbound: z
     .object({
       allowFrom: z
@@ -92,9 +91,9 @@ export const Schema = z.object({
     .describe('Issue label applied for each severity.'),
   pullRequest: z
     .union([z.boolean(), z.object({ branch: z.string().min(1).optional() })])
-    .default(false)
+    .default(true)
     .describe(
-      'Reconcile a closed or reopened issue through a pull request rather than by committing to the default branch. Needed where that branch is protected. Off, because the log is then only as current as the last merge. An object names the branch it is opened from.',
+      'Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which keeps the log true without a merge but fails outright where that branch is protected.',
     )
     .transform((value) => ({
       branch: (typeof value === 'object' ? value.branch : undefined) ?? 'frog/sync',

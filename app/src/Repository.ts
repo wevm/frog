@@ -157,6 +157,11 @@ export async function commit(
     ],
   })
 
+  // Nothing to say. The plan is computed from the default branch, so a redelivery of one closed issue
+  // re-plans a deletion the reconciling branch already made, and committing it would stack an empty
+  // commit per delivery.
+  if (tree.data.sha === parent.data.tree.sha) return undefined
+
   const created = await client.rest.git.createCommit({
     message,
     owner,

@@ -2,12 +2,11 @@
 'frog': minor
 ---
 
-Added `pullRequest`, which reconciles a closed or reopened issue through one accumulating pull request instead of committing to the default branch.
+A closed or reopened issue now reconciles through one accumulating pull request rather than committing to the default branch, so a protected branch no longer breaks sync.
 
-```jsonc
-// .agents/friction-log/config.json
-{
-  "pullRequest": true,
-  // or { "branch": "chore/friction" }
-}
+```diff
+- the App commits the deletion to the default branch
++ the App keeps one pull request open, and you merge it
 ```
+
+Set `pullRequest: false` to commit directly as before, or `{ branch }` to name the branch.

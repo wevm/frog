@@ -3,11 +3,6 @@
   "title": "frog config",
   "type": "object",
   "properties": {
-    "commit": {
-      "default": true,
-      "description": "Commit the file changes that publish and sync make.",
-      "type": "boolean"
-    },
     "inbound": {
       "description": "Whether and how this repository accepts friction reported by others.",
       "default": {},
@@ -111,8 +106,8 @@
       }
     },
     "pullRequest": {
-      "default": false,
-      "description": "Reconcile a closed or reopened issue through a pull request rather than by committing to the default branch. Needed where that branch is protected. Off, because the log is then only as current as the last merge. An object names the branch it is opened from.",
+      "default": true,
+      "description": "Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which keeps the log true without a merge but fails outright where that branch is protected.",
       "anyOf": [
         {
           "type": "boolean"

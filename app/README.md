@@ -27,23 +27,24 @@ handler again, and a fork's branch is unreachable anyway. Links land when the wo
 
 ## A protected default branch
 
-Reconciliation commits straight to the default branch, which is what keeps the log true the moment an
-issue closes. A protected branch refuses that push, so the deletion fails.
+Committing straight to the default branch would keep the log true the moment an issue closes, but a
+protected branch refuses that push and the deletion simply fails.
 
-Set `pullRequest` and the App commits to one long-lived branch and keeps a single pull request open
-against it, accumulating: close three issues and there is one review to merge, not three.
+So it does not. The App commits to one long-lived branch and keeps a single pull request open against it,
+accumulating: close three issues and there is one review to merge, not three.
 
 ```jsonc
 // .agents/friction-log/config.json
 {
-  "pullRequest": true,
-  // or, to name the branch
+  // name the branch, rather than the default `frog/sync`
   "pullRequest": { "branch": "chore/friction" },
+  // or commit straight to the default branch, where nothing protects it
+  "pullRequest": false,
 }
 ```
 
-Off by default, because behind a review the log is only as current as the last merge, and a stale
-friction log is the failure this exists to prevent.
+Merging is what keeps the log true, so an unmerged pull request means the log still lists friction that is
+already resolved.
 
 ## Cross-repo filing
 

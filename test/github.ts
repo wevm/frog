@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import http from 'node:http'
 
 /**
@@ -165,20 +166,36 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   let objects = 0
   const nextSha = () => `sha${(objects += 1).toString().padStart(4, '0')}`
 
+  /** Sha of a blob's contents, so rewriting a file with the same bytes changes nothing. */
+  const blobSha = (contents: string) =>
+    `blob${createHash('sha256').update(contents).digest('hex').slice(0, 8)}`
+
+  /** Sha of a tree's contents, so an unchanged tree keeps its identity. */
+  const treeSha = (tree: Map<string, string>) =>
+    `tree${createHash('sha256')
+      .update(
+        [...tree]
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([path, blob]) => `${path}\u0000${blob}`)
+          .join('\u0001'),
+      )
+      .digest('hex')
+      .slice(0, 8)}`
+
   for (const [repo, contents] of Object.entries({
     ...Object.fromEntries(Object.keys(options.head ?? {}).map((repo) => [repo, {}])),
     ...options.files,
   })) {
     const tree = new Map<string, string>()
     for (const [path, body] of Object.entries(contents)) {
-      const sha = nextSha()
+      const sha = blobSha(body)
       blobs.set(sha, body)
       tree.set(path, sha)
     }
-    const treeSha = nextSha()
-    trees.set(treeSha, tree)
+    const initial = treeSha(tree)
+    trees.set(initial, tree)
     const commitSha = nextSha()
-    commits.set(commitSha, { message: 'initial', tree: treeSha })
+    commits.set(commitSha, { message: 'initial', tree: initial })
     refs.set(`${repo}#main`, commitSha)
   }
 
@@ -191,14 +208,14 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   for (const [repo, contents] of Object.entries(options.head ?? {})) {
     const tree = new Map(treeOf(repo, 'main'))
     for (const [path, body] of Object.entries(contents)) {
-      const sha = nextSha()
+      const sha = blobSha(body)
       blobs.set(sha, body)
       tree.set(path, sha)
     }
-    const treeSha = nextSha()
-    trees.set(treeSha, tree)
+    const headTree = treeSha(tree)
+    trees.set(headTree, tree)
     const commitSha = nextSha()
-    commits.set(commitSha, { message: 'head', parent: refs.get(`${repo}#main`), tree: treeSha })
+    commits.set(commitSha, { message: 'head', parent: refs.get(`${repo}#main`), tree: headTree })
     refs.set(`${repo}#head`, commitSha)
   }
 
@@ -462,14 +479,12 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
 
         if (rest === 'blobs' && request.method === 'POST') {
           const payload = await readBody<{ content?: string; encoding?: string }>(request)
-          const sha = nextSha()
-          blobs.set(
-            sha,
-            Buffer.from(
-              payload.content ?? '',
-              payload.encoding === 'base64' ? 'base64' : 'utf8',
-            ).toString('utf8'),
-          )
+          const decoded = Buffer.from(
+            payload.content ?? '',
+            payload.encoding === 'base64' ? 'base64' : 'utf8',
+          ).toString('utf8')
+          const sha = blobSha(decoded)
+          blobs.set(sha, decoded)
           return json(response, 201, { sha })
         }
 
@@ -485,7 +500,9 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
             if (entry.sha === null) base.delete(entry.path)
             else if (entry.sha) base.set(entry.path, entry.sha)
           }
-          const sha = nextSha()
+          // Content-addressed, as git is: an identical tree gets an identical sha, which is what lets a
+          // caller notice a commit would change nothing.
+          const sha = treeSha(base)
           trees.set(sha, base)
           return json(response, 201, { sha })
         }
@@ -550,7 +567,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     },
     url: `http://127.0.0.1:${address.port}`,
     write(repo, path, contents, branch = 'main') {
-      const sha = nextSha()
+      const sha = blobSha(contents)
       blobs.set(sha, contents)
       treeOf(repo, branch).set(path, sha)
     },

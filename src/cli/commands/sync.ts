@@ -25,7 +25,7 @@ export const sync = Cli.create('sync', {
     commit: z
       .boolean()
       .optional()
-      .describe('Commit the changes. Defaults to the `commit` config value.'),
+      .describe('Commit the changes. On by default; pass `--no-commit` to leave them staged.'),
     cwd: context.cwdOption,
     dryRun: z.boolean().optional().describe('Report what would change without changing it.'),
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
@@ -171,7 +171,7 @@ export const sync = Cli.create('sync', {
     const touched = [...plan.write, ...plan.clearLink].map((entry) => Store.toPath(entry.id))
     if (mirrorsChanged) touched.push(Mirrors.file)
     const committed = await (async () => {
-      if (!(c.options.commit ?? config.commit)) return false
+      if (c.options.commit === false) return false
       await Git.add(touched, { cwd: root })
       return Git.commit('chore: sync friction log', {
         cwd: root,

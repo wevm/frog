@@ -7,7 +7,6 @@ describe('from', () => {
   test('behavior: applies every default', () => {
     expect(Config.from({})).toMatchInlineSnapshot(`
       {
-        "commit": true,
         "inbound": {
           "enabled": false,
         },
@@ -22,7 +21,7 @@ describe('from', () => {
         "publishOnLog": false,
         "pullRequest": {
           "branch": "frog/sync",
-          "enabled": false,
+          "enabled": true,
         },
         "severityLabels": {
           "blocker": "friction:blocker",
