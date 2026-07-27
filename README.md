@@ -250,7 +250,8 @@ dependencies.
 
 Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
 processing. Choose **Action-only** when same-repository automation and avoiding an external write grant
-matter most. Running both is safe but redundant because they share occurrence keys.
+matter most. Choose one method per repository; concurrent App and Action-only runs can create duplicate
+issues.
 
 | Area           | GitHub App                                                                      | Action-only                                                                 |
 | -------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -265,12 +266,13 @@ matter most. Running both is safe but redundant because they share occurrence ke
 
 Before using the default pull-request mode, enable **Allow GitHub Actions to create and approve pull
 requests** under **Settings > Actions > General**. Pull-request checks created by `GITHUB_TOKEN` wait
-for a user with write access to approve each workflow run.
+for a user with write access to approve each workflow run. Push-only workflows do not run; pass a
+personal access token or App token as `token` when they are required.
 
 This mode deliberately has a smaller boundary than the App:
 
-- A protected default branch needs a human to merge `frog/sync`. The branch is force-updated every run;
-  do not hand-edit it.
+- A protected default branch needs a human to merge `frog/sync`. Complete runs force-update the branch;
+  deferrals preserve the existing pull request. Do not hand-edit it.
 - `contents: write` is required to push and keep dedupe on the label-filtered issue index.
 - `@v1` moves with compatible releases. Pin both a full action commit SHA and an exact `version` input
   to fix Frog itself; npm still resolves the published package's dependency ranges at install time.

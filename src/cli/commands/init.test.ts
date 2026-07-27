@@ -45,6 +45,7 @@ test('behavior: scaffolds the directory', async () => {
   const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
   expect(readme).toContain('## Choose Automation')
   expect(readme).toContain('Prompt the user to choose one automation method')
+  expect(readme).toContain('Choose one method per repository')
   expect(readme).toContain('| Scope | Cross-repository reporting')
   expect(readme).toContain('Choose **Action-only**')
   expect(readme).toContain('### GitHub App')

@@ -283,15 +283,17 @@ runs:
 
         write_multiline_output publish "$publish_output"
         write_multiline_output sync "$sync_output"
+        publish_deferred="$(json_count "$publish_output" deferred)"
+        sync_deferred="$(json_count "$sync_output" deferred)"
         {
           echo "created=$(json_count "$publish_output" created)"
           echo "commented=$(json_count "$publish_output" commented)"
-          echo "publish-deferred=$(json_count "$publish_output" deferred)"
+          echo "publish-deferred=$publish_deferred"
           echo "cleared=$(json_count "$sync_output" cleared)"
           echo "removed=$(json_count "$sync_output" removed)"
           echo "reopened=$(json_count "$sync_output" reopened)"
           echo "updated=$(json_count "$sync_output" updated)"
-          echo "sync-deferred=$(json_count "$sync_output" deferred)"
+          echo "sync-deferred=$sync_deferred"
         } >> "$GITHUB_OUTPUT"
 
         publish_committed="$(json_committed "$publish_output")"
@@ -302,7 +304,20 @@ runs:
         fi
 
         should_push='false'
-        if [[ "$FROG_INPUT_PUSH" != 'none' && "$committed" == 'true' ]]; then
+        if [[ \
+          "$FROG_INPUT_PUSH" == 'pull-request' &&
+          "$branch_exists" == 'true' &&
+          -n "$pr_number" &&
+          (
+            "$publish_status" != '0' ||
+            "$sync_status" != '0' ||
+            "$publish_deferred" != '0' ||
+            "$sync_deferred" != '0'
+          )
+        ]]; then
+          # Keep queued review changes until the run completes without failures or deferrals.
+          echo '::warning::Frog did not fully complete, preserving the existing pull-request branch.'
+        elif [[ "$FROG_INPUT_PUSH" != 'none' && "$committed" == 'true' ]]; then
           should_push='true'
         elif [[ \
           "$FROG_INPUT_PUSH" == 'pull-request' &&
