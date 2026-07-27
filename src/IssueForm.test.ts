@@ -56,7 +56,7 @@ describe('parse', () => {
   })
 
   // The leading `markdown` block is the project's preamble to whoever fills the form in. Carrying it
-  // through would put viem's sponsor pitch into the issue body frog files.
+  // through would put viem's sponsor pitch into the issue body Frog files.
   test('behavior: drops instruction blocks', () => {
     const form = IssueForm.parse(viem)
     expect(form?.fields.some((field) => field.label.includes('Thanks for taking'))).toBe(false)

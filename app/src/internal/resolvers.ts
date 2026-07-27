@@ -97,7 +97,7 @@ export class InstallationMissingError extends Error {
   repo: string
 
   constructor(repo: string) {
-    super(`frog is not installed on \`${repo}\`.`)
+    super(`Frog is not installed on \`${repo}\`.`)
     this.name = 'InstallationMissingError'
     this.repo = repo
   }

@@ -109,7 +109,7 @@ frog list
 Teaches agents **when** to log, which is the part they cannot infer. The rule is _log when you worked around
 something_; see [`SKILL.md`](./SKILL.md) for the full trigger.
 
-`mcp add` exposes each command as a typed tool, so agents call frog directly rather than composing shell.
+`mcp add` exposes each command as a typed tool, so agents call Frog directly rather than composing shell.
 
 ```sh
 frog skills add
@@ -126,7 +126,7 @@ repository's own default branch. So nothing a package says can send a report som
 agreed to receive one.
 
 Naming a target also scaffolds the entry from that project's GitHub issue form, so the report answers the
-questions it actually asks rather than frog's own. A project that names no form keeps frog's sections.
+questions it actually asks rather than Frog's own. A project that names no form keeps Frog's sections.
 
 ```sh
 frog targets

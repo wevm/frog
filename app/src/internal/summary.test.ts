@@ -65,5 +65,5 @@ test('behavior: no differences leaves the explanation alone', () => {
   const body = summary.render({ base: [entry('a')], branch: [entry('a')] })
 
   expect(body).not.toContain('## Resolved')
-  expect(body).toContain('Opened by the [frog](https://github.com/wevm/frog) GitHub App')
+  expect(body).toContain('Opened by the [Frog](https://github.com/wevm/frog) GitHub App')
 })

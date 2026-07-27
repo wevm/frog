@@ -19,7 +19,7 @@ export type Outcome = {
 
 export type Ready = {
   client: Github.Client
-  /** Label used to find issues frog already filed. */
+  /** Label used to find issues Frog already filed. */
   label: string
   repo: string
 }
@@ -46,7 +46,7 @@ export async function prepare(options: prepare.Options): Promise<Blocked | Ready
   if (!label)
     return {
       code: 'NO_LABEL',
-      message: '`labels` must not be empty. frog finds already-filed issues by the first one.',
+      message: '`labels` must not be empty. Frog finds already-filed issues by the first one.',
     }
 
   const resolved = await octokit.token({ env, ...(token ? { token } : {}) })

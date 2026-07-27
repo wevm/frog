@@ -1,10 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "frog config",
+  "title": "Frog config",
   "type": "object",
   "properties": {
     "commit": {
-      "description": "Messages for the commits frog makes on your behalf.",
+      "description": "Messages for the commits Frog makes on your behalf.",
       "default": {},
       "type": "object",
       "properties": {

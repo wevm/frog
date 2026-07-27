@@ -47,7 +47,7 @@ Add this to \`AGENTS.md\`:
 
 > ${rule}
 
-Managed by [frog](https://github.com/wevm/frog).
+Managed by [Frog](https://github.com/wevm/frog).
 `
 
 const schema = 'https://unpkg.com/frog/schema.json'
@@ -69,7 +69,7 @@ const libraryConfig = `{
 /**
  * The issue form a project serves so consumers report friction the way it wants.
  *
- * Rendered from the same sections as the entry scaffold, so the two cannot drift. A consumer's frog finds
+ * Rendered from the same sections as the entry scaffold, so the two cannot drift. A consumer's Frog finds
  * it by convention and writes its entry against it. A human filing through the issue page gets the same
  * questions.
  */
@@ -101,7 +101,7 @@ export const init = Cli.create('init', {
       .describe('Also accept friction reported by consumers of this project.'),
   }),
   examples: [
-    { description: 'Set up frog' },
+    { description: 'Set up Frog' },
     { description: 'Become a friction target', options: { library: true } },
   ],
   output: z.object({
@@ -114,7 +114,7 @@ export const init = Cli.create('init', {
     const files = [
       [`${Store.dir}/README.md`, readme],
       [Config.file, c.options.library ? libraryConfig : config],
-      // Only for a project accepting reports: a consumer's frog writes its entry against it.
+      // Only for a project accepting reports: a consumer's Frog writes its entry against it.
       ...(c.options.library ? ([[`${IssueForm.dir}/${IssueForm.filename}`, form]] as const) : []),
     ] as const
 

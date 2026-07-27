@@ -4,7 +4,7 @@ description: Records friction the moment it is hit, and reports it where it can 
 command: frog
 ---
 
-# frog
+# Frog
 
 Log friction the moment you hit it. Each entry is a directory in `.agents/friction-log/`, filed where it
 can be acted on and deleted once the friction is resolved. So the directory is a live list of what is

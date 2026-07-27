@@ -135,7 +135,7 @@ export declare namespace pullRequest {
     /**
      * Resolves an installation client for another repository.
      *
-     * Returns `undefined` when frog is not installed there, gating cross-repo filing on the receiver's
+     * Returns `undefined` when Frog is not installed there, gating cross-repo filing on the receiver's
      * installation.
      */
     installation: (repo: string) => Promise<Octokit | undefined>

@@ -10,7 +10,7 @@ export type Attempt<value> =
  * nested closure or a `.catch()` silently becomes ordinary data. Wrapping the fallible call keeps every
  * `c.error()` at the top level of `run`, where it works.
  *
- * Picks up the `code` on frog's own error classes, so a domain error keeps its machine-readable code
+ * Picks up the `code` on Frog's own error classes, so a domain error keeps its machine-readable code
  * without the core depending on incur.
  */
 export async function attempt<value>(promise: Promise<value>): Promise<Attempt<value>> {

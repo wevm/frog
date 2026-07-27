@@ -37,11 +37,11 @@ export async function issues(options: issues.Options): Promise<Outcome> {
 
   // A marker is only a routing hint. Committed state below decides whether the issue is ours to act on.
   const marker = Github.parseMarker(issue.body)
-  if (!marker?.path) return { ignored: 'no frog marker' }
+  if (!marker?.path) return { ignored: 'no Frog marker' }
 
   const origin = marker.origin ?? repo
   const source = origin === repo ? client : await installation(origin)
-  if (!source) return { ignored: `frog is not installed on \`${origin}\``, origin }
+  if (!source) return { ignored: `Frog is not installed on \`${origin}\``, origin }
 
   return serialize(origin, async () => {
     const branch = await Github.defaultBranch(source.rest, { repo: origin })
@@ -84,7 +84,7 @@ export async function issues(options: issues.Options): Promise<Outcome> {
 
     const current = Github.toLink({ issue: issue.number, repo })
     if (!bindings.some((binding) => binding.issue === current))
-      return { ignored: 'untrusted frog marker', origin }
+      return { ignored: 'untrusted Frog marker', origin }
 
     // Runs inside the origin lease and refetches current issue state. The delivered snapshot only
     // routes us here, so an older close cannot overwrite a newer reopen.
