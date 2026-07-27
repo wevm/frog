@@ -22,9 +22,9 @@ export type Env = {
 }
 
 /**
- * Cached across requests in a warm isolate, so a burst of deliveries mints one set of tokens.
+ * Apps cached across requests in a warm isolate. A burst of deliveries mints one set of tokens.
  *
- * Keyed by app id, so a redeployment with different bindings cannot reuse the wrong App.
+ * Keyed by app id: a redeployment with different bindings cannot reuse the wrong App.
  */
 const apps = new Map<string, ReturnType<typeof create>>()
 
@@ -35,7 +35,7 @@ function app(env: Env): ReturnType<typeof create> {
   const created = create({
     appId: env.APP_ID,
     coordinator: env.COORDINATOR,
-    // Newlines do not survive an environment variable, so they are restored here.
+    // Restore newlines, which do not survive an environment variable.
     privateKey: env.PRIVATE_KEY.replace(/\\n/g, '\n'),
     secret: env.WEBHOOK_SECRET,
   })
@@ -68,8 +68,8 @@ async function processQueued(env: Env, delivery: Delivery.Delivery) {
           return response.data
         },
       }),
-    // The projection deliberately contains only fields our handlers read. Keep the OpenAPI escape
-    // hatch at this one boundary rather than letting unvalidated payloads flow through the App.
+    // The projection contains only the fields our handlers read. Keep the OpenAPI escape hatch at this
+    // one boundary rather than letting unvalidated payloads flow through the App.
     receive: (event) => app(env).webhooks.receive(event as unknown as WebhookEvent),
   })
 }

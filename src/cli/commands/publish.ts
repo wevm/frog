@@ -63,7 +63,7 @@ export const publish = Cli.create('publish', {
       .describe('Entries left pending, and why.'),
     unlabelled: z
       .array(z.string())
-      .describe('Destinations that dropped the labels, because this token cannot label there.'),
+      .describe('Destinations that dropped the labels. This token cannot label there.'),
   }),
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
@@ -93,8 +93,8 @@ export const publish = Cli.create('publish', {
         },
       })
 
-    // Each entry's target is resolved through the consent gates before anything is filed, and entries
-    // are grouped by destination so one repository costs one index lookup however many entries it has.
+    // Resolve each entry's target through the consent gates before anything is filed. Group by
+    // destination so one repository costs one index lookup however many entries it has.
     const resolvers = target.resolvers({
       outbound: config.outbound,
       client: ready.client,

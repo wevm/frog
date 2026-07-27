@@ -54,13 +54,13 @@ export const log = Cli.create('log', {
       .optional()
       .describe('API base URL. Set automatically inside Actions.'),
     GITHUB_TOKEN: z.string().optional().describe('Token used by --publish.'),
-    VISUAL: z.string().optional().describe('Preferred over EDITOR when both are set.'),
+    VISUAL: z.string().optional().describe('Overrides EDITOR when both are set.'),
   }),
   options: z.object({
     body: z
       .string()
       .optional()
-      .describe('Markdown body. Also readable from piped input, or an editor when interactive.'),
+      .describe('Markdown body. Also read from piped input, or from an editor when interactive.'),
     cwd: context.cwdOption,
     force: z.boolean().optional().describe('Log it even if a similar entry already exists.'),
     label: z.array(z.string().min(1)).optional().describe('Extra issue label. Repeatable.'),
@@ -68,7 +68,7 @@ export const log = Cli.create('log', {
     publish: z
       .boolean()
       .optional()
-      .describe('File the issue immediately, rather than leaving it for `publish`.'),
+      .describe('File the issue immediately instead of leaving it for `publish`.'),
     severity: Entry.Severity.optional().describe('Impact. Defaults to minor.'),
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
     target: z
@@ -111,11 +111,10 @@ export const log = Cli.create('log', {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const interactive = prompt.interactive()
 
-    // Piped input is the whole entry, shaped like a commit message. It is what makes bare `frog log`
+    // Piped input carries the whole entry, shaped like a commit message. It makes bare `frog log`
     // usable without a terminal, where a prompt cannot run at all.
     //
-    // Not read at all once the arguments cover both parts. Standard input is whatever the caller left
-    // attached, and looking at it when there is nothing to learn only costs the wait.
+    // Skipped once the arguments cover both parts. Reading it then only costs the wait.
     const piped = c.args.title && c.options.body ? undefined : await attempt(stdin.read())
     if (piped && !piped.ok) return c.error({ code: piped.code, message: piped.message })
     const input = piped?.ok && piped.value ? stdin.parse(piped.value) : undefined
@@ -139,11 +138,10 @@ export const log = Cli.create('log', {
 
     const body = c.options.body ?? (input?.body || undefined)
 
-    // An upstream project judges a report against its own issue form, so scaffold from that rather than
-    // from frog's sections. Fetched only when the answers would be used, and never fatal: a target that
-    // cannot be reached costs the scaffold, not the entry.
-    // This repository's own form when there is no target, so a project that publishes one gets it used
-    // for its own entries too rather than only by whoever reports to it.
+    // Scaffold from the target's own issue form rather than from frog's sections. An upstream project
+    // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
+    // an unreachable target costs the scaffold, not the entry.
+    // With no target, use this repository's own form.
     const own = !body && !c.options.target ? await attempt(form.own(root)) : undefined
 
     const upstream =
@@ -161,13 +159,12 @@ export const log = Cli.create('log', {
     const scaffold =
       (upstream?.ok ? upstream.value : undefined) ?? (own?.ok ? own.value : undefined)
 
-    // A scaffold is the detail this is asking for, one question at a time, so it satisfies the guard.
-    // Without a terminal there is otherwise no way to reach a template at all, which would leave the
-    // upstream's questions unreachable by the agents this exists for.
+    // A scaffold satisfies the guard: it asks for the same detail, one question at a time. Without a
+    // terminal it is the only way to reach a template.
     if (!body && !scaffold && !interactive)
       return c.error({
         code: 'MISSING_BODY',
-        message: 'A body is required. An entry with no detail is not actionable.',
+        message: 'A body is required.',
         cta: {
           commands: [
             { command: 'log', description: 'Pipe a title, a blank line, then the detail' },
@@ -179,8 +176,7 @@ export const log = Cli.create('log', {
     const entries = await attempt(Store.read({ root }))
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
 
-    // Catching the repeat here, at authoring time, is the only place it is cheap. A flat friction
-    // log has no duplicate check at all, which is how the same item lands five times.
+    // Catch the repeat at authoring time, the only point where it is cheap.
     const duplicate = entries.value.find(
       (entry) => Entry.normalizeTitle(entry.title) === Entry.normalizeTitle(title),
     )
@@ -212,7 +208,7 @@ export const log = Cli.create('log', {
       { root },
     )
 
-    // Only reached interactively, or on request: the editor is the long-form input path.
+    // Reached interactively, or on request. The editor is the long-form input path.
     if (c.options.open ?? (interactive && !body)) {
       const edited = await attempt(
         prompt
@@ -237,8 +233,8 @@ export const log = Cli.create('log', {
         },
       )
 
-    // Filing must never lose the entry. It is already on disk, so every failure past this point
-    // reports why it stayed pending rather than failing the command.
+    // The entry is already on disk. Every failure past this point reports why it stayed pending
+    // rather than failing the command.
     const filed = await attempt(
       (async () => {
         const ready = await publisher.prepare({

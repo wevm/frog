@@ -9,16 +9,15 @@ import * as Repository from '../Repository.js'
 /**
  * Files the entries a pull request introduces, and reports back on the pull request.
  *
- * Reads the head commit from the **base** repository rather than the head one. GitHub makes a pull
- * request's head commit reachable there, so this works for a fork without the installation needing any
- * access to that fork.
+ * Reads the head commit from the **base** repository, where GitHub makes a pull request's head commit
+ * reachable. The installation needs no access to the fork.
  *
- * The `issue:` link is written straight onto the pull request's own branch, so the entry lands already
- * filed and the merge needs no follow-up commit. That costs one extra `synchronize` delivery, on which
- * the entry is already linked and so is neither re-filed nor re-reported.
+ * Writes the `issue:` link straight onto the pull request's own branch, so the merge needs no follow-up
+ * commit. The extra `synchronize` delivery this costs sees a linked entry, and neither re-files nor
+ * re-reports it.
  *
- * A fork's branch belongs to a repository the App has no installation on, so there the link still waits
- * for the push handler to write it once the work has landed.
+ * A fork's branch belongs to a repository the App has no installation on. There the push handler writes
+ * the link once the work has landed.
  *
  * @returns What happened, already reported on the pull request.
  */
@@ -39,9 +38,9 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   const settings = await config.read(client, { ref: baseRef, repo: base })
   const contents = await Repository.read(client, { ref: head, repo: base })
 
-  // Only what this pull request actually changed. Reading the head alone would report every entry the
-  // base branch already carries, and file issues for any of them still unpublished, crediting them to
-  // whoever happened to open an unrelated pull request.
+  // Only what this pull request changed. Reading the head alone would report every entry the base
+  // branch already carries, and file the unpublished ones against whoever opened an unrelated pull
+  // request.
   const before = await Repository.read(client, { ref: baseRef, repo: base })
   const changed = introduced(contents.entries, before.entries)
 
@@ -62,13 +61,13 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     serialize,
   })
 
-  // Best effort. The issue is already filed, so a branch this App cannot write to, whether protected by
-  // a ruleset or simply gone, must not fail the delivery and lose the report on the pull request. The
-  // push handler writes the link when the work lands, which is the same path a fork takes.
+  // Write the link if we can. A branch this App cannot write to, whether protected by a ruleset or
+  // simply gone, must not fail the delivery and lose the report on the pull request. The push handler
+  // writes the link when the work lands, the same path a fork takes.
   if (headRepo === base && filed.links.size > 0)
     await serialize(base, async () => {
-      // Filing takes several requests. Re-read under the lease so a concurrent push is not overwritten
-      // with the snapshot this delivery started from.
+      // Re-read under the lease so a concurrent push is not overwritten with the snapshot this
+      // delivery started from. Filing takes several requests.
       const current = await Repository.read(client, { ref: headRef, repo: base })
       const writes = current.entries.flatMap((entry) => {
         const issue = filed.links.get(entry.id)
@@ -136,8 +135,8 @@ export declare namespace pullRequest {
     /**
      * Resolves an installation client for another repository.
      *
-     * Returns `undefined` when frog is not installed there, which is what makes the receiver's
-     * installation the consent gate for cross-repo filing.
+     * Returns `undefined` when frog is not installed there, gating cross-repo filing on the receiver's
+     * installation.
      */
     installation: (repo: string) => Promise<Octokit | undefined>
     /** Pull request number. */

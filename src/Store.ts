@@ -21,8 +21,7 @@ export type Options = {
  * Directory holding an entry and anything needed to reproduce it.
  *
  * An entry is a directory rather than a single file so a reproduction can ship beside it: the write-up
- * in `friction.md`, the script or fixture that triggers it under `artifacts/`. A reader can then run the
- * thing instead of reconstructing it from prose.
+ * in `friction.md`, the script or fixture that triggers it under `artifacts/`.
  *
  * @param id - Entry id.
  * @returns The repository-relative directory.
@@ -52,8 +51,8 @@ export function toArtifacts(id: string): string {
 /**
  * Id of the entry a repository-relative path refers to.
  *
- * The inverse of {@link toPath}. Only the write-up identifies an entry, so an artifact path resolves to
- * nothing: reconciliation acts on entries, and an artifact is a detail of one.
+ * The inverse of {@link toPath}. Only the write-up identifies an entry, so an artifact path resolves
+ * to nothing.
  *
  * @param file - Repository-relative path.
  * @returns The id, or `undefined` when the path is not an entry's write-up.
@@ -69,8 +68,7 @@ export function toId(file: string): string | undefined {
 /**
  * Reads and parses every entry, sorted by id.
  *
- * @returns Every entry. Throws on the first malformed write-up rather than skipping it, so a broken
- * entry cannot go unnoticed.
+ * @returns Every entry. Throws on the first malformed write-up rather than skipping it.
  */
 export async function read(options: Options): Promise<readonly Entry.Entry[]> {
   const ids = await list(options)
@@ -78,13 +76,11 @@ export async function read(options: Options): Promise<readonly Entry.Entry[]> {
 }
 
 /**
- * Ids of every entry, sorted.
+ * Lists the ids of every entry, sorted.
  *
- * A directory counts as an entry only once it holds a write-up, so a stray directory is ignored rather
- * than breaking the read.
+ * A directory counts as an entry only once it holds a write-up. A stray directory is ignored.
  *
- * @returns Entry ids. A missing directory yields an empty list, so a repository that has never logged
- * friction is not a failure case.
+ * @returns Entry ids. A missing directory yields an empty list.
  */
 export async function list(options: Options): Promise<readonly string[]> {
   const found = await fs
@@ -121,7 +117,7 @@ export async function get(id: string, options: Options): Promise<Entry.Entry> {
 }
 
 /**
- * Every repository-relative path belonging to an entry, write-up and artifacts alike.
+ * Lists every repository-relative path belonging to an entry, write-up and artifacts alike.
  *
  * Needed to stage a deletion: removing an entry means removing its reproduction too.
  *
@@ -146,8 +142,8 @@ export async function files(id: string, options: Options): Promise<readonly stri
 /**
  * Writes an entry, minting an id when one is not supplied.
  *
- * Passing an existing id overwrites the write-up in place, leaving any artifacts alone. That is how the
- * issue link is written back after filing.
+ * Passing an existing id overwrites the write-up in place, leaving any artifacts alone. The issue link
+ * is written back that way after filing.
  *
  * @returns The id used and the path written.
  */
@@ -165,9 +161,9 @@ export async function write(
 /**
  * Reserves a directory for a new entry, returning the id it got.
  *
- * Ids come from the title and the date, so two entries logged the same day about the same thing want the
- * same one. Creating the directory is the claim, which is what stops the second one overwriting the
- * first. Each pass either wins or proves that suffix is taken, and only finitely many can be.
+ * Ids come from the title and the timestamp, so two entries logged in the same second about the same
+ * thing want the same id. Creating the directory is the claim: each pass either claims the id or proves that
+ * suffix is taken, and only finitely many can be.
  */
 async function claim(title: string, options: Options): Promise<string> {
   const base = Entry.newId({ title })

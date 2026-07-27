@@ -20,8 +20,8 @@ export type Filing = {
 /**
  * Resolves each entry's destination, applies every gate, and files what is allowed through.
  *
- * Shared by the pull request and push handlers, which differ only in what they do afterwards: one
- * comments, the other writes the links back. The gates themselves must not differ between them.
+ * Shared by the pull request and push handlers, which must apply identical gates. They differ only
+ * afterwards: one comments, the other writes the links back.
  */
 export async function file(options: file.Options): Promise<Filing> {
   const {
@@ -92,7 +92,7 @@ export async function file(options: file.Options): Promise<Filing> {
       })
   }
 
-  /** Grouped after every gate, so deferred entries do not consume the per-run ceiling. */
+  /** Grouped after every gate. Deferred entries do not consume the per-run ceiling. */
   const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
   let accepted = 0
   for (const candidate of candidates) {
@@ -124,7 +124,7 @@ export async function file(options: file.Options): Promise<Filing> {
         label: applied[0] ?? 'friction',
         repo: destination,
       })
-      /** Filed during this run, so two entries with one title collapse onto one issue. */
+      /** Filed during this run. Two entries sharing a title collapse onto one issue. */
       const seen = new Map<string, Github.Issue>()
 
       for (const entry of group.entries) {
@@ -137,7 +137,7 @@ export async function file(options: file.Options): Promise<Filing> {
             entry,
             labels: applied,
           }),
-          // `origin` is where the file lives, which is not the destination when reporting upstream.
+          // `origin` is where the entry file lives, not the destination when reporting upstream.
           marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
           provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
           repo: destination,
@@ -158,16 +158,13 @@ export async function file(options: file.Options): Promise<Filing> {
 }
 
 /**
- * Stable key for one report of one friction, used to make a repeat comment idempotent.
+ * Stable key for one report of one friction, making a repeat comment idempotent.
  *
- * Derived from what is being reported rather than from the delivery reporting it. A pull request receives
- * many deliveries, one per push, and keying on the delivery made every one of them a fresh occurrence: the
- * issue collected a "Hit again" comment per push, for an entry nobody had touched.
+ * Keyed on the entry rather than the delivery. A pull request receives one delivery per push, so a
+ * delivery-keyed occurrence would add a "Hit again" comment per push for an entry nobody touched.
  *
- * The body is folded in so an edited entry does speak up again, which is the one repeat worth having. It
- * goes in verbatim: `Github.hash` normalizes for titles, discarding punctuation and case, which would
- * collapse edits that matter, such as adding the `--` a command was missing. `renderOccurrence` digests
- * the whole key anyway, so nothing is gained by hashing a part of it first.
+ * Includes the body so an edited entry reports again. The body goes in verbatim because `Github.hash`
+ * normalizes for titles, discarding the punctuation and case that distinguish a meaningful edit.
  */
 function occurrenceOf(options: { entry: Entry.Entry; origin: string }): string {
   const { entry, origin } = options

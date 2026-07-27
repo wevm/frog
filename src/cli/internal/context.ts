@@ -13,8 +13,7 @@ export type Context = {
 /**
  * Resolves the repository root and config.
  *
- * The one place git and config meet: `Config` stays a pure normalizer, and the origin remote is
- * threaded in as a default rather than duplicated into the config file.
+ * The origin remote is threaded in as a default, keeping `Config` a pure normalizer.
  */
 export async function resolve(options: resolve.Options = {}): Promise<Context> {
   const cwd = options.cwd ?? process.cwd()

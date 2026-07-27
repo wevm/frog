@@ -8,8 +8,8 @@ const exec = promisify(execFile)
 /**
  * Resolves a GitHub token.
  *
- * The `gh auth token` fallback is what makes the common local case need zero configuration: anyone
- * with the GitHub CLI already logged in can publish without setting anything up.
+ * Falls back to `gh auth token`, so anyone already logged in with the GitHub CLI can publish without
+ * configuration.
  */
 export async function token(options: token.Options): Promise<string | undefined> {
   const { env, token } = options
@@ -27,12 +27,12 @@ export declare namespace token {
       GH_TOKEN?: string | undefined
       GITHUB_TOKEN?: string | undefined
     }
-    /** Explicit `--token`, which wins over everything. */
+    /** Explicit `--token`. Overrides every other source. */
     token?: string | undefined
   }
 }
 
-/** Builds a client. `baseUrl` comes from `GITHUB_API_URL`, which Actions sets for you. */
+/** Builds a client. `baseUrl` comes from `GITHUB_API_URL`, which Actions sets. */
 export function client(options: client.Options = {}): Github.Client {
   const { baseUrl, token } = options
   return new Octokit({ ...(token ? { auth: token } : {}), ...(baseUrl ? { baseUrl } : {}) }).rest

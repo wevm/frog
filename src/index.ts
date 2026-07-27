@@ -1,4 +1,4 @@
-/** Caching for network lookups, injected so the CLI and the App can keep it in different places. */
+/** Caching for network lookups, injected so the CLI and the App can store it differently. */
 export * as Cache from './Cache.js'
 
 /**
@@ -10,7 +10,7 @@ export * as Config from './Config.js'
 /** The entry format: frontmatter, body, ids, and title normalization. */
 export * as Entry from './Entry.js'
 
-/** A project's GitHub issue form: parsing it, and rendering the entry scaffold it implies. */
+/** Parses a project's GitHub issue form and renders the entry scaffold it implies. */
 export * as IssueForm from './IssueForm.js'
 
 /** Git queries and mutations the CLI needs. The App uses the GitHub API instead. */

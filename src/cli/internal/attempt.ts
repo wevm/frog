@@ -5,14 +5,13 @@ export type Attempt<value> =
 /**
  * Runs `promise`, returning a failure instead of throwing.
  *
- * This exists because of a sharp edge in incur: `c.error()` is typed `=> never` but does not throw.
- * It returns a sentinel that is only recognised when it is the return value of `run`, so
- * `return c.error(...)` from inside a nested closure or a `.catch()` silently becomes ordinary data.
- * Wrapping the fallible call means every `c.error()` can stay at the top level of `run`, where it
- * works.
+ * Works around a sharp edge in incur: `c.error()` is typed `=> never` but does not throw, and its
+ * sentinel is recognised only as the return value of `run`, so `return c.error(...)` from inside a
+ * nested closure or a `.catch()` silently becomes ordinary data. Wrapping the fallible call keeps every
+ * `c.error()` at the top level of `run`, where it works.
  *
- * The `code` on our own error classes is picked up here, which is how a domain error keeps its
- * machine-readable code without the core having to depend on incur.
+ * Picks up the `code` on frog's own error classes, so a domain error keeps its machine-readable code
+ * without the core depending on incur.
  */
 export async function attempt<value>(promise: Promise<value>): Promise<Attempt<value>> {
   try {
@@ -23,7 +22,7 @@ export async function attempt<value>(promise: Promise<value>): Promise<Attempt<v
       code: failure.code ?? 'UNKNOWN',
       message: failure.message,
       ok: false,
-      // Octokit puts the HTTP status here, which is what turns "Not Found" into something actionable.
+      // Octokit puts the HTTP status here.
       ...(typeof failure.status === 'number' ? { status: failure.status } : {}),
     }
   }

@@ -10,11 +10,11 @@ const repoPattern = /^[\w.-]+\/[\w.-]+$/
 const repoAllowPattern = /^[\w.-]+\/(?:[\w.-]+|\*)$/
 
 /**
- * One schema serves both shapes: `z.input` is what a user writes (everything optional), `z.output`
- * is what the code consumes (every default applied).
+ * Config schema, serving both shapes: `z.input` is the written config, with everything optional;
+ * `z.output` is the normalized config, with every default applied.
  *
  * Field docs live in `.describe()` rather than TSDoc so they reach `schema.json`, where `$schema`
- * turns them into editor autocomplete for whoever is actually writing the config.
+ * turns them into editor autocomplete for whoever is writing the config.
  */
 export const Schema = z.object({
   commit: z
@@ -53,7 +53,7 @@ export const Schema = z.object({
         .min(1)
         .optional()
         .describe(
-          'Issue form reported friction should be written against, as a path or a filename under `.github/ISSUE_TEMPLATE`. Absent looks for `friction.yml`, then the only form there.',
+          'Issue form reported friction is written against, as a path or a filename under `.github/ISSUE_TEMPLATE`. Absent looks for `friction.yml`, then the only form there.',
         ),
     })
     .prefault({})
@@ -68,7 +68,7 @@ export const Schema = z.object({
     .positive()
     .default(10)
     .describe(
-      'Ceiling on issues filed in one publish run, or in one webhook delivery. A batch limit rather than a total: a second delivery gets its own allowance, and anything over the ceiling is deferred rather than dropped.',
+      'Ceiling on issues filed in one publish run, or in one webhook delivery. A second delivery gets its own allowance, and anything over the ceiling is deferred rather than dropped.',
     ),
   outbound: z
     .object({
@@ -89,7 +89,7 @@ export const Schema = z.object({
     .union([z.boolean(), z.object({ branch: z.string().min(1).optional() })])
     .default(true)
     .describe(
-      'Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which keeps the log true without a merge but fails outright where that branch is protected.',
+      'Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which needs no merge but fails where that branch is protected.',
     )
     .transform((value) => ({
       branch: (typeof value === 'object' ? value.branch : undefined) ?? 'frog/sync',
@@ -107,10 +107,9 @@ export const Schema = z.object({
 /**
  * Normalized config, with every default applied.
  *
- * Field documentation lives on {@link Schema} as `.describe()` rather than as TSDoc here. That is
- * deliberate and the one exception in this package: `.describe()` is what reaches `schema.json`, where
- * `$schema` turns it into autocomplete for the person writing the JSON. Duplicating the same prose as
- * TSDoc would give two sources that drift. Run `frog publish --schema` to read it.
+ * Field documentation lives on {@link Schema} as `.describe()`, the one exception in this package.
+ * Only `.describe()` reaches `schema.json`, and duplicating it as TSDoc would give two sources that
+ * drift. Run `frog publish --schema` to read it.
  */
 export type Config = z.output<typeof Schema>
 
@@ -120,8 +119,8 @@ export type WrittenConfig = z.input<typeof Schema>
 /**
  * How a project accepts inbound friction.
  *
- * Derived from {@link Schema} rather than declared again, so the committed config and the shape consent is
- * checked against cannot drift.
+ * Derived from {@link Schema} so the committed config and the shape consent is checked against cannot
+ * drift.
  */
 export type Inbound = Config['inbound']
 
@@ -150,8 +149,8 @@ export function allows(inbound: Inbound, sender: string | undefined): boolean {
 /**
  * Normalizes already-loaded config.
  *
- * The one chokepoint between written and normalized config, so anything reading config over the
- * network (the App, a consent check on a target) gets identical defaults to the CLI reading it off disk.
+ * The one chokepoint between written and normalized config. Config read over the network gets the
+ * same defaults as config the CLI reads off disk.
  */
 export function from(value: unknown, options: from.Options = {}): Config {
   const written = value ?? {}

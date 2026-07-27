@@ -10,9 +10,9 @@ export function dir(env: Record<string, string | undefined> = process.env): stri
 }
 
 /**
- * A cache on disk, so a consent lookup survives between runs.
+ * Caches to disk, so a consent lookup survives between runs.
  *
- * Every failure is swallowed: a cache that cannot be written is a slower run, not a failed one.
+ * Every failure is swallowed: an unwritable cache slows a run, it does not fail one.
  */
 export function file(root: string = dir()): Cache.Cache {
   return {

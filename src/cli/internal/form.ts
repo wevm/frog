@@ -10,11 +10,11 @@ import * as target from './target.js'
 /**
  * Renders the scaffold an entry aimed at another project should be written against.
  *
- * A project judges a report by its own form, so the questions worth answering are the ones it asks. The
- * form is fetched at authoring time rather than filing time because that is when the answers get written.
+ * A project judges a report by its own form. The form is fetched at authoring time, when the answers get
+ * written.
  *
- * Anonymous reads are fine here: a public project's issue form is public. A token is used when one is
- * around, for the rate limit rather than the access.
+ * A token is used when one is around, for the rate limit rather than the access. A public project's
+ * issue form reads fine anonymously.
  *
  * @param value - The `--target` as written.
  * @returns The scaffold, or `undefined` when the target resolves to nothing, refuses reports, or has no
@@ -34,7 +34,7 @@ export async function scaffold(
 
   const resolution = await Target.resolve(value, target.resolvers({ client, outbound, root, self }))
   // A refused target is reported by publishing, which says why. Here it only means there is no form to
-  // write against, and the entry still has to be written.
+  // write against.
   if (!resolution.ok || resolution.target.kind === 'self') return undefined
 
   const { repo, template } = resolution.target
@@ -66,9 +66,7 @@ export declare namespace scaffold {
 /**
  * Renders the scaffold an entry about this repository should be written against.
  *
- * The same discovery as an upstream target, off disk rather than over the API. A project that publishes
- * a form has already said how it wants friction written, and that answer should not differ depending on
- * who is doing the writing.
+ * The same discovery as an upstream target, off disk rather than over the API.
  *
  * @param root - Repository root.
  * @returns The scaffold, or `undefined` when this repository publishes no form.

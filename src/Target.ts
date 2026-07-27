@@ -6,10 +6,10 @@ export type Kind = 'npm' | 'repo'
 const repoPattern = /^[\w.-]+\/[\w.-]+$/
 
 /**
- * How a target string names a repository.
+ * Classifies how a target string names a repository.
  *
- * Only two forms exist, because an issue can only be filed on a GitHub repository: name that repository,
- * or name a package that declares it.
+ * Two forms only, because an issue can only be filed on a GitHub repository: the repository itself, or
+ * a package that declares it.
  *
  * @param value - Target as written in frontmatter or passed to `--target`.
  * @returns The name to look up, and how to look it up.
@@ -56,13 +56,12 @@ export type Resolution =
 /**
  * Resolves where an entry's issue belongs, applying every consent gate.
  *
- * Naming and consent are separate steps. A target string only ever names a repository, whether directly or
- * through a package's `repository` field, and consent is then read from that repository's own default
- * branch. Nothing a package or a third party says can redirect a report to a repository that has not
- * itself opted in.
+ * Naming and consent are separate steps. A target string only ever names a repository, whether
+ * directly or through a package's `repository` field, and consent is then read from that repository's
+ * own default branch.
  *
  * Two gates guard a target that is not this repository. The receiver must have committed a config
- * accepting inbound friction, and may restrict who reports. And the sender must have listed the target in
+ * accepting inbound friction, and may restrict who reports. The sender must have listed the target in
  * `outbound.allowedRepos`, read from the base branch so a pull request cannot name its own destination.
  * Setting `outbound.enabled` to false refuses every target but this repository.
  *
@@ -92,8 +91,8 @@ export async function resolve(
 
   if (repo === self) return { ok: true, target: { kind: 'self', repo } }
 
-  // Checked before asking the target for consent: there is no point spending a request on a report this
-  // repository has switched off sending.
+  // Checked before asking the target for consent: a sender that has switched off sending need not
+  // spend a request.
   if (!outbound.enabled)
     return {
       code: 'OUTBOUND_DISABLED',
@@ -144,14 +143,13 @@ export declare namespace resolve {
     /**
      * Reads a repository's committed inbound policy from its default branch.
      *
-     * Injected because the CLI reads it over the REST API while the App reads it with an installation
-     * token, and neither belongs in this module.
+     * Injected: the CLI reads it over the REST API, the App with an installation token.
      */
     readConfig: (repo: string) => Promise<Config.Inbound | undefined>
     /**
      * Resolves a package name to the repository it declares.
      *
-     * Injected for the same reason: the CLI reads `node_modules`, and the App asks the npm registry.
+     * Injected for the same reason: the CLI reads `node_modules`, the App asks the npm registry.
      */
     readRepo: (name: string) => Promise<string | undefined>
     /** This repository, as `owner/name`. The default target, and the sender for `allowFrom`. */

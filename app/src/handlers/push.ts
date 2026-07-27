@@ -24,17 +24,16 @@ export type Outcome = {
 /**
  * Files anything still pending once the work has landed, and writes the links back.
  *
- * This is where `issue:` gets written, rather than on the pull request branch: here the branch belongs
- * to the repository the App is installed on, so it is reachable, and a fork's contribution has already
- * been merged.
+ * Writes `issue:` here rather than on the pull request branch. This branch belongs to the repository
+ * the App is installed on, so it is reachable.
  *
- * It also closes the fork case. A fork's pull request had its issues filed but could not have its files
- * updated, so the link is written the moment the merge lands. Filing is idempotent, so the entries
- * already filed cost a lookup and nothing else.
+ * A fork's pull request had its issues filed but could not have its files updated, so the link is
+ * written the moment the merge lands. Filing is idempotent, so an entry already filed costs a lookup
+ * and nothing else.
  *
- * Self-terminating: the commit written here triggers another push, on which every entry already carries
- * a link, so nothing is pending and no commit is made. Under review that link is on the reconciling
- * branch rather than this one, which is why that branch is read too.
+ * The commit written here triggers another push, on which every entry already carries a link and
+ * nothing is pending. Under review that link lands on the reconciling branch, which is why that branch
+ * is read too.
  *
  * @returns What happened.
  */
@@ -45,9 +44,8 @@ export async function push(options: push.Options): Promise<Outcome> {
   const review = settings.pullRequest.enabled
   const { entries } = await Repository.read(client, { ref: branch, repo })
 
-  // Under review the link lands on the reconciling branch, not here, so this branch goes on showing the
-  // entry as pending. Without reading that branch too, every later push would re-file and re-commit the
-  // same links, and the write-back would never settle.
+  // Under review the link lands on the reconciling branch, so this branch goes on showing the entry as
+  // pending. Reading that branch too stops every later push from re-filing the same links.
   const reviewed = review
     ? await Repository.read(client, { ref: settings.pullRequest.branch, repo }).catch(
         () => undefined,
@@ -74,8 +72,8 @@ export async function push(options: push.Options): Promise<Outcome> {
 
   const initial = new Map(pending.map((entry) => [entry.id, Entry.serialize(entry)]))
   const committed = await serialize(repo, async () => {
-    // Filing can take several requests. Re-read under the repository lease so a concurrent sync or
-    // push cannot be overwritten with the stale snapshot from the start of this delivery.
+    // Re-read under the repository lease so a concurrent sync or push is not overwritten with the
+    // snapshot this delivery started from. Filing can take several requests.
     const current = await Repository.read(client, { ref: branch, repo })
     const writes: { contents: string; path: string }[] = []
     for (const entry of current.entries) {
@@ -96,9 +94,9 @@ export async function push(options: push.Options): Promise<Outcome> {
     })
   })
 
-  // The same branch and pull request the issue handler reconciles through, so the links and the
-  // closures land in one review rather than two. Without this the setting only half covers a protected
-  // default branch: reconciliation would route around it and this write-back would still be refused.
+  // Reuses the branch and pull request the issue handler reconciles through, so the links and the
+  // closures land in one review rather than two. A protected default branch would otherwise refuse this
+  // write-back while reconciliation routed around it.
   const pullRequest =
     review && committed
       ? await Repository.upsert(client, {

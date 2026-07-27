@@ -7,12 +7,11 @@ import * as serialization from './internal/serialize.js'
 /**
  * Builds the App and registers every handler.
  *
- * Cross-repo filing needs a token per installation, so the resolver below mints one on demand. A
- * repository with no installation resolves to `undefined`, and that is the consent gate: the App
- * physically cannot file where it has not been installed.
+ * The resolver below mints a token per installation on demand. A repository with no installation
+ * resolves to `undefined`, so the App cannot file where it has not been installed.
  *
- * Handlers are allowed to throw. Delivery claims are only completed after the handler succeeds, and
- * replay markers keep a repeated external mutation from duplicating an issue or comment.
+ * Handlers are allowed to throw. A delivery claim completes only after the handler succeeds, and replay
+ * markers keep a repeated external mutation from duplicating an issue or comment.
  */
 export function create(options: create.Options): App {
   const { appId, coordinator, privateKey, registry, secret } = options
@@ -74,8 +73,8 @@ export function create(options: create.Options): App {
     // Only the default branch: a topic branch's entries are handled as a pull request.
     if (payload.ref !== `refs/heads/${branch}`) return
 
-    // The write-back is self-terminating anyway, but skipping our own push saves a pointless round
-    // trip on every commit this App makes.
+    // Skipping our own push saves a round trip on every commit this App makes. The write-back
+    // terminates either way.
     if (payload.sender?.login && payload.sender.login === (await self())) return
 
     await push({
@@ -101,8 +100,8 @@ export function create(options: create.Options): App {
             (label): label is NonNullable<typeof label> => label !== null,
           ),
           number: payload.issue.number,
-          // Taken from the action rather than the payload field: the action is what happened, and the
-          // field is optional in the delivered shape.
+          // Taken from the action rather than the payload field, which is optional in the delivered
+          // shape.
           state: payload.action === 'closed' ? 'closed' : 'open',
           title: payload.issue.title,
         },

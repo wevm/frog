@@ -35,9 +35,8 @@ export type Frontmatter = {
 /**
  * Schema for {@link Frontmatter}.
  *
- * Annotated rather than inferred, because TSDoc written on a schema's fields does not survive
- * `z.infer`. The hand-written type above is the documented public shape, and this annotation stops
- * the two drifting: a schema change that alters the parsed shape fails to compile here.
+ * Annotated rather than inferred: TSDoc written on a schema's fields does not survive `z.infer`. The
+ * annotation stops the hand-written type and the schema drifting.
  */
 export const Frontmatter: z.ZodType<Frontmatter> = z.object({
   issue: z
@@ -61,8 +60,8 @@ export type Entry = Frontmatter & {
 /**
  * Splits leading YAML frontmatter from the markdown body.
  *
- * Lazy, so the first `---` after the opening one closes the block and a body containing a horizontal
- * rule cannot swallow it. `[^]` rather than `.` because the frontmatter spans newlines.
+ * Lazy: the first `---` after the opening one closes the block, so a horizontal rule in the body
+ * cannot swallow it. `[^]` rather than `.` because the frontmatter spans newlines.
  */
 const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
 
@@ -103,7 +102,7 @@ export function parse(contents: string, options: parse.Options): Entry {
 export declare namespace parse {
   /** Options for {@link parse}. */
   type Options = {
-    /** Entry id. Named in errors so they point at a real entry. */
+    /** Entry id. Named in error messages. */
     id: string
   }
 }
@@ -137,11 +136,11 @@ export function serialize(entry: serialize.Options): string {
 }
 
 export declare namespace serialize {
-  /** The entry to serialize. The id is the directory name, so it is not part of the contents. */
+  /** The entry to serialize. The id is the directory name, not part of the contents. */
   type Options = Omit<Entry, 'id'>
 }
 
-/** Words a slug keeps. Enough to recognize the entry, short enough to stay scannable in a path. */
+/** Words a slug keeps. */
 const maxWords = 3
 
 /** Hard bound on slug length, for a title whose words are pathologically long. */
@@ -150,9 +149,7 @@ const maxSlug = 48
 /**
  * Turns a title into a path-safe slug.
  *
- * The first few words only: the full title lives in the write-up, so the directory name just has to be
- * recognizable at a glance. Never empty, because a title of nothing but punctuation still has to name a
- * directory.
+ * Never empty: a title of nothing but punctuation still has to name a directory.
  *
  * @param title - Title as written.
  * @returns Up to three lowercased words joined by hyphens.
@@ -165,9 +162,9 @@ export function slug(title: string): string {
 /**
  * Builds an id for a new entry: when the friction was hit, then the title.
  *
- * Timestamped rather than numbered because entries are deleted when their friction is resolved, so a
- * sequence counter would hand the same number to something unrelated. A timestamp is never reused, sorts
- * oldest-first as plain text, and two branches logging at once still get distinct ids.
+ * Timestamped rather than numbered: entries are deleted when their friction is resolved, so a sequence
+ * counter would hand the same number to something unrelated. A timestamp also sorts oldest-first as
+ * plain text.
  *
  * @returns An id such as `20260725143012-filters-are-ignored`.
  */
@@ -210,35 +207,32 @@ export type Section = {
 /**
  * What a friction entry is asked for, in order.
  *
- * Nothing enforces these. They exist so an entry lands as something reproducible rather than a one-line
- * complaint, which is what a flat friction log tends to produce. Expectation is separated from
- * description on purpose: friction is the gap between the two, and naming both is what turns a complaint
- * into a report somebody can act on.
+ * Nothing enforces these. Expected and current behavior are separate prompts because friction is the
+ * gap between the two.
  *
- * Held as data because two things are rendered from it: the markdown scaffold below, and the issue form
+ * Held as data because two things render from it: the markdown scaffold below, and the issue form
  * `init --library` publishes so a consumer's agent finds the same questions.
  */
 export const sections: readonly Section[] = [
   {
-    description: 'Tell us what should happen.',
+    description: 'Describe what should happen.',
     label: 'Expected Behavior',
   },
   {
-    description: 'Tell us what happens instead of the expected behavior.',
+    description: 'Describe what happens instead.',
     label: 'Current Behavior',
   },
   {
-    description: 'Not obligatory, but suggest a fix or a reason for the friction.',
+    description: 'Optional. Suggest a fix or a reason for the friction.',
     label: 'Possible Solution',
   },
   {
     description:
-      'A minimal reproducible example in `artifacts/`, or an unambiguous set of steps to reproduce this. Include code to reproduce, if relevant.',
+      'Add a minimal reproducible example under `artifacts/`, or an unambiguous set of steps to reproduce this. Include code where relevant.',
     label: 'Minimal Reproducible Example',
   },
   {
-    description:
-      'How has this affected you, and what were you trying to accomplish? Context is what makes a solution useful in the real world rather than in the abstract.',
+    description: 'Describe how this affected you, and what you were trying to accomplish.',
     label: 'Context',
   },
 ]

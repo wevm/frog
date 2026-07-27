@@ -1,10 +1,10 @@
 import type { Cache } from 'frog'
 
 /**
- * A cache in memory.
+ * Builds an in-memory cache.
  *
- * There is no filesystem here. An isolate stays warm across deliveries, so this still spares repeated
- * lookups of the same repository, and a cold start simply fetches again.
+ * There is no filesystem here. A warm isolate spares repeated lookups of the same repository, and a
+ * cold start fetches again.
  */
 export function memory(store = new Map<string, string>()): Cache.Cache {
   return {

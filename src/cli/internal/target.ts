@@ -6,14 +6,14 @@ import type * as Github from '../../Github.js'
 import * as GithubModule from '../../Github.js'
 import type * as Target from '../../Target.js'
 
-/** Concurrent config lookups. Bounded so scanning a large dependency list does not open one socket each. */
+/** Concurrent config lookups, bounded so a large dependency list does not open one socket each. */
 const concurrency = 8
 
 /**
  * Builds the resolver stack `Target.resolve` needs.
  *
  * The CLI resolves package names off disk and reads committed config through the REST API. The App
- * supplies its own pair, which is why `Target` takes them rather than importing any of it.
+ * supplies its own pair.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
   const { outbound, client, root, self, store } = options
@@ -43,10 +43,8 @@ export declare namespace resolvers {
 }
 
 /**
- * Reads a repository's committed inbound policy, optionally through a cache.
- *
- * A repository that accepts nothing is cached as such. Most do not accept inbound friction, so caching
- * the absence is what stops the second run re-asking about every dependency.
+ * Reads a repository's committed inbound policy, optionally through a cache. A repository that accepts
+ * nothing is cached as such.
  *
  * Only pass a store when listing. Filing must read consent fresh, or a day-old yes would authorize an
  * issue on a project that has since opted out.
@@ -102,8 +100,7 @@ export type Accepting = {
  *
  * Scans the declared dependencies rather than walking `node_modules`, which keeps the disk half of this a
  * handful of reads instead of thousands. Consent then costs one API call per distinct repository, cached
- * for a day. This is what the generated skill lists, so an agent never has to recall which upstreams take
- * reports.
+ * for a day.
  */
 export async function accepting(options: accepting.Options): Promise<readonly Accepting[]> {
   const { client, root, self, store } = options
@@ -176,8 +173,7 @@ type Dependencies = {
  * Repository an installed package declares.
  *
  * `repository` is the field npm defines for this, and it resolves 98.5% of what is actually installed
- * here. `homepage` and `bugs` are tried after it for the handful that omit it, since a project that
- * points either at GitHub has named its repository just as clearly.
+ * here. `homepage` and `bugs` are tried after it for the handful that omit it.
  */
 async function repoOf(name: string, root: string): Promise<string | undefined> {
   const contents = await fs

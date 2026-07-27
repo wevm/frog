@@ -5,15 +5,13 @@ import type { Octokit } from 'octokit'
 export const registry = 'https://registry.npmjs.org'
 
 /**
- * Repository a package declares, from the npm registry.
+ * Reads the repository a package declares, from the npm registry.
  *
- * The App has no `node_modules` to inspect, so the offline path the CLI uses does not exist here. The
- * registry serves the same `repository` field, which is where a package names the repository its issues
- * belong on.
+ * The App has no `node_modules`, so the CLI's offline path is unavailable here. The registry serves the
+ * same `repository` field.
  *
- * Resolved at `latest` rather than the version a consumer has pinned. Which repository a package belongs
- * to is not something that varies by patch release, and resolving a range here would mean reading the
- * consumer's lockfile.
+ * Resolves `latest`, not the version a consumer has pinned. A package's repository does not vary by
+ * patch release, and resolving a range would mean reading the consumer's lockfile.
  *
  * @param name - npm package name.
  * @returns The repository as `owner/name`, or `undefined` when the package declares none on GitHub.
@@ -54,8 +52,8 @@ export async function fromRegistry(
 /**
  * Builds the resolver stack `Target.resolve` needs, backed by the API and the registry.
  *
- * The same two lookups the CLI supplies from disk, over the network instead. Every consent gate is
- * unchanged, which is the point of `Target` taking them as arguments.
+ * Supplies over the network the same two lookups the CLI reads from disk. Every consent gate is
+ * unchanged.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
   const { outbound, installation, registry: url, self } = options
@@ -93,7 +91,7 @@ export declare namespace resolvers {
   }
 }
 
-/** Signals that target consent could not be read because the App is not installed there. */
+/** Thrown when the App is not installed on a target repository, so its consent cannot be read. */
 export class InstallationMissingError extends Error {
   /** Repository whose installation is missing. */
   repo: string

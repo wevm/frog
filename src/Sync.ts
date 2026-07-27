@@ -8,32 +8,29 @@ export type Plan = {
   /**
    * Entries whose linked issue no longer exists.
    *
-   * Written back without the link, returning them to pending so publishing can file them again.
+   * Written back without the link, returning them to pending.
    */
   clearLink: readonly Entry.Entry[]
-  /** Ids of entries whose issue closed. The friction is resolved, so the mirror goes away. */
+  /** Ids of entries whose issue closed. */
   remove: readonly string[]
   /** Entries to write: content pulled from their issue, or rebuilt for one that reopened. */
   write: readonly Entry.Entry[]
 }
 
 /**
- * Works out what reconciling would change, without changing anything.
+ * Computes what reconciling would change, without changing anything.
  *
- * Pure by design, for two reasons. The CLI applies a plan with git while the App applies the same plan
- * through the GitHub API, so the decisions cannot live in either. And this is the only stateful corner
- * of the system, which makes it the one worth testing exhaustively without any I/O.
+ * Pure because the CLI applies a plan with git while the App applies the same plan through the GitHub
+ * API.
  *
- * The issue is canonical, so this only ever pulls issue into file. That is what removes the need for a
- * watermark recording when the last sync ran: there is no "who changed last" question to answer, and a
- * maintainer's edits on an issue can never be clobbered. The one push, file into issue, belongs to the
- * App's pull request handler, where a diff proves the file actually changed.
+ * Pulls issue into file only. The issue is canonical, so a maintainer's edits on an issue can never be
+ * clobbered. The one push, file into issue, belongs to the App's pull request handler.
  *
  * @returns The edits to apply. Applying a plan and re-planning yields an empty plan.
  */
 export function plan(options: plan.Options): Plan {
   const { entries, issues, labels, mirrors = [], repo } = options
-  // Where the files are, which is only the same as where the issues are when reporting to yourself.
+  // Where the files are. Only the same as where the issues are when reporting to yourself.
   const origin = options.origin ?? repo
 
   const byNumber = new Map(issues.map((issue) => [issue.number, issue]))
@@ -55,7 +52,7 @@ export function plan(options: plan.Options): Plan {
     if (!entry.issue) continue
 
     const link = Github.parseLink(entry.issue)
-    // A link into another repository is not ours to reconcile from here.
+    // A link into another repository is not reconciled from here.
     if (!link || link.repo !== repo) continue
 
     const issue = byNumber.get(link.issue)
@@ -111,12 +108,11 @@ export declare namespace plan {
      * Repository holding the entries, as `owner/name`. Defaults to `repo`.
      *
      * Differs from `repo` whenever friction was reported upstream: the issues are there, the files are
-     * here. A marker records this one, so rebuilding a deleted file matches against it.
+     * here.
      */
     origin?: string | undefined
     /** Repository the issues live in, as `owner/name`. */
     repo: string
-    /** Label to apply for each severity, from config. */
   }
 }
 
@@ -128,12 +124,10 @@ export function empty(plan: Plan): boolean {
 /**
  * Assembles the issue set {@link plan} needs.
  *
- * A linked issue absent from the listing may simply have lost its label, so each one is confirmed
- * directly before {@link plan} can conclude it is gone. Skipping this turns a label edit into a
- * cleared link, and the next publish into a duplicate issue.
+ * A linked issue absent from the listing may simply have lost its label. Each one is confirmed directly,
+ * so a label edit does not become a cleared link and then a duplicate issue.
  *
- * Shared by both adapters through injected lookups: the CLI reads with a user token, the App with an
- * installation token, and the reconciliation must not differ between them.
+ * Lookups are injected: the CLI reads with a user token, the App with an installation token.
  *
  * @returns Every issue relevant to reconciling `repo`, listing plus confirmations.
  */

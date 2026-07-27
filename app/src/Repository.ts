@@ -5,18 +5,16 @@ import type { Octokit } from 'octokit'
 export type Contents = {
   /** Entries that parsed. */
   entries: readonly Entry.Entry[]
-  /** Ids of entries that did not parse, with the reason, for reporting back on the pull request. */
+  /** Ids of entries that did not parse, with the reason. */
   malformed: readonly { id: string; reason: string }[]
 }
 
 /**
- * Reads every entry at a ref, without cloning.
+ * Reads every entry at a ref through the API instead of cloning.
  *
- * Not cloning is what lets this read a pull request head at all: the App holds an installation, not a
- * working copy, and a fork's head is not a branch it could check out.
+ * The App has no working copy, and could not check out a fork's head.
  *
- * A file that fails to parse is collected rather than thrown, so one broken entry does not hide the
- * rest and the contributor can be told which one it was.
+ * Collects a file that fails to parse rather than throwing, so one broken entry does not hide the rest.
  *
  * @param client - Installation client for the repository.
  * @returns Parsed entries, and anything that failed to parse.
@@ -24,7 +22,7 @@ export type Contents = {
 export async function read(client: Octokit, options: read.Options): Promise<Contents> {
   const { ref, repo } = options
 
-  // Entries are directories, so the write-up inside each one is what gets read.
+  // Each entry is a directory containing the write-up to read.
   const directories = await Github.listDirectories(client.rest, {
     path: Store.dir,
     repo,
@@ -35,8 +33,8 @@ export async function read(client: Octokit, options: read.Options): Promise<Cont
   const malformed: { id: string; reason: string }[] = []
 
   for (const directory of directories) {
-    // Validated through `toId` rather than by slicing the prefix off, so what counts as an entry is
-    // decided in one place for both transports.
+    // Validated through `toId` rather than by slicing the prefix off. One definition of an entry
+    // serves both transports.
     const id = Store.toId(`${directory}/${Store.filename}`)
     if (!id) continue
 
@@ -68,10 +66,9 @@ export declare namespace read {
 }
 
 /**
- * Writes and deletions applied as a single commit.
+ * Applies writes and deletions as a single commit.
  *
- * Built through the git data API rather than the contents API, which would emit one commit per file.
- * One tree and one commit keeps a reconciliation of ten entries from looking like ten changes.
+ * Uses the git data API. The contents API would emit one commit per file.
  *
  * @param client - Installation client for the repository.
  * @returns The new commit's sha, or `undefined` when there was nothing to do.
@@ -85,8 +82,8 @@ export async function commit(
 
   const { owner, repo: name } = Github.split(repo)
 
-  // The reconciling branch may not exist yet, and is created from `base` when it does not. Committing on
-  // top of it when it does is what lets one pull request accumulate several closures.
+  // Creates the reconciling branch from `base` when it does not exist yet. Committing on top of an
+  // existing branch lets one pull request accumulate several closures.
   const reference = await client.rest.git
     .getRef({ owner, ref: `heads/${branch}`, repo: name })
     .catch((error: { status?: number }) => {
@@ -105,8 +102,8 @@ export async function commit(
     ).data.object.sha
   const parent = await client.rest.git.getCommit({ commit_sha: head, owner, repo: name })
 
-  // A directory has to be expanded into its blobs: the API deletes paths, not trees. Read from the base
-  // tree so an entry's artifacts go with its write-up.
+  // Expand a directory into its blobs: the API deletes paths, not trees. Read from the base tree so an
+  // entry's artifacts go with its write-up.
   const removed = [...deletes]
   if (directories.length > 0) {
     const tree = await client.rest.git.getTree({
@@ -123,7 +120,7 @@ export async function commit(
     }
   }
 
-  // Each blob carries its own path out of the promise, so there is no index to line back up.
+  // Each blob carries its own path out of the promise.
   const blobs = await Promise.all(
     writes.map(async (write) => {
       const blob = await client.rest.git.createBlob({
@@ -147,7 +144,7 @@ export async function commit(
         sha: blob.sha,
         type: 'blob' as const,
       })),
-      // A null sha against a base tree is how the API expresses a deletion.
+      // The API expresses a deletion as a null sha against a base tree.
       ...removed.map((path) => ({
         mode: '100644' as const,
         path,
@@ -157,8 +154,8 @@ export async function commit(
     ],
   })
 
-  // Nothing to say. A plan that plans against a ref other than the one it commits to, or a redelivery
-  // reaching here at all, would otherwise stack an empty commit per delivery.
+  // Nothing to say. A plan built against a ref other than the one it commits to, or a redelivery,
+  // would otherwise stack an empty commit per delivery.
   if (tree.data.sha === parent.data.tree.sha) return undefined
 
   const created = await client.rest.git.createCommit({
@@ -208,10 +205,10 @@ export declare namespace commit {
 }
 
 /**
- * Number of the reconciling pull request, when one is open.
+ * Finds the reconciling pull request, when one is open.
  *
- * Asked before committing, because the answer decides whether the branch carries pending state worth
- * building on or is the leftover of a merge.
+ * Asked before committing. An open pull request means the branch carries pending state worth building
+ * on, and none means it is the leftover of a merge.
  *
  * @param client - Installation client for the repository.
  * @returns The number, or `undefined` when nothing is open.
@@ -248,10 +245,9 @@ export declare namespace review {
 /**
  * Points a branch back at its base, discarding whatever it held.
  *
- * A squash merge leaves the branch behind with a history that is no longer an ancestor of the base, so a
- * later commit on it is diffed from a merge base that predates the merge. Restoring an entry there
- * produces no diff at all, and the restoration is silently lost. Resetting first is what keeps a retained
- * branch from poisoning the next reconciliation.
+ * A squash merge leaves the branch on a history the base no longer descends from, where restoring an
+ * entry produces no diff at all and is silently lost. Resetting first keeps a retained branch from
+ * corrupting the next reconciliation.
  *
  * @param client - Installation client for the repository.
  * @returns Whether a branch was there to reset.
@@ -284,8 +280,8 @@ export async function reset(client: Octokit, options: review.Options): Promise<b
 /**
  * Opens the reconciling pull request, or finds the one already open.
  *
- * One long-lived branch and one pull request, updated in place, so closing three issues produces one
- * review rather than three. The same shape the changesets bot uses for its version pull request.
+ * Keeps one long-lived branch and one pull request, updated in place, so closing three issues produces
+ * one review. Matches the changesets bot's version pull request.
  *
  * @param client - Installation client for the repository.
  * @returns The pull request number.
@@ -296,8 +292,7 @@ export async function upsert(client: Octokit, options: upsert.Options): Promise<
 
   const existing = await review(client, { base, branch, repo })
   if (existing) {
-    // The branch accumulates closures across deliveries, so the description is rewritten each time
-    // rather than left describing only what the first one did.
+    // Rewrite the description each time. The branch accumulates closures across deliveries.
     await client.rest.pulls.update({ body: options.body, owner, pull_number: existing, repo: name })
     return existing
   }
@@ -320,7 +315,7 @@ export declare namespace upsert {
     base: string
     /** Branch the reconciling commits land on. */
     branch: string
-    /** Description. Rewritten on every reconciliation, so it always describes the whole branch. */
+    /** Description. Rewritten on every reconciliation to describe the whole branch. */
     body: string
     /** Repository holding both branches, as `owner/name`. */
     repo: string
