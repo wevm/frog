@@ -20,6 +20,8 @@ export type Instance = {
   requests: Request[]
   /** Base URL to hand Octokit. */
   url: string
+  /** Replaces a file on a branch, for asserting what happens once an entry is edited. */
+  write: (repo: string, path: string, contents: string, branch?: string) => void
 }
 
 export type Issue = {
@@ -457,5 +459,10 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     },
     requests,
     url: `http://127.0.0.1:${address.port}`,
+    write(repo, path, contents, branch = 'main') {
+      const sha = nextSha()
+      blobs.set(sha, contents)
+      treeOf(repo, branch).set(path, sha)
+    },
   }
 }

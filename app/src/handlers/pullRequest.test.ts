@@ -109,19 +109,54 @@ test('behavior: nothing written back to the pull request branch', async () => {
   expect(instance.files(base)[`${dir}/a/friction.md`]).not.toContain('issue:')
 })
 
-// Every push to the branch re-runs this.
+// Every push to the branch re-runs this, and each one is a separate delivery.
 test('behavior: a second run opens no issue and adds no comment', async () => {
   const instance = await github(
     {},
     { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
-  await run(instance.url)
-  const second = await run(instance.url)
+  await run(instance.url, { delivery: 'delivery-1' })
+  const second = await run(instance.url, { delivery: 'delivery-2' })
 
-  expect(second.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
+  // The issue itself stays quiet. Keying the occurrence on the delivery instead of on what is being
+  // reported put a "Hit again" here for every push to an untouched entry.
+  expect(instance.comments(base, 1)).toHaveLength(0)
   expect(instance.comments(base, 42)).toHaveLength(1)
+})
+
+test('behavior: many pushes to one pull request leave one issue and no comments', async () => {
+  const instance = await github(
+    {},
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  for (const delivery of ['one', 'two', 'three', 'four']) await run(instance.url, { delivery })
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(0)
+})
+
+// The one repeat worth having: the entry changed, so the issue should hear about it.
+test('behavior: an edited entry comments once', async () => {
+  const instance = await github(
+    {},
+    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  await run(instance.url, { delivery: 'delivery-1' })
+  instance.write(
+    base,
+    `${dir}/a/friction.md`,
+    entry('Filters ignored').replace('swallowed', 'dropped'),
+  )
+  await run(instance.url, { delivery: 'delivery-2' })
+  await run(instance.url, { delivery: 'delivery-3' })
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(1)
 })
 
 test('behavior: concurrent deliveries with the same title open one issue', async () => {
@@ -137,7 +172,7 @@ test('behavior: concurrent deliveries with the same title open one issue', async
   ])
 
   expect(instance.issues.get(base)).toHaveLength(1)
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(0)
   expect(instance.comments(base, 42)).toHaveLength(1)
 })
 

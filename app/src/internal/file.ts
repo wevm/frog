@@ -28,7 +28,6 @@ export async function file(options: file.Options): Promise<Filing> {
     actor,
     client,
     config,
-    delivery,
     entries,
     installation,
     origin,
@@ -153,7 +152,7 @@ export async function file(options: file.Options): Promise<Filing> {
           marker: { hash, origin, path: Store.toPath(entry.id) },
           provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
           repo: destination,
-          ...(delivery ? { occurrence: `${delivery}:${entry.id}` } : {}),
+          occurrence: occurrenceOf({ entry, origin, ...(pr ? { pr } : {}) }),
           ...(existing ? { existing } : {}),
         })
 
@@ -169,6 +168,24 @@ export async function file(options: file.Options): Promise<Filing> {
   return { commented, created, deferred, links }
 }
 
+/**
+ * Stable key for one report of one friction, used to make a repeat comment idempotent.
+ *
+ * Derived from what is being reported rather than from the delivery reporting it. A pull request receives
+ * many deliveries, one per push, and keying on the delivery made every one of them a fresh occurrence: the
+ * issue collected a "Hit again" comment per push, for an entry nobody had touched.
+ *
+ * The body is folded in so an edited entry does speak up again, which is the one repeat worth having.
+ */
+function occurrenceOf(options: {
+  entry: Entry.Entry
+  origin: string
+  pr?: string | undefined
+}): string {
+  const { entry, origin, pr } = options
+  return [origin, pr ?? 'default', entry.id, Github.hash(entry.body)].join(':')
+}
+
 export declare namespace file {
   /** Options for {@link file}. */
   type Options = {
@@ -178,8 +195,6 @@ export declare namespace file {
     client: Octokit
     /** Normalized config, read from the default branch. */
     config: Config.Config
-    /** GitHub delivery id used to make each external publish occurrence replay-safe. */
-    delivery?: string | undefined
     /** Entries to resolve and file. Already free of linked ones. */
     entries: readonly Entry.Entry[]
     /** Resolves an installation client for another repository. */

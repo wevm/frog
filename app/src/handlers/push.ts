@@ -58,7 +58,6 @@ export async function push(options: push.Options): Promise<Outcome> {
     installation,
     origin: repo,
     ...(options.actor ? { actor: options.actor } : {}),
-    ...(delivery ? { delivery } : {}),
     ...(registry ? { registry } : {}),
     serialize,
   })

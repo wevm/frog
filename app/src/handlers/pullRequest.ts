@@ -43,7 +43,6 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     origin: base,
     pr: `${base}#${pr}`,
     ...(options.actor ? { actor: options.actor } : {}),
-    ...(delivery ? { delivery } : {}),
     ...(registry ? { registry } : {}),
     serialize,
   })
