@@ -50,16 +50,16 @@ if it has opted in.
 
 ## Workflow
 
-See a demonstration in [wevm/frog-demo](https://github.com/wevm/frog-demo), a hello-world server whose
-config loader turned a missing environment variable into the string `"undefined"`. Only the three merges
-were human.
+See a demonstration in [wevm/frog-demo](https://github.com/wevm/frog-demo), where an agent adding a
+health endpoint hit a config loader that turns a missing environment variable into the string
+`"undefined"`, and logged it on the way past. Only the three merges were human.
 
 | Step | What happens | Example |
 | --- | --- | --- |
-| 1 | You hit friction while working and run `frog log` | — |
+| 1 | Agent hits friction while working and runs `frog log` | — |
 | 2 | The entry commits alongside the change that provoked it | [`0de4ab6`](https://github.com/wevm/frog-demo/commit/0de4ab6) |
 | 3 | frog comments on the pull request, naming what it found | [#1](https://github.com/wevm/frog-demo/pull/1) |
-| 4 | frog files the issue and writes the `issue:` link onto your branch | [#2](https://github.com/wevm/frog-demo/issues/2) |
+| 4 | frog files the issue and writes the `issue:` link onto the branch | [#2](https://github.com/wevm/frog-demo/issues/2) |
 | 5 | You fix the friction and close the issue | [#3](https://github.com/wevm/frog-demo/pull/3) |
 | 6 | frog opens a pull request deleting the resolved entry | [#4](https://github.com/wevm/frog-demo/pull/4) |
 | 7 | Merging leaves the log holding only what is still unresolved | [`e4ac13d`](https://github.com/wevm/frog-demo/commit/e4ac13d) |
