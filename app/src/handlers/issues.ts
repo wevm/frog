@@ -143,7 +143,7 @@ export async function issues(options: issues.Options): Promise<Outcome> {
       branch: review ? settings.pullRequest.branch : branch,
       deletes: mirrorsChanged && nextMirrors.mirrors.length === 0 ? [Mirrors.file] : [],
       directories: plan.remove.map(Store.toDir),
-      message: 'chore: sync friction log',
+      message: settings.commit.sync,
       repo: origin,
       ...(review ? { base: branch } : {}),
       writes: [

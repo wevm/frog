@@ -17,6 +17,21 @@ const repoAllowPattern = /^[\w.-]+\/(?:[\w.-]+|\*)$/
  * turns them into editor autocomplete for whoever is actually writing the config.
  */
 export const Schema = z.object({
+  commit: z
+    .object({
+      link: z
+        .string()
+        .min(1)
+        .default('chore: link friction')
+        .describe("Message for the commit writing an entry's issue link onto its pull request."),
+      sync: z
+        .string()
+        .min(1)
+        .default('chore: sync friction log')
+        .describe('Message for the commit reconciling the log against issue state.'),
+    })
+    .prefault({})
+    .describe('Messages for the commits frog makes on your behalf.'),
   inbound: z
     .object({
       allowFrom: z

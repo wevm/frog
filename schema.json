@@ -3,6 +3,25 @@
   "title": "frog config",
   "type": "object",
   "properties": {
+    "commit": {
+      "description": "Messages for the commits frog makes on your behalf.",
+      "default": {},
+      "type": "object",
+      "properties": {
+        "link": {
+          "default": "chore: link friction",
+          "description": "Message for the commit writing an entry's issue link onto its pull request.",
+          "type": "string",
+          "minLength": 1
+        },
+        "sync": {
+          "default": "chore: sync friction log",
+          "description": "Message for the commit reconciling the log against issue state.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
     "inbound": {
       "description": "Whether and how this repository accepts friction reported by others.",
       "default": {},

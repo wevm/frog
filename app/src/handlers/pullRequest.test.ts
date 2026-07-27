@@ -107,8 +107,24 @@ test('behavior: the link is written onto the pull request branch', async () => {
 
   await run(instance.url)
 
-  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: link filed friction'])
+  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: link friction'])
   expect(instance.files(base, 'head')[`${dir}/a/friction.md`]).toContain(`issue: '${base}#1'`)
+})
+
+test('behavior: the commit message comes from config', async () => {
+  const instance = await github(
+    {},
+    {
+      files: {
+        [base]: { [`${dir}/config.json`]: JSON.stringify({ commit: { link: 'chore: wip' } }) },
+      },
+      head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } },
+    },
+  )
+
+  await run(instance.url)
+
+  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: wip'])
 })
 
 // A fork's branch belongs to a repository the App holds no installation on, so the link waits for the

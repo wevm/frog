@@ -73,7 +73,7 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
 
       return Repository.commit(client, {
         branch: headRef,
-        message: 'chore: link filed friction',
+        message: settings.commit.link,
         repo: base,
         writes,
       })
