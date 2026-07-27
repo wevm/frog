@@ -17,7 +17,7 @@ test('behavior: compacts a pull request delivery to the fields its handler reads
         pull_request: {
           base: { ref: 'main', repository: { ignored: true } },
           body: 'ignored',
-          head: { repo: { ignored: true }, sha: 'abc123' },
+          head: { ref: 'feature', repo: { full_name: 'fork/app', ignored: true }, sha: 'abc123' },
           user: { avatar_url: 'ignored', login: 'contributor' },
         },
         repository: { ...common.repository, description: 'ignored' },
@@ -32,7 +32,7 @@ test('behavior: compacts a pull request delivery to the fields its handler reads
       number: 7,
       pull_request: {
         base: { ref: 'main' },
-        head: { sha: 'abc123' },
+        head: { ref: 'feature', repo: { full_name: 'fork/app' }, sha: 'abc123' },
         user: { login: 'contributor' },
       },
       repository: { full_name: 'acme/app' },
@@ -132,6 +132,33 @@ test('error: rejects malformed signed payloads and unknown queue versions', () =
       v: 2,
     }),
   ).toThrow('Expected queue format version 1')
+})
+
+// A message queued before the head branch was projected must still decode. Retrying it to the dead
+// letter queue would lose a pull request's entries over a deployment.
+test('behavior: a queued pull request without a head branch decodes as an unwritable fork', () => {
+  const delivery = Delivery.fromQueue({
+    id: 'delivery-7',
+    name: 'pull_request',
+    payload: {
+      action: 'opened',
+      installation: { id: 42 },
+      number: 7,
+      pull_request: {
+        base: { ref: 'main' },
+        head: { sha: 'abc123' },
+        user: { login: 'contributor' },
+      },
+      repository: { full_name: 'acme/app' },
+    },
+    v: 1,
+  })
+
+  expect(delivery.name === 'pull_request' && delivery.payload.pull_request.head).toEqual({
+    ref: '',
+    repo: null,
+    sha: 'abc123',
+  })
 })
 
 test('behavior: issue hydration uses current state after a delayed event', async () => {

@@ -7,6 +7,10 @@ describe('from', () => {
   test('behavior: applies every default', () => {
     expect(Config.from({})).toMatchInlineSnapshot(`
       {
+        "commit": {
+          "link": "chore: link friction",
+          "sync": "chore: sync friction log",
+        },
         "inbound": {
           "enabled": false,
         },

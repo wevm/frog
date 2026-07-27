@@ -88,7 +88,7 @@ export async function push(options: push.Options): Promise<Outcome> {
 
     return Repository.commit(client, {
       branch: review ? settings.pullRequest.branch : branch,
-      message: 'chore: sync friction log',
+      message: settings.commit.sync,
       repo,
       ...(review ? { base: branch } : {}),
       writes,

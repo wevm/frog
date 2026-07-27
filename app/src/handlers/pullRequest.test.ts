@@ -31,6 +31,8 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 async function run(
   url: string,
   options: {
+    headRef?: string | undefined
+    headRepo?: string | null | undefined
     installed?: Record<string, Octokit> | undefined
     serialize?: Serialize | undefined
   } = {},
@@ -42,6 +44,8 @@ async function run(
     baseRef: 'main',
     client: octokit,
     head: 'head',
+    headRef: options.headRef ?? 'head',
+    headRepo: options.headRepo === undefined ? base : options.headRepo,
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
     registry: `${url}/registry`,
@@ -94,7 +98,9 @@ test('behavior: records the pull request and the reporter on the issue', async (
   expect(body).toContain('Logged by @contributor')
 })
 
-test('behavior: nothing written back to the pull request branch', async () => {
+// The link belongs with the change that introduced the entry, so the merge carries a filed entry rather
+// than needing a follow-up commit to link it.
+test('behavior: the link is written onto the pull request branch', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -102,7 +108,51 @@ test('behavior: nothing written back to the pull request branch', async () => {
 
   await run(instance.url)
 
-  // A commit here would trigger `synchronize` and run this again.
+  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: link friction'])
+  expect(instance.files(base, 'head')[`${dir}/a/friction.md`]).toContain(`issue: '${base}#1'`)
+})
+
+test('behavior: the commit message comes from config', async () => {
+  const instance = await github(
+    {},
+    {
+      files: {
+        [base]: { [`${dir}/config.json`]: JSON.stringify({ commit: { link: 'chore: wip' } }) },
+      },
+      head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } },
+    },
+  )
+
+  await run(instance.url)
+
+  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: wip'])
+})
+
+// The issue is already filed by this point, so a branch the App cannot write to must not fail the
+// delivery: that would lose the report on the pull request and retry until dead-lettering.
+test('behavior: an unwritable head branch still reports on the pull request', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  const report = await run(instance.url, { headRef: 'deleted-branch' })
+
+  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(instance.comments(base, 42)).toHaveLength(1)
+})
+
+// A fork's branch belongs to a repository the App holds no installation on, so the link waits for the
+// push handler instead.
+test('behavior: a fork branch is left untouched', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  const report = await run(instance.url, { headRepo: 'contributor/frog' })
+
+  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.messages(base, 'head')).toEqual(['initial', 'head'])
   expect(instance.files(base, 'head')[`${dir}/a/friction.md`]).not.toContain('issue:')
 })
@@ -141,7 +191,9 @@ test('behavior: a second run opens no issue and adds no comment', async () => {
   await run(instance.url)
   const second = await run(instance.url)
 
-  expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  // The first run linked the entry on the branch, so the second sees it as already filed.
+  expect(second.created).toEqual([])
+  expect(second.linked).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
   // The issue itself stays quiet. Keying the occurrence on the delivery instead of on what is being
   // reported put a "Hit again" here for every push to an untouched entry.

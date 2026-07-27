@@ -30,7 +30,7 @@ export type Delivery =
         number: number
         pull_request: {
           base: { ref: string }
-          head: { sha: string }
+          head: { ref: string; repo: { full_name: string } | null; sha: string }
           user: { login: string } | null
         }
         repository: Repository
@@ -98,6 +98,36 @@ function repository(payload: ObjectValue): Repository {
   return { full_name: fullName }
 }
 
+/**
+ * Head branch and the repository owning it.
+ *
+ * A delivery queued before these fields existed decodes as an unwritable fork rather than throwing, so
+ * an in-flight message survives the deployment that added them instead of retrying to the dead letter
+ * queue. Without a branch to write to there is nothing to lose: the link is written when the work lands.
+ */
+function pullHead(value: ObjectValue): {
+  ref: string
+  repo: { full_name: string } | null
+  sha: string
+} {
+  const ref = value['ref']
+  const writable = typeof ref === 'string' && ref.length > 0
+  return {
+    ref: writable ? ref : '',
+    repo: writable ? fullName(value['repo'], 'pull_request.head.repo') : null,
+    sha: string(value['sha'], 'pull_request.head.sha'),
+  }
+}
+
+/** Just enough of a repository to name it, or `null` when the fork it lived on is gone. */
+function fullName(value: unknown, field: string): { full_name: string } | null {
+  if (value === null || value === undefined) return null
+  const repo = object(value, field)
+  return typeof repo['full_name'] === 'string' && repo['full_name']
+    ? { full_name: repo['full_name'] }
+    : null
+}
+
 function login(value: unknown, field: string): { login: string } | null {
   if (value === null || value === undefined) return null
   const user = object(value, field)
@@ -153,7 +183,7 @@ export function fromWebhook(options: {
         number: integer(payload['number'], 'number'),
         pull_request: {
           base: { ref: string(base['ref'], 'pull_request.base.ref') },
-          head: { sha: string(head['sha'], 'pull_request.head.sha') },
+          head: pullHead(head),
           user: login(pull['user'], 'pull_request.user'),
         },
         repository: repo,
