@@ -10,6 +10,21 @@ Log friction the moment you hit it. Each entry is a directory in `.agents/fricti
 can be acted on and deleted once the friction is resolved. So the directory is a live list of what is
 still outstanding, including in dependencies.
 
+## Setting up
+
+If `.agents/friction-log/` is not there yet, create it. Once per repository:
+
+```sh
+frog init
+```
+
+That writes the config and prints where to install the
+[Frog GitHub App](https://github.com/apps/frog-fm/installations/new), which files entries as issues and
+removes them once those issues close. Without the App, `frog publish` and `frog sync` do the same by hand.
+
+Add `--library` if this project should accept friction reported by the projects that depend on it. It
+publishes an issue form for them to write against.
+
 ## When to log
 
 **Log when you worked around something.** A workaround is the sharpest evidence of friction: you wanted
