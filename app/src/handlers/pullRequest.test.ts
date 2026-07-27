@@ -31,6 +31,7 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 async function run(
   url: string,
   options: {
+    headRef?: string | undefined
     headRepo?: string | null | undefined
     installed?: Record<string, Octokit> | undefined
     serialize?: Serialize | undefined
@@ -43,7 +44,7 @@ async function run(
     baseRef: 'main',
     client: octokit,
     head: 'head',
-    headRef: 'head',
+    headRef: options.headRef ?? 'head',
     headRepo: options.headRepo === undefined ? base : options.headRepo,
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
@@ -125,6 +126,20 @@ test('behavior: the commit message comes from config', async () => {
   await run(instance.url)
 
   expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: wip'])
+})
+
+// The issue is already filed by this point, so a branch the App cannot write to must not fail the
+// delivery: that would lose the report on the pull request and retry until dead-lettering.
+test('behavior: an unwritable head branch still reports on the pull request', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  const report = await run(instance.url, { headRef: 'deleted-branch' })
+
+  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(instance.comments(base, 42)).toHaveLength(1)
 })
 
 // A fork's branch belongs to a repository the App holds no installation on, so the link waits for the

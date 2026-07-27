@@ -575,6 +575,38 @@ describe('publish', () => {
     expect(instance.comments(repo, 1)).toEqual([])
   })
 
+  // A closed issue carries the same markers as an open one, so short-circuiting on them would link a
+  // recurrence to an issue that stays closed and never record that it happened again.
+  test('behavior: the same occurrence against a closed issue reopens it', async () => {
+    const instance = await github({}, { pushAccess: [] })
+    const octokit = client(instance.url)
+    const occurrence = 'entry-a'
+
+    await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence,
+      repo,
+    })
+    await octokit.issues.update({ ...Github.split(repo), issue_number: 1, state: 'closed' })
+
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(title)
+    const recurrence = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence,
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(recurrence).toEqual({ issue: 1, status: 'commented' })
+    expect(instance.issues.get(repo)?.[0]?.state).toBe('open')
+    expect(instance.comments(repo, 1)).toHaveLength(1)
+  })
+
   test('behavior: replay after commenting does not add the comment twice', async () => {
     const instance = await github({
       [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],

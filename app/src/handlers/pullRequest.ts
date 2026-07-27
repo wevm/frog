@@ -48,6 +48,8 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   const malformed = contents.malformed
   const { linked, pending } = filing.partition(changed)
 
+  const initial = new Map(pending.map((entry) => [entry.id, Entry.serialize(entry)]))
+
   const filed = await filing.file({
     client,
     config: settings,
@@ -60,14 +62,19 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     serialize,
   })
 
-  // Re-read under the repository lease: filing takes several requests, and the branch may have moved
-  // since this delivery's snapshot.
+  // Best effort. The issue is already filed, so a branch this App cannot write to, whether protected by
+  // a ruleset or simply gone, must not fail the delivery and lose the report on the pull request. The
+  // push handler writes the link when the work lands, which is the same path a fork takes.
   if (headRepo === base && filed.links.size > 0)
     await serialize(base, async () => {
+      // Filing takes several requests. Re-read under the lease so a concurrent push is not overwritten
+      // with the snapshot this delivery started from.
       const current = await Repository.read(client, { ref: headRef, repo: base })
       const writes = current.entries.flatMap((entry) => {
         const issue = filed.links.get(entry.id)
-        if (!issue || entry.issue) return []
+        // An entry edited while it was being filed describes something other than the issue that was
+        // opened for it. Leaving it unlinked lets the next delivery report the edit.
+        if (!issue || entry.issue || Entry.serialize(entry) !== initial.get(entry.id)) return []
         return [{ contents: Entry.serialize({ ...entry, issue }), path: Store.toPath(entry.id) }]
       })
 
@@ -77,7 +84,7 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
         repo: base,
         writes,
       })
-    })
+    }).catch(() => undefined)
 
   const report: comment.Report = {
     commented: filed.commented,

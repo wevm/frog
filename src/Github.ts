@@ -725,7 +725,9 @@ export async function publish(client: Client, options: publish.Options): Promise
   })
 
   if (existing) {
-    if (occurrence) {
+    // Only a still-open issue can be answered by a replay. A closed one carries the same markers but
+    // needs reopening, so short-circuiting there would link an entry to an issue that stays closed.
+    if (occurrence && existing.state === 'open') {
       const occurrenceMarker = renderOccurrence(occurrence)
       if (existing.body?.includes(occurrenceMarker))
         return { issue: existing.number, status: 'created' }

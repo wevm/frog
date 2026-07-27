@@ -134,6 +134,33 @@ test('error: rejects malformed signed payloads and unknown queue versions', () =
   ).toThrow('Expected queue format version 1')
 })
 
+// A message queued before the head branch was projected must still decode. Retrying it to the dead
+// letter queue would lose a pull request's entries over a deployment.
+test('behavior: a queued pull request without a head branch decodes as an unwritable fork', () => {
+  const delivery = Delivery.fromQueue({
+    id: 'delivery-7',
+    name: 'pull_request',
+    payload: {
+      action: 'opened',
+      installation: { id: 42 },
+      number: 7,
+      pull_request: {
+        base: { ref: 'main' },
+        head: { sha: 'abc123' },
+        user: { login: 'contributor' },
+      },
+      repository: { full_name: 'acme/app' },
+    },
+    v: 1,
+  })
+
+  expect(delivery.name === 'pull_request' && delivery.payload.pull_request.head).toEqual({
+    ref: '',
+    repo: null,
+    sha: 'abc123',
+  })
+})
+
 test('behavior: issue hydration uses current state after a delayed event', async () => {
   const delivery = Delivery.fromQueue({
     id: 'delivery-6',

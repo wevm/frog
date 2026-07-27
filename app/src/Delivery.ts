@@ -98,6 +98,27 @@ function repository(payload: ObjectValue): Repository {
   return { full_name: fullName }
 }
 
+/**
+ * Head branch and the repository owning it.
+ *
+ * A delivery queued before these fields existed decodes as an unwritable fork rather than throwing, so
+ * an in-flight message survives the deployment that added them instead of retrying to the dead letter
+ * queue. Without a branch to write to there is nothing to lose: the link is written when the work lands.
+ */
+function pullHead(value: ObjectValue): {
+  ref: string
+  repo: { full_name: string } | null
+  sha: string
+} {
+  const ref = value['ref']
+  const writable = typeof ref === 'string' && ref.length > 0
+  return {
+    ref: writable ? ref : '',
+    repo: writable ? fullName(value['repo'], 'pull_request.head.repo') : null,
+    sha: string(value['sha'], 'pull_request.head.sha'),
+  }
+}
+
 /** Just enough of a repository to name it, or `null` when the fork it lived on is gone. */
 function fullName(value: unknown, field: string): { full_name: string } | null {
   if (value === null || value === undefined) return null
@@ -162,11 +183,7 @@ export function fromWebhook(options: {
         number: integer(payload['number'], 'number'),
         pull_request: {
           base: { ref: string(base['ref'], 'pull_request.base.ref') },
-          head: {
-            ref: string(head['ref'], 'pull_request.head.ref'),
-            repo: fullName(head['repo'], 'pull_request.head.repo'),
-            sha: string(head['sha'], 'pull_request.head.sha'),
-          },
+          head: pullHead(head),
           user: login(pull['user'], 'pull_request.user'),
         },
         repository: repo,
