@@ -12,7 +12,7 @@ export const rule =
   'Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
   '`frog log`. Run `frog list` first to see what is already known.'
 
-/** Where to install the GitHub App. Nothing is filed or reconciled until it is installed. */
+/** Where to install the GitHub App, which is what makes filing and reconciling automatic. */
 const install = 'https://github.com/apps/frog-fm/installations/new'
 
 const readme = `# Friction log
@@ -31,8 +31,9 @@ outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index.
 
-Filing needs the [frog GitHub App](${install}) installed on this repository. Until it is, entries are
-written and committed as normal but nothing is filed or reconciled.
+Install the [frog GitHub App](${install}) and entries are filed, linked, and removed as their issues
+close, without anyone running anything. Without it, run \`frog publish\` and \`frog sync\` yourself with a
+GitHub token.
 
 ## Logging Friction
 
@@ -148,7 +149,7 @@ export const init = Cli.create('init', {
             { command: 'log', description: 'Write the first entry' },
             { command: 'skills add', description: 'Install the skill that says when to log' },
           ],
-          description: `Install the GitHub App at ${install} so entries are filed, then:`,
+          description: `Install the GitHub App at ${install} to file and reconcile automatically, then:`,
         },
       },
     )
