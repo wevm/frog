@@ -3,6 +3,7 @@ import type { Octokit } from 'octokit'
 import * as config from '../internal/config.js'
 import * as mirrors from '../internal/mirrors.js'
 import * as serialization from '../internal/serialize.js'
+import * as summary from '../internal/summary.js'
 import * as Repository from '../Repository.js'
 
 /** What reconciling an issue event did. */
@@ -161,9 +162,11 @@ export async function issues(options: issues.Options): Promise<Outcome> {
       review && committed
         ? await Repository.upsert(source, {
             base: branch,
-            body:
-              'Entries whose issues have closed, and entries restored because an issue reopened.\n\n' +
-              'Merging keeps the friction log true. Until then it lists friction that is already resolved.',
+            body: await summary.describe(source, {
+              base: branch,
+              branch: settings.pullRequest.branch,
+              repo: origin,
+            }),
             branch: settings.pullRequest.branch,
             repo: origin,
             title: 'chore: sync friction log',

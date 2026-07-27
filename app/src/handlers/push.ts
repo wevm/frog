@@ -4,6 +4,7 @@ import type * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
 import * as filing from '../internal/file.js'
 import * as serialization from '../internal/serialize.js'
+import * as summary from '../internal/summary.js'
 import * as Repository from '../Repository.js'
 
 /** What a push run did. */
@@ -102,9 +103,11 @@ export async function push(options: push.Options): Promise<Outcome> {
     review && committed
       ? await Repository.upsert(client, {
           base: branch,
-          body:
-            'Issue links for friction filed from this repository, and entries reconciled against issues that closed or reopened.\n\n' +
-            'Merging keeps the friction log true. Until then it lists friction that is already resolved, and omits links to issues already filed.',
+          body: await summary.describe(client, {
+            base: branch,
+            branch: settings.pullRequest.branch,
+            repo,
+          }),
           branch: settings.pullRequest.branch,
           repo,
           title: 'chore: sync friction log',

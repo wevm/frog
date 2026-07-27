@@ -295,7 +295,12 @@ export async function upsert(client: Octokit, options: upsert.Options): Promise<
   const { owner, repo: name } = Github.split(repo)
 
   const existing = await review(client, { base, branch, repo })
-  if (existing) return existing
+  if (existing) {
+    // The branch accumulates closures across deliveries, so the description is rewritten each time
+    // rather than left describing only what the first one did.
+    await client.rest.pulls.update({ body: options.body, owner, pull_number: existing, repo: name })
+    return existing
+  }
 
   const created = await client.rest.pulls.create({
     base,
@@ -315,7 +320,7 @@ export declare namespace upsert {
     base: string
     /** Branch the reconciling commits land on. */
     branch: string
-    /** Description, used only when opening. */
+    /** Description. Rewritten on every reconciliation, so it always describes the whole branch. */
     body: string
     /** Repository holding both branches, as `owner/name`. */
     repo: string
