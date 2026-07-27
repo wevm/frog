@@ -48,7 +48,7 @@ export const list = Cli.create('list', {
         code: entries.code,
         message: entries.message,
         cta: {
-          commands: [{ command: 'init', description: 'Recreate the template to compare against' }],
+          commands: [{ command: 'list', description: 'Check that every entry parses' }],
           description: 'Fix the file, then:',
         },
       })
