@@ -118,6 +118,24 @@ describe('plan', () => {
     ])
   })
 
+  // Anyone who can get an issue labelled can paste a marker into it. Without a remembered binding the
+  // marker is the only record of the path, so it has to belong to the issue carrying it.
+  test('behavior: a marker copied from another issue rebuilds nothing', () => {
+    const copied = issue({
+      body: Github.renderBody({
+        body: 'Body.',
+        marker: {
+          hash: Github.hash('Filters ignored'),
+          origin: repo,
+          path: Store.toPath('someone-elses-entry'),
+        },
+      }),
+      title: 'Unrelated issue somebody opened',
+    })
+
+    expect(plan([], [copied]).write).toEqual([])
+  })
+
   test('behavior: a remembered path overrides an edited issue marker', () => {
     const edited = issue({
       body: Github.renderBody({

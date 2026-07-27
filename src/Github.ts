@@ -153,6 +153,22 @@ export const markerVersion = 'v1'
 
 const markerRegex = /<!--\s*frog:v1\s+([^>]*?)\s*-->/
 
+/** Every frog comment, for stripping a write-up that carries one of its own. */
+const markerStripRegex = /\s*<!--\s*frog:[^>]*-->/g
+
+/**
+ * Last marker in a body.
+ *
+ * frog appends its own after the write-up, so reading the last one means a marker embedded in
+ * author-controlled text cannot stand in for it.
+ */
+function lastMarker(value: string): RegExpExecArray | undefined {
+  const pattern = new RegExp(markerRegex.source, 'g')
+  let last: RegExpExecArray | undefined
+  for (let match = pattern.exec(value); match; match = pattern.exec(value)) last = match
+  return last
+}
+
 /** Format version of the marker that makes one external publish occurrence replay-safe. */
 const occurrenceVersion = 'v1'
 
@@ -198,7 +214,7 @@ export function renderMarker(marker: Marker): string {
  * @returns The marker, or `undefined` for a body with none or with no `hash` field.
  */
 export function parseMarker(body: string | null | undefined): Marker | undefined {
-  const match = markerRegex.exec(body ?? '')
+  const match = lastMarker(body ?? '')
   if (!match?.[1]) return undefined
 
   const fields = new Map(
@@ -260,7 +276,7 @@ export function renderBody(options: renderBody.Options): string {
     .filter(Boolean)
     .join('\n')
 
-  return `${body.trim()}\n\n${markers}\n\n---\n\n${footer}\n`
+  return `${body.replace(markerStripRegex, '').trim()}\n\n${markers}\n\n---\n\n${footer}\n`
 }
 
 export declare namespace renderBody {
@@ -287,7 +303,7 @@ export declare namespace renderBody {
  */
 export function parseBody(body: string | null | undefined): string {
   const value = body ?? ''
-  const match = markerRegex.exec(value)
+  const match = lastMarker(value)
   return (match ? value.slice(0, match.index) : value).trim()
 }
 
