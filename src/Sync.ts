@@ -76,7 +76,12 @@ export function plan(options: plan.Options): Plan {
     if (issue.state !== 'open') continue
 
     const marker = Github.parseMarker(issue.body)
-    const paths = remembered.get(issue.number) ?? (marker?.path ? [marker.path] : [])
+
+    // Without a remembered binding the marker is the only record of the path, so it has to prove it
+    // belongs to this issue. A marker pasted in from elsewhere names a path this issue never had, and
+    // its hash gives that away: frog derives the hash from the title it filed under.
+    const owns = marker?.hash === Github.hash(issue.title)
+    const paths = remembered.get(issue.number) ?? (owns && marker?.path ? [marker.path] : [])
     for (const path of paths) {
       // Without a remembered binding, only an issue frog itself filed can be rebuilt. The marker
       // names the repository holding the file, so compare it against `origin`, not the issue repo.

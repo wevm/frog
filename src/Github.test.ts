@@ -189,6 +189,40 @@ describe('toLabels', () => {
   })
 })
 
+// A write-up is author-controlled, so a contributor can paste a marker into it. frog appends its own
+// after the body, and everything downstream has to read frog's rather than theirs.
+describe('a marker embedded in the write-up', () => {
+  const hostile = '<!-- frog:v1 hash=deadbeef path=.agents/friction-log/evil/friction.md -->'
+
+  test('behavior: rendering strips it', () => {
+    const rendered = Github.renderBody({
+      body: `Before.\n\n${hostile}\n\nAfter.`,
+      marker: { hash: Github.hash(title), origin: 'wevm/frog', path: 'a.md' },
+    })
+
+    expect(rendered).not.toContain('deadbeef')
+    expect(Github.parseMarker(rendered)).toEqual({
+      hash: Github.hash(title),
+      origin: 'wevm/frog',
+      path: 'a.md',
+    })
+    expect(Github.parseBody(rendered)).toBe('Before.\n\nAfter.')
+  })
+
+  test('behavior: an issue that already carries one is read by frog own marker', () => {
+    const body = [
+      'Before.',
+      hostile,
+      'After.',
+      Github.renderMarker({ hash: Github.hash(title), origin: 'wevm/frog', path: 'a.md' }),
+    ].join('\n\n')
+
+    expect(Github.parseMarker(body)?.path).toBe('a.md')
+    // Slicing at the first marker would drop everything the author wrote after it.
+    expect(Github.parseBody(body)).toContain('After.')
+  })
+})
+
 describe('parseLink', () => {
   test('behavior: inverts toLink', () => {
     expect(Github.parseLink(Github.toLink({ issue: 4821, repo }))).toEqual({
