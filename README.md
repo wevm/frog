@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#quick-prompt">Quick Prompt</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#license">License</a>
+  <a href="#problem">Problem</a> · <a href="#solution">Solution</a> · <a href="#workflow">Workflow</a> · <a href="#quick-prompt">Quick Prompt</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#license">License</a>
 </p>
 
 ## Problem
@@ -47,6 +47,22 @@ agent reads them before it starts guessing.
 Each entry is then filed as an issue, so somebody owns it, and deleted once that issue closes, so the log
 only ever holds what is still unresolved. Friction in a dependency can be reported to that project instead,
 if it has opted in.
+
+## Workflow
+
+See a demonstration in [wevm/frog-demo](https://github.com/wevm/frog-demo), where an agent adding a
+health endpoint hit a config loader that turns a missing environment variable into the string
+`"undefined"`, and logged it on the way past.
+
+| Step | What happens | Example |
+| --- | --- | --- |
+| 1 | Agent hits friction while working and runs `frog log` | — |
+| 2 | The entry commits alongside the change that provoked it | [`0de4ab6`](https://github.com/wevm/frog-demo/commit/0de4ab6) |
+| 3 | frog comments on the pull request, naming what it found | [#1](https://github.com/wevm/frog-demo/pull/1) |
+| 4 | frog files the issue and writes the `issue:` link onto the branch | [#2](https://github.com/wevm/frog-demo/issues/2) |
+| 5 | You fix the friction and close the issue | [#3](https://github.com/wevm/frog-demo/pull/3) |
+| 6 | frog opens a pull request deleting the resolved entry | [#4](https://github.com/wevm/frog-demo/pull/4) |
+| 7 | Merging leaves the log holding only what is still unresolved | [`e4ac13d`](https://github.com/wevm/frog-demo/commit/e4ac13d) |
 
 ## Quick Prompt
 

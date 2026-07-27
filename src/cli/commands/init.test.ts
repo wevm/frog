@@ -19,6 +19,12 @@ test('behavior: scaffolds the directory', async () => {
     }
   `)
 
+  // Nothing is filed until the App is installed, and the failure is silent, so the one place a user
+  // is certain to look has to say so.
+  const { envelope } = await cli.run(['init', '--cwd', await helpers.repo()])
+  const cta = envelope.meta?.['cta'] as { description?: string } | undefined
+  expect(cta?.description).toContain('https://github.com/apps/frog-fm/installations/new')
+
   // The scaffolded config must validate against the schema it advertises.
   expect(await Config.resolve({ root: cwd })).toEqual(Config.from({}))
 })
