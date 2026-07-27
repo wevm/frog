@@ -11,10 +11,12 @@ const remote = `git@github.com:${repo}.git`
 const title = 'Filters ignored'
 
 type Outcome = {
-  cleared: string[]
+  cleared: { id: string; title: string }[]
   committed: boolean
-  removed: string[]
-  updated: string[]
+  deferred: { code: string; id: string; reason: string }[]
+  reopened: { id: string; title: string }[]
+  removed: { id: string; title: string }[]
+  updated: { id: string; title: string }[]
 }
 
 function env(url: string): Record<string, string> {
@@ -63,7 +65,7 @@ test('behavior: a closed issue deletes its entry and commits', async () => {
 
   const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
 
-  expect(result).toMatchObject({ committed: true, removed: ['a'] })
+  expect(result).toMatchObject({ committed: true, removed: [{ id: 'a', title }] })
   expect(await Store.list({ root: cwd })).toEqual([])
   expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe('chore: sync friction log')
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
@@ -83,7 +85,7 @@ test('behavior: closing takes the committed reproduction with it', async () => {
 
   const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
 
-  expect(result).toMatchObject({ committed: true, removed: ['a'] })
+  expect(result).toMatchObject({ committed: true, removed: [{ id: 'a', title }] })
   // Gone from disk and from the index: a staged artifact left behind would show up here.
   expect(await Store.files('a', { root: cwd })).toEqual([])
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
@@ -103,7 +105,7 @@ test('behavior: deletes an entry that was never committed', async () => {
   })
 
   expect((await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))).removed).toEqual([
-    'a',
+    { id: 'a', title },
   ])
   expect(await Store.list({ root: cwd })).toEqual([])
 })
@@ -120,9 +122,9 @@ test('behavior: an edited issue rewrites the entry', async () => {
     ],
   })
 
-  expect((await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))).updated).toEqual([
-    'a',
-  ])
+  const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+  expect(result.reopened).toEqual([])
+  expect(result.updated).toEqual([{ id: 'a', title: 'Renamed by a maintainer' }])
   expect(await Store.get('a', { root: cwd })).toMatchObject({
     body: 'Rewritten by a maintainer.',
     issue: `${repo}#1`,
@@ -136,9 +138,9 @@ test('behavior: an open issue whose file was deleted is rebuilt', async () => {
     [repo]: [{ body: issueBody('a', 'Body.', 'blocker'), labels: ['friction'], title }],
   })
 
-  expect((await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))).updated).toEqual([
-    'a',
-  ])
+  const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+  expect(result.reopened).toEqual([{ id: 'a', title }])
+  expect(result.updated).toEqual([{ id: 'a', title }])
   expect(await Store.get('a', { root: cwd })).toEqual({
     body: 'Body.',
     id: 'a',
@@ -157,7 +159,7 @@ test('behavior: a deleted issue clears the link and returns the entry to pending
   const instance = await github()
 
   expect((await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))).cleared).toEqual([
-    'a',
+    { id: 'a', title },
   ])
   expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
 })
@@ -190,7 +192,7 @@ test('behavior: an unlabelled issue that closed still deletes its entry', async 
   })
 
   expect((await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))).removed).toEqual([
-    'a',
+    { id: 'a', title },
   ])
 })
 
@@ -199,7 +201,7 @@ test('behavior: --dry-run changes nothing', async () => {
 
   const result = await cli.data<Outcome>(['sync', '--cwd', cwd, '--dry-run'], env(instance.url))
 
-  expect(result).toMatchObject({ committed: false, removed: ['a'] })
+  expect(result).toMatchObject({ committed: false, removed: [{ id: 'a', title }] })
   expect(await Store.list({ root: cwd })).toEqual(['a'])
   expect(await Mirrors.resolve({ root: cwd })).toEqual(Mirrors.empty())
 })
@@ -253,7 +255,7 @@ describe('cross-repo', () => {
 
     const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
 
-    expect(result.removed).toEqual(['a'])
+    expect(result.removed).toEqual([{ id: 'a', title }])
     expect(await Store.list({ root: cwd })).toEqual([])
   })
 
@@ -269,7 +271,7 @@ describe('cross-repo', () => {
     })
 
     const closed = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
-    expect(closed.removed).toEqual(['a'])
+    expect(closed.removed).toEqual([{ id: 'a', title }])
     expect((await Mirrors.resolve({ root: cwd })).mirrors).toEqual([
       { issue: `${upstream}#1`, path: Store.toPath('a') },
     ])
@@ -277,7 +279,8 @@ describe('cross-repo', () => {
     const issue = instance.issues.get(upstream)?.[0]
     if (issue) issue.state = 'open'
     const reopened = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
-    expect(reopened.updated).toEqual(['a'])
+    expect(reopened.reopened).toEqual([{ id: 'a', title }])
+    expect(reopened.updated).toEqual([{ id: 'a', title }])
     expect((await Store.get('a', { root: cwd })).issue).toBe(`${upstream}#1`)
     expect(await Mirrors.resolve({ root: cwd })).toEqual(Mirrors.empty())
 
@@ -304,7 +307,7 @@ describe('cross-repo', () => {
 
     const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
 
-    expect(result.cleared).toEqual(['a'])
+    expect(result.cleared).toEqual([{ id: 'a', title }])
     expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
   })
 
@@ -353,14 +356,82 @@ describe('cross-repo', () => {
 
     const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
 
-    expect(result.removed.sort()).toEqual(['ours', 'theirs'])
+    expect(result.removed).toEqual([
+      { id: 'ours', title: 'Ours' },
+      { id: 'theirs', title },
+    ])
     expect(await Store.list({ root: cwd })).toEqual([])
+  })
+
+  test('behavior: an unreachable destination defers while reachable changes commit', async () => {
+    const cwd = await helpers.repo({ remote })
+    await Store.write(
+      { body: 'Body.', issue: `${repo}#1`, severity: 'minor', title: 'Ours' },
+      { id: 'ours', root: cwd },
+    )
+    await Store.write(
+      { body: 'Body.', issue: `${upstream}#1`, severity: 'minor', title: 'Theirs' },
+      { id: 'theirs', root: cwd },
+    )
+    await Mirrors.write(
+      Mirrors.update(Mirrors.empty(), {
+        remember: [{ issue: `${upstream}#1`, path: Store.toPath('theirs') }],
+      }),
+      { root: cwd },
+    )
+    await helpers.commit('log friction', cwd)
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            body: Github.renderBody({
+              body: 'Body.',
+              marker: { hash: Github.hash('Ours'), origin: repo, path: Store.toPath('ours') },
+            }),
+            state: 'closed',
+            title: 'Ours',
+          },
+        ],
+      },
+      { errors: { [upstream]: 404 } },
+    )
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))
+
+    expect(result).toMatchObject({
+      committed: true,
+      deferred: [
+        {
+          code: 'REPO_NOT_FOUND',
+          id: 'theirs',
+          reason:
+            'Cannot see `wevm/viem`. Either it does not exist, or the token cannot access it.',
+        },
+      ],
+      removed: [{ id: 'ours', title: 'Ours' }],
+    })
+    expect(await Store.list({ root: cwd })).toEqual(['theirs'])
+    expect((await Mirrors.resolve({ root: cwd })).mirrors).toContainEqual({
+      issue: `${upstream}#1`,
+      path: Store.toPath('theirs'),
+    })
+    expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
   })
 })
 
-test('error: a repository the token cannot see', async () => {
-  const cwd = await helpers.repo({ remote })
-  const instance = await github({}, { errors: { [repo]: 404 } })
+test('error: no git identity reads no issue state', async () => {
+  const { cwd, instance } = await linked({ state: 'closed' })
+  await helpers.git(['config', 'user.email', ''], cwd)
 
-  expect((await cli.error(['sync', '--cwd', cwd], env(instance.url))).code).toBe('REPO_NOT_FOUND')
+  expect((await cli.error(['sync', '--cwd', cwd], env(instance.url))).code).toBe('NO_GIT_IDENTITY')
+  expect(instance.requests).toEqual([])
+  expect(await Store.list({ root: cwd })).toEqual(['a'])
+})
+
+test('error: a failed commit is reported', async () => {
+  const { cwd, instance } = await linked({ state: 'closed' })
+  await helpers.git(['config', 'commit.gpgsign', 'true'], cwd)
+  await helpers.git(['config', 'gpg.program', '/usr/bin/false'], cwd)
+
+  expect((await cli.error(['sync', '--cwd', cwd], env(instance.url))).code).toBe('COMMIT_FAILED')
 })

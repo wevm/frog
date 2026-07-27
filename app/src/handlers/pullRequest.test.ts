@@ -328,7 +328,9 @@ test('behavior: entries over the ceiling are deferred', async () => {
   const report = await run(instance.url)
 
   expect(report.created).toHaveLength(1)
-  expect(report.deferred).toEqual([{ id: 'b', reason: 'over the ceiling of 1 per run' }])
+  expect(report.deferred).toEqual([
+    { code: 'OVER_CEILING', id: 'b', reason: 'over the ceiling of 1 per run' },
+  ])
 })
 
 test('behavior: a refused entry does not consume the ceiling', async () => {
@@ -350,6 +352,7 @@ test('behavior: a refused entry does not consume the ceiling', async () => {
   expect(report.created).toEqual([{ id: 'b', issue: `${base}#1` }])
   expect(report.deferred).toEqual([
     {
+      code: 'TARGET_UNKNOWN',
       id: 'a',
       reason:
         '`missing` is not installed, or declares no GitHub repository. Name the repository instead, as `owner/name`.',
@@ -385,6 +388,7 @@ describe('cross-repo', () => {
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
+    expect(report.deferred[0]?.code).toBe('OUTBOUND_DISABLED')
     expect(report.deferred[0]?.reason).toContain('`outbound.enabled` is off')
     expect(instance.issues.get(upstream)).toBeUndefined()
   })
@@ -408,6 +412,7 @@ describe('cross-repo', () => {
 
     const report = await run(instance.url)
 
+    expect(report.deferred[0]?.code).toBe('INSTALLATION_MISSING')
     expect(report.deferred[0]?.reason).toBe('Frog is not installed on `wevm/viem`.')
     expect(instance.issues.get(upstream)).toBeUndefined()
   })
@@ -417,6 +422,7 @@ describe('cross-repo', () => {
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
+    expect(report.deferred[0]?.code).toBe('TARGET_NOT_ALLOWED')
     expect(report.deferred[0]?.reason).toContain('not listed in `outbound.allowedRepos`')
   })
 })

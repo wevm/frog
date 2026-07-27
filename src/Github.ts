@@ -148,6 +148,26 @@ export function hash(title: string): string {
   return createHash('sha256').update(Entry.normalizeTitle(title)).digest('hex').slice(0, 12)
 }
 
+/**
+ * Stable key for one report of one friction.
+ *
+ * Includes the body verbatim so editing an entry creates a new occurrence.
+ */
+export function occurrence(options: occurrence.Options): string {
+  const { entry, origin } = options
+  return [origin, entry.id, entry.body].join(':')
+}
+
+export declare namespace occurrence {
+  /** Options for {@link occurrence}. */
+  type Options = {
+    /** Entry being reported. */
+    entry: Entry.Entry
+    /** Repository holding the entry, as `owner/name`. */
+    origin: string
+  }
+}
+
 /** Marker format version, so a later format change is recognized rather than misread. */
 export const markerVersion = 'v1'
 
@@ -175,6 +195,42 @@ const occurrenceVersion = 'v1'
 function renderOccurrence(occurrence: string): string {
   const digest = createHash('sha256').update(occurrence).digest('hex')
   return `<!-- frog:occurrence:${occurrenceVersion} ${digest} -->`
+}
+
+/**
+ * Finds where an occurrence is already recorded on an issue.
+ *
+ * @returns `created` for the issue body, `commented` for a comment, or `undefined`.
+ */
+export async function findOccurrence(
+  client: Client,
+  options: findOccurrence.Options,
+): Promise<Result['status'] | undefined> {
+  const marker = renderOccurrence(options.occurrence)
+  if (options.existing.body?.includes(marker)) return 'created'
+
+  for (let page = 1; ; page++) {
+    const response = await client.issues.listComments({
+      ...split(options.repo),
+      issue_number: options.existing.number,
+      page,
+      per_page: 100,
+    })
+    if (response.data.some((comment) => comment.body?.includes(marker))) return 'commented'
+    if (response.data.length < 100) return undefined
+  }
+}
+
+export declare namespace findOccurrence {
+  /** Options for {@link findOccurrence}. */
+  type Options = {
+    /** Issue that may already carry the occurrence. */
+    existing: Issue
+    /** Stable occurrence key from {@link occurrence}. */
+    occurrence: string
+    /** Repository holding the issue, as `owner/name`. */
+    repo: string
+  }
 }
 
 /**
@@ -632,7 +688,7 @@ export async function list(client: Client, options: index.Options): Promise<read
 
 async function listAll(client: Client, options: { repo: string }): Promise<readonly Issue[]> {
   const collected: Issue[] = []
-  for (let page = 1; ; page++) {
+  for (let page = 1; page <= 50; page++) {
     const response = await client.issues.listForRepo({
       ...split(options.repo),
       direction: 'asc',
@@ -665,6 +721,8 @@ export declare namespace index {
 export type Result = {
   /** Number of the issue that now covers the entry. */
   issue: number
+  /** Whether this call changed GitHub state. */
+  mutated?: boolean | undefined
   /** `created` opened a new issue, `commented` added to one that already existed. */
   status: 'commented' | 'created'
 }
@@ -733,21 +791,8 @@ export async function publish(client: Client, options: publish.Options): Promise
     // maintainer who closed the issue while its entry was still in the log, on every push. A genuine
     // recurrence carries a new entry id, so its occurrence differs and it falls through to reopen.
     if (occurrence) {
-      const occurrenceMarker = renderOccurrence(occurrence)
-      if (existing.body?.includes(occurrenceMarker))
-        return { issue: existing.number, status: 'created' }
-
-      for (let page = 1; ; page++) {
-        const response = await client.issues.listComments({
-          ...split(repo),
-          issue_number: existing.number,
-          page,
-          per_page: 100,
-        })
-        if (response.data.some((comment) => comment.body?.includes(occurrenceMarker)))
-          return { issue: existing.number, status: 'commented' }
-        if (response.data.length < 100) break
-      }
+      const status = await findOccurrence(client, { existing, occurrence, repo })
+      if (status) return { issue: existing.number, mutated: false, status }
     }
 
     if (existing.state !== 'open')
@@ -773,7 +818,7 @@ export async function publish(client: Client, options: publish.Options): Promise
       }\n`,
       issue_number: existing.number,
     })
-    return { issue: existing.number, status: 'commented' }
+    return { issue: existing.number, mutated: true, status: 'commented' }
   }
 
   const created = await client.issues.create({
@@ -782,7 +827,7 @@ export async function publish(client: Client, options: publish.Options): Promise
     labels: [...labels],
     title: entry.title,
   })
-  return { issue: created.data.number, status: 'created' }
+  return { issue: created.data.number, mutated: true, status: 'created' }
 }
 
 export declare namespace publish {

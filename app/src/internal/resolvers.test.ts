@@ -73,6 +73,7 @@ describe('resolvers', () => {
     })
 
     await expect(stack.readConfig(upstream)).rejects.toMatchObject({
+      code: 'INSTALLATION_MISSING',
       message: 'Frog is not installed on `wevm/viem`.',
       repo: upstream,
     })

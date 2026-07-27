@@ -38,11 +38,21 @@ export const sync = Cli.create('sync', {
   hint: 'Safe to run repeatedly. Issue state takes precedence.',
   output: z.object({
     cleared: z
-      .array(z.string())
+      .array(z.object({ id: z.string(), title: z.string() }))
       .describe('Entries whose issue is gone. Their link was removed and they are pending again.'),
     committed: z.boolean(),
-    removed: z.array(z.string()).describe('Entries whose issue closed. The friction is resolved.'),
-    updated: z.array(z.string()).describe('Entries rewritten from their issue, or rebuilt.'),
+    deferred: z
+      .array(z.object({ code: z.string(), id: z.string(), reason: z.string() }))
+      .describe('Entries left unreconciled, and why.'),
+    reopened: z
+      .array(z.object({ id: z.string(), title: z.string() }))
+      .describe('Entries rebuilt after their issues reopened.'),
+    removed: z
+      .array(z.object({ id: z.string(), title: z.string() }))
+      .describe('Entries whose issue closed. The friction is resolved.'),
+    updated: z
+      .array(z.object({ id: z.string(), title: z.string() }))
+      .describe('Entries rewritten from their issue, or rebuilt.'),
   }),
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
@@ -51,6 +61,13 @@ export const sync = Cli.create('sync', {
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
     const mirrors = await attempt(Mirrors.resolve({ root }))
     if (!mirrors.ok) return c.error({ code: mirrors.code, message: mirrors.message })
+
+    if (c.options.commit !== false && !c.options.dryRun && !(await Git.identity({ cwd: root })))
+      return c.error({
+        code: 'NO_GIT_IDENTITY',
+        message:
+          'Configure both `user.name` and `user.email` before Frog commits reconciled entries.',
+      })
 
     const ready = await publisher.prepare({
       config,
@@ -83,6 +100,7 @@ export const sync = Cli.create('sync', {
     ]
 
     const plans: Sync.Plan[] = []
+    const deferred: { code: string; id: string; reason: string }[] = []
     const forget: Mirrors.Mirror[] = []
     for (const destination of destinations) {
       const remembered = mirrors.value.mirrors.filter(
@@ -99,14 +117,31 @@ export const sync = Cli.create('sync', {
           repo: destination,
         }),
       )
-      if (!issues.ok)
-        return c.error(
-          publisher.toFailure({
-            message: issues.message,
-            repo: destination,
-            ...(issues.status !== undefined ? { status: issues.status } : {}),
-          }),
-        )
+      if (!issues.ok) {
+        const failure = publisher.toFailure({
+          message: issues.message,
+          repo: destination,
+          ...(issues.status !== undefined ? { status: issues.status } : {}),
+        })
+        const ids = new Set([
+          ...entries.value
+            .filter(
+              (entry) =>
+                entry.issue !== undefined && Github.parseLink(entry.issue)?.repo === destination,
+            )
+            .map((entry) => entry.id),
+          ...remembered
+            .map((mirror) => Store.toId(mirror.path))
+            .filter((id): id is string => id !== undefined),
+        ])
+        for (const id of ids)
+          deferred.push({
+            code: failure.code,
+            id,
+            reason: failure.message,
+          })
+        continue
+      }
 
       plans.push(
         Sync.plan({
@@ -135,13 +170,20 @@ export const sync = Cli.create('sync', {
       write: plans.flatMap((value) => value.write),
     }
 
-    const cleared = plan.clearLink.map((entry) => entry.id)
-    const removed = [...new Set(plan.remove)]
-    const updated = plan.write.map((entry) => entry.id)
-
     const byId = new Map(entries.value.map((entry) => [entry.id, entry]))
+    const cleared = plan.clearLink.map((entry) => ({ id: entry.id, title: entry.title }))
+    const removedIds = [...new Set(plan.remove)]
+    const removed = removedIds.flatMap((id) => {
+      const entry = byId.get(id)
+      return entry ? [{ id, title: entry.title }] : []
+    })
+    const reopened = plan.write
+      .filter((entry) => !byId.has(entry.id))
+      .map((entry) => ({ id: entry.id, title: entry.title }))
+    const updated = plan.write.map((entry) => ({ id: entry.id, title: entry.title }))
+
     const remember: Mirrors.Mirror[] = []
-    for (const id of removed) {
+    for (const id of removedIds) {
       const entry = byId.get(id)
       if (entry?.issue) remember.push({ issue: entry.issue, path: Store.toPath(entry.id) })
     }
@@ -155,13 +197,13 @@ export const sync = Cli.create('sync', {
     const mirrorsChanged = Mirrors.serialize(nextMirrors) !== Mirrors.serialize(mirrors.value)
 
     if (c.options.dryRun || (Sync.empty(plan) && !mirrorsChanged))
-      return c.ok({ cleared, committed: false, removed, updated })
+      return c.ok({ cleared, committed: false, deferred, removed, reopened, updated })
 
     // Stage before unlinking so tracked entries have their deletion recorded. The whole directory
     // goes, artifacts included. `ignoreUnmatch` covers entries that were never committed; those are
     // removed from disk below.
-    await Git.rm(removed.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
-    for (const id of removed) await Store.remove(id, { root })
+    await Git.rm(removedIds.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
+    for (const id of removedIds) await Store.remove(id, { root })
 
     for (const entry of [...plan.write, ...plan.clearLink])
       await Store.write(entry, { id: entry.id, root })
@@ -169,17 +211,20 @@ export const sync = Cli.create('sync', {
 
     const touched = [...plan.write, ...plan.clearLink].map((entry) => Store.toPath(entry.id))
     if (mirrorsChanged) touched.push(Mirrors.file)
-    const committed = await (async () => {
-      if (c.options.commit === false) return false
-      await Git.add(touched, { cwd: root })
-      return Git.commit('chore: sync friction log', {
-        cwd: root,
-        files: [...removed.map(Store.toDir), ...touched],
-      })
-    })()
+    const commit = await attempt(
+      (async () => {
+        if (c.options.commit === false) return false
+        await Git.add(touched, { cwd: root })
+        return Git.commit('chore: sync friction log', {
+          cwd: root,
+          files: [...removedIds.map(Store.toDir), ...touched],
+        })
+      })(),
+    )
+    if (!commit.ok) return c.error({ code: 'COMMIT_FAILED', message: commit.message })
 
     return c.ok(
-      { cleared, committed, removed, updated },
+      { cleared, committed: commit.value, deferred, removed, reopened, updated },
       {
         cta: {
           commands: [{ command: 'list', description: 'See what is left' }],

@@ -60,6 +60,28 @@ export async function author(options: Options = {}): Promise<string | undefined>
   return name || undefined
 }
 
+/** A configured git committer identity. */
+export type Identity = {
+  /** Committer email. */
+  email: string
+  /** Committer name. */
+  name: string
+}
+
+/**
+ * Reads the configured git committer identity.
+ *
+ * @returns The identity, or `undefined` when either required field is unset.
+ */
+export async function identity(options: Options = {}): Promise<Identity | undefined> {
+  const [email, name] = await Promise.all([
+    git(['config', 'user.email'], options).catch(() => ''),
+    git(['config', 'user.name'], options).catch(() => ''),
+  ])
+  if (!email || !name) return undefined
+  return { email, name }
+}
+
 /** Who added a file, and when. */
 export type Provenance = {
   /** Commit author name. */

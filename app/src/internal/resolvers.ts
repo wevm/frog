@@ -93,6 +93,8 @@ export declare namespace resolvers {
 
 /** Thrown when the App is not installed on a target repository, so its consent cannot be read. */
 export class InstallationMissingError extends Error {
+  /** Machine-readable error code. */
+  code = 'INSTALLATION_MISSING' as const
   /** Repository whose installation is missing. */
   repo: string
 
