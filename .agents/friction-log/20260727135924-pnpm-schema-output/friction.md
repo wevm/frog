@@ -1,6 +1,7 @@
 ---
 title: '`pnpm schema` output fights `oxfmt`'
 severity: 'minor'
+issue: 'wevm/frog#10'
 ---
 
 ## Expected Behavior
