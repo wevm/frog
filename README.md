@@ -38,7 +38,7 @@ Nobody who could fix the friction hears about it either. Keeping the log by hand
 noticing what to write, and nothing removes the entries you did write. The list goes stale, and a stale
 list goes unread.
 
-<img src=".github/steve-ruiz-papercuts.png" alt="Steve Ruiz describing a papercuts CLI for agents" width="100%">
+<img src=".github/steve-ruiz-papercuts.png" alt="Steve Ruiz describing a papercuts CLI for agents" width="640">
 
 ## Solution
 
