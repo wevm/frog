@@ -20,6 +20,8 @@ export type Instance = {
   requests: Request[]
   /** Base URL to hand Octokit. */
   url: string
+  /** Replaces a file on a branch, for asserting what happens once an entry is edited. */
+  write: (repo: string, path: string, contents: string, branch?: string) => void
 }
 
 export type Issue = {
@@ -80,6 +82,13 @@ export type Options = {
    * Seeds a commit on `main` so the git data endpoints have a ref to build on.
    */
   files?: Record<string, Record<string, string>> | undefined
+  /**
+   * Contents of a pull request head, as `{ 'owner/name': { path: contents } }`.
+   *
+   * Seeded on a `head` branch so a test can express what a pull request changes, which is what separates
+   * the entries it introduces from the ones its base branch already carries.
+   */
+  head?: Record<string, Record<string, string>> | undefined
   /**
    * Repository each npm package declares, served at `/registry/<name>/latest`, keyed by package name.
    *
@@ -143,7 +152,10 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   let objects = 0
   const nextSha = () => `sha${(objects += 1).toString().padStart(4, '0')}`
 
-  for (const [repo, contents] of Object.entries(options.files ?? {})) {
+  for (const [repo, contents] of Object.entries({
+    ...Object.fromEntries(Object.keys(options.head ?? {}).map((repo) => [repo, {}])),
+    ...options.files,
+  })) {
     const tree = new Map<string, string>()
     for (const [path, body] of Object.entries(contents)) {
       const sha = nextSha()
@@ -161,6 +173,20 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   const treeOf = (repo: string, branch: string) => {
     const commit = commits.get(refs.get(`${repo}#${branch}`) ?? '')
     return trees.get(commit?.tree ?? '') ?? new Map<string, string>()
+  }
+
+  for (const [repo, contents] of Object.entries(options.head ?? {})) {
+    const tree = new Map(treeOf(repo, 'main'))
+    for (const [path, body] of Object.entries(contents)) {
+      const sha = nextSha()
+      blobs.set(sha, body)
+      tree.set(path, sha)
+    }
+    const treeSha = nextSha()
+    trees.set(treeSha, tree)
+    const commitSha = nextSha()
+    commits.set(commitSha, { message: 'head', parent: refs.get(`${repo}#main`), tree: treeSha })
+    refs.set(`${repo}#head`, commitSha)
   }
 
   const server = http.createServer((request, response) => {
@@ -457,5 +483,10 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     },
     requests,
     url: `http://127.0.0.1:${address.port}`,
+    write(repo, path, contents, branch = 'main') {
+      const sha = nextSha()
+      blobs.set(sha, contents)
+      treeOf(repo, branch).set(path, sha)
+    },
   }
 }

@@ -47,26 +47,27 @@ Pipe the entry in, shaped like a commit message: the first line is the title, th
 frog log --publish --severity major <<'EOF'
 `pnpm test -- <files>` ignores file filters and runs the whole suite
 
-## Description
+## Expected Behavior
+
+The filter reaches the runner, as `pnpm test --help` and every other script in the repo imply.
+
+## Current Behavior
 
 `pnpm test -- src/foo.test.ts` ran all 1,200 tests. The `--` is consumed by pnpm, so the filter never
 reaches Vitest, and nothing warns.
 
-## Expectation
-
-The filter reaches the runner, as `pnpm test --help` and every other script in the repo imply.
-
-## Steps to reproduce
-
-`pnpm test -- src/foo.test.ts` in a fresh checkout.
-
-## Minimal reproducible example
-
-See `artifacts/`.
-
-## Suggestion
+## Possible Solution
 
 Forward arguments past `--`, or document `pnpm exec vitest run <files>` in the script help.
+
+## Minimal Reproducible Example
+
+`pnpm test -- src/foo.test.ts` in a fresh checkout. See `artifacts/run.sh`.
+
+## Context
+
+Every targeted test run in CI silently became a full run, so a 20 second check took 6 minutes and nobody
+noticed until the bill.
 EOF
 ```
 
@@ -133,7 +134,7 @@ Name the exact failure, so it is searchable. Say what you did instead. Suggest t
 > `@effect/vitest`'s `layer(...)` merges `TestClock` by default, which stalls the real `@effect/sql-pg`
 > pool timers, so every test dies with "All fibers interrupted without error".
 >
-> **Expectation:** a layer providing real services keeps real timers.
+> **Expected:** a layer providing real services keeps real timers.
 >
 > **Reproduction:** `artifacts/pool.test.ts`, which fails on `pnpm vitest run`.
 >

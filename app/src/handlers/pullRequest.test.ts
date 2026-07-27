@@ -43,7 +43,7 @@ async function run(
     baseRef: 'main',
     client: octokit,
     ...(options.delivery ? { delivery: options.delivery } : {}),
-    head: 'main',
+    head: 'head',
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
     registry: `${url}/registry`,
@@ -71,7 +71,7 @@ function serial(): Serialize {
 test('behavior: files pending entries and comments once', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   const report = await run(instance.url)
@@ -85,7 +85,7 @@ test('behavior: files pending entries and comments once', async () => {
 test('behavior: records the pull request and the reporter on the issue', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)
@@ -99,35 +99,118 @@ test('behavior: records the pull request and the reporter on the issue', async (
 test('behavior: nothing written back to the pull request branch', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)
 
   // A commit here would trigger `synchronize` and run this again.
-  expect(instance.messages(base)).toEqual(['initial'])
-  expect(instance.files(base)[`${dir}/a/friction.md`]).not.toContain('issue:')
+  expect(instance.messages(base, 'head')).toEqual(['initial', 'head'])
+  expect(instance.files(base, 'head')[`${dir}/a/friction.md`]).not.toContain('issue:')
 })
 
-// Every push to the branch re-runs this.
+// The base branch carries a friction log; this pull request does not touch it. Reading the head alone
+// reported every entry already there, and would have filed any of them still unpublished against
+// whoever opened an unrelated pull request.
+test('behavior: a pull request that changes no entry says nothing', async () => {
+  const instance = await github(
+    {},
+    {
+      files: {
+        [base]: {
+          [`${dir}/a/friction.md`]: entry('Filters ignored'),
+          [`${dir}/b/friction.md`]: entry('Already filed', { issue: `${base}#7` }),
+        },
+      },
+      head: { [base]: { 'src/index.ts': 'export {}\n' } },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report).toEqual({ commented: [], created: [], deferred: [], linked: [], malformed: [] })
+  expect(instance.issues.get(base)).toBeUndefined()
+  expect(instance.comments(base, 42)).toEqual([])
+})
+
+// Every push to the branch re-runs this, and each one is a separate delivery.
 test('behavior: a second run opens no issue and adds no comment', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
-  await run(instance.url)
-  const second = await run(instance.url)
+  await run(instance.url, { delivery: 'delivery-1' })
+  const second = await run(instance.url, { delivery: 'delivery-2' })
 
-  expect(second.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
+  // The issue itself stays quiet. Keying the occurrence on the delivery instead of on what is being
+  // reported put a "Hit again" here for every push to an untouched entry.
+  expect(instance.comments(base, 1)).toHaveLength(0)
   expect(instance.comments(base, 42)).toHaveLength(1)
+})
+
+test('behavior: many pushes to one pull request leave one issue and no comments', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  for (const delivery of ['one', 'two', 'three', 'four']) await run(instance.url, { delivery })
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(0)
+})
+
+// The one repeat worth having: the entry changed, so the issue should hear about it.
+test('behavior: an edited entry comments once', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  await run(instance.url, { delivery: 'delivery-1' })
+  instance.write(
+    base,
+    `${dir}/a/friction.md`,
+    entry('Filters ignored').replace('swallowed', 'dropped'),
+    'head',
+  )
+  await run(instance.url, { delivery: 'delivery-2' })
+  await run(instance.url, { delivery: 'delivery-3' })
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(1)
+})
+
+// The edit that a title-shaped hash would have thrown away: punctuation and case only. Adding the `--`
+// a command was missing changes what the report means, so the issue has to hear about it.
+test('behavior: an edit of only punctuation still comments', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  // Same words either side. Only the `--` differs, which a title-shaped hash discards.
+  const before = entry('Filters ignored').replace(
+    'The filter was swallowed.',
+    'Run `pnpm test src/foo.test.ts`.',
+  )
+  const after = before.replace('pnpm test src', 'pnpm test -- src')
+
+  instance.write(base, `${dir}/a/friction.md`, before, 'head')
+  await run(instance.url, { delivery: 'delivery-1' })
+  instance.write(base, `${dir}/a/friction.md`, after, 'head')
+  await run(instance.url, { delivery: 'delivery-2' })
+
+  expect(instance.comments(base, 1)).toHaveLength(1)
 })
 
 test('behavior: concurrent deliveries with the same title open one issue', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
   const serialize = serial()
 
@@ -137,7 +220,7 @@ test('behavior: concurrent deliveries with the same title open one issue', async
   ])
 
   expect(instance.issues.get(base)).toHaveLength(1)
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(0)
   expect(instance.comments(base, 42)).toHaveLength(1)
 })
 
@@ -145,7 +228,7 @@ test('behavior: an already-linked entry is listed, not filed again', async () =>
   const instance = await github(
     { [base]: [{ title: 'Filters ignored' }] },
     {
-      files: {
+      head: {
         [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored', { issue: `${base}#1` }) },
       },
     },
@@ -165,7 +248,7 @@ test('behavior: a malformed entry is reported without stopping the rest', async 
   const instance = await github(
     {},
     {
-      files: {
+      head: {
         [base]: {
           [`${dir}/broken/friction.md`]: '# no frontmatter\n',
           [`${dir}/good/friction.md`]: entry('Filters ignored'),
@@ -185,12 +268,11 @@ test('behavior: entries over the ceiling are deferred', async () => {
   const instance = await github(
     {},
     {
-      files: {
+      files: { [base]: { [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }) } },
+      head: {
         [base]: {
-          'config.placeholder': '',
           [`${dir}/a/friction.md`]: entry('One'),
           [`${dir}/b/friction.md`]: entry('Two'),
-          [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }),
         },
       },
     },
@@ -206,11 +288,11 @@ test('behavior: a refused entry does not consume the ceiling', async () => {
   const instance = await github(
     {},
     {
-      files: {
+      files: { [base]: { [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }) } },
+      head: {
         [base]: {
           [`${dir}/a/friction.md`]: entry('Cannot resolve', { target: 'missing' }),
           [`${dir}/b/friction.md`]: entry('Can file'),
-          [`${dir}/config.json`]: JSON.stringify({ maxPerRun: 1 }),
         },
       },
     },
@@ -238,11 +320,11 @@ describe('cross-repo', () => {
   function seed(config: Record<string, unknown>) {
     return {
       files: {
-        [base]: {
-          [`${dir}/a/friction.md`]: entry('Upstream friction', { target: 'viem' }),
-          [`${dir}/config.json`]: JSON.stringify(config),
-        },
+        [base]: { [`${dir}/config.json`]: JSON.stringify(config) },
         [upstream]: { [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }) },
+      },
+      head: {
+        [base]: { [`${dir}/a/friction.md`]: entry('Upstream friction', { target: 'viem' }) },
       },
       packages: { viem: upstream },
     }
@@ -301,7 +383,7 @@ test('behavior: no entries posts no comment', async () => {
 test('behavior: the comment carries the marker that keeps it single', async () => {
   const instance = await github(
     {},
-    { files: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
   await run(instance.url)

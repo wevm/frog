@@ -220,34 +220,32 @@ export type Section = {
  */
 export const sections: readonly Section[] = [
   {
-    description:
-      'A clear and concise account of what happened, with the exact error text if there was one.',
-    label: 'Description',
+    description: 'Tell us what should happen.',
+    label: 'Expected Behavior',
   },
   {
-    description: 'What should have happened instead, and what led you to expect it.',
-    label: 'Expectation',
+    description: 'Tell us what happens instead of the expected behavior.',
+    label: 'Current Behavior',
   },
   {
-    description:
-      'The shortest path from a clean checkout to the failure, including the versions and package manager that matter.',
-    label: 'Steps to reproduce',
-  },
-  {
-    description:
-      'Required. The smallest code that still fails, with every unrelated dependency and file removed. Put it in `artifacts/` and reference it here. Reports without one are usually closed unread.',
-    label: 'Minimal reproducible example',
+    description: 'Not obligatory, but suggest a fix or a reason for the friction.',
+    label: 'Possible Solution',
   },
   {
     description:
-      'The smallest durable change that would remove this friction, and whether you intend to make it.',
-    label: 'Suggestion',
+      'A minimal reproducible example in `artifacts/`, or an unambiguous set of steps to reproduce this. Include code to reproduce, if relevant.',
+    label: 'Minimal Reproducible Example',
+  },
+  {
+    description:
+      'How has this affected you, and what were you trying to accomplish? Context is what makes a solution useful in the real world rather than in the abstract.',
+    label: 'Context',
   },
 ]
 
 /** Section scaffold a new entry starts from, rendered from {@link sections}. */
 export const template = `${sections
-  .map((section) => `## ${section.label}\n\n${section.description}`)
+  .map((section) => `## ${section.label}\n\n<!-- ${section.description} -->`)
   .join('\n\n')}\n`
 
 /**
