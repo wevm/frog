@@ -1,6 +1,7 @@
 ---
 title: 'Wrangler disables the workers.dev URL when a route is added'
 severity: 'minor'
+issue: 'wevm/frog#4'
 ---
 
 ## Description
