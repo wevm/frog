@@ -17,13 +17,33 @@ friction is resolved. A workflow cannot observe that at all on another repositor
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `pull_request` opened, reopened, synchronize | Files the entries the pull request adds or edits, comparing its head against its base. Posts or updates one comment, and none at all when it changes no entry. Writes nothing to the branch. |
 | `push` to the default branch                 | Files anything still pending and commits the `issue:` links.                                                                                                                                 |
-| `issues` closed, reopened, edited            | Reconciles the files mirroring that issue, in whichever repository holds them.                                                                                                               |
+| `issues` closed, reopened, edited            | Reconciles the files mirroring that issue, in whichever repository holds them. Commits to the default branch, or opens one accumulating pull request when `pullRequest` is set.              |
 
 The head commit is read from the **base** repository, which GitHub makes it reachable from. That is what
 lets a fork's entries be read without the installation having any access to the fork.
 
 Nothing is written to a pull request branch: a commit there would trigger `synchronize` and run the
 handler again, and a fork's branch is unreachable anyway. Links land when the work does.
+
+## A protected default branch
+
+Reconciliation commits straight to the default branch, which is what keeps the log true the moment an
+issue closes. A protected branch refuses that push, so the deletion fails.
+
+Set `pullRequest` and the App commits to one long-lived branch and keeps a single pull request open
+against it, accumulating: close three issues and there is one review to merge, not three.
+
+```jsonc
+// .agents/friction-log/config.json
+{
+  "pullRequest": true,
+  // or, to name the branch
+  "pullRequest": { "branch": "chore/friction" },
+}
+```
+
+Off by default, because behind a review the log is only as current as the last merge, and a stale
+friction log is the failure this exists to prevent.
 
 ## Cross-repo filing
 

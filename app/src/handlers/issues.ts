@@ -15,6 +15,8 @@ export type Outcome = {
   origin?: string | undefined
   /** The plan that was applied. */
   plan?: Sync.Plan | undefined
+  /** Pull request carrying the reconciliation, when `pullRequest` is on. */
+  pullRequest?: number | undefined
 }
 
 /**
@@ -115,12 +117,16 @@ export async function issues(options: issues.Options): Promise<Outcome> {
 
     if (Sync.empty(plan) && !mirrorsChanged) return { origin, plan }
 
+    // A protected default branch refuses a direct push, so the reconciliation can go through a pull
+    // request instead: one branch and one pull request, accumulating, rather than one per closure.
+    const review = settings.pullRequest.enabled
     const committed = await Repository.commit(source, {
-      branch,
+      branch: review ? settings.pullRequest.branch : branch,
       deletes: mirrorsChanged && nextMirrors.mirrors.length === 0 ? [Mirrors.file] : [],
       directories: plan.remove.map(Store.toDir),
       message: 'chore: sync friction log',
       repo: origin,
+      ...(review ? { base: branch } : {}),
       writes: [
         ...[...plan.write, ...plan.clearLink].map((entry) => ({
           contents: Entry.serialize(entry),
@@ -132,7 +138,25 @@ export async function issues(options: issues.Options): Promise<Outcome> {
       ],
     })
 
-    return { origin, plan, ...(committed ? { committed } : {}) }
+    const pullRequest =
+      review && committed
+        ? await Repository.upsert(source, {
+            base: branch,
+            body:
+              'Entries whose issues have closed, and entries restored because an issue reopened.\n\n' +
+              'Merging keeps the friction log true. Until then it lists friction that is already resolved.',
+            branch: settings.pullRequest.branch,
+            repo: origin,
+            title: 'chore: sync friction log',
+          })
+        : undefined
+
+    return {
+      origin,
+      plan,
+      ...(committed ? { committed } : {}),
+      ...(pullRequest ? { pullRequest } : {}),
+    }
   })
 }
 

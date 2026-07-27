@@ -20,6 +20,10 @@ export type Instance = {
   requests: Request[]
   /** Base URL to hand Octokit. */
   url: string
+  /** Pull requests opened through the API, in creation order. */
+  reviews: (
+    repo: string,
+  ) => readonly { base: string; head: string; number: number; title: string }[]
   /** Replaces a file on a branch, for asserting what happens once an entry is edited. */
   write: (repo: string, path: string, contents: string, branch?: string) => void
 }
@@ -140,6 +144,15 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     )
   }
 
+  /** Pull requests opened through the API, for the reconciling one. */
+  const reviews: {
+    base: string
+    head: string
+    number: number
+    repo: string
+    state: 'open'
+    title: string
+  }[] = []
   const comments: { body: string; id: number; key: string }[] = []
   const requests: Request[] = []
 
@@ -213,6 +226,40 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const declared = options.packages?.[name]
         if (declared === undefined) return json(response, 404, { message: 'Not Found' })
         return json(response, 200, { name, repository: `https://github.com/${declared}` })
+      }
+
+      // Pull requests, for the reconciling one the App keeps open.
+      const pullPaths = /^\/repos\/([^/]+)\/([^/]+)\/pulls$/.exec(url.pathname)
+      if (pullPaths) {
+        const name = `${pullPaths[1]}/${pullPaths[2]}`
+        if (request.method === 'GET') {
+          const head = url.searchParams.get('head')
+          const wanted = head?.includes(':') ? head.slice(head.indexOf(':') + 1) : head
+          return json(
+            response,
+            200,
+            reviews.filter(
+              (review) =>
+                review.repo === name &&
+                review.state === 'open' &&
+                (!wanted || review.head === wanted),
+            ),
+          )
+        }
+        if (request.method === 'POST') {
+          const payload = await readBody<{ base?: string; head?: string; title?: string }>(request)
+          const number = nextNumber(name)
+          const review = {
+            base: payload.base ?? 'main',
+            head: payload.head ?? '',
+            number,
+            repo: name,
+            state: 'open' as const,
+            title: payload.title ?? '',
+          }
+          reviews.push(review)
+          return json(response, 201, review)
+        }
       }
 
       // `repos.get`, for whether this token may label issues here.
@@ -382,6 +429,20 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           })
         }
 
+        if (rest === 'refs' && request.method === 'POST') {
+          const payload = await readBody<{ ref?: string; sha?: string }>(request)
+          const created = /^refs\/heads\/(.+)$/.exec(payload.ref ?? '')
+          if (!created?.[1] || !payload.sha)
+            return json(response, 422, { message: 'Unprocessable Entity' })
+          if (refs.has(`${name}#${created[1]}`))
+            return json(response, 422, { message: 'Reference already exists' })
+          refs.set(`${name}#${created[1]}`, payload.sha)
+          return json(response, 201, {
+            object: { sha: payload.sha, type: 'commit' },
+            ref: payload.ref,
+          })
+        }
+
         const readTree = /^trees\/(.+)$/.exec(rest)
         if (readTree && request.method === 'GET') {
           const tree = trees.get(readTree[1] ?? '')
@@ -482,6 +543,11 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       return collected
     },
     requests,
+    reviews(repo) {
+      return reviews
+        .filter((review) => review.repo === repo)
+        .map(({ base, head, number, title }) => ({ base, head, number, title }))
+    },
     url: `http://127.0.0.1:${address.port}`,
     write(repo, path, contents, branch = 'main') {
       const sha = nextSha()

@@ -316,3 +316,108 @@ test('behavior: an issue whose marker has no path is ignored', async () => {
 
   expect(outcome.ignored).toBe('no frog marker')
 })
+
+describe('pullRequest', () => {
+  const review = JSON.stringify({ pullRequest: true })
+
+  /** A consumer that reconciles through review rather than by pushing to its default branch. */
+  function repo(entries: Record<string, string>) {
+    return {
+      files: {
+        [consumer]: { [`${dir}/config.json`]: review, ...entries },
+      },
+    }
+  }
+
+  test('behavior: a closed issue opens a pull request and leaves the default branch alone', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      repo({ [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) }),
+    )
+
+    const outcome = await issues({
+      client: client(instance.url),
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    // The entry is gone on the reconciling branch, and still there on the default one.
+    expect(instance.files(consumer, 'frog/sync')[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toContain('issue:')
+    expect(instance.messages(consumer)).toEqual(['initial'])
+
+    expect(outcome.pullRequest).toBeDefined()
+    expect(instance.reviews(consumer)).toEqual([
+      {
+        base: 'main',
+        head: 'frog/sync',
+        number: outcome.pullRequest,
+        title: 'chore: sync friction log',
+      },
+    ])
+  })
+
+  // Three closures, one review. The point of a long-lived branch rather than one per event.
+  test('behavior: a second closure accumulates on the same pull request', async () => {
+    const instance = await github(
+      {
+        [consumer]: [
+          { body: body(consumer, 'a'), state: 'closed', title },
+          { body: body(consumer, 'b'), state: 'closed', title },
+        ],
+      },
+      repo({
+        [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }),
+        [`${dir}/b/friction.md`]: entry({ issue: `${consumer}#2` }),
+      }),
+    )
+    const octokit = client(instance.url)
+
+    const first = await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+    const second = await issues({
+      client: octokit,
+      installation: async () => undefined,
+      issue: { body: body(consumer, 'b'), number: 2, state: 'closed', title },
+      repo: consumer,
+    })
+
+    expect(second.pullRequest).toBe(first.pullRequest)
+    expect(instance.reviews(consumer)).toHaveLength(1)
+    // Two closures, two commits, one branch. Rebuilding from the default branch each time would lose
+    // the first deletion instead of stacking on it.
+    expect(instance.messages(consumer, 'frog/sync')).toEqual([
+      'initial',
+      'chore: sync friction log',
+      'chore: sync friction log',
+    ])
+
+    // Both deletions on the one branch.
+    const files = instance.files(consumer, 'frog/sync')
+    expect(files[`${dir}/a/friction.md`]).toBeUndefined()
+    expect(files[`${dir}/b/friction.md`]).toBeUndefined()
+  })
+
+  test('behavior: without the option it still commits to the default branch', async () => {
+    const instance = await github(
+      { [consumer]: [{ body: body(consumer), state: 'closed', title }] },
+      { files: { [consumer]: { [`${dir}/a/friction.md`]: entry({ issue: `${consumer}#1` }) } } },
+    )
+
+    const outcome = await issues({
+      client: client(instance.url),
+      installation: async () => undefined,
+      issue: { body: body(consumer), number: 1, state: 'closed', title },
+      repo: consumer,
+    })
+
+    expect(outcome.pullRequest).toBeUndefined()
+    expect(instance.reviews(consumer)).toEqual([])
+    expect(instance.files(consumer)[`${dir}/a/friction.md`]).toBeUndefined()
+  })
+})

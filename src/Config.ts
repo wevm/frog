@@ -90,17 +90,16 @@ export const Schema = z.object({
     })
     .prefault({})
     .describe('Issue label applied for each severity.'),
-  sync: z
-    .object({
-      closeOnDelete: z
-        .boolean()
-        .default(false)
-        .describe(
-          'Close the issue when its file is deleted by hand. Off, because a deletion is often just a rebase.',
-        ),
-    })
-    .prefault({})
-    .describe('How local files reconcile against issue state.'),
+  pullRequest: z
+    .union([z.boolean(), z.object({ branch: z.string().min(1).optional() })])
+    .default(false)
+    .describe(
+      'Reconcile a closed or reopened issue through a pull request rather than by committing to the default branch. Needed where that branch is protected. Off, because the log is then only as current as the last merge. An object names the branch it is opened from.',
+    )
+    .transform((value) => ({
+      branch: (typeof value === 'object' ? value.branch : undefined) ?? 'frog/sync',
+      enabled: value !== false,
+    })),
 })
 
 /**

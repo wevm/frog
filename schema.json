@@ -110,17 +110,23 @@
         }
       }
     },
-    "sync": {
-      "description": "How local files reconcile against issue state.",
-      "default": {},
-      "type": "object",
-      "properties": {
-        "closeOnDelete": {
-          "default": false,
-          "description": "Close the issue when its file is deleted by hand. Off, because a deletion is often just a rebase.",
+    "pullRequest": {
+      "default": false,
+      "description": "Reconcile a closed or reopened issue through a pull request rather than by committing to the default branch. Needed where that branch is protected. Off, because the log is then only as current as the last merge. An object names the branch it is opened from.",
+      "anyOf": [
+        {
           "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "branch": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
-      }
+      ]
     }
   }
 }

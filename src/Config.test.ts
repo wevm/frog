@@ -20,13 +20,14 @@ describe('from', () => {
           "auto": false,
         },
         "publishOnLog": false,
+        "pullRequest": {
+          "branch": "frog/sync",
+          "enabled": false,
+        },
         "severityLabels": {
           "blocker": "friction:blocker",
           "major": "friction:major",
           "minor": "friction:minor",
-        },
-        "sync": {
-          "closeOnDelete": false,
         },
       }
     `)

@@ -85,8 +85,24 @@ export async function commit(
 
   const { owner, repo: name } = Github.split(repo)
 
-  const reference = await client.rest.git.getRef({ owner, ref: `heads/${branch}`, repo: name })
-  const head = reference.data.object.sha
+  // The reconciling branch may not exist yet, and is created from `base` when it does not. Committing on
+  // top of it when it does is what lets one pull request accumulate several closures.
+  const reference = await client.rest.git
+    .getRef({ owner, ref: `heads/${branch}`, repo: name })
+    .catch((error: { status?: number }) => {
+      if (error.status !== 404 || !options.base) throw error
+      return undefined
+    })
+
+  const head =
+    reference?.data.object.sha ??
+    (
+      await client.rest.git.getRef({
+        owner,
+        ref: `heads/${options.base as string}`,
+        repo: name,
+      })
+    ).data.object.sha
   const parent = await client.rest.git.getCommit({ commit_sha: head, owner, repo: name })
 
   // A directory has to be expanded into its blobs: the API deletes paths, not trees. Read from the base
@@ -149,12 +165,20 @@ export async function commit(
     tree: tree.data.sha,
   })
 
-  await client.rest.git.updateRef({
-    owner,
-    ref: `heads/${branch}`,
-    repo: name,
-    sha: created.data.sha,
-  })
+  if (reference)
+    await client.rest.git.updateRef({
+      owner,
+      ref: `heads/${branch}`,
+      repo: name,
+      sha: created.data.sha,
+    })
+  else
+    await client.rest.git.createRef({
+      owner,
+      ref: `refs/heads/${branch}`,
+      repo: name,
+      sha: created.data.sha,
+    })
 
   return created.data.sha
 }
@@ -164,6 +188,8 @@ export declare namespace commit {
   type Options = {
     /** Branch to commit on, without a `refs/heads/` prefix. */
     branch: string
+    /** Branch to create `branch` from when it does not exist yet. Absent requires it to exist. */
+    base?: string | undefined
     /** Repository-relative paths to delete. */
     deletes?: readonly string[] | undefined
     /** Repository-relative directories to delete, expanded to every file beneath them. */
@@ -174,5 +200,55 @@ export declare namespace commit {
     repo: string
     /** Files to write, replacing any existing contents. */
     writes?: readonly { contents: string; path: string }[] | undefined
+  }
+}
+
+/**
+ * Opens the reconciling pull request, or finds the one already open.
+ *
+ * One long-lived branch and one pull request, updated in place, so closing three issues produces one
+ * review rather than three. The same shape the changesets bot uses for its version pull request.
+ *
+ * @param client - Installation client for the repository.
+ * @returns The pull request number.
+ */
+export async function upsert(client: Octokit, options: upsert.Options): Promise<number> {
+  const { base, branch, repo, title } = options
+  const { owner, repo: name } = Github.split(repo)
+
+  const open = await client.rest.pulls.list({
+    base,
+    head: `${owner}:${branch}`,
+    owner,
+    repo: name,
+    state: 'open',
+  })
+  const existing = open.data[0]
+  if (existing) return existing.number
+
+  const created = await client.rest.pulls.create({
+    base,
+    body: options.body,
+    head: branch,
+    owner,
+    repo: name,
+    title,
+  })
+  return created.data.number
+}
+
+export declare namespace upsert {
+  /** Options for {@link upsert}. */
+  type Options = {
+    /** Branch the pull request merges into. */
+    base: string
+    /** Branch the reconciling commits land on. */
+    branch: string
+    /** Description, used only when opening. */
+    body: string
+    /** Repository holding both branches, as `owner/name`. */
+    repo: string
+    /** Title, used only when opening. */
+    title: string
   }
 }
