@@ -96,7 +96,7 @@ ${Entry.sections
       `      label: ${section.label}`,
       `      description: ${section.description}`,
       '    validations:',
-      `      required: ${section.label === 'Description'}`,
+      `      required: ${section.label === 'Current Behavior'}`,
     ].join('\n'),
   )
   .join('\n')}
