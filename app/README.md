@@ -55,39 +55,37 @@ The receiving repository opts in separately:
 
 ## Setup
 
-Deployed as a Cloudflare Worker. The endpoint is a Fetch handler, so it needs no adapter.
+Deployed as a Cloudflare Worker by the `Main` workflow, which creates the queues, deploys, and syncs the
+secrets on every push to `main`. What is left is the part only a person can do.
 
 1. **Create the App** from [`app.yml`](./app.yml) at `https://github.com/settings/apps/new`, or an
    organization's equivalent. Generate a webhook secret and a private key. The webhook URL is filled in
    after the first deploy.
 
-2. **Set the secrets**, from this directory:
+2. **Add the repository secrets** the workflow reads:
 
-   ```sh
-   pnpm exec wrangler secret put APP_ID
-   pnpm exec wrangler secret put PRIVATE_KEY
-   pnpm exec wrangler secret put WEBHOOK_SECRET
-   ```
+   | Secret                  | What it is                                                                 |
+   | ----------------------- | -------------------------------------------------------------------------- |
+   | `CLOUDFLARE_API_TOKEN`  | A token with Workers Scripts edit and Queues edit                          |
+   | `CLOUDFLARE_ACCOUNT_ID` | The account to deploy into                                                 |
+   | `FROG_APP_ID`           | The App id                                                                 |
+   | `FROG_PRIVATE_KEY`      | The PEM private key. Real newlines are fine; escaped `\n` is also accepted |
+   | `FROG_WEBHOOK_SECRET`   | The webhook secret generated in step 1                                     |
 
-   `PRIVATE_KEY` is the PEM key. Real newlines are fine; escaped `\n` is also accepted.
+3. **Push to `main`**, and point the App's webhook URL at the resulting
+   `https://<worker>.workers.dev/`.
 
-3. **Create the delivery and dead-letter queues**:
-
-   ```sh
-   pnpm exec wrangler queues create frog-webhooks
-   pnpm exec wrangler queues create frog-webhooks-dlq
-   ```
-
-4. **Deploy**, then point the App's webhook URL at the resulting `https://<worker>.workers.dev/`:
-
-   ```sh
-   pnpm deploy
-   ```
-
-5. **Install** the App on the repositories that record friction, and on any repository that should
+4. **Install** the App on the repositories that record friction, and on any repository that should
    receive friction from them.
 
-6. **Run `frog init`** in each repository, so the App has a config and a directory to read.
+5. **Run `frog init`** in each repository, so the App has a config and a directory to read.
+
+Deploying by hand still works, and is what `pnpm deploy` does. It needs the queues to exist first:
+
+```sh
+pnpm exec wrangler queues create frog-webhooks
+pnpm exec wrangler queues create frog-webhooks-dlq
+```
 
 `nodejs_compat` is enabled because the title hash uses `node:crypto`, and the package layer imports
 `node:fs` for the disk reads the App never takes. The bundle is around 200 KiB gzipped.
