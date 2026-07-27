@@ -161,8 +161,8 @@ frog log --target viem
 
 ### Accept Inbound Logs
 
-Marks this repository as accepting friction from the projects that depend on it, and publishes
-`.github/ISSUE_TEMPLATE/friction.yml` so a consumer's report arrives in the shape this project wants.
+Every `frog init` adds `.github/ISSUE_TEMPLATE/friction.yml`, keeping human issues and Frog entries in
+the same shape. Add `--library` to accept reports from projects that depend on this one.
 
 ```sh
 frog init --library
@@ -176,7 +176,7 @@ frog — Automated friction logging for agents.
 Usage: frog <command>
 
 Commands:
-  init     Create `.agents/friction-log` and its config.
+  init     Create the friction log, config, and issue form.
   list     List entries with their state.
   log      Write a friction entry.
   publish  Report pending entries as GitHub issues.

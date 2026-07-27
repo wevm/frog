@@ -49,19 +49,17 @@ outstanding, including friction in dependencies.
 
 Do not maintain an index here. This directory is the index.
 
-## Choose Automation
-
 Prompt the user to choose one automation method. Do not install the App or add a workflow before they
 answer.
 
 ${automationComparison}
 
-### GitHub App
+## GitHub App
 
 Install the [Frog GitHub App](${install}) and entries are reported, linked, and removed as their issues
 close, without anyone running anything.
 
-### Action-only
+## Action-only
 
 Create \`.github/workflows/frog.yml\`:
 
@@ -149,11 +147,9 @@ const libraryConfig = `{
 `
 
 /**
- * The issue form a project serves so consumers report friction the way it wants.
+ * The issue form a project serves so Frog and humans report friction with the same questions.
  *
- * Rendered from the same sections as the entry scaffold, so the two cannot drift. A consumer's Frog finds
- * it by convention and writes its entry against it. A human filing through the issue page gets the same
- * questions.
+ * Rendered from the same sections as the entry scaffold, so the two cannot drift.
  */
 const form = `name: Friction
 description: Something about this project cost you time.
@@ -174,7 +170,7 @@ ${Entry.sections
 `
 
 export const init = Cli.create('init', {
-  description: 'Create `.agents/friction-log` and its config.',
+  description: 'Create the friction log, config, and issue form.',
   options: z.object({
     cwd: context.cwdOption,
     library: z
@@ -196,12 +192,11 @@ export const init = Cli.create('init', {
     const files = [
       [`${Store.dir}/README.md`, readme()],
       [Config.file, c.options.library ? libraryConfig : config],
-      // Only for a project accepting reports: a consumer's Frog writes its entry against it.
-      ...(c.options.library ? ([[`${IssueForm.dir}/${IssueForm.filename}`, form]] as const) : []),
+      [`${IssueForm.dir}/${IssueForm.filename}`, form],
     ] as const
 
     await fs.mkdir(path.join(root, Store.dir), { recursive: true })
-    if (c.options.library) await fs.mkdir(path.join(root, IssueForm.dir), { recursive: true })
+    await fs.mkdir(path.join(root, IssueForm.dir), { recursive: true })
 
     const created: string[] = []
     const existing: string[] = []
