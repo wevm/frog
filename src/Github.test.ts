@@ -609,9 +609,9 @@ describe('publish', () => {
     expect(instance.comments(repo, 1)).toEqual([])
   })
 
-  // A closed issue carries the same markers as an open one, so short-circuiting on them would link a
-  // recurrence to an issue that stays closed and never record that it happened again.
-  test('behavior: the same occurrence against a closed issue reopens it', async () => {
+  // An entry left in the log after its issue was closed is re-filed on every push. Reopening there
+  // would undo the maintainer's close, repeatedly.
+  test('behavior: a replay leaves a closed issue closed', async () => {
     const instance = await github({}, { pushAccess: [] })
     const octokit = client(instance.url)
     const occurrence = 'entry-a'
@@ -632,6 +632,37 @@ describe('publish', () => {
       labels: ['friction'],
       marker: { hash: Github.hash(title) },
       occurrence,
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(recurrence).toEqual({ issue: 1, status: 'created' })
+    expect(instance.issues.get(repo)?.[0]?.state).toBe('closed')
+    expect(instance.comments(repo, 1)).toEqual([])
+  })
+
+  // A recurrence is a fresh entry, and entry ids are timestamped, so its occurrence never matches the
+  // one already recorded. That is what still reaches the reopen.
+  test('behavior: a new occurrence reopens a closed issue', async () => {
+    const instance = await github({}, { pushAccess: [] })
+    const octokit = client(instance.url)
+
+    await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence: 'entry-a',
+      repo,
+    })
+    await octokit.issues.update({ ...Github.split(repo), issue_number: 1, state: 'closed' })
+
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(title)
+    const recurrence = await Github.publish(octokit, {
+      entry,
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      occurrence: 'entry-b',
       repo,
       ...(existing ? { existing } : {}),
     })
