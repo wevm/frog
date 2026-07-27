@@ -175,7 +175,10 @@ export async function file(options: file.Options): Promise<Filing> {
  * many deliveries, one per push, and keying on the delivery made every one of them a fresh occurrence: the
  * issue collected a "Hit again" comment per push, for an entry nobody had touched.
  *
- * The body is folded in so an edited entry does speak up again, which is the one repeat worth having.
+ * The body is folded in so an edited entry does speak up again, which is the one repeat worth having. It
+ * goes in verbatim: `Github.hash` normalizes for titles, discarding punctuation and case, which would
+ * collapse edits that matter, such as adding the `--` a command was missing. `renderOccurrence` digests
+ * the whole key anyway, so nothing is gained by hashing a part of it first.
  */
 function occurrenceOf(options: {
   entry: Entry.Entry
@@ -183,7 +186,7 @@ function occurrenceOf(options: {
   pr?: string | undefined
 }): string {
   const { entry, origin, pr } = options
-  return [origin, pr ?? 'default', entry.id, Github.hash(entry.body)].join(':')
+  return [origin, pr ?? 'default', entry.id, entry.body].join(':')
 }
 
 export declare namespace file {

@@ -184,6 +184,29 @@ test('behavior: an edited entry comments once', async () => {
   expect(instance.comments(base, 1)).toHaveLength(1)
 })
 
+// The edit that a title-shaped hash would have thrown away: punctuation and case only. Adding the `--`
+// a command was missing changes what the report means, so the issue has to hear about it.
+test('behavior: an edit of only punctuation still comments', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  // Same words either side. Only the `--` differs, which a title-shaped hash discards.
+  const before = entry('Filters ignored').replace(
+    'The filter was swallowed.',
+    'Run `pnpm test src/foo.test.ts`.',
+  )
+  const after = before.replace('pnpm test src', 'pnpm test -- src')
+
+  instance.write(base, `${dir}/a/friction.md`, before, 'head')
+  await run(instance.url, { delivery: 'delivery-1' })
+  instance.write(base, `${dir}/a/friction.md`, after, 'head')
+  await run(instance.url, { delivery: 'delivery-2' })
+
+  expect(instance.comments(base, 1)).toHaveLength(1)
+})
+
 test('behavior: concurrent deliveries with the same title open one issue', async () => {
   const instance = await github(
     {},
