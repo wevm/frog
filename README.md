@@ -93,12 +93,12 @@ Then, once per repository:
 frog init
 ```
 
-Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
-changing repository access or adding a workflow:
-
-- Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) for pull-request
-  comments, forks, and cross-repository reporting.
-- Use the Action-only workflow below for same-repository automation without an external App write grant.
+> Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
+> changing repository access or adding a workflow:
+>
+> - Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) for pull-request
+>   comments, forks, and cross-repository reporting.
+> - Use the Action-only workflow below for same-repository automation without an external App write grant.
 
 ## Usage
 
@@ -202,82 +202,81 @@ Global Options:
 
 ## Action-only Mode
 
-> [!NOTE]
-> `frog init` describes both methods without choosing one. For Action-only, create
-> `.github/workflows/frog.yml`:
->
-> ```yaml
-> name: Frog
-> on:
->   push:
->   issues:
->     types: [closed, reopened]
->   workflow_dispatch:
->   schedule:
->     - cron: '0 0 * * *'
->
-> concurrency:
->   group: frog
->   cancel-in-progress: false
->
-> permissions: {}
->
-> jobs:
->   frog:
->     name: Frog
->     if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
->     runs-on: ubuntu-latest
->     permissions:
->       contents: write
->       issues: write
->       pull-requests: write
->
->     steps:
->       - name: Clone repository
->         uses: actions/checkout@v6
->         with:
->           persist-credentials: false
->           ref: ${{ github.event.repository.default_branch }}
->
->       - name: Report and reconcile friction
->         uses: wevm/frog/action@v1
-> ```
->
-> The workflow uses the repository's own `GITHUB_TOKEN` to report pending entries, reconcile issue state,
-> and push the resulting commits. Frog is installed under `RUNNER_TEMP`, isolated from the repository's
-> dependencies.
->
-> ### GitHub App or Action-only?
->
-> Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
-> processing. Choose **Action-only** when same-repository automation and avoiding an external write grant
-> matter most. Running both is safe but redundant because they share occurrence keys.
->
-> | Area           | GitHub App                                                                      | Action-only                                                                 |
-> | -------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-> | Trust          | Grants the Frog App access to selected repositories.                            | Uses this repository's `GITHUB_TOKEN`; no third-party App installation.     |
-> | Scope          | Cross-repository reporting and reconciliation where installed and allowed.      | Same repository only; `target:` entries stay deferred.                      |
-> | Pull requests  | Reports during the pull request and posts or updates one comment.               | Reports after merge, without commenting on the author's pull request.       |
-> | Forks          | Installation credentials work independently of the fork token.                  | Cannot safely report from fork pull requests.                               |
-> | Reconciliation | Webhooks react immediately, with durable retries and serialization.             | Workflows plus a daily sweep; issue edits wait for the next run.            |
-> | Delivery       | Commits through GitHub's API, directly or through an accumulating pull request. | Commits locally, then pushes directly or updates `frog/sync`.               |
-> | Setup          | Needs the App installed with its requested repository permissions.              | Needs workflow write permissions and Actions-created pull requests enabled. |
-> | Operations     | Requires the Worker, queues, secrets, and App installation.                     | Uses Actions minutes and installs Frog from npm; no service to run.         |
->
-> Before using the default pull-request mode, enable **Allow GitHub Actions to create and approve pull
-> requests** under **Settings > Actions > General**. Pull-request checks created by `GITHUB_TOKEN` wait
-> for a user with write access to approve each workflow run.
->
-> This mode deliberately has a smaller boundary than the App:
->
-> - A protected default branch needs a human to merge `frog/sync`. The branch is force-updated every run;
->   do not hand-edit it.
-> - `contents: write` is required to push and keep dedupe on the label-filtered issue index.
-> - `@v1` moves with compatible releases. Pin both a full action commit SHA and an exact `version` input
->   to fix Frog itself; npm still resolves the published package's dependency ranges at install time.
-> - Never run it on `pull_request`. Fork tokens are read-only, and pull-request config is untrusted.
->   `pull_request_target` is unsafe for the same reason.
-> - One malformed `friction.md` fails the run because the log cannot be read partially.
+`frog init` describes both methods without choosing one. For Action-only, create
+`.github/workflows/frog.yml`:
+
+```yaml
+name: Frog
+on:
+  push:
+  issues:
+    types: [closed, reopened]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+concurrency:
+  group: frog
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  frog:
+    name: Frog
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Report and reconcile friction
+        uses: wevm/frog/action@v1
+```
+
+The workflow uses the repository's own `GITHUB_TOKEN` to report pending entries, reconcile issue state,
+and push the resulting commits. Frog is installed under `RUNNER_TEMP`, isolated from the repository's
+dependencies.
+
+### GitHub App or Action-only?
+
+Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
+processing. Choose **Action-only** when same-repository automation and avoiding an external write grant
+matter most. Running both is safe but redundant because they share occurrence keys.
+
+| Area           | GitHub App                                                                      | Action-only                                                                 |
+| -------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Trust          | Grants the Frog App access to selected repositories.                            | Uses this repository's `GITHUB_TOKEN`; no third-party App installation.     |
+| Scope          | Cross-repository reporting and reconciliation where installed and allowed.      | Same repository only; `target:` entries stay deferred.                      |
+| Pull requests  | Reports during the pull request and posts or updates one comment.               | Reports after merge, without commenting on the author's pull request.       |
+| Forks          | Installation credentials work independently of the fork token.                  | Cannot safely report from fork pull requests.                               |
+| Reconciliation | Webhooks react immediately, with durable retries and serialization.             | Workflows plus a daily sweep; issue edits wait for the next run.            |
+| Delivery       | Commits through GitHub's API, directly or through an accumulating pull request. | Commits locally, then pushes directly or updates `frog/sync`.               |
+| Setup          | Needs the App installed with its requested repository permissions.              | Needs workflow write permissions and Actions-created pull requests enabled. |
+| Operations     | Requires the Worker, queues, secrets, and App installation.                     | Uses Actions minutes and installs Frog from npm; no service to run.         |
+
+Before using the default pull-request mode, enable **Allow GitHub Actions to create and approve pull
+requests** under **Settings > Actions > General**. Pull-request checks created by `GITHUB_TOKEN` wait
+for a user with write access to approve each workflow run.
+
+This mode deliberately has a smaller boundary than the App:
+
+- A protected default branch needs a human to merge `frog/sync`. The branch is force-updated every run;
+  do not hand-edit it.
+- `contents: write` is required to push and keep dedupe on the label-filtered issue index.
+- `@v1` moves with compatible releases. Pin both a full action commit SHA and an exact `version` input
+  to fix Frog itself; npm still resolves the published package's dependency ranges at install time.
+- Never run it on `pull_request`. Fork tokens are read-only, and pull-request config is untrusted.
+  `pull_request_target` is unsafe for the same reason.
+- One malformed `friction.md` fails the run because the log cannot be read partially.
 
 ## License
 
