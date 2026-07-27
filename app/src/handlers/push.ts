@@ -16,6 +16,8 @@ export type Outcome = {
   created: readonly comment.Link[]
   /** Entries left pending, and why. */
   deferred: readonly { id: string; reason: string }[]
+  /** Reconciling pull request the links went to, when the default branch is not written directly. */
+  pullRequest?: number | undefined
 }
 
 /**
@@ -30,24 +32,31 @@ export type Outcome = {
  * already filed cost a lookup and nothing else.
  *
  * Self-terminating: the commit written here triggers another push, on which every entry already carries
- * a link, so nothing is pending and no commit is made.
+ * a link, so nothing is pending and no commit is made. Under review that link is on the reconciling
+ * branch rather than this one, which is why that branch is read too.
  *
  * @returns What happened.
  */
 export async function push(options: push.Options): Promise<Outcome> {
-  const {
-    branch,
-    client,
-    delivery,
-    installation,
-    registry,
-    repo,
-    serialize = serialization.direct,
-  } = options
+  const { branch, client, installation, registry, repo, serialize = serialization.direct } = options
 
   const settings = await config.read(client, { ref: branch, repo })
+  const review = settings.pullRequest.enabled
   const { entries } = await Repository.read(client, { ref: branch, repo })
-  const { pending } = filing.partition(entries)
+
+  // Under review the link lands on the reconciling branch, not here, so this branch goes on showing the
+  // entry as pending. Without reading that branch too, every later push would re-file and re-commit the
+  // same links, and the write-back would never settle.
+  const reviewed = review
+    ? await Repository.read(client, { ref: settings.pullRequest.branch, repo }).catch(
+        () => undefined,
+      )
+    : undefined
+  const awaiting = new Set(
+    (reviewed?.entries ?? []).filter((entry) => entry.issue).map((entry) => entry.id),
+  )
+
+  const { pending } = filing.partition(entries.filter((entry) => !awaiting.has(entry.id)))
 
   if (pending.length === 0) return { commented: [], created: [], deferred: [] }
 
@@ -78,18 +87,36 @@ export async function push(options: push.Options): Promise<Outcome> {
     }
 
     return Repository.commit(client, {
-      branch,
-      message: 'chore: link friction log to issues',
+      branch: review ? settings.pullRequest.branch : branch,
+      message: 'chore: sync friction log',
       repo,
+      ...(review ? { base: branch } : {}),
       writes,
     })
   })
+
+  // The same branch and pull request the issue handler reconciles through, so the links and the
+  // closures land in one review rather than two. Without this the setting only half covers a protected
+  // default branch: reconciliation would route around it and this write-back would still be refused.
+  const pullRequest =
+    review && committed
+      ? await Repository.upsert(client, {
+          base: branch,
+          body:
+            'Issue links for friction filed from this repository, and entries reconciled against issues that closed or reopened.\n\n' +
+            'Merging keeps the friction log true. Until then it lists friction that is already resolved, and omits links to issues already filed.',
+          branch: settings.pullRequest.branch,
+          repo,
+          title: 'chore: sync friction log',
+        })
+      : undefined
 
   return {
     commented: filed.commented,
     created: filed.created,
     deferred: filed.deferred,
     ...(committed ? { committed } : {}),
+    ...(pullRequest ? { pullRequest } : {}),
   }
 }
 
@@ -102,8 +129,6 @@ export declare namespace push {
     branch: string
     /** Installation client for the repository. */
     client: Octokit
-    /** GitHub delivery id used to make issue publishing replay-safe. */
-    delivery?: string | undefined
     /** Resolves an installation client for another repository. */
     installation: (repo: string) => Promise<Octokit | undefined>
     /** Registry base URL. Overridden in tests. */

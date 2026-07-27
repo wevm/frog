@@ -68,7 +68,7 @@ export const log = Cli.create('log', {
     publish: z
       .boolean()
       .optional()
-      .describe('File the issue immediately. Defaults to the `publishOnLog` config value.'),
+      .describe('File the issue immediately, rather than leaving it for `publish`.'),
     severity: Entry.Severity.optional().describe('Impact. Defaults to minor.'),
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
     target: z
@@ -146,7 +146,7 @@ export const log = Cli.create('log', {
       !body && c.options.target
         ? await attempt(
             form.scaffold(c.options.target, {
-              allowedRepos: config.outbound.allowedRepos,
+              outbound: config.outbound,
               env: c.env,
               root,
               self: repo,
@@ -218,7 +218,7 @@ export const log = Cli.create('log', {
       if (!edited.ok) return c.error({ code: edited.code, message: edited.message })
     }
 
-    if (!(c.options.publish ?? config.publishOnLog))
+    if (!c.options.publish)
       return c.ok(
         { artifacts: Store.toArtifacts(id), file, id, title },
         {
@@ -248,7 +248,7 @@ export const log = Cli.create('log', {
         const resolution = await Target.resolve(
           entry.target,
           target.resolvers({
-            allowedRepos: config.outbound.allowedRepos,
+            outbound: config.outbound,
             client: ready.client,
             root,
             self: ready.repo,

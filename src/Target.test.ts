@@ -17,13 +17,19 @@ describe('classify', () => {
 
 describe('resolve', () => {
   /** Resolver stack backed by plain data, since resolution is all policy and no transport. */
-  function options(overrides: Partial<Target.resolve.Options> = {}): Target.resolve.Options {
+  function options(
+    overrides: Partial<Omit<Target.resolve.Options, 'outbound'>> & {
+      allowedRepos?: Config.Outbound['allowedRepos'] | undefined
+      outbound?: Partial<Config.Outbound> | undefined
+    } = {},
+  ): Target.resolve.Options {
+    const { allowedRepos = [], outbound, ...rest } = overrides
     return {
-      allowedRepos: [],
+      outbound: { allowedRepos, enabled: true, ...outbound },
       readConfig: async () => undefined,
       readRepo: async () => undefined,
       self,
-      ...overrides,
+      ...rest,
     }
   }
 
@@ -198,6 +204,25 @@ describe('resolve', () => {
         options({ allowedRepos: [upstream], readConfig: accepts({ allowFrom: ['acme/*'] }) }),
       )
       expect(result.ok).toBe(true)
+    })
+
+    // Refused before `readConfig` runs: a repository that sends nothing should not spend a request
+    // asking a target whether it would have accepted.
+    test('error: outbound is disabled, so no target but this repository resolves', async () => {
+      let asked = false
+      const result = await Target.resolve(
+        upstream,
+        options({
+          allowedRepos: [upstream],
+          outbound: { enabled: false },
+          readConfig: async () => {
+            asked = true
+            return { enabled: true }
+          },
+        }),
+      )
+      expect(result.ok === false && result.code).toBe('OUTBOUND_DISABLED')
+      expect(asked).toBe(false)
     })
 
     test('error: the target is not on the sender allowedRepos list', async () => {

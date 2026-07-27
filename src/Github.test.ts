@@ -168,20 +168,15 @@ describe('renderBody and parseBody', () => {
 })
 
 describe('toLabels', () => {
-  const severityLabels = {
-    blocker: 'friction:blocker',
-    major: 'friction:major',
-    minor: 'friction:minor',
-  }
-
-  test('behavior: combines configured, severity, and entry labels', () => {
+  // Severity is carried by the marker, not by a label: a label would sit in the receiver's namespace,
+  // and cross-repo the two projects need not name severities the same way.
+  test('behavior: combines configured and entry labels, and no severity', () => {
     expect(
       Github.toLabels({
         entry: { labels: ['tooling'], severity: 'blocker' },
         labels: ['friction'],
-        severityLabels,
       }),
-    ).toEqual(['friction', 'friction:blocker', 'tooling'])
+    ).toEqual(['friction', 'tooling'])
   })
 
   test('behavior: deduplicates', () => {
@@ -189,7 +184,6 @@ describe('toLabels', () => {
       Github.toLabels({
         entry: { labels: ['friction', 'friction:minor'], severity: 'minor' },
         labels: ['friction'],
-        severityLabels,
       }),
     ).toEqual(['friction', 'friction:minor'])
   })
@@ -233,17 +227,15 @@ describe('fromIssue', () => {
     id: 'a',
     labels: ['friction'],
     repo,
-    severityLabels: {
-      blocker: 'friction:blocker',
-      major: 'friction:major',
-      minor: 'friction:minor',
-    },
   } as const
 
   test('behavior: recovers body, severity, and extra labels', () => {
     const issue = {
-      body: Github.renderBody({ body: 'The filter was swallowed.', marker: { hash: 'x' } }),
-      labels: ['friction', 'friction:blocker', 'tooling'],
+      body: Github.renderBody({
+        body: 'The filter was swallowed.',
+        marker: { hash: 'x', severity: 'blocker' },
+      }),
+      labels: ['friction', 'tooling'],
       number: 7,
       state: 'open',
       title,
@@ -267,12 +259,17 @@ describe('fromIssue', () => {
   test('behavior: omits labels when only managed ones remain', () => {
     const issue = {
       body: 'Body.',
-      labels: ['friction', 'friction:major'],
+      labels: ['friction'],
       number: 1,
       state: 'open',
       title,
     }
     expect(Github.fromIssue(issue, options)).not.toHaveProperty('labels')
+  })
+
+  test('behavior: an issue with no marker severity comes back as minor', () => {
+    const issue = { body: 'Body.', labels: ['friction'], number: 1, state: 'open', title }
+    expect(Github.fromIssue(issue, options).severity).toBe('minor')
   })
 })
 

@@ -247,26 +247,14 @@ describe('--publish', () => {
     expect(instance.issues.get(repo)?.[0]?.title).toBe(title)
   })
 
-  test('behavior: publishOnLog config makes it the default', async () => {
+  // Filing is opt-in even when GitHub is reachable: the entry belongs in the same commit as the work,
+  // and an issue filed on every `log` would publish drafts the author has not finished.
+  test('behavior: files nothing unless asked', async () => {
     const cwd = await helpers.repo({ remote })
     const instance = await github()
-    await helpers.writeFile(Config.file, JSON.stringify({ publishOnLog: true }), cwd)
 
     const result = await cli.data<Logged & { issue?: string }>(
       ['log', title, '--body', body, '--cwd', cwd],
-      { GITHUB_API_URL: instance.url, GITHUB_TOKEN: 'test-token' },
-    )
-
-    expect(result.issue).toBe(`${repo}#1`)
-  })
-
-  test('behavior: --no-publish opts out of the config default', async () => {
-    const cwd = await helpers.repo({ remote })
-    const instance = await github()
-    await helpers.writeFile(Config.file, JSON.stringify({ publishOnLog: true }), cwd)
-
-    const result = await cli.data<Logged & { issue?: string }>(
-      ['log', title, '--body', body, '--no-publish', '--cwd', cwd],
       { GITHUB_API_URL: instance.url, GITHUB_TOKEN: 'test-token' },
     )
 

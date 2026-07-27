@@ -63,34 +63,13 @@ export const Schema = z.object({
         .describe(
           'Targets this repository may file against. Always read from the base branch, never a pull request head.',
         ),
-      auto: z
+      enabled: z
         .boolean()
-        .default(false)
-        .describe(
-          'Let the GitHub App file cross-repo without a human running publish. Off, because a private repository can leak proprietary detail upstream.',
-        ),
+        .default(true)
+        .describe('Report friction to other repositories. Off refuses every target but this one.'),
     })
     .prefault({})
     .describe('Where friction may be reported, and whether automation may do it unattended.'),
-  publishOnLog: z
-    .boolean()
-    .default(false)
-    .describe('Make `log` file the issue immediately, without needing `--publish`.'),
-  repo: z
-    .string()
-    .regex(repoPattern)
-    .optional()
-    .describe(
-      "`owner/name` this repository's own friction is filed against. Defaults to the origin remote.",
-    ),
-  severityLabels: z
-    .object({
-      blocker: z.string().min(1).default('friction:blocker'),
-      major: z.string().min(1).default('friction:major'),
-      minor: z.string().min(1).default('friction:minor'),
-    })
-    .prefault({})
-    .describe('Issue label applied for each severity.'),
   pullRequest: z
     .union([z.boolean(), z.object({ branch: z.string().min(1).optional() })])
     .default(true)
@@ -101,6 +80,13 @@ export const Schema = z.object({
       branch: (typeof value === 'object' ? value.branch : undefined) ?? 'frog/sync',
       enabled: value !== false,
     })),
+  repo: z
+    .string()
+    .regex(repoPattern)
+    .optional()
+    .describe(
+      "`owner/name` this repository's own friction is filed against. Defaults to the origin remote.",
+    ),
 })
 
 /**
@@ -123,6 +109,9 @@ export type WrittenConfig = z.input<typeof Schema>
  * checked against cannot drift.
  */
 export type Inbound = Config['inbound']
+
+/** Normalized outbound policy. */
+export type Outbound = Config['outbound']
 
 /**
  * Whether `sender` is allowed to report friction to a project.

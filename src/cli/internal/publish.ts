@@ -169,11 +169,10 @@ export async function file(options: file.Options): Promise<Outcome> {
       labels: Github.toLabels({
         entry: entry,
         labels: applied,
-        severityLabels: config.severityLabels,
       }),
       // `origin` is the repository holding the file, which is not the destination when reporting
       // upstream. Getting this wrong would leave a closed issue unable to find its mirror.
-      marker: { hash, origin, path },
+      marker: { hash, origin, path, severity: entry.severity },
       provenance: { ...provenance, ...(pr ? { pr } : {}) },
       repo,
       ...(existing ? { existing } : {}),

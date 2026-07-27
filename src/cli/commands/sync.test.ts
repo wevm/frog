@@ -1,6 +1,7 @@
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import * as Entry from '../../Entry.js'
 import * as Github from '../../Github.js'
 import * as Mirrors from '../../Mirrors.js'
 import * as Store from '../../Store.js'
@@ -20,10 +21,15 @@ function env(url: string): Record<string, string> {
   return { GITHUB_API_URL: url, GITHUB_TOKEN: 'test-token' }
 }
 
-function issueBody(id: string, body = 'Body.'): string {
+function issueBody(id: string, body = 'Body.', severity?: Entry.Severity): string {
   return Github.renderBody({
     body,
-    marker: { hash: Github.hash(title), origin: repo, path: Store.toPath(id) },
+    marker: {
+      hash: Github.hash(title),
+      origin: repo,
+      path: Store.toPath(id),
+      ...(severity ? { severity } : {}),
+    },
   })
 }
 
@@ -127,7 +133,7 @@ test('behavior: an edited issue rewrites the entry', async () => {
 test('behavior: an open issue whose file was deleted is rebuilt', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github({
-    [repo]: [{ body: issueBody('a'), labels: ['friction', 'friction:blocker'], title }],
+    [repo]: [{ body: issueBody('a', 'Body.', 'blocker'), labels: ['friction'], title }],
   })
 
   expect((await cli.data<Outcome>(['sync', '--cwd', cwd], env(instance.url))).updated).toEqual([

@@ -24,7 +24,6 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     base,
     baseRef,
     client,
-    delivery,
     head,
     installation,
     pr,
@@ -97,8 +96,6 @@ export declare namespace pullRequest {
     baseRef: string
     /** Installation client for the base repository. */
     client: Octokit
-    /** GitHub delivery id used to make issue publishing replay-safe. */
-    delivery?: string | undefined
     /** Head commit sha, reachable from the base repository even for a fork. */
     head: string
     /**

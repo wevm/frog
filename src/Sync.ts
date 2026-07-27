@@ -32,7 +32,7 @@ export type Plan = {
  * @returns The edits to apply. Applying a plan and re-planning yields an empty plan.
  */
 export function plan(options: plan.Options): Plan {
-  const { entries, issues, labels, mirrors = [], repo, severityLabels } = options
+  const { entries, issues, labels, mirrors = [], repo } = options
   // Where the files are, which is only the same as where the issues are when reporting to yourself.
   const origin = options.origin ?? repo
 
@@ -88,7 +88,7 @@ export function plan(options: plan.Options): Plan {
 
       const id = Store.toId(path)
       if (!id) continue
-      write.push(Github.fromIssue(issue, { id, labels, repo, severityLabels }))
+      write.push(Github.fromIssue(issue, { id, labels, repo }))
       present.add(path)
     }
   }
@@ -117,7 +117,6 @@ export declare namespace plan {
     /** Repository the issues live in, as `owner/name`. */
     repo: string
     /** Label to apply for each severity, from config. */
-    severityLabels: Record<Entry.Severity, string>
   }
 }
 

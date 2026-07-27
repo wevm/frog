@@ -66,42 +66,10 @@
             "pattern": "^[\\w.-]+\\/(?:[\\w.-]+|\\*)$"
           }
         },
-        "auto": {
-          "default": false,
-          "description": "Let the GitHub App file cross-repo without a human running publish. Off, because a private repository can leak proprietary detail upstream.",
+        "enabled": {
+          "default": true,
+          "description": "Report friction to other repositories. Off refuses every target but this one.",
           "type": "boolean"
-        }
-      }
-    },
-    "publishOnLog": {
-      "default": false,
-      "description": "Make `log` file the issue immediately, without needing `--publish`.",
-      "type": "boolean"
-    },
-    "repo": {
-      "description": "`owner/name` this repository's own friction is filed against. Defaults to the origin remote.",
-      "type": "string",
-      "pattern": "^[\\w.-]+\\/[\\w.-]+$"
-    },
-    "severityLabels": {
-      "description": "Issue label applied for each severity.",
-      "default": {},
-      "type": "object",
-      "properties": {
-        "blocker": {
-          "default": "friction:blocker",
-          "type": "string",
-          "minLength": 1
-        },
-        "major": {
-          "default": "friction:major",
-          "type": "string",
-          "minLength": 1
-        },
-        "minor": {
-          "default": "friction:minor",
-          "type": "string",
-          "minLength": 1
         }
       }
     },
@@ -122,6 +90,11 @@
           }
         }
       ]
+    },
+    "repo": {
+      "description": "`owner/name` this repository's own friction is filed against. Defaults to the origin remote.",
+      "type": "string",
+      "pattern": "^[\\w.-]+\\/[\\w.-]+$"
     }
   }
 }

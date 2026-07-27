@@ -181,6 +181,8 @@ export type Marker = {
   origin?: string | undefined
   /** Path of the mirroring file, so close and reopen act without scanning. */
   path?: string | undefined
+  /** How much the friction hurt, so a reopen restores the entry at the severity it was filed with. */
+  severity?: Entry.Severity | undefined
 }
 
 /**
@@ -192,6 +194,7 @@ export function renderMarker(marker: Marker): string {
   const parts = [`hash=${marker.hash}`]
   if (marker.path) parts.push(`path=${marker.path}`)
   if (marker.origin) parts.push(`origin=${marker.origin}`)
+  if (marker.severity) parts.push(`severity=${marker.severity}`)
   return `<!-- frog:${markerVersion} ${parts.join(' ')} -->`
 }
 
@@ -214,10 +217,13 @@ export function parseMarker(body: string | null | undefined): Marker | undefined
   const hash = fields.get('hash')
   if (!hash) return undefined
 
+  const severity = Entry.severities.find((value) => value === fields.get('severity'))
+
   return {
     hash,
     ...(fields.get('origin') ? { origin: fields.get('origin') } : {}),
     ...(fields.get('path') ? { path: fields.get('path') } : {}),
+    ...(severity ? { severity } : {}),
   }
 }
 
@@ -299,8 +305,8 @@ export function parseBody(body: string | null | undefined): string {
  * @returns Labels in that order, deduplicated.
  */
 export function toLabels(options: toLabels.Options): readonly string[] {
-  const { entry, labels, severityLabels } = options
-  return [...new Set([...labels, severityLabels[entry.severity], ...(entry.labels ?? [])])]
+  const { entry, labels } = options
+  return [...new Set([...labels, ...(entry.labels ?? [])])]
 }
 
 export declare namespace toLabels {
@@ -310,8 +316,6 @@ export declare namespace toLabels {
     entry: Pick<Entry.Entry, 'labels' | 'severity'>
     /** Labels applied to every issue, from config. */
     labels: readonly string[]
-    /** Label to apply for each severity, from config. */
-    severityLabels: Record<Entry.Severity, string>
   }
 }
 
@@ -324,12 +328,13 @@ export declare namespace toLabels {
  * @returns The rebuilt entry, already linked to the issue.
  */
 export function fromIssue(issue: Issue, options: fromIssue.Options): Entry.Entry {
-  const { id, labels, repo, severityLabels } = options
+  const { id, labels, repo } = options
 
   const names = toLabelNames(issue)
-  const severity =
-    Entry.severities.find((value) => names.includes(severityLabels[value])) ?? 'minor'
-  const managed = new Set<string>([...labels, ...Object.values(severityLabels)])
+  // From the marker, not the labels: a label would be in the receiver's namespace, and cross-repo the
+  // two projects need not agree on what a severity is called.
+  const severity = parseMarker(issue.body)?.severity ?? 'minor'
+  const managed = new Set<string>(labels)
   const extra = names.filter((name) => !managed.has(name))
 
   return {
@@ -352,7 +357,6 @@ export declare namespace fromIssue {
     /** Repository holding the issue, as `owner/name`. */
     repo: string
     /** Label to apply for each severity, from config. Reversed to recover severity. */
-    severityLabels: Record<Entry.Severity, string>
   }
 }
 

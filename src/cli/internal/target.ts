@@ -16,10 +16,10 @@ const concurrency = 8
  * supplies its own pair, which is why `Target` takes them rather than importing any of it.
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
-  const { allowedRepos, client, root, self, store } = options
+  const { outbound, client, root, self, store } = options
 
   return {
-    allowedRepos,
+    outbound,
     readConfig: reader({ client, ...(store ? { store } : {}) }),
     readRepo: (name) => repoOf(name, root),
     self,
@@ -29,8 +29,8 @@ export function resolvers(options: resolvers.Options): Target.resolve.Options {
 export declare namespace resolvers {
   /** Options for {@link resolvers}. */
   type Options = {
-    /** Targets this repository may file against, from config. */
-    allowedRepos: readonly string[]
+    /** Outbound policy from config: whether to report at all, and where. */
+    outbound: Config.Outbound
     /** Authenticated client, for reading a target repository's committed config. */
     client: Github.Client
     /** Repository root, holding `node_modules`. */

@@ -16,28 +16,19 @@ describe('from', () => {
         "maxPerRun": 10,
         "outbound": {
           "allowedRepos": [],
-          "auto": false,
+          "enabled": true,
         },
-        "publishOnLog": false,
         "pullRequest": {
           "branch": "frog/sync",
           "enabled": true,
-        },
-        "severityLabels": {
-          "blocker": "friction:blocker",
-          "major": "friction:major",
-          "minor": "friction:minor",
         },
       }
     `)
   })
 
   test('behavior: fills nested defaults around a partial override', () => {
-    expect(
-      Config.from({ inbound: { labels: ['dx'] }, severityLabels: { minor: 'nit' } }),
-    ).toMatchObject({
+    expect(Config.from({ inbound: { labels: ['dx'] } })).toMatchObject({
       inbound: { enabled: false, labels: ['dx'] },
-      severityLabels: { blocker: 'friction:blocker', major: 'friction:major', minor: 'nit' },
     })
   })
 
@@ -97,7 +88,7 @@ describe('resolve', () => {
     )
     expect(await Config.resolve({ root })).toMatchObject({
       maxPerRun: 3,
-      outbound: { allowedRepos: ['wevm/viem'], auto: false },
+      outbound: { allowedRepos: ['wevm/viem'], enabled: true },
     })
   })
 
