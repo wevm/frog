@@ -1,5 +1,12 @@
 # frog
 
+## 1.0.7
+
+### Patch Changes
+
+- 78b0c57: Enabled inbound logs by default in `frog init`, replacing `--library` with `--no-inbound` for opting out.
+- 4571e72: Fixed App reconciliation and pull-request comments, and moved major Action tags with compatible releases.
+
 ## 1.0.6
 
 ### Patch Changes
