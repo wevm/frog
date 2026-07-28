@@ -63,10 +63,12 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   }
 
   const body = comment.render(report)
-  if (body)
+  if (body) {
+    const comments = await options.comments()
     await serialize(base, () =>
-      comment.upsert(client, { author: options.app, body, pr, repo: base }),
+      comment.upsert(comments, { author: options.app, body, pr, repo: base }),
     )
+  }
 
   return report
 }
@@ -100,6 +102,8 @@ export declare namespace pullRequest {
     baseRef: string
     /** Installation client for the base repository. */
     client: Octokit
+    /** Lazily resolves an Issues-scoped client for pull-request comments. */
+    comments: () => Promise<Octokit>
     /** Head commit sha, reachable from the base repository even for a fork. */
     head: string
     /**

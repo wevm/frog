@@ -1,6 +1,7 @@
 import { App, type Octokit } from 'octokit'
 import { issues } from './handlers/issues.js'
 import { pullRequest } from './handlers/pullRequest.js'
+import * as client from './internal/client.js'
 import * as serialization from './internal/serialize.js'
 
 /**
@@ -51,13 +52,21 @@ export function runtime(options: create.Options): Runtime {
   app.webhooks.on(
     ['pull_request.opened', 'pull_request.reopened', 'pull_request.synchronize'],
     async ({ id, octokit, payload }) => {
-      const author = payload.pull_request.user?.login
+      const actor = payload.pull_request.user?.login
+      const base = payload.repository.full_name
+      const installationId = payload.installation?.id
+      if (!installationId) throw new Error('Pull request delivery has no installation.')
       await pullRequest({
         app: await self(),
-        ...(author ? { actor: `@${author}` } : {}),
-        base: payload.repository.full_name,
+        ...(actor ? { actor: `@${actor}` } : {}),
+        base,
         baseRef: payload.pull_request.base.ref,
         client: octokit,
+        comments: () =>
+          client.comments(app, {
+            installation: installationId,
+            repo: base,
+          }),
         head: payload.pull_request.head.sha,
         installation,
         pr: payload.number,

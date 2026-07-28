@@ -31,6 +31,7 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 async function run(
   url: string,
   options: {
+    comments?: (() => Promise<Octokit>) | undefined
     installed?: Record<string, Octokit> | undefined
     serialize?: Serialize | undefined
   } = {},
@@ -42,6 +43,7 @@ async function run(
     base,
     baseRef: 'main',
     client: octokit,
+    comments: options.comments ?? (async () => octokit),
     head: 'head',
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
@@ -79,6 +81,20 @@ test('behavior: files pending entries and comments once', async () => {
   expect(instance.issues.get(base)?.[0]?.title).toBe('Filters ignored')
   expect(instance.comments(base, 42)).toHaveLength(1)
   expect(instance.comments(base, 42)[0]).toContain(`${base}#1`)
+})
+
+test('security: uses the dedicated client for the pull request comment', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+  const comments = await github()
+
+  await run(instance.url, { comments: async () => client(comments.url) })
+
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 42)).toEqual([])
+  expect(comments.comments(base, 42)).toHaveLength(1)
 })
 
 test('behavior: records the pull request and the reporter on the issue', async () => {
@@ -124,12 +140,14 @@ test('behavior: a pull request that changes no entry says nothing', async () => 
       head: { [base]: { 'src/index.ts': 'export {}\n' } },
     },
   )
+  const comments = vi.fn(async () => client(instance.url))
 
-  const report = await run(instance.url)
+  const report = await run(instance.url, { comments })
 
   expect(report).toEqual({ commented: [], created: [], deferred: [], linked: [], malformed: [] })
   expect(instance.issues.get(base)).toBeUndefined()
   expect(instance.comments(base, 42)).toEqual([])
+  expect(comments).not.toHaveBeenCalled()
 })
 
 // Every push to the branch re-runs this, and each one is a separate delivery.
