@@ -22,8 +22,8 @@ frog list    # what is already known
 frog log     # add one
 ```
 
-Follow [`TEMPLATE.md`](./TEMPLATE.md). Ids are when the friction was hit plus its title, so this
-directory reads oldest-first and shows at a glance how long something has gone unresolved.
+`frog log` writes the sections to fill in. Each id is when the friction was hit plus its title, so
+the directory reads oldest-first.
 
 Put anything that reproduces the friction in that entry's `artifacts/` and reference it from the
 write-up, so the next reader runs the reproduction instead of rebuilding it.
