@@ -7,7 +7,7 @@
   // already resolves every subdomain through Cloudflare, so this needs no DNS record of its own.
   "routes": [
     {
-      "pattern": "frog.wevm.dev/github",
+      "pattern": "frog.wevm.dev/github*",
       "zone_name": "wevm.dev",
     },
   ],

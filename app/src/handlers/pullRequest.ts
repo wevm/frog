@@ -1,4 +1,4 @@
-import { Entry, Store } from 'frog'
+import type { Entry } from 'frog'
 import type { Octokit } from 'octokit'
 import * as comment from '../internal/comment.js'
 import * as config from '../internal/config.js'
@@ -12,12 +12,8 @@ import * as Repository from '../Repository.js'
  * Reads the head commit from the **base** repository, where GitHub makes a pull request's head commit
  * reachable. The installation needs no access to the fork.
  *
- * Writes the `issue:` link straight onto the pull request's own branch, so the merge needs no follow-up
- * commit. The extra `synchronize` delivery this costs sees a linked entry, and neither re-files nor
- * re-reports it.
- *
- * A fork's branch belongs to a repository the App has no installation on. There the push handler writes
- * the link once the work has landed.
+ * Repository contents are read-only to the App. The repository-owned reconciliation Action writes the
+ * `issue:` link after the entry lands on the default branch.
  *
  * @returns What happened, already reported on the pull request.
  */
@@ -27,8 +23,6 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     baseRef,
     client,
     head,
-    headRef,
-    headRepo,
     installation,
     pr,
     registry,
@@ -47,9 +41,8 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   const malformed = contents.malformed
   const { linked, pending } = filing.partition(changed)
 
-  const initial = new Map(pending.map((entry) => [entry.id, Entry.serialize(entry)]))
-
   const filed = await filing.file({
+    app: options.app,
     client,
     config: settings,
     entries: pending,
@@ -61,30 +54,6 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     serialize,
   })
 
-  // Write the link if we can. A branch this App cannot write to, whether protected by a ruleset or
-  // simply gone, must not fail the delivery and lose the report on the pull request. The push handler
-  // writes the link when the work lands, the same path a fork takes.
-  if (headRepo === base && filed.links.size > 0)
-    await serialize(base, async () => {
-      // Re-read under the lease so a concurrent push is not overwritten with the snapshot this
-      // delivery started from. Filing takes several requests.
-      const current = await Repository.read(client, { ref: headRef, repo: base })
-      const writes = current.entries.flatMap((entry) => {
-        const issue = filed.links.get(entry.id)
-        // An entry edited while it was being filed describes something other than the issue that was
-        // opened for it. Leaving it unlinked lets the next delivery report the edit.
-        if (!issue || entry.issue || Entry.serialize(entry) !== initial.get(entry.id)) return []
-        return [{ contents: Entry.serialize({ ...entry, issue }), path: Store.toPath(entry.id) }]
-      })
-
-      return Repository.commit(client, {
-        branch: headRef,
-        message: settings.commit.link,
-        repo: base,
-        writes,
-      })
-    }).catch(() => undefined)
-
   const report: comment.Report = {
     commented: filed.commented,
     created: filed.created,
@@ -94,7 +63,10 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   }
 
   const body = comment.render(report)
-  if (body) await serialize(base, () => comment.upsert(client, { body, pr, repo: base }))
+  if (body)
+    await serialize(base, () =>
+      comment.upsert(client, { author: options.app, body, pr, repo: base }),
+    )
 
   return report
 }
@@ -114,6 +86,8 @@ function introduced(
 export declare namespace pullRequest {
   /** Options for {@link pullRequest}. */
   type Options = {
+    /** Authenticated GitHub App bot login. */
+    app: string
     /**
      * GitHub login of whoever opened the pull request.
      *
@@ -128,10 +102,6 @@ export declare namespace pullRequest {
     client: Octokit
     /** Head commit sha, reachable from the base repository even for a fork. */
     head: string
-    /** Head branch, written to when it belongs to the base repository. */
-    headRef: string
-    /** Repository the head branch lives on, or `null` when a deleted fork owned it. */
-    headRepo: string | null
     /**
      * Resolves an installation client for another repository.
      *

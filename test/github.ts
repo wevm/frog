@@ -40,12 +40,14 @@ export type Issue = {
   number: number
   state: 'closed' | 'open'
   title: string
+  user: { login: string }
 }
 
 export type Request = { method: string; path: string }
 
 export type Seed = Record<string, readonly SeedIssue[]>
 export type SeedIssue = {
+  author?: string | undefined
   body?: string | undefined
   labels?: readonly string[] | undefined
   /** Set to mark an entry as a pull request, which `listForRepo` also returns. */
@@ -84,6 +86,10 @@ async function readBody<value extends object>(request: http.IncomingMessage): Pr
 }
 
 export type Options = {
+  /** Login attached to API-created issues and comments. */
+  author?: string | undefined
+  /** Contents API payload size above which GitHub requires the Git Blobs API. */
+  contentsApiLimit?: number | undefined
   /** Repositories whose issue-create response disconnects after applying the write. */
   disconnectIssueCreates?: readonly string[] | undefined
   /** Repositories that respond with an error status, keyed by `owner/name`. */
@@ -121,6 +127,7 @@ export type Options = {
 
 /** Starts the server, stopping it when the test finishes. */
 export async function github(seed: Seed = {}, options: Options = {}): Promise<Instance> {
+  const author = options.author ?? 'frog-fm[bot]'
   const errors = options.errors ?? {}
   const pushable = (repo: string) => !options.pushAccess || options.pushAccess.includes(repo)
   const issues = new Map<string, Issue[]>()
@@ -147,6 +154,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           number,
           state: issue.state ?? 'open',
           title: issue.title,
+          user: { login: issue.author ?? author },
         }
       }),
     )
@@ -162,7 +170,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
     state: 'closed' | 'open'
     title: string
   }[] = []
-  const comments: { body: string; id: number; key: string }[] = []
+  const comments: { body: string; id: number; key: string; user: { login: string } }[] = []
   const requests: Request[] = []
 
   // Enough of the git object model to assert what a commit produced: blobs by sha, trees as resolved
@@ -351,12 +359,14 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       if (list && request.method === 'GET') {
         const repo = `${list[1]}/${list[2]}`
         const label = url.searchParams.get('labels')
+        const creator = url.searchParams.get('creator')
         const state = url.searchParams.get('state') ?? 'open'
         const page = Number(url.searchParams.get('page') ?? '1')
         const perPage = Number(url.searchParams.get('per_page') ?? '30')
 
         const matching = (issues.get(repo) ?? [])
           .filter((issue) => !label || issue.labels.includes(label))
+          .filter((issue) => !creator || issue.user.login === creator)
           .filter((issue) => state === 'all' || issue.state === state)
           .map((issue) => ({
             ...issue,
@@ -378,6 +388,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           number: nextNumber(repo),
           state: 'open',
           title: payload.title ?? '',
+          user: { login: author },
         }
         issues.set(repo, [...(issues.get(repo) ?? []), issue])
         if (options.disconnectIssueCreates?.includes(repo)) {
@@ -391,8 +402,9 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const key = `${comment[1]}/${comment[2]}#${comment[3]}`
         const payload = await readBody<{ body?: string }>(request)
         const id = comments.length + 1
-        comments.push({ body: payload.body ?? '', id, key })
-        return json(response, 201, { id })
+        const user = { login: author }
+        comments.push({ body: payload.body ?? '', id, key, user })
+        return json(response, 201, { id, user })
       }
 
       if (comment && request.method === 'GET') {
@@ -400,11 +412,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const listed = comments.filter((entry) => entry.key === key)
         const page = Number(url.searchParams.get('page') ?? '1')
         const perPage = Number(url.searchParams.get('per_page') ?? '30')
-        return json(
-          response,
-          200,
-          listed.slice((page - 1) * perPage, page * perPage).map(({ body, id }) => ({ body, id })),
-        )
+        return json(response, 200, listed.slice((page - 1) * perPage, page * perPage))
       }
 
       // `issues.updateComment`, which is how the pull request comment stays a single comment.
@@ -414,7 +422,11 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const found = comments.find((entry) => entry.id === Number(editComment[3]))
         if (!found) return json(response, 404, { message: 'Not Found' })
         found.body = payload.body ?? ''
-        return json(response, 200, { body: found.body, id: found.id })
+        return json(response, 200, {
+          body: found.body,
+          id: found.id,
+          user: found.user,
+        })
       }
 
       // `repos.getContent`, for reading entries and config without cloning.
@@ -429,13 +441,24 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           : (trees.get(commits.get(ref)?.tree ?? '') ?? treeOf(name, 'main'))
 
         const blob = tree.get(path)
-        if (blob !== undefined)
+        if (blob !== undefined) {
+          const body = blobs.get(blob) ?? ''
+          const size = Buffer.byteLength(body)
           return json(response, 200, {
-            content: Buffer.from(blobs.get(blob) ?? '', 'utf8').toString('base64'),
-            encoding: 'base64',
+            content:
+              options.contentsApiLimit !== undefined && size > options.contentsApiLimit
+                ? ''
+                : Buffer.from(body, 'utf8').toString('base64'),
+            encoding:
+              options.contentsApiLimit !== undefined && size > options.contentsApiLimit
+                ? 'none'
+                : 'base64',
             path,
+            sha: blob,
+            size,
             type: 'file',
           })
+        }
 
         // Immediate children only, with nested paths collapsed to the directory holding them, which
         // is what the contents API returns.
@@ -460,7 +483,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         )
       }
 
-      // Git data API: the App's write path, one tree and one commit per reconciliation.
+      // Git data API: blob fallback plus the legacy write model retained by this reusable test server.
       const git = /^\/repos\/([^/]+)\/([^/]+)\/git\/(.+)$/.exec(url.pathname)
       if (git) {
         const name = `${git[1]}/${git[2]}`
@@ -506,6 +529,18 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           const commit = commits.get(readCommit[1] ?? '')
           if (!commit) return json(response, 404, { message: 'Not Found' })
           return json(response, 200, { sha: readCommit[1], tree: { sha: commit.tree } })
+        }
+
+        const readBlob = /^blobs\/(.+)$/.exec(rest)
+        if (readBlob && request.method === 'GET') {
+          const body = blobs.get(readBlob[1] ?? '')
+          if (body === undefined) return json(response, 404, { message: 'Not Found' })
+          return json(response, 200, {
+            content: Buffer.from(body, 'utf8').toString('base64'),
+            encoding: 'base64',
+            sha: readBlob[1],
+            size: Buffer.byteLength(body),
+          })
         }
 
         if (rest === 'blobs' && request.method === 'POST') {

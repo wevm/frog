@@ -20,12 +20,13 @@ export type Filing = {
 /**
  * Resolves each entry's destination, applies every gate, and files what is allowed through.
  *
- * Shared by the pull request and push handlers, which must apply identical gates. They differ only
- * afterwards: one comments, the other writes the links back.
+ * Shared by pull-request reporting and repository-workflow reconciliation, which apply identical
+ * destination and consent gates.
  */
 export async function file(options: file.Options): Promise<Filing> {
   const {
     actor,
+    app,
     client,
     config,
     entries,
@@ -93,20 +94,10 @@ export async function file(options: file.Options): Promise<Filing> {
       })
   }
 
-  /** Grouped after every gate. Deferred entries do not consume the per-run ceiling. */
+  /** Grouped after every gate. */
   const groups = new Map<string, { entries: Entry.Entry[]; labels?: readonly string[] }>()
-  let accepted = 0
   for (const candidate of candidates) {
     if (!clients.get(candidate.destination)) continue
-    if (accepted >= config.maxPerRun) {
-      deferred.push({
-        code: 'OVER_CEILING',
-        id: candidate.entry.id,
-        reason: `over the ceiling of ${config.maxPerRun} per run`,
-      })
-      continue
-    }
-    accepted += 1
 
     const group = groups.get(candidate.destination) ?? {
       entries: [],
@@ -116,6 +107,7 @@ export async function file(options: file.Options): Promise<Filing> {
     groups.set(candidate.destination, group)
   }
 
+  let mutated = 0
   for (const [destination, group] of groups) {
     const target = clients.get(destination)
     if (!target) continue
@@ -123,6 +115,7 @@ export async function file(options: file.Options): Promise<Filing> {
     await serialize(destination, async () => {
       const applied = group.labels?.length ? group.labels : config.labels
       const matcher = await Github.matcher(target.rest, {
+        expectedAuthor: app,
         label: applied[0] ?? 'friction',
         repo: destination,
       })
@@ -132,26 +125,55 @@ export async function file(options: file.Options): Promise<Filing> {
       for (const entry of group.entries) {
         const hash = Github.hash(entry.title)
         const existing = seen.get(hash) ?? (await matcher.match(entry.title))
+        const occurrence = Github.occurrence({ entry, origin })
+        const result = await (async () => {
+          if (mutated < config.maxPerRun)
+            return Github.publish(target.rest, {
+              entry,
+              expectedAuthor: app,
+              labels: Github.toLabels({
+                entry,
+                labels: applied,
+              }),
+              // `origin` is where the entry file lives, not the destination when reporting upstream.
+              marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
+              occurrence,
+              provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
+              repo: destination,
+              ...(existing ? { existing } : {}),
+            })
 
-        const result = await Github.publish(target.rest, {
-          entry,
-          labels: Github.toLabels({
-            entry,
-            labels: applied,
-          }),
-          // `origin` is where the entry file lives, not the destination when reporting upstream.
-          marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
-          occurrence: Github.occurrence({ entry, origin }),
-          provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
-          repo: destination,
-          ...(existing ? { existing } : {}),
-        })
+          const status = existing
+            ? await Github.findOccurrence(target.rest, {
+                existing,
+                expectedAuthor: app,
+                occurrence,
+                repo: destination,
+              })
+            : undefined
+          if (status && existing) return { issue: existing.number, mutated: false, status }
+
+          deferred.push({
+            code: 'OVER_CEILING',
+            id: entry.id,
+            reason: `over the ceiling of ${config.maxPerRun} per run`,
+          })
+          return undefined
+        })()
+        if (!result) continue
+        if (result.mutated !== false) mutated += 1
 
         const issue = Github.toLink({ issue: result.issue, repo: destination })
         links.set(entry.id, issue)
         ;(result.status === 'commented' ? commented : created).push({ id: entry.id, issue })
 
-        if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
+        if (!existing)
+          seen.set(hash, {
+            author: app,
+            number: result.issue,
+            state: 'open',
+            title: entry.title,
+          })
       }
     })
   }
@@ -164,6 +186,8 @@ export declare namespace file {
   type Options = {
     /** GitHub login to credit in the footer, since the issue is authored by the App. */
     actor?: string | undefined
+    /** Authenticated GitHub App bot login whose issues are trusted for dedupe. */
+    app: string
     /** Installation client for the repository holding the entries. */
     client: Octokit
     /** Normalized config, read from the default branch. */

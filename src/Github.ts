@@ -7,7 +7,11 @@ import * as Entry from './Entry.js'
  *
  * Narrow so the App can pass Probot's client, which is the same endpoint-methods object.
  */
-export type Client = Pick<Octokit['rest'], 'issues' | 'repos'>
+export type Client = Pick<Octokit['rest'], 'issues' | 'repos'> &
+  Partial<Pick<Octokit['rest'], 'git'>>
+
+/** Maximum repository file size read into a Frog process. */
+export const maxFileBytes = 8 * 1_024 * 1_024
 
 /** A label as GitHub returns it: either the bare name, or an object holding one. */
 export type Label =
@@ -19,6 +23,8 @@ export type Label =
 
 /** The parts of a GitHub issue this module reads. */
 export type Issue = {
+  /** GitHub login of the issue author. */
+  author?: string | undefined
   /** Issue body. `null` when the API reports an empty body. */
   body?: string | null | undefined
   /** Labels on the issue. */
@@ -29,6 +35,22 @@ export type Issue = {
   state: string
   /** Issue title. */
   title: string
+}
+
+type IssueSource = Omit<Issue, 'author'> & {
+  user?: { login?: string | undefined } | null | undefined
+}
+
+/** Flattens GitHub's nested user shape into the transport-independent issue shape. */
+function normalizeIssue(issue: IssueSource): Issue {
+  return {
+    body: issue.body,
+    labels: issue.labels,
+    number: issue.number,
+    state: issue.state,
+    title: issue.title,
+    ...(issue.user?.login ? { author: issue.user.login } : {}),
+  }
 }
 
 /**
@@ -176,6 +198,10 @@ const markerRegex = /<!--\s*frog:v1\s+([^>]*?)\s*-->/
 /** Every Frog comment, for stripping a write-up that carries one of its own. */
 const markerStripRegex = /\s*<!--\s*frog:[^>]*-->/g
 
+function stripMarkers(body: string): string {
+  return body.replace(markerStripRegex, '').trim()
+}
+
 /**
  * Last marker in a body.
  *
@@ -207,7 +233,11 @@ export async function findOccurrence(
   options: findOccurrence.Options,
 ): Promise<Result['status'] | undefined> {
   const marker = renderOccurrence(options.occurrence)
-  if (options.existing.body?.includes(marker)) return 'created'
+  if (
+    (!options.expectedAuthor || options.existing.author === options.expectedAuthor) &&
+    options.existing.body?.includes(marker)
+  )
+    return 'created'
 
   for (let page = 1; ; page++) {
     const response = await client.issues.listComments({
@@ -216,7 +246,14 @@ export async function findOccurrence(
       page,
       per_page: 100,
     })
-    if (response.data.some((comment) => comment.body?.includes(marker))) return 'commented'
+    if (
+      response.data.some(
+        (comment) =>
+          (!options.expectedAuthor || comment.user?.login === options.expectedAuthor) &&
+          comment.body?.includes(marker),
+      )
+    )
+      return 'commented'
     if (response.data.length < 100) return undefined
   }
 }
@@ -224,6 +261,8 @@ export async function findOccurrence(
 export declare namespace findOccurrence {
   /** Options for {@link findOccurrence}. */
   type Options = {
+    /** Author whose occurrence markers are trusted. Every author is trusted when omitted. */
+    expectedAuthor?: string | undefined
     /** Issue that may already carry the occurrence. */
     existing: Issue
     /** Stable occurrence key from {@link occurrence}. */
@@ -332,7 +371,7 @@ export function renderBody(options: renderBody.Options): string {
     .filter(Boolean)
     .join('\n')
 
-  return `${body.replace(markerStripRegex, '').trim()}\n\n${markers}\n\n---\n\n${footer}\n`
+  return `${stripMarkers(body)}\n\n${markers}\n\n---\n\n${footer}\n`
 }
 
 export declare namespace renderBody {
@@ -472,11 +511,28 @@ export async function fetchFile(
       path: options.path,
       ...(options.ref ? { ref: options.ref } : {}),
     })
-    const data = response.data as { content?: string; encoding?: string; type?: string }
-    if (data.type !== 'file' || !data.content) return undefined
-    return Buffer.from(data.content, data.encoding === 'base64' ? 'base64' : 'utf8').toString(
-      'utf8',
-    )
+    const data = response.data as {
+      content?: string
+      encoding?: string
+      sha?: string
+      size?: number
+      type?: string
+    }
+    if (data.type !== 'file') return undefined
+    if (data.size !== undefined && data.size > maxFileBytes)
+      throw new FileTooLargeError(options.path)
+
+    if (data.content || !data.sha || data.size === 0)
+      return decode(data.content ?? '', data.encoding, options.path)
+
+    if (!client.git) throw new GitBlobUnavailableError(options.path)
+    const blob = await client.git.getBlob({
+      ...split(options.repo),
+      file_sha: data.sha,
+    })
+    if (blob.data.size !== null && blob.data.size > maxFileBytes)
+      throw new FileTooLargeError(options.path)
+    return decode(blob.data.content, blob.data.encoding, options.path)
   } catch (error) {
     if ((error as { status?: number }).status === 404) return undefined
     throw error
@@ -492,6 +548,30 @@ export declare namespace fetchFile {
     ref?: string | undefined
     /** Repository to read from, as `owner/name`. */
     repo: string
+  }
+}
+
+function decode(contents: string, encoding: string | undefined, path: string): string {
+  const bytes = Buffer.from(contents, encoding === 'base64' ? 'base64' : 'utf8')
+  if (bytes.byteLength > maxFileBytes) throw new FileTooLargeError(path)
+  return bytes.toString('utf8')
+}
+
+/** Repository file that exceeds Frog's bounded read limit. */
+export class FileTooLargeError extends Error {
+  /** Stable error name. */
+  override name = 'Github.FileTooLargeError'
+
+  constructor(path: string) {
+    super(`\`${path}\` exceeds Frog's ${maxFileBytes}-byte read limit.`)
+  }
+}
+
+class GitBlobUnavailableError extends Error {
+  override name = 'Github.GitBlobUnavailableError'
+
+  constructor(path: string) {
+    super(`GitHub truncated \`${path}\`, but this client cannot read its Git blob.`)
   }
 }
 
@@ -562,7 +642,7 @@ export async function get(client: Client, options: get.Options): Promise<Issue |
       ...split(options.repo),
       issue_number: options.issue,
     })
-    return response.data
+    return normalizeIssue(response.data)
   } catch (error) {
     if ((error as { status?: number }).status === 404) return undefined
     throw error
@@ -679,7 +759,9 @@ export async function list(client: Client, options: index.Options): Promise<read
     })
     // `listForRepo` returns pull requests too.
     collected.push(
-      ...response.data.filter((issue) => !('pull_request' in issue && issue.pull_request)),
+      ...response.data
+        .filter((issue) => !('pull_request' in issue && issue.pull_request))
+        .map(normalizeIssue),
     )
     if (response.data.length < 100) break
   }
@@ -698,7 +780,9 @@ async function listAll(client: Client, options: { repo: string }): Promise<reado
       state: 'all',
     })
     collected.push(
-      ...response.data.filter((issue) => !('pull_request' in issue && issue.pull_request)),
+      ...response.data
+        .filter((issue) => !('pull_request' in issue && issue.pull_request))
+        .map(normalizeIssue),
     )
     if (response.data.length < 100) break
   }
@@ -748,9 +832,13 @@ export type Matcher = {
  *
  * @param client - Authenticated client for the repository.
  */
-export async function matcher(client: Client, options: index.Options): Promise<Matcher> {
+export async function matcher(client: Client, options: matcher.Options): Promise<Matcher> {
   const { push } = await permissions(client, { repo: options.repo })
-  const labelled = push ? await index(client, options) : new Map<string, Issue>()
+  const accepts = (issue: Issue) =>
+    !options.expectedAuthor || issue.author === options.expectedAuthor
+  const labelled = push
+    ? toIndex((await list(client, options)).filter(accepts))
+    : new Map<string, Issue>()
   let unlabelled: Promise<Map<string, Issue>> | undefined
 
   return {
@@ -762,9 +850,17 @@ export async function matcher(client: Client, options: index.Options): Promise<M
 
       // Even a token with push access can encounter an issue whose configured label was removed.
       // The fallback listing runs once per filing group, so a replay still finds the side effect.
-      unlabelled ??= listAll(client, options).then(toIndex)
+      unlabelled ??= listAll(client, options).then((issues) => toIndex(issues.filter(accepts)))
       return (await unlabelled).get(key)
     },
+  }
+}
+
+export declare namespace matcher {
+  /** Options for {@link matcher}. */
+  type Options = index.Options & {
+    /** Issue author eligible for matching. Every author is eligible when omitted. */
+    expectedAuthor?: string | undefined
   }
 }
 
@@ -778,7 +874,11 @@ export async function matcher(client: Client, options: index.Options): Promise<M
  * @returns The issue number and whether it was opened or commented on.
  */
 export async function publish(client: Client, options: publish.Options): Promise<Result> {
-  const { existing, entry, labels, marker, occurrence, provenance, repo } = options
+  const { entry, expectedAuthor, labels, marker, occurrence, provenance, repo } = options
+  const existing =
+    options.existing && (!expectedAuthor || options.existing.author === expectedAuthor)
+      ? options.existing
+      : undefined
   const body = renderBody({
     body: entry.body,
     marker,
@@ -791,7 +891,12 @@ export async function publish(client: Client, options: publish.Options): Promise
     // maintainer who closed the issue while its entry was still in the log, on every push. A genuine
     // recurrence carries a new entry id, so its occurrence differs and it falls through to reopen.
     if (occurrence) {
-      const status = await findOccurrence(client, { existing, occurrence, repo })
+      const status = await findOccurrence(client, {
+        existing,
+        occurrence,
+        repo,
+        ...(expectedAuthor ? { expectedAuthor } : {}),
+      })
       if (status) return { issue: existing.number, mutated: false, status }
     }
 
@@ -813,7 +918,7 @@ export async function publish(client: Client, options: publish.Options): Promise
 
     await client.issues.createComment({
       ...split(repo),
-      body: `${note}.\n\n${entry.body.trim()}${
+      body: `${note}.\n\n${stripMarkers(entry.body)}${
         occurrence ? `\n\n${renderOccurrence(occurrence)}` : ''
       }\n`,
       issue_number: existing.number,
@@ -839,6 +944,8 @@ export declare namespace publish {
      * When set, the entry is added as a comment instead of a new issue.
      */
     existing?: Issue | undefined
+    /** Author required for an existing issue and its replay markers. Every author is trusted when omitted. */
+    expectedAuthor?: string | undefined
     /** The entry, for its title and body. */
     entry: Pick<Entry.Entry, 'body' | 'title'>
     /** Labels for a newly opened issue. Ignored when commenting. */

@@ -140,8 +140,11 @@ export const init = Cli.create('init', {
         cta: {
           commands: [{ command: 'log', description: 'Write the first entry' }],
           description:
-            `Prompt the user to choose the GitHub App or Action-only setup described in \`${Store.dir}/README.md\`. ` +
-            `Do not install the App or add a workflow before they answer.\n\n` +
+            `Frog supports two automation methods:\n\n` +
+            `- GitHub App for pull-request feedback, forks, and cross-repository reporting.\n` +
+            `- Action-only for same-repository automation without granting a third-party App access.\n\n` +
+            `Prompt the user to choose one before installing the App or adding a workflow. ` +
+            `See https://github.com/wevm/frog#install for setup.\n\n` +
             `Add this to \`AGENTS.md\` under the appropriate section:\n\n${rules}\n\nThen:`,
         },
       },

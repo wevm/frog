@@ -1,0 +1,463 @@
+name: Reconcile Frog reports
+description: Reconcile Frog App issue state with a repository-owned pull request.
+
+inputs:
+  token:
+    description: GitHub token used only for the repository push and pull request.
+    default: ${{ github.token }}
+  command:
+    description: Path to a Frog executable. When absent, Frog is installed in an isolated directory.
+    default: ''
+  version:
+    description: Frog npm version to install when command is absent.
+    default: '1'
+
+outputs:
+  sync:
+    description: Raw full-output JSON envelope from frog sync.
+    value: ${{ steps.reconcile.outputs.sync }}
+
+runs:
+  using: composite
+  steps:
+    - id: reconcile
+      name: Reconcile frictions
+      shell: bash
+      env:
+        FROG_INPUT_COMMAND: ${{ inputs.command }}
+        FROG_INPUT_TOKEN: ${{ inputs.token }}
+        FROG_INPUT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+
+        readonly audience='https://frog.wevm.dev/github/reconcile'
+        readonly broker='https://frog.wevm.dev/github/reconcile'
+        readonly branch='frog/sync'
+        readonly remote='origin'
+
+        fail() {
+          echo "::error::$1"
+          exit 1
+        }
+
+        write_multiline_output() {
+          local name="$1"
+          local value="$2"
+          local delimiter="FROG_${name}_${RANDOM}_${RANDOM}"
+          {
+            echo "${name}<<${delimiter}"
+            printf '%s\n' "$value"
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+        }
+
+        repository="${GITHUB_REPOSITORY:-}"
+        sha="${GITHUB_SHA:-}"
+        workspace="${GITHUB_WORKSPACE:-}"
+        token="$FROG_INPUT_TOKEN"
+        unset FROG_INPUT_TOKEN
+        if [[ ! "$repository" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+          fail 'GITHUB_REPOSITORY must name one repository.'
+        fi
+        if [[ ! "$sha" =~ ^[0-9a-f]{40}$ && ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
+          fail 'GITHUB_SHA must be a lowercase commit SHA.'
+        fi
+        if [[ -z "$workspace" || ! -d "$workspace" ]]; then
+          fail 'GITHUB_WORKSPACE must be a checked-out repository.'
+        fi
+        if [[ -z "$token" ]]; then fail 'token is required.'; fi
+        if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]]; then
+          fail 'id-token: write permission is required.'
+        fi
+        if [[ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]]; then
+          fail 'The Actions OIDC request token is missing.'
+        fi
+        if [[ -z "${GITHUB_EVENT_PATH:-}" || ! -f "$GITHUB_EVENT_PATH" ]]; then
+          fail 'GITHUB_EVENT_PATH is required.'
+        fi
+
+        root="$(git -C "$workspace" rev-parse --show-toplevel 2>/dev/null)" ||
+          fail 'The workspace is not a git repository.'
+        workspace="$(cd "$workspace" && pwd -P)"
+        root="$(cd "$root" && pwd -P)"
+        if [[ "$root" != "$workspace" ]]; then
+          fail 'The repository must be checked out at GITHUB_WORKSPACE.'
+        fi
+        if [[ "$(git -C "$root" status --porcelain=v1 --untracked-files=all)" != '' ]]; then
+          fail 'The checkout must be clean before reconciliation.'
+        fi
+        git -C "$root" cat-file -e "${sha}^{commit}" 2>/dev/null ||
+          fail 'GITHUB_SHA is not available in the checkout.'
+        if [[ "$(git -C "$root" rev-parse HEAD)" != "$sha" ]]; then
+          fail 'The checkout must be at GITHUB_SHA.'
+        fi
+
+        event_repo="$(jq -r '.repository.full_name // empty' "$GITHUB_EVENT_PATH")"
+        default_branch="$(jq -r '.repository.default_branch // empty' "$GITHUB_EVENT_PATH")"
+        if [[ "$event_repo" != "$repository" ]]; then
+          fail 'The event repository does not match GITHUB_REPOSITORY.'
+        fi
+        case "${GITHUB_EVENT_NAME:-}" in
+          push|schedule|workflow_dispatch) ;;
+          issue_comment)
+            control_body="$(
+              printf '%s\n' \
+                'Frog keeps this issue closed and uses one comment on it to request friction-log reconciliation.' \
+                'The comment is only a wakeup signal; the workflow fetches authenticated state separately.' \
+                '' \
+                '<!-- frog:reconcile-issue:v1 -->'
+            )"
+            if ! jq -e \
+              --arg body "$control_body" \
+              --argjson bot 309546769 '
+                (.action == "created" or .action == "edited") and
+                .issue.user.id == $bot and
+                .issue.title == "Frog reconciliation" and
+                .issue.body == ($body + "\n") and
+                .comment.user.id == $bot and
+                (
+                  .comment.body
+                  | strings
+                  | test(
+                      "^Reconcile the friction log\\.\\n\\n<!-- frog:reconcile:v1 delivery=[0-9a-f]{64} -->\\n$"
+                    )
+                )
+              ' "$GITHUB_EVENT_PATH" >/dev/null; then
+              fail 'The issue comment is not an exact Frog reconciliation signal.'
+            fi
+            ;;
+          *) fail 'The workflow event is not supported.' ;;
+        esac
+        if ! git check-ref-format --branch "$default_branch" >/dev/null 2>&1; then
+          fail 'The event does not contain a valid default branch.'
+        fi
+        if [[ "${GITHUB_REF:-}" != "refs/heads/$default_branch" ]]; then
+          fail 'The workflow must run from the default branch.'
+        fi
+
+        origin_url="$(git -C "$root" config --get "remote.${remote}.url" 2>/dev/null)" ||
+          fail 'The origin remote is missing.'
+        case "$origin_url" in
+          "https://github.com/${repository}"|"https://github.com/${repository}.git"|"git@github.com:${repository}.git"|"ssh://git@github.com/${repository}.git") ;;
+          *) fail 'The origin remote does not match GITHUB_REPOSITORY.' ;;
+        esac
+
+        echo "::add-mask::$token"
+        credential="$(printf 'x-access-token:%s' "$token" | base64 | tr -d '\r\n')"
+        echo "::add-mask::$credential"
+        readonly auth_header="AUTHORIZATION: basic $credential"
+
+        git_remote() {
+          GIT_CONFIG_COUNT=1 \
+            GIT_CONFIG_KEY_0=http.extraheader \
+            GIT_CONFIG_VALUE_0="$auth_header" \
+            git -C "$root" "$@"
+        }
+
+        remote_sha() {
+          local ref="$1"
+          local output
+          output="$(git_remote ls-remote -- "$remote" "$ref")" ||
+            fail 'Could not inspect a remote branch.'
+          if [[ "$(grep -c . <<< "$output")" -gt 1 ]]; then
+            fail 'The remote returned several matching branches.'
+          fi
+          awk 'NR == 1 { print $1 }' <<< "$output"
+        }
+
+        readonly default_ref="refs/heads/$default_branch"
+        readonly branch_ref="refs/heads/$branch"
+        if [[ "$(remote_sha "$default_ref")" != "$sha" ]]; then
+          fail 'The remote default branch moved before reconciliation.'
+        fi
+        branch_before="$(remote_sha "$branch_ref")"
+        if [[ -n "$branch_before" ]]; then
+          git_remote fetch --no-tags "$remote" "$branch_ref" ||
+            fail 'Could not preserve the existing reconciliation branch.'
+          if ! git -C "$root" cat-file -e "${branch_before}^{commit}" 2>/dev/null; then
+            fail 'The existing reconciliation branch is not a commit.'
+          fi
+        fi
+
+        runner_temp="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
+        state_file="$(mktemp "${runner_temp%/}/frog-state.XXXXXX")" ||
+          fail 'Could not create the state file.'
+        oidc_audience="$(jq -rn --arg value "$audience" '$value | @uri')"
+        oidc_separator='?'
+        if [[ "$ACTIONS_ID_TOKEN_REQUEST_URL" == *'?'* ]]; then oidc_separator='&'; fi
+        oidc_response="$(
+          curl \
+            --fail-with-body \
+            --max-time 30 \
+            --proto '=https' \
+            --silent \
+            --show-error \
+            --tlsv1.2 \
+            --header "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}${oidc_separator}audience=${oidc_audience}"
+        )" || fail 'Could not request the Actions identity token.'
+        oidc_token="$(jq -er '.value | select(type == "string" and length > 0)' <<< "$oidc_response")" ||
+          fail 'The Actions identity response is invalid.'
+        echo "::add-mask::$oidc_token"
+
+        curl \
+          --fail-with-body \
+          --max-filesize 1048576 \
+          --max-time 60 \
+          --proto '=https' \
+          --request POST \
+          --silent \
+          --show-error \
+          --tlsv1.2 \
+          --header 'Accept: application/json' \
+          --header "Authorization: Bearer $oidc_token" \
+          --output "$state_file" \
+          "$broker" ||
+          fail 'Could not read reconciliation state from the Frog App.'
+        if [[ ! -s "$state_file" ]]; then fail 'The Frog App returned an empty state file.'; fi
+        unset ACTIONS_ID_TOKEN_REQUEST_TOKEN ACTIONS_ID_TOKEN_REQUEST_URL
+
+        frog_command="$FROG_INPUT_COMMAND"
+        if [[ -n "$frog_command" ]]; then
+          if [[ "$frog_command" == */* && "$frog_command" != /* ]]; then
+            frog_command="$workspace/$frog_command"
+          elif [[ "$frog_command" != */* ]]; then
+            frog_command="$(command -v "$frog_command" || true)"
+          fi
+          if [[ ! -x "$frog_command" ]]; then
+            fail 'command must name an executable Frog binary.'
+          fi
+        else
+          install_root="$(mktemp -d "${runner_temp%/}/frog-reconcile.XXXXXX")" ||
+            fail 'Could not create the isolated Frog installation directory.'
+          npm install \
+            --prefix "$install_root" \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            --no-package-lock \
+            --no-save \
+            "frog@$FROG_INPUT_VERSION" ||
+            fail "Could not install frog@$FROG_INPUT_VERSION."
+          frog_command="$install_root/node_modules/.bin/frog"
+          if [[ ! -x "$frog_command" ]]; then
+            fail 'The installed Frog executable is missing.'
+          fi
+        fi
+
+        git -C "$root" config --local user.name 'github-actions[bot]' ||
+          fail 'Could not configure git user.name.'
+        git -C "$root" config --local user.email \
+          '41898282+github-actions[bot]@users.noreply.github.com' ||
+          fail 'Could not configure git user.email.'
+        git -C "$root" checkout --quiet --detach "$sha" ||
+          fail 'Could not detach the checkout at GITHUB_SHA.'
+
+        sync_status=0
+        sync_output="$(
+          "$frog_command" sync \
+            --cwd "$root" \
+            --state "$state_file" \
+            --no-commit \
+            --json \
+            --full-output
+        )" || sync_status=$?
+        echo '::group::frog sync'
+        printf '%s\n' "$sync_output"
+        echo '::endgroup::'
+        write_multiline_output sync "$sync_output"
+        if [[ "$sync_status" != '0' ]] ||
+          ! jq -e '.ok == true and (.data.deferred | type == "array")' \
+            >/dev/null 2>&1 <<< "$sync_output"; then
+          fail 'Frog reconciliation failed. The existing pull-request branch was preserved.'
+        fi
+        if [[ "$(git -C "$root" rev-parse HEAD)" != "$sha" ]]; then
+          fail 'Frog changed git history. The existing pull-request branch was preserved.'
+        fi
+
+        git -C "$root" add -A -- .agents/friction-log
+        if ! git -C "$root" diff --quiet; then
+          fail 'Frog changed a tracked path outside the friction log.'
+        fi
+        if [[ -n "$(git -C "$root" ls-files --others --exclude-standard)" ]]; then
+          fail 'Frog created an untracked path outside the friction log.'
+        fi
+
+        validate_diff() {
+          local meta old_mode new_mode old_sha new_sha status path next
+          while IFS= read -r -d '' meta; do
+            read -r old_mode new_mode old_sha new_sha status <<< "${meta#:}"
+            IFS= read -r -d '' path || return 1
+            case "$status" in
+              R*|C*)
+                IFS= read -r -d '' next || return 1
+                return 1
+                ;;
+              A)
+                [[ "$old_mode" == '000000' && "$new_mode" == '100644' ]] || return 1
+                [[ "$path" == '.agents/friction-log/.sync.json' ||
+                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/friction\.md$ ]] || return 1
+                ;;
+              M)
+                [[ "$old_mode" == '100644' && "$new_mode" == '100644' ]] || return 1
+                [[ "$path" == '.agents/friction-log/.sync.json' ||
+                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/friction\.md$ ]] || return 1
+                ;;
+              D)
+                [[ "$old_mode" == '100644' && "$new_mode" == '000000' ]] || return 1
+                [[ "$path" == '.agents/friction-log/.sync.json' ||
+                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/friction\.md$ ||
+                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/artifacts/.+$ ]] || return 1
+                ;;
+              *) return 1 ;;
+            esac
+          done
+        }
+
+        if ! validate_diff < <(
+          git -C "$root" diff --cached --raw -z --no-abbrev -M "$sha"
+        ); then
+          fail 'Frog produced an unsafe repository change.'
+        fi
+
+        complete="$(
+          jq -er '.complete | if type == "boolean" then tostring else error("boolean") end' \
+            "$state_file"
+        )" ||
+          fail 'The Frog App state does not declare whether it is complete.'
+        deferred="$(jq -r '.data.deferred | length' <<< "$sync_output")"
+        if [[ "$complete" != 'true' || "$deferred" != '0' ]]; then
+          echo '::warning::Frog deferred reconciliation, preserving the existing pull-request branch.'
+          exit 0
+        fi
+
+        changed='false'
+        if ! git -C "$root" diff --cached --quiet; then
+          changed='true'
+          git -C "$root" \
+            -c commit.gpgSign=false \
+            -c core.hooksPath=/dev/null \
+            commit --no-verify --message 'chore: sync friction log' ||
+            fail 'Could not commit the reconciled friction log.'
+        fi
+        if [[ -n "$(git -C "$root" status --porcelain=v1 --untracked-files=all)" ]]; then
+          fail 'The repository is not clean after reconciliation.'
+        fi
+        if [[ "$changed" == 'true' ]]; then
+          if [[ "$(git -C "$root" rev-list --count "$sha..HEAD")" != '1' ]] ||
+            [[ "$(git -C "$root" rev-parse HEAD^)" != "$sha" ]]; then
+            fail 'Reconciliation produced unexpected git history.'
+          fi
+          if ! validate_diff < <(
+            git -C "$root" diff --raw -z --no-abbrev -M "$sha" HEAD
+          ); then
+            fail 'The reconciliation commit contains an unsafe change.'
+          fi
+        elif [[ "$(git -C "$root" rev-parse HEAD)" != "$sha" ]]; then
+          fail 'Reconciliation produced unexpected git history.'
+        fi
+
+        if [[ "$(git -C "$root" config --get "remote.${remote}.url")" != "$origin_url" ]]; then
+          fail 'The origin remote changed during reconciliation.'
+        fi
+        if [[ "$(remote_sha "$default_ref")" != "$sha" ]]; then
+          fail 'The remote default branch moved during reconciliation.'
+        fi
+
+        target_sha="$(git -C "$root" rev-parse HEAD)"
+        if [[ "$target_sha" == "$sha" && -z "$branch_before" ]]; then
+          exit 0
+        fi
+
+        pr_number="$(
+          GH_TOKEN="$token" gh pr list \
+            --repo "$repository" \
+            --base "$default_branch" \
+            --state open \
+            --json number,headRefName,headRepository,headRepositoryOwner |
+            jq -er \
+              --arg branch "$branch" \
+              --arg owner "${repository%%/*}" \
+              --arg repo "$repository" '
+                [
+                  .[]
+                  | select(
+                      .headRefName == $branch and
+                      .headRepository.nameWithOwner == $repo and
+                      .headRepositoryOwner.login == $owner
+                    )
+                ]
+                | if length > 1 then error("several pull requests") else .[0].number // "" end
+              '
+        )" || fail 'Could not inspect the reconciliation pull request.'
+
+        body_file=''
+        if [[ "$target_sha" != "$sha" ]]; then
+          body_file="$(mktemp "${runner_temp%/}/frog-body.XXXXXX")" ||
+            fail 'Could not create the pull-request body.'
+          printf '%s\n' \
+            'Opened by the [Frog](https://github.com/wevm/frog) reconciliation action.' \
+            > "$body_file"
+        fi
+        git_remote push \
+          "--force-with-lease=${branch_ref}:${branch_before}" \
+          -- "$remote" "HEAD:${branch_ref}" ||
+          fail 'Could not update frog/sync. The remote branch changed or rejected the push.'
+        if [[ "$(remote_sha "$branch_ref")" != "$target_sha" ]]; then
+          fail 'The remote reconciliation branch does not match the validated commit.'
+        fi
+
+        rollback() {
+          local current
+          current="$(remote_sha "$branch_ref")"
+          if [[ "$current" != "$target_sha" ]]; then return 1; fi
+          if [[ -n "$branch_before" ]]; then
+            git_remote push \
+              "--force-with-lease=${branch_ref}:${target_sha}" \
+              -- "$remote" "${branch_before}:${branch_ref}"
+          else
+            git_remote push \
+              "--force-with-lease=${branch_ref}:${target_sha}" \
+              --delete -- "$remote" "$branch"
+          fi
+        }
+
+        if [[ "$target_sha" != "$sha" ]]; then
+          if [[ -n "$pr_number" ]]; then
+            if ! GH_TOKEN="$token" gh pr edit "$pr_number" \
+              --repo "$repository" \
+              --title 'chore: sync friction log' \
+              --body-file "$body_file"; then
+              rollback || true
+              fail 'Could not update the reconciliation pull request.'
+            fi
+          else
+            if ! pr_url="$(
+              GH_TOKEN="$token" gh pr create \
+                --repo "$repository" \
+                --base "$default_branch" \
+                --head "$branch" \
+                --title 'chore: sync friction log' \
+                --body-file "$body_file"
+            )"; then
+              rollback || true
+              fail 'Could not create the reconciliation pull request.'
+            fi
+            if ! GH_TOKEN="$token" gh pr view "$pr_url" \
+              --repo "$repository" \
+              --json baseRefName,headRefName,headRepository,headRepositoryOwner |
+              jq -e \
+                --arg base "$default_branch" \
+                --arg branch "$branch" \
+                --arg owner "${repository%%/*}" \
+                --arg repo "$repository" '
+                  .baseRefName == $base and
+                  .headRefName == $branch and
+                  .headRepository.nameWithOwner == $repo and
+                  .headRepositoryOwner.login == $owner
+                ' >/dev/null; then
+              rollback || true
+              fail 'The created pull request does not use the repository-owned branch.'
+            fi
+          fi
+        fi

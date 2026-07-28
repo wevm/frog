@@ -7,19 +7,17 @@ url: https://github.com/wevm/frog
 public: true
 
 default_events:
-  # Files what a pull request introduces, and reports back on it.
+  # Reports what a pull request introduces, and comments with the result.
   - pull_request
-  # Writes the issue link back once the work lands.
-  - push
-  # Deletes an entry when its issue closes, rebuilds it when it reopens.
+  # Wakes the repository-owned workflow when a linked issue closes or reopens.
   - issues
 
 default_permissions:
-  # Commits the issue link, and deletes an entry whose issue closed.
-  contents: write
+  # Reads config and friction reports. Repository-owned Actions make every commit.
+  contents: read
   # Files issues, and comments on the one already covering a friction.
   issues: write
   # Reads repository metadata, including the default branch.
   metadata: read
-  # Posts the single comment kept on a pull request.
-  pull_requests: write
+  # Receives pull request events. Comments use the Issues permission.
+  pull_requests: read

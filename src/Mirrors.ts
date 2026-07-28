@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import * as Entry from './Entry.js'
 import * as Github from './Github.js'
 import * as Store from './Store.js'
 
@@ -8,8 +9,20 @@ export const file = `${Store.dir}/.sync.json`
 
 /** A deleted local mirror that can be restored if its issue reopens. */
 export type Mirror = {
+  /**
+   * Canonical serialized entry contents captured before deletion.
+   *
+   * Present together with `occurrence`, absent on journals written before snapshots were introduced.
+   */
+  contents?: string | undefined
   /** Issue the entry mirrored, as `owner/name#number`. */
   issue: string
+  /**
+   * Stable 64-character occurrence digest for the captured entry.
+   *
+   * Present together with `contents`, absent on journals written before snapshots were introduced.
+   */
+  occurrence?: string | undefined
   /** Canonical path of the deleted entry write-up. */
   path: string
 }
@@ -37,13 +50,30 @@ function valid(mirror: unknown): mirror is Mirror {
   if (typeof value.issue !== 'string' || !Github.parseLink(value.issue)) return false
   if (typeof value.path !== 'string') return false
   const id = Store.toId(value.path)
-  return Boolean(id && Store.toPath(id) === value.path)
+  if (!id || Store.toPath(id) !== value.path) return false
+
+  const snapshot = value.occurrence !== undefined || value.contents !== undefined
+  if (!snapshot) return true
+  if (
+    typeof value.occurrence !== 'string' ||
+    !/^[0-9a-f]{64}$/.test(value.occurrence) ||
+    typeof value.contents !== 'string'
+  )
+    return false
+
+  const entry = parse(value.contents, { id })
+  return Boolean(entry && entry.issue === value.issue && Entry.serialize(entry) === value.contents)
 }
 
 function normalize(mirrors: readonly Mirror[]): readonly Mirror[] {
-  return [...new Map(mirrors.map((mirror) => [key(mirror), mirror])).values()].sort((a, b) =>
-    key(a).localeCompare(key(b)),
-  )
+  return [...new Map(mirrors.map((mirror) => [key(mirror), mirror])).values()]
+    .map((mirror) => ({
+      ...(mirror.contents === undefined ? {} : { contents: mirror.contents }),
+      issue: mirror.issue,
+      ...(mirror.occurrence === undefined ? {} : { occurrence: mirror.occurrence }),
+      path: mirror.path,
+    }))
+    .sort((a, b) => key(a).localeCompare(key(b)))
 }
 
 /**
@@ -65,7 +95,37 @@ export function from(value: unknown): State {
 
 /** Deterministic on-disk representation. */
 export function serialize(state: State): string {
-  return `${JSON.stringify({ version: 1, mirrors: normalize(state.mirrors) }, null, 2)}\n`
+  const validated = from({ mirrors: state.mirrors, version: 1 })
+  return `${JSON.stringify(validated, null, 2)}\n`
+}
+
+/**
+ * Recovers the repository-owned entry captured by a snapshot mirror.
+ *
+ * Legacy mirrors have no contents and resolve to `undefined`.
+ */
+export function toEntry(mirror: Mirror): Entry.Entry | undefined {
+  if (
+    mirror.contents === undefined ||
+    mirror.occurrence === undefined ||
+    !/^[0-9a-f]{64}$/.test(mirror.occurrence)
+  )
+    return undefined
+
+  const id = Store.toId(mirror.path)
+  if (!id) return undefined
+  const entry = parse(mirror.contents, { id })
+  if (!entry || entry.issue !== mirror.issue || Entry.serialize(entry) !== mirror.contents)
+    return undefined
+  return entry
+}
+
+function parse(contents: string, options: Entry.parse.Options): Entry.Entry | undefined {
+  try {
+    return Entry.parse(contents, options)
+  } catch {
+    return undefined
+  }
 }
 
 /** Adds and removes exact mirror records. */

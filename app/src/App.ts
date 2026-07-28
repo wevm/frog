@@ -1,7 +1,6 @@
 import { App, type Octokit } from 'octokit'
 import { issues } from './handlers/issues.js'
 import { pullRequest } from './handlers/pullRequest.js'
-import { push } from './handlers/push.js'
 import * as serialization from './internal/serialize.js'
 
 /**
@@ -13,7 +12,7 @@ import * as serialization from './internal/serialize.js'
  * Handlers are allowed to throw. A delivery claim completes only after the handler succeeds, and replay
  * markers keep a repeated external mutation from duplicating an issue or comment.
  */
-export function create(options: create.Options): App {
+export function runtime(options: create.Options): Runtime {
   const { appId, coordinator, privateKey, registry, secret } = options
 
   const app = new App({ appId, privateKey, webhooks: { secret } })
@@ -37,12 +36,13 @@ export function create(options: create.Options): App {
     }
   }
 
-  /** This App's own bot login, for ignoring its own pushes. */
+  /** This App's bot login, used to trust only App-owned issues and comments. */
   let identity: string | undefined
-  async function self(): Promise<string | undefined> {
+  async function self(): Promise<string> {
     if (identity) return identity
-    const authenticated = await app.octokit.rest.apps.getAuthenticated().catch(() => undefined)
-    identity = authenticated?.data?.slug ? `${authenticated.data.slug}[bot]` : undefined
+    const authenticated = await app.octokit.rest.apps.getAuthenticated()
+    if (!authenticated.data?.slug) throw new Error('The GitHub App has no slug.')
+    identity = `${authenticated.data.slug}[bot]`
     return identity
   }
 
@@ -53,13 +53,12 @@ export function create(options: create.Options): App {
     async ({ id, octokit, payload }) => {
       const author = payload.pull_request.user?.login
       await pullRequest({
+        app: await self(),
         ...(author ? { actor: `@${author}` } : {}),
         base: payload.repository.full_name,
         baseRef: payload.pull_request.base.ref,
         client: octokit,
         head: payload.pull_request.head.sha,
-        headRef: payload.pull_request.head.ref,
-        headRepo: payload.pull_request.head.repo?.full_name ?? null,
         installation,
         pr: payload.number,
         ...(registry ? { registry } : {}),
@@ -68,50 +67,48 @@ export function create(options: create.Options): App {
     },
   )
 
-  app.webhooks.on('push', async ({ id, octokit, payload }) => {
-    const branch = payload.repository.default_branch
-    // Only the default branch: a topic branch's entries are handled as a pull request.
-    if (payload.ref !== `refs/heads/${branch}`) return
-
-    // Skipping our own push saves a round trip on every commit this App makes. The write-back
-    // terminates either way.
-    if (payload.sender?.login && payload.sender.login === (await self())) return
-
-    await push({
-      branch,
+  app.webhooks.on(['issues.closed', 'issues.reopened'], async ({ id, octokit, payload }) => {
+    const hydrated = payload.issue as typeof payload.issue & { author?: string | undefined }
+    const author = hydrated.author ?? payload.issue.user?.login
+    await issues({
+      app: await self(),
       client: octokit,
+      delivery: id,
       installation,
+      issue: {
+        ...(author ? { author } : {}),
+        body: payload.issue.body,
+        // The delivered array can hold nulls.
+        labels: (payload.issue.labels ?? []).filter(
+          (label): label is NonNullable<typeof label> => label !== null,
+        ),
+        number: payload.issue.number,
+        // Taken from the action rather than the payload field, which is optional in the delivered
+        // shape.
+        state: payload.action === 'closed' ? 'closed' : 'open',
+        title: payload.issue.title,
+      },
       repo: payload.repository.full_name,
-      ...(registry ? { registry } : {}),
       serialize: serialize(id),
     })
   })
 
-  app.webhooks.on(
-    ['issues.closed', 'issues.edited', 'issues.reopened'],
-    async ({ id, octokit, payload }) => {
-      await issues({
-        client: octokit,
-        installation,
-        issue: {
-          body: payload.issue.body,
-          // The delivered array can hold nulls.
-          labels: (payload.issue.labels ?? []).filter(
-            (label): label is NonNullable<typeof label> => label !== null,
-          ),
-          number: payload.issue.number,
-          // Taken from the action rather than the payload field, which is optional in the delivered
-          // shape.
-          state: payload.action === 'closed' ? 'closed' : 'open',
-          title: payload.issue.title,
-        },
-        repo: payload.repository.full_name,
-        serialize: serialize(id),
-      })
-    },
-  )
+  return { app, installation, self }
+}
 
-  return app
+/** Builds the Octokit App used by tests and webhook-only consumers. */
+export function create(options: create.Options): App {
+  return runtime(options).app
+}
+
+/** App instance plus the authenticated operations used outside webhook dispatch. */
+export type Runtime = {
+  /** Registered Octokit App. */
+  app: App
+  /** Resolves an installation client for one repository. */
+  installation: (repo: string) => Promise<Octokit | undefined>
+  /** Authenticated bot login. */
+  self: () => Promise<string>
 }
 
 export declare namespace create {
