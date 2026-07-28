@@ -247,52 +247,10 @@ test('behavior: a severity-only edit updates the original issue', async () => {
       ],
     },
     {
-      files: { [base]: { [path]: entry(previous.title) } },
-      head: { [base]: { [path]: entry(previous.title, { severity: 'major' }) } },
-    },
-  )
-
-  const report = await run(instance.url)
-
-  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
-  expect(Github.parseMarker(instance.issues.get(base)?.[0]?.body)?.severity).toBe('major')
-  expect(instance.comments(base, 1)).toEqual([])
-})
-
-test('behavior: renaming a report frees its old title for a new entry', async () => {
-  const path = `${dir}/a/friction.md`
-  const previous = {
-    body: 'The filter was swallowed.',
-    id: 'a',
-    severity: 'minor',
-    title: 'Filters ignored',
-  } as const
-  const instance = await github(
-    {
-      [base]: [
-        {
-          body: Github.renderBody({
-            body: previous.body,
-            marker: {
-              hash: Github.hash(previous.title),
-              origin: base,
-              path,
-              severity: previous.severity,
-            },
-            occurrence: Github.occurrence({ entry: previous, origin: base }),
-            report: Github.report({ entry: previous, origin: base }),
-            revision: Github.revision({ entry: previous, origin: base }),
-          }),
-          title: previous.title,
-        },
-      ],
-    },
-    {
-      files: { [base]: { [path]: entry(previous.title) } },
+      files: { [base]: { [path]: entry(previous.title, { issue: `${base}#1` }) } },
       head: {
         [base]: {
-          [path]: entry('Filters renamed'),
-          [`${dir}/b/friction.md`]: entry(previous.title),
+          [path]: entry(previous.title, { issue: `${base}#1`, severity: 'major' }),
         },
       },
     },
@@ -300,16 +258,69 @@ test('behavior: renaming a report frees its old title for a new entry', async ()
 
   const report = await run(instance.url)
 
-  expect(report.created).toEqual([
-    { id: 'a', issue: `${base}#1` },
-    { id: 'b', issue: `${base}#2` },
-  ])
-  expect(instance.issues.get(base)?.map((issue) => issue.title)).toEqual([
-    'Filters renamed',
-    'Filters ignored',
-  ])
+  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(report.linked).toEqual([])
+  expect(Github.parseMarker(instance.issues.get(base)?.[0]?.body)?.severity).toBe('major')
   expect(instance.comments(base, 1)).toEqual([])
 })
+
+test.each([
+  ['pending', {}],
+  ['linked', { issue: `${base}#1` }],
+] as const)(
+  'behavior: renaming a %s report frees its old title for a new entry',
+  async (_, link) => {
+    const path = `${dir}/a/friction.md`
+    const previous = {
+      body: 'The filter was swallowed.',
+      id: 'a',
+      severity: 'minor',
+      title: 'Filters ignored',
+    } as const
+    const instance = await github(
+      {
+        [base]: [
+          {
+            body: Github.renderBody({
+              body: previous.body,
+              marker: {
+                hash: Github.hash(previous.title),
+                origin: base,
+                path,
+                severity: previous.severity,
+              },
+              occurrence: Github.occurrence({ entry: previous, origin: base }),
+              report: Github.report({ entry: previous, origin: base }),
+              revision: Github.revision({ entry: previous, origin: base }),
+            }),
+            title: previous.title,
+          },
+        ],
+      },
+      {
+        files: { [base]: { [path]: entry(previous.title, link) } },
+        head: {
+          [base]: {
+            [path]: entry('Filters renamed', link),
+            [`${dir}/b/friction.md`]: entry(previous.title),
+          },
+        },
+      },
+    )
+
+    const report = await run(instance.url)
+
+    expect(report.created).toEqual([
+      { id: 'a', issue: `${base}#1` },
+      { id: 'b', issue: `${base}#2` },
+    ])
+    expect(instance.issues.get(base)?.map((issue) => issue.title)).toEqual([
+      'Filters renamed',
+      'Filters ignored',
+    ])
+    expect(instance.comments(base, 1)).toEqual([])
+  },
+)
 
 test('behavior: an edited entry updates once', async () => {
   const instance = await github(
@@ -388,6 +399,36 @@ test('behavior: an already-linked entry is listed, not filed again', async () =>
     linked: [{ id: 'a', issue: `${base}#1` }],
   })
   expect(instance.issues.get(base)).toHaveLength(1)
+})
+
+test('security: a linked edit does not replace a missing issue', async () => {
+  const path = `${dir}/a/friction.md`
+  const issue = `${base}#99`
+  const instance = await github(
+    {},
+    {
+      files: { [base]: { [path]: entry('Filters ignored', { issue }) } },
+      head: {
+        [base]: { [path]: entry('Filters ignored', { issue, severity: 'major' }) },
+      },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report).toMatchObject({
+    commented: [],
+    created: [],
+    deferred: [
+      {
+        code: 'LINK_INVALID',
+        id: 'a',
+        reason: `The linked issue \`${issue}\` is missing or does not carry this Frog report.`,
+      },
+    ],
+    linked: [],
+  })
+  expect(instance.issues.get(base)).toBeUndefined()
 })
 
 test('behavior: a malformed entry is reported without stopping the rest', async () => {
@@ -503,6 +544,74 @@ describe('cross-repo', () => {
     expect(Github.parseMarker(instance.issues.get(upstream)?.[0]?.body)).toMatchObject({
       origin: base,
     })
+  })
+
+  test('behavior: linked edits keep their established destination', async () => {
+    const alternate = 'wevm/ox'
+    const path = `${dir}/a/friction.md`
+    const previous = {
+      body: 'The filter was swallowed.',
+      id: 'a',
+      issue: `${upstream}#1`,
+      severity: 'minor',
+      target: 'viem',
+      title: 'Upstream friction',
+    } as const
+    const instance = await github(
+      {
+        [upstream]: [
+          {
+            body: Github.renderBody({
+              body: previous.body,
+              marker: {
+                hash: Github.hash(previous.title),
+                origin: base,
+                path,
+                severity: previous.severity,
+              },
+              occurrence: Github.occurrence({ entry: previous, origin: base }),
+              report: Github.report({ entry: previous, origin: base }),
+              revision: Github.revision({ entry: previous, origin: base }),
+            }),
+            title: previous.title,
+          },
+        ],
+      },
+      {
+        files: {
+          [base]: {
+            [path]: entry(previous.title, { issue: previous.issue, target: previous.target }),
+          },
+          [alternate]: {
+            [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }),
+          },
+          [upstream]: {
+            [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }),
+          },
+        },
+        head: {
+          [base]: {
+            [path]: entry(previous.title, {
+              issue: previous.issue,
+              severity: 'major',
+              target: 'ox',
+            }),
+          },
+        },
+        packages: { ox: alternate, viem: upstream },
+      },
+    )
+
+    const report = await run(instance.url, {
+      installed: {
+        [alternate]: client(instance.url),
+        [upstream]: client(instance.url),
+      },
+    })
+
+    expect(report.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
+    expect(Github.parseMarker(instance.issues.get(upstream)?.[0]?.body)?.severity).toBe('major')
+    expect(instance.issues.get(alternate)).toBeUndefined()
   })
 
   // No installation on the receiver means no token, so GitHub itself prevents the filing.
