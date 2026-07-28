@@ -89,10 +89,16 @@ test('behavior: scaffolds the directory', async () => {
 })
 
 test.each([
-  ['pnpx frog', 'pnpm/11.0.0 npm/? node/v24'],
-  ['bunx frog', 'bun/1.2.0 npm/? node/v24'],
-])('behavior: uses the %s runner in generated guidance', async (command, userAgent) => {
+  ['pnpx frog', 'npm/11.0.0 node/v24', 'pnpm@11.15.0'],
+  ['bunx frog', 'bun/1.2.0 npm/? node/v24', undefined],
+])('behavior: uses the %s runner in generated guidance', async (command, userAgent, manager) => {
   const cwd = await helpers.repo()
+  if (manager)
+    await fs.writeFile(
+      path.join(cwd, 'package.json'),
+      JSON.stringify({ packageManager: manager }),
+      'utf8',
+    )
 
   const { envelope } = await cli.run(['--format', 'json', 'init', '--cwd', cwd], {
     npm_config_user_agent: userAgent,

@@ -1,6 +1,9 @@
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
+import * as helpers from '../../../test/helpers.js'
 import * as packageManager from './packageManager.js'
 
-describe('current', () => {
+describe('resolve', () => {
   test.each([
     [{ npm_config_user_agent: 'npm/11.0.0 node/v24' }, 'npx frog'],
     [{ npm_config_user_agent: 'pnpm/11.0.0 npm/? node/v24' }, 'pnpx frog'],
@@ -24,7 +27,32 @@ describe('current', () => {
     ],
     [{ npm_execpath: '/home/bunny/.nvm/npm-cli.js' }, 'npx frog'],
     [{}, 'npx frog'],
-  ])('behavior: resolves the invoking package manager', (env, expected) => {
-    expect(packageManager.current({ env })).toBe(expected)
+  ])('behavior: resolves the invoking package manager', async (env, expected) => {
+    expect(await packageManager.resolve({ env })).toBe(expected)
+  })
+
+  test('behavior: prefers the project package manager', async () => {
+    const root = await helpers.tmpdir()
+    await fs.writeFile(
+      path.join(root, 'package.json'),
+      JSON.stringify({ packageManager: 'pnpm@11.15.0' }),
+      'utf8',
+    )
+
+    expect(
+      await packageManager.resolve({
+        env: { npm_config_user_agent: 'npm/11.0.0 node/v24' },
+        root,
+      }),
+    ).toBe('pnpx frog')
+  })
+
+  test('behavior: falls back to the invoking package manager', async () => {
+    expect(
+      await packageManager.resolve({
+        env: { npm_config_user_agent: 'bun/1.2.0 npm/? node/v24' },
+        root: await helpers.tmpdir(),
+      }),
+    ).toBe('bunx frog')
   })
 })

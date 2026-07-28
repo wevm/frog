@@ -132,7 +132,7 @@ export const init = Cli.create('init', {
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
-    const command = packageManager.current({ env: c.env })
+    const command = await packageManager.resolve({ env: c.env, root })
     const guidelines = rules({ command })
 
     const files = [
