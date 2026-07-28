@@ -66,9 +66,7 @@ Run once per repository:
 npx frog init
 ```
 
-Frog detects the repository's package manager and installs itself globally with npm, pnpm, Yarn Classic,
-or Bun before scaffolding the friction log. Yarn Modern falls back to npm because it no longer supports
-global installs.
+Frog detects the repository's package manager and installs itself globally.
 
 Use `--no-global` only when `frog` is already available another way:
 
@@ -200,7 +198,7 @@ frog — Automated friction logging for agents.
 Usage: frog <command>
 
 Commands:
-  init     Create the friction log, config, and issue form.
+  init     Initializes Frog in a project.
   list     List entries with their state.
   log      Write a friction entry.
   publish  Report pending entries as GitHub issues.
