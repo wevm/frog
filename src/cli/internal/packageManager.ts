@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import * as path from 'node:path'
 
 type Environment = {
@@ -5,6 +6,10 @@ type Environment = {
   npm_config_user_agent?: string | undefined
   /** Package-manager executable path. */
   npm_execpath?: string | undefined
+}
+
+type Manifest = {
+  packageManager?: string | undefined
 }
 
 type Manager = 'bun' | 'npm' | 'pnpm' | 'yarn'
@@ -27,16 +32,24 @@ const managers = {
   yarnpkg: 'yarn',
 } as const satisfies Record<string, Manager>
 
-/** Returns the Frog command for the invoking package manager. */
-export function current(options: current.Options = {}) {
-  return commands[fromEnvironment(options.env ?? process.env) ?? 'npm']
+/** Returns the Frog command for the project package manager, falling back to the invoking manager. */
+export async function resolve(options: resolve.Options = {}) {
+  const manager = options.root
+    ? await fs
+        .readFile(path.join(options.root, 'package.json'), 'utf8')
+        .then((contents) => fromIdentifier((JSON.parse(contents) as Manifest).packageManager))
+        .catch(() => undefined)
+    : undefined
+  return commands[manager ?? fromEnvironment(options.env ?? process.env) ?? 'npm']
 }
 
-export declare namespace current {
-  /** Options for selecting a package-manager runner. */
+export declare namespace resolve {
+  /** Options for selecting a project's Frog runner. */
   type Options = {
-    /** Environment used to identify the invoking package manager. */
+    /** Environment used when the project does not declare a package manager. */
     env?: Environment | undefined
+    /** Repository root that may hold a `package.json`. */
+    root?: string | undefined
   }
 }
 
@@ -49,7 +62,7 @@ function fromEnvironment(env: Environment | undefined): Manager | undefined {
 function fromIdentifier(value: string | undefined): Manager | undefined {
   if (!value) return undefined
   const name = value
-    .split('/', 1)[0]
+    .split(/[/@]/, 1)[0]
     ?.replace(/\.(?:c|m)?js$/i, '')
     .toLowerCase()
   if (!name) return undefined
