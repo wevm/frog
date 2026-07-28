@@ -19,5 +19,5 @@ default_permissions:
   issues: write
   # Reads repository metadata, including the default branch.
   metadata: read
-  # Receives pull request events. Comments use the Issues permission.
+  # Receives pull request events and reads comments before updating them.
   pull_requests: read

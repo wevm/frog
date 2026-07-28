@@ -6,7 +6,7 @@ type Authentication = { token: string }
 /**
  * Creates a client for pull-request comments without merge-capable Pull Requests write access.
  *
- * The token is limited to one repository and GitHub's documented Issues write alternative.
+ * The token can read pull requests and write issue comments in one repository.
  */
 export async function comments(
   app: Pick<App, 'octokit'>,
@@ -14,7 +14,10 @@ export async function comments(
 ): Promise<Octokit> {
   const authentication = (await app.octokit.auth({
     installationId: options.installation,
-    permissions: { issues: 'write' },
+    permissions: {
+      issues: 'write',
+      pull_requests: 'read',
+    },
     repositoryNames: [Github.split(options.repo).repo],
     type: 'installation',
   })) as Authentication

@@ -102,7 +102,7 @@ export declare namespace pullRequest {
     baseRef: string
     /** Installation client for the base repository. */
     client: Octokit
-    /** Lazily resolves an Issues-scoped client for pull-request comments. */
+    /** Lazily resolves a repository-scoped client for pull-request comments. */
     comments: () => Promise<Octokit>
     /** Head commit sha, reachable from the base repository even for a fork. */
     head: string
