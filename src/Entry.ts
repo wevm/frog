@@ -210,8 +210,8 @@ export type Section = {
  * Nothing enforces these. Expected and current behavior are separate prompts because friction is the
  * gap between the two.
  *
- * Held as data because the entry scaffold and the issue form `frog init` publishes must ask the same
- * questions.
+ * Held as data because the entry scaffold and the issue form `pnpx frog init` publishes must ask the
+ * same questions.
  */
 export const sections: readonly Section[] = [
   {

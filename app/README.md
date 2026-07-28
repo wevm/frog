@@ -120,7 +120,7 @@ The `Main` workflow creates the queues, deploys the Worker, and syncs its secret
 4. **Install the App** on repositories that record friction and repositories that receive
    cross-repository reports.
 
-5. **Run `frog init`** in each source repository and add the GitHub App workflow from the root
+5. **Run `npx frog init`** in each source repository and add the GitHub App workflow from the root
    [`README.md`](../README.md). Enable Actions-created pull requests in the repository settings.
 
 Deploying manually still works through `pnpm deploy`. Create the queues first:

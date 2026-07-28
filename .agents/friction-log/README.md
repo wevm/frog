@@ -18,11 +18,11 @@ remembering to.
 ## Logging Friction
 
 ```sh
-frog list    # what is already known
-frog log     # add one
+pnpx frog list    # what is already known
+pnpx frog log     # add one
 ```
 
-`frog log` writes the sections to fill in. Each id is when the friction was hit plus its title, so
+`pnpx frog log` writes the sections to fill in. Each id is when the friction was hit plus its title, so
 the directory reads oldest-first.
 
 Put anything that reproduces the friction in that entry's `artifacts/` and reference it from the
@@ -32,6 +32,6 @@ write-up, so the next reader runs the reproduction instead of rebuilding it.
 
 Add this to `AGENTS.md`:
 
-> Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with `frog log`. Run `frog list` first to see what is already known.
+> Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with `pnpx frog log`. Run `pnpx frog list` first to see what is already known.
 
 Managed by [Frog](https://github.com/wevm/frog).

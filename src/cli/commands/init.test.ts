@@ -39,14 +39,14 @@ test('behavior: scaffolds the directory', async () => {
 
     Add this to \`AGENTS.md\` under the appropriate section:
 
-    - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`frog log\`.
+    - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`npx frog log\`.
     - Do not add global, system, or internal friction.
-    - Run \`frog list\` first to see what is already known.
+    - Run \`npx frog list\` first to see what is already known.
 
     Then:"
   `)
   expect(cta?.commands?.[0]).toEqual({
-    command: 'frog log',
+    command: 'npx frog log',
     description: 'Write the first entry',
   })
   const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
@@ -60,6 +60,9 @@ test('behavior: scaffolds the directory', async () => {
   expect(readme).not.toContain('uses: wevm/frog/action@v1')
   expect(readme).toContain('## Logging Friction')
   expect(readme).toContain('## For Agents')
+  expect(readme).toContain('npx frog list')
+  expect(readme).toContain('npx frog log')
+  expect(readme).not.toMatch(/(?:^|`)frog (?:list|log)/m)
 
   // The scaffolded config must validate against the schema it advertises.
   expect(await Config.resolve({ root: cwd })).toEqual(
@@ -78,6 +81,30 @@ test('behavior: scaffolds the directory', async () => {
   )
 
   await expect(fs.readFile(path.join(cwd, '.github/workflows/friction-log.yml'))).rejects.toThrow()
+})
+
+test.each([
+  ['pnpx frog', 'pnpm/11.0.0 npm/? node/v24'],
+  ['bunx frog', 'bun/1.2.0 npm/? node/v24'],
+])('behavior: uses the %s runner in generated guidance', async (command, userAgent) => {
+  const cwd = await helpers.repo()
+
+  const { envelope } = await cli.run(['--format', 'json', 'init', '--cwd', cwd], {
+    npm_config_user_agent: userAgent,
+  })
+  const cta = envelope.meta?.['cta'] as
+    | {
+        commands?: { command?: string }[]
+        description?: string
+      }
+    | undefined
+  const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
+
+  expect(cta?.commands?.[0]?.command).toBe(`${command} log`)
+  expect(cta?.description).toContain(`\`${command} log\``)
+  expect(cta?.description).toContain(`\`${command} list\``)
+  expect(readme).toContain(`${command} list`)
+  expect(readme).toContain(`${command} log`)
 })
 
 test('behavior: the issue form scaffolds local entries', async () => {
