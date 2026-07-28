@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.9
+
+### Patch Changes
+
+- 5f8dc73: Used the project package manager for generated Frog commands when declared.
+
 ## 1.0.8
 
 ### Patch Changes
