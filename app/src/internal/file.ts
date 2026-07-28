@@ -129,8 +129,14 @@ export async function file(options: file.Options): Promise<Filing> {
         const report = Github.report({ entry, origin })
         const occurrence = Github.occurrence({ entry, origin })
         const revision = Github.revision({ entry, origin })
+        const marker = {
+          hash,
+          origin,
+          path: Store.toPath(entry.id),
+          severity: entry.severity,
+        }
         const existing =
-          (await matcher.match(entry.title, { occurrence, report })) ?? seen.get(hash)
+          (await matcher.match(entry.title, { marker, occurrence, report })) ?? seen.get(hash)
         const result = await (async () => {
           if (mutated < config.maxPerRun)
             return Github.publish(target.rest, {
@@ -141,7 +147,7 @@ export async function file(options: file.Options): Promise<Filing> {
                 labels: applied,
               }),
               // `origin` is where the entry file lives, not the destination when reporting upstream.
-              marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
+              marker,
               occurrence,
               provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
               repo: destination,

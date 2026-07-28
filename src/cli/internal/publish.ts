@@ -162,8 +162,10 @@ export async function file(options: file.Options): Promise<Outcome> {
       const report = Github.report({ entry, origin })
       const occurrence = Github.occurrence({ entry, origin })
       const revision = Github.revision({ entry, origin })
-      const existing = seen.get(hash) ?? (await matcher.match(entry.title, { occurrence, report }))
       const path = Store.toPath(entry.id)
+      const marker = { hash, origin, path, severity: entry.severity }
+      const existing =
+        seen.get(hash) ?? (await matcher.match(entry.title, { marker, occurrence, report }))
 
       if (dryRun) {
         const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
@@ -180,15 +182,9 @@ export async function file(options: file.Options): Promise<Outcome> {
           (existing
             ? await Github.findReport(client, {
                 existing,
-                report,
-                repo,
-                ...(expectedAuthor ? { expectedAuthor } : {}),
-              })
-            : undefined) ??
-          (existing
-            ? await Github.findOccurrence(client, {
-                existing,
+                marker,
                 occurrence,
+                report,
                 repo,
                 ...(expectedAuthor ? { expectedAuthor } : {}),
               })
@@ -219,7 +215,7 @@ export async function file(options: file.Options): Promise<Outcome> {
         }),
         // `origin` is the repository holding the file, not the destination when reporting upstream. A
         // wrong value leaves a closed issue unable to find its mirror.
-        marker: { hash, origin, path, severity: entry.severity },
+        marker,
         occurrence,
         provenance: { ...provenance, ...(pr ? { pr } : {}) },
         repo,

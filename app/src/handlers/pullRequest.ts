@@ -81,7 +81,12 @@ function introduced(
   const existing = new Map(base.map((entry) => [entry.id, entry]))
   return head.filter((entry) => {
     const previous = existing.get(entry.id)
-    return !previous || previous.body !== entry.body || previous.title !== entry.title
+    return (
+      !previous ||
+      previous.body !== entry.body ||
+      previous.severity !== entry.severity ||
+      previous.title !== entry.title
+    )
   })
 }
 

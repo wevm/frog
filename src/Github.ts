@@ -307,6 +307,10 @@ type MarkerLocation =
   | { body: string | null | undefined; status: 'created' }
   | { body: string | null | undefined; comment: number; status: 'commented' }
 
+type ReportLocation = MarkerLocation & {
+  kind: 'legacy' | 'mirror' | 'occurrence' | 'report'
+}
+
 async function locateMarker(
   client: Client,
   options: Pick<findOccurrence.Options, 'existing' | 'expectedAuthor' | 'repo'>,
@@ -382,6 +386,40 @@ async function locateLegacyReport(
   }
 }
 
+function matchesMirror(issue: Issue, marker: Marker | undefined): boolean {
+  if (!marker?.origin || !marker.path) return false
+  const existing = parseMarker(issue.body)
+  return existing?.origin === marker.origin && existing.path === marker.path
+}
+
+async function locateReport(
+  client: Client,
+  options: findReport.Options,
+): Promise<ReportLocation | undefined> {
+  const parameters = {
+    existing: options.existing,
+    repo: options.repo,
+    ...(options.expectedAuthor ? { expectedAuthor: options.expectedAuthor } : {}),
+  }
+  const report = await locateMarker(client, parameters, renderReport(options.report))
+  if (report) return { ...report, kind: 'report' }
+
+  const occurrence = options.occurrence
+    ? await locateMarker(client, parameters, renderOccurrence(options.occurrence))
+    : undefined
+  if (occurrence) return { ...occurrence, kind: 'occurrence' }
+
+  const legacy = await locateLegacyReport(client, parameters, options.report)
+  if (legacy) return { ...legacy, kind: 'legacy' }
+
+  if (
+    (!options.expectedAuthor || options.existing.author === options.expectedAuthor) &&
+    matchesMirror(options.existing, options.marker)
+  )
+    return { body: options.existing.body, kind: 'mirror', status: 'created' }
+  return undefined
+}
+
 export declare namespace findOccurrence {
   /** Options for {@link findOccurrence}. */
   type Options = {
@@ -405,7 +443,7 @@ export async function findReport(
   client: Client,
   options: findReport.Options,
 ): Promise<Result['status'] | undefined> {
-  return (await locateMarker(client, options, renderReport(options.report)))?.status
+  return (await locateReport(client, options))?.status
 }
 
 export declare namespace findReport {
@@ -415,6 +453,10 @@ export declare namespace findReport {
     expectedAuthor?: string | undefined
     /** Issue that may already carry the report. */
     existing: Issue
+    /** Hidden mirror identity used by v1 issue bodies. */
+    marker?: Marker | undefined
+    /** Compatibility key from {@link occurrence}. */
+    occurrence?: string | undefined
     /** Stable identity from {@link report}. */
     report: string
     /** Repository holding the issue, as `owner/name`. */
@@ -1037,12 +1079,18 @@ export async function matcher(client: Client, options: matcher.Options): Promise
     })
     return unlabelled
   }
-  let commented: Promise<Map<string, Issue>> | undefined
+  let commented:
+    | Promise<{
+        legacy: { body: string; issue: Issue; value: string }[]
+        markers: Map<string, Issue>
+      }>
+    | undefined
   const commentOccurrences = () => {
     commented ??= (async () => {
       const accepted = new Map((await fallback()).issues.map((issue) => [issue.number, issue]))
-      const indexed = new Map<string, Issue>()
-      if (accepted.size === 0) return indexed
+      const legacy: { body: string; issue: Issue; value: string }[] = []
+      const markers = new Map<string, Issue>()
+      if (accepted.size === 0) return { legacy, markers }
 
       // One bounded repository scan is cached for this filing group. Markers require exact issue and
       // comment authors.
@@ -1061,13 +1109,33 @@ export async function matcher(client: Client, options: matcher.Options): Promise
           if (!issue) continue
           for (const pattern of [reportRegex, occurrenceRegex])
             for (const marker of comment.body?.match(pattern) ?? [])
-              indexed.set(marker, preferred(indexed.get(marker), issue))
+              markers.set(marker, preferred(markers.get(marker), issue))
+          const body = legacyCommentBody(comment.body)
+          if (body !== undefined && comment.body) legacy.push({ body, issue, value: comment.body })
         }
         if (response.data.length < 100) break
       }
-      return indexed
+      return { legacy, markers }
     })()
     return commented
+  }
+  const reindex = async (issue: Issue, title: string) => {
+    const update = (index: Map<string, Issue>, issues: readonly Issue[]) => {
+      index.clear()
+      for (const candidate of issues) {
+        const key =
+          candidate.number === issue.number
+            ? hash(title)
+            : (parseMarker(candidate.body)?.hash ?? hash(candidate.title))
+        index.set(key, preferred(index.get(key), candidate))
+      }
+    }
+    update(labelled, labelledIssues)
+    if (unlabelled) {
+      const fallback = await unlabelled
+      update(fallback.index, fallback.issues)
+    }
+    return issue
   }
 
   return {
@@ -1081,14 +1149,33 @@ export async function matcher(client: Client, options: matcher.Options): Promise
         let existing: Issue | undefined
         for (const issue of labelledIssues)
           if (issue.body?.includes(marker)) existing = preferred(existing, issue)
-        if (existing) return existing
+        if (existing) return reindex(existing, title)
 
         for (const issue of (await fallback()).issues)
           if (issue.body?.includes(marker)) existing = preferred(existing, issue)
-        if (existing) return existing
+        if (existing) return reindex(existing, title)
 
-        existing = (await commentOccurrences()).get(marker)
+        existing = (await commentOccurrences()).markers.get(marker)
         if (existing) return existing
+      }
+
+      if (parameters.report) {
+        let existing: Issue | undefined
+        for (const comment of (await commentOccurrences()).legacy)
+          if (comment.value.includes(renderOccurrence(`${parameters.report}:${comment.body}`)))
+            existing = preferred(existing, comment.issue)
+        if (existing) return existing
+      }
+
+      if (parameters.marker) {
+        let existing: Issue | undefined
+        for (const issue of labelledIssues)
+          if (matchesMirror(issue, parameters.marker)) existing = preferred(existing, issue)
+        if (existing) return reindex(existing, title)
+
+        for (const issue of (await fallback()).issues)
+          if (matchesMirror(issue, parameters.marker)) existing = preferred(existing, issue)
+        if (existing) return reindex(existing, title)
       }
 
       const key = hash(title)
@@ -1107,6 +1194,8 @@ export declare namespace matcher {
   type MatchOptions = {
     /** Compatibility key from {@link occurrence}. */
     occurrence?: string | undefined
+    /** Hidden mirror identity used by v1 issue bodies. */
+    marker?: Marker | undefined
     /** Stable identity from {@link report}. */
     report?: string | undefined
   }
@@ -1125,6 +1214,18 @@ function appendReportMarkers(
   revision: string,
 ): string {
   return `${body?.trimEnd() ?? ''}\n\n${renderReport(report)}\n${renderRevision(revision)}\n`
+}
+
+const footerEnd = '. Filed by [Frog](https://github.com/wevm/frog).</sub>'
+
+function preserveBodySuffix(body: string, existing: string | null | undefined): string {
+  const value = existing ?? ''
+  const marker = lastMarker(value)
+  if (!marker) return body
+  const end = value.indexOf(footerEnd, marker.index + marker[0].length)
+  if (end < 0) return body
+  const suffix = stripMarkers(value.slice(end + footerEnd.length))
+  return suffix ? `${body.trimEnd()}\n\n${suffix}\n` : body
 }
 
 /**
@@ -1157,63 +1258,29 @@ export async function publish(client: Client, options: publish.Options): Promise
     // maintainer who closed the issue while its entry was still in the log, on every push. A genuine
     // recurrence carries a new entry id, so its report identity differs and falls through to reopen.
     if (report) {
-      const reportLocation = await locateMarker(
-        client,
-        {
-          existing,
-          repo,
-          ...(expectedAuthor ? { expectedAuthor } : {}),
-        },
-        renderReport(report),
-      )
-      const occurrenceLocation =
-        !reportLocation && occurrence
-          ? await locateMarker(
-              client,
-              {
-                existing,
-                repo,
-                ...(expectedAuthor ? { expectedAuthor } : {}),
-              },
-              renderOccurrence(occurrence),
-            )
-          : undefined
-      const legacyLocation =
-        !reportLocation && !occurrenceLocation
-          ? await locateLegacyReport(
-              client,
-              {
-                existing,
-                repo,
-                ...(expectedAuthor ? { expectedAuthor } : {}),
-              },
-              report,
-            )
-          : undefined
+      const location = await locateReport(client, {
+        existing,
+        marker,
+        repo,
+        report,
+        ...(expectedAuthor ? { expectedAuthor } : {}),
+        ...(occurrence ? { occurrence } : {}),
+      })
       const existingMarker = parseMarker(existing.body)
-      const mirrorLocation =
-        !reportLocation &&
-        !occurrenceLocation &&
-        !legacyLocation &&
-        marker.origin &&
-        marker.path &&
-        existingMarker?.origin === marker.origin &&
-        existingMarker.path === marker.path
-          ? ({ body: existing.body, status: 'created' } as const)
-          : undefined
-      const location = reportLocation ?? occurrenceLocation ?? legacyLocation ?? mirrorLocation
       if (location) {
-        const current = reportLocation
-          ? revision
-            ? location.body?.includes(renderRevision(revision))
-            : location.status === 'created'
-              ? existing.body === body && existing.title === entry.title
-              : location.body === renderRecurrence({ body: entry.body, marker, provenance, report })
-          : false
+        const current =
+          location.kind === 'report'
+            ? revision
+              ? location.body?.includes(renderRevision(revision))
+              : location.status === 'created'
+                ? existing.body === body && existing.title === entry.title
+                : location.body ===
+                  renderRecurrence({ body: entry.body, marker, provenance, report })
+            : false
         if (current) return { issue: existing.number, mutated: false, status: location.status }
 
         const unchangedLegacy =
-          occurrenceLocation &&
+          location.kind === 'occurrence' &&
           revision &&
           (location.status === 'commented' ||
             (existingMarker && renderMarker(existingMarker) === renderMarker(marker)))
@@ -1224,6 +1291,7 @@ export async function publish(client: Client, options: publish.Options): Promise
               ...split(repo),
               body: migrated,
               issue_number: existing.number,
+              title: entry.title,
             })
           else
             await client.issues.updateComment({
@@ -1237,7 +1305,7 @@ export async function publish(client: Client, options: publish.Options): Promise
         if (location.status === 'created') {
           await client.issues.update({
             ...split(repo),
-            body,
+            body: preserveBodySuffix(body, location.body),
             issue_number: existing.number,
             title: entry.title,
           })

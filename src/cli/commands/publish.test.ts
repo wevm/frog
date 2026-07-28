@@ -279,6 +279,40 @@ test('behavior: a replayed issue does not consume the next run ceiling', async (
   expect(instance.comments(repo, 1)).toEqual([])
 })
 
+test('behavior: --dry-run classifies an edited v1 issue by its actual location', async () => {
+  const cwd = await helpers.repo({ remote })
+  const report = `${repo}:a`
+  const path = Store.toPath('a')
+  const instance = await github({
+    [repo]: [
+      {
+        body: Github.renderBody({
+          body: 'Old body.',
+          marker: {
+            hash: Github.hash('Old title'),
+            origin: repo,
+            path,
+            severity: 'minor',
+          },
+          occurrence: `${report}:Old body.`,
+        }),
+        title: 'Old title',
+      },
+    ],
+  })
+  await Store.write(
+    { body: 'Edited body.', severity: 'minor', title: 'Renamed friction' },
+    { id: 'a', root: cwd },
+  )
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--dry-run'], env(instance.url))
+
+  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Renamed friction' }])
+  expect(result.commented).toEqual([])
+  expect(instance.issues.get(repo)?.[0]?.title).toBe('Old title')
+  expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
+})
+
 test('behavior: commits the links by default', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github()

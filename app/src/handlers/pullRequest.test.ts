@@ -217,6 +217,100 @@ test('behavior: title and body edits keep updating the original issue', async ()
   expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
+test('behavior: a severity-only edit updates the original issue', async () => {
+  const path = `${dir}/a/friction.md`
+  const previous = {
+    body: 'The filter was swallowed.',
+    id: 'a',
+    severity: 'minor',
+    title: 'Filters ignored',
+  } as const
+  const marker = {
+    hash: Github.hash(previous.title),
+    origin: base,
+    path,
+    severity: previous.severity,
+  }
+  const instance = await github(
+    {
+      [base]: [
+        {
+          body: Github.renderBody({
+            body: previous.body,
+            marker,
+            occurrence: Github.occurrence({ entry: previous, origin: base }),
+            report: Github.report({ entry: previous, origin: base }),
+            revision: Github.revision({ entry: previous, origin: base }),
+          }),
+          title: previous.title,
+        },
+      ],
+    },
+    {
+      files: { [base]: { [path]: entry(previous.title) } },
+      head: { [base]: { [path]: entry(previous.title, { severity: 'major' }) } },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(Github.parseMarker(instance.issues.get(base)?.[0]?.body)?.severity).toBe('major')
+  expect(instance.comments(base, 1)).toEqual([])
+})
+
+test('behavior: renaming a report frees its old title for a new entry', async () => {
+  const path = `${dir}/a/friction.md`
+  const previous = {
+    body: 'The filter was swallowed.',
+    id: 'a',
+    severity: 'minor',
+    title: 'Filters ignored',
+  } as const
+  const instance = await github(
+    {
+      [base]: [
+        {
+          body: Github.renderBody({
+            body: previous.body,
+            marker: {
+              hash: Github.hash(previous.title),
+              origin: base,
+              path,
+              severity: previous.severity,
+            },
+            occurrence: Github.occurrence({ entry: previous, origin: base }),
+            report: Github.report({ entry: previous, origin: base }),
+            revision: Github.revision({ entry: previous, origin: base }),
+          }),
+          title: previous.title,
+        },
+      ],
+    },
+    {
+      files: { [base]: { [path]: entry(previous.title) } },
+      head: {
+        [base]: {
+          [path]: entry('Filters renamed'),
+          [`${dir}/b/friction.md`]: entry(previous.title),
+        },
+      },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report.created).toEqual([
+    { id: 'a', issue: `${base}#1` },
+    { id: 'b', issue: `${base}#2` },
+  ])
+  expect(instance.issues.get(base)?.map((issue) => issue.title)).toEqual([
+    'Filters renamed',
+    'Filters ignored',
+  ])
+  expect(instance.comments(base, 1)).toEqual([])
+})
+
 test('behavior: an edited entry updates once', async () => {
   const instance = await github(
     {},
