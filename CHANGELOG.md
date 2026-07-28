@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.8
+
+### Patch Changes
+
+- 1aa72b2: Removed the bundled skill and used package-manager runners in installation and generated repository guidance.
+
 ## 1.0.7
 
 ### Patch Changes
