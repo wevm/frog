@@ -222,7 +222,41 @@ Global Options:
   --version                           Show version
 ```
 
-## GitHub App Mode
+## Automation Modes
+
+### GitHub App or Action-only?
+
+Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
+processing. Choose **Action-only** when same-repository automation and avoiding a third-party App grant
+matter most. Choose one method per repository; running both can create duplicate issues.
+
+| Area           | GitHub App                                                                                              | Action-only                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Trust          | The App reads contents and pull requests and writes issues; the repository workflow owns source writes. | Uses this repository's `GITHUB_TOKEN`; no third-party App installation.   |
+| Scope          | Cross-repository reporting and reconciliation where installed and allowed.                              | Same repository only; `target:` entries stay deferred.                    |
+| Pull requests  | Reports during the pull request and posts or updates one comment.                                       | Reports after merge, without commenting on the author's pull request.     |
+| Forks          | Installation credentials work independently of the fork token.                                          | Cannot safely report from fork pull requests.                             |
+| Reconciliation | App webhooks signal the repository workflow, with durable retries and a daily sweep.                    | Repository issue events trigger the workflow, with a daily sweep.         |
+| Delivery       | The App returns issue state through OIDC; the repository workflow updates `frog/sync`.                  | The repository workflow reports issues and updates `frog/sync`.           |
+| Setup          | Needs the App, the App workflow, and Actions-created pull requests enabled.                             | Needs the Action-only workflow and Actions-created pull requests enabled. |
+| Operations     | Uses the App service and Actions minutes.                                                               | Uses Actions minutes; no service to run.                                  |
+
+Before using either method, enable **Allow GitHub Actions to create and approve pull
+requests** under **Settings > Actions > General**. Pull-request checks created by `GITHUB_TOKEN` wait
+for a user with write access to approve each workflow run. Push-only workflows do not run; pass a
+personal access token or App token as `token` when they are required.
+
+Both methods update one accumulating `frog/sync` pull request:
+
+- A protected default branch needs a human to merge `frog/sync`. Complete runs force-update the branch;
+  deferrals preserve the existing pull request. Do not hand-edit it.
+- `@v1` moves with compatible releases. Pin both a full action commit SHA and an exact `version` input
+  to fix Frog itself; npm still resolves the published package's dependency ranges at install time.
+- Never run it on `pull_request`. Fork tokens are read-only, and pull-request config is untrusted.
+  `pull_request_target` is unsafe for the same reason.
+- One malformed `friction.md` fails the run because the log cannot be read partially.
+
+### App Mode
 
 Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new), then create
 `.github/workflows/friction-log.yml`:
@@ -246,14 +280,12 @@ permissions: {}
 jobs:
   friction-log:
     name: Friction Log
+    # Only the Frog-owned control issue can wake reconciliation through a comment.
     if: >-
-      (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch) &&
-      (github.event_name != 'issue_comment' || (github.event.issue.user.id == 309546769 &&
-      github.event.issue.title == 'Frog reconciliation' &&
-      contains(github.event.issue.body, '<!-- frog:reconcile-issue:v1 -->') &&
-      github.event.comment.user.id == 309546769 &&
-      startsWith(github.event.comment.body, 'Reconcile the friction log.') &&
-      contains(github.event.comment.body, '<!-- frog:reconcile:v1 delivery=')))
+      github.ref_name == github.event.repository.default_branch &&
+      (github.event_name != 'issue_comment' ||
+      (github.event.issue.user.login == 'frog-fm[bot]' &&
+      github.actor == 'frog-fm[bot]'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -278,7 +310,7 @@ derives every change from the checked-out reports and writes it with this reposi
 GitHub's Contents permission covers the whole selected repository, not only the friction log. Choose
 Action-only if you do not want to grant that read access.
 
-## Action-only Mode
+### Action-only Mode
 
 `frog init` describes both methods without choosing one. For Action-only, create
 `.github/workflows/friction-log.yml` without installing the App:
@@ -329,38 +361,6 @@ and update `frog/sync`. Frog is installed under `RUNNER_TEMP`, isolated from the
 The explicit `issue-author` prevents another user's issue from being treated as a Frog report. If you pass
 a personal access token or App token, set this input and the workflow's `issues` guard to that token's exact
 user or bot login.
-
-### GitHub App or Action-only?
-
-Choose the **GitHub App** for pull-request feedback, forks, cross-repository reporting, or durable event
-processing. Choose **Action-only** when same-repository automation and avoiding a third-party App grant
-matter most. Choose one method per repository; running both can create duplicate issues.
-
-| Area           | GitHub App                                                                                              | Action-only                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Trust          | The App reads contents and pull requests and writes issues; the repository workflow owns source writes. | Uses this repository's `GITHUB_TOKEN`; no third-party App installation.   |
-| Scope          | Cross-repository reporting and reconciliation where installed and allowed.                              | Same repository only; `target:` entries stay deferred.                    |
-| Pull requests  | Reports during the pull request and posts or updates one comment.                                       | Reports after merge, without commenting on the author's pull request.     |
-| Forks          | Installation credentials work independently of the fork token.                                          | Cannot safely report from fork pull requests.                             |
-| Reconciliation | App webhooks signal the repository workflow, with durable retries and a daily sweep.                    | Repository issue events trigger the workflow, with a daily sweep.         |
-| Delivery       | The App returns issue state through OIDC; the repository workflow updates `frog/sync`.                  | The repository workflow reports issues and updates `frog/sync`.           |
-| Setup          | Needs the App, the App workflow, and Actions-created pull requests enabled.                             | Needs the Action-only workflow and Actions-created pull requests enabled. |
-| Operations     | Uses the App service and Actions minutes.                                                               | Uses Actions minutes; no service to run.                                  |
-
-Before using either method, enable **Allow GitHub Actions to create and approve pull
-requests** under **Settings > Actions > General**. Pull-request checks created by `GITHUB_TOKEN` wait
-for a user with write access to approve each workflow run. Push-only workflows do not run; pass a
-personal access token or App token as `token` when they are required.
-
-Both methods update one accumulating `frog/sync` pull request:
-
-- A protected default branch needs a human to merge `frog/sync`. Complete runs force-update the branch;
-  deferrals preserve the existing pull request. Do not hand-edit it.
-- `@v1` moves with compatible releases. Pin both a full action commit SHA and an exact `version` input
-  to fix Frog itself; npm still resolves the published package's dependency ranges at install time.
-- Never run it on `pull_request`. Fork tokens are read-only, and pull-request config is untrusted.
-  `pull_request_target` is unsafe for the same reason.
-- One malformed `friction.md` fails the run because the log cannot be read partially.
 
 ## License
 

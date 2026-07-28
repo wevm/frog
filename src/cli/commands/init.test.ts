@@ -35,7 +35,7 @@ test('behavior: scaffolds the directory', async () => {
     - GitHub App for pull-request feedback, forks, and cross-repository reporting.
     - Action-only for same-repository automation without granting a third-party App access.
 
-    Prompt the user to choose one before installing the App or adding a workflow. See https://github.com/wevm/frog#install for setup.
+    Prompt the user to choose one before installing the App or adding a workflow. See https://github.com/wevm/frog#automation-modes for setup.
 
     Add this to \`AGENTS.md\` under the appropriate section:
 

@@ -144,7 +144,7 @@ export const init = Cli.create('init', {
             `- GitHub App for pull-request feedback, forks, and cross-repository reporting.\n` +
             `- Action-only for same-repository automation without granting a third-party App access.\n\n` +
             `Prompt the user to choose one before installing the App or adding a workflow. ` +
-            `See https://github.com/wevm/frog#install for setup.\n\n` +
+            `See https://github.com/wevm/frog#automation-modes for setup.\n\n` +
             `Add this to \`AGENTS.md\` under the appropriate section:\n\n${rules}\n\nThen:`,
         },
       },
