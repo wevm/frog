@@ -62,7 +62,13 @@ test('behavior: scaffolds the directory', async () => {
   expect(readme).toContain('## For Agents')
 
   // The scaffolded config must validate against the schema it advertises.
-  expect(await Config.resolve({ root: cwd })).toEqual(Config.from({}))
+  expect(await Config.resolve({ root: cwd })).toEqual(
+    Config.from({
+      inbound: {
+        enabled: true,
+      },
+    }),
+  )
 
   // The form and the entry scaffold are rendered from one list of sections.
   const contents = await fs.readFile(path.join(cwd, IssueForm.dir, IssueForm.filename), 'utf8')
@@ -126,18 +132,12 @@ test('behavior: never clobbers an existing friction issue form', async () => {
   expect(await fs.readFile(file, 'utf8')).toBe('custom\n')
 })
 
-describe('--library', () => {
-  test('behavior: accepts friction reported by consumers', async () => {
+describe('--no-inbound', () => {
+  test('behavior: disables friction reported by other repositories', async () => {
     const cwd = await helpers.repo()
 
-    await cli.data(['init', '--library', '--cwd', cwd])
+    await cli.data(['init', '--no-inbound', '--cwd', cwd])
 
-    expect(await Config.resolve({ root: cwd })).toEqual(
-      Config.from({
-        inbound: {
-          enabled: true,
-        },
-      }),
-    )
+    expect((await Config.resolve({ root: cwd })).inbound.enabled).toBe(false)
   })
 })
