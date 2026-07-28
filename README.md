@@ -181,12 +181,19 @@ frog log --target viem
 
 ### Accept Inbound Logs
 
-Every `frog init` adds `.github/ISSUE_TEMPLATE/friction.yml`, keeping human issues and Frog entries in
-the same shape. Add `--library` to accept reports from projects that depend on this one.
+Accept friction reported by other repositories with `.agents/friction-log/config.json`:
 
-```sh
-frog init --library
+```json
+{
+  "$schema": "https://unpkg.com/frog/schema.json",
+  "inbound": {
+    "enabled": true
+  }
+}
 ```
+
+`frog init` enables inbound reports by default. Run `frog init --no-inbound` to initialize without
+accepting inbound reports.
 
 ## CLI Reference
 

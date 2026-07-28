@@ -55,13 +55,14 @@ Managed by [Frog](https://github.com/wevm/frog).
 
 const schema = 'https://unpkg.com/frog/schema.json'
 
-const config = `{
+/** Config for a project that does not accept friction reported by others. */
+const noInboundConfig = `{
   "$schema": "${schema}"
 }
 `
 
 /** Config for a project that accepts friction reported by others. */
-const libraryConfig = `{
+const config = `{
   "$schema": "${schema}",
   "inbound": {
     "enabled": true
@@ -96,15 +97,15 @@ export const init = Cli.create('init', {
   description: 'Create the friction log, config, and issue form.',
   options: z.object({
     cwd: context.cwdOption,
-    library: z
+    inbound: z
       .boolean()
+      .default(true)
       .optional()
-      .describe('Also accept friction reported by consumers of this project.'),
+      .describe(
+        'Accept friction reported by other repositories. Pass `--no-inbound` to disable during setup.',
+      ),
   }),
-  examples: [
-    { description: 'Set up Frog' },
-    { description: 'Become a friction target', options: { library: true } },
-  ],
+  examples: [{ description: 'Set up Frog' }],
   output: z.object({
     created: z.array(z.string()).describe('Files written.'),
     existing: z.array(z.string()).describe('Files left alone.'),
@@ -114,7 +115,7 @@ export const init = Cli.create('init', {
 
     const files = [
       [`${Store.dir}/README.md`, readme()],
-      [Config.file, c.options.library ? libraryConfig : config],
+      [Config.file, c.options.inbound !== false ? config : noInboundConfig],
       [`${IssueForm.dir}/${IssueForm.filename}`, form],
     ] as const
 
