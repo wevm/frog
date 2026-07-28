@@ -140,8 +140,7 @@ export const init = Cli.create('init', {
         cta: {
           commands: [{ command: 'log', description: 'Write the first entry' }],
           description:
-            'Prompt the user to choose the GitHub App or Action-only setup described at ' +
-            'https://github.com/wevm/frog#install. ' +
+            `Prompt the user to choose the GitHub App or Action-only setup described in \`${Store.dir}/README.md\`. ` +
             `Do not install the App or add a workflow before they answer.\n\n` +
             `Add this to \`AGENTS.md\` under the appropriate section:\n\n${rules}\n\nThen:`,
         },

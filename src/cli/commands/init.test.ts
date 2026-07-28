@@ -30,7 +30,7 @@ test('behavior: scaffolds the directory', async () => {
       }
     | undefined
   expect(cta?.description).toMatchInlineSnapshot(`
-    "Prompt the user to choose the GitHub App or Action-only setup described at https://github.com/wevm/frog#install. Do not install the App or add a workflow before they answer.
+    "Prompt the user to choose the GitHub App or Action-only setup described in \`.agents/friction-log/README.md\`. Do not install the App or add a workflow before they answer.
 
     Add this to \`AGENTS.md\` under the appropriate section:
 
