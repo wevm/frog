@@ -4,9 +4,9 @@ import { type App, Octokit } from 'octokit'
 type Authentication = { token: string }
 
 /**
- * Creates a client for pull-request comments without merge-capable Pull Requests write access.
+ * Creates a repository-scoped client for pull-request comments.
  *
- * The token can read pull requests and write issue comments in one repository.
+ * The token requests Pull Requests write without Contents access.
  */
 export async function comments(
   app: Pick<App, 'octokit'>,
@@ -15,8 +15,7 @@ export async function comments(
   const authentication = (await app.octokit.auth({
     installationId: options.installation,
     permissions: {
-      issues: 'write',
-      pull_requests: 'read',
+      pull_requests: 'write',
     },
     repositoryNames: [Github.split(options.repo).repo],
     type: 'installation',

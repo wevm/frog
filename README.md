@@ -236,16 +236,16 @@ Choose the **GitHub App** for pull-request feedback, forks, cross-repository rep
 processing. Choose **Action-only** when same-repository automation and avoiding a third-party App grant
 matter most. Choose one method per repository; running both can create duplicate issues.
 
-| Area           | GitHub App                                                                                              | Action-only                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Trust          | The App reads contents and pull requests and writes issues; the repository workflow owns source writes. | Uses this repository's `GITHUB_TOKEN`; no third-party App installation.   |
-| Scope          | Cross-repository reporting and reconciliation where installed and allowed.                              | Same repository only; `target:` entries stay deferred.                    |
-| Pull requests  | Reports during the pull request and posts or updates one comment.                                       | Reports after merge, without commenting on the author's pull request.     |
-| Forks          | Installation credentials work independently of the fork token.                                          | Cannot safely report from fork pull requests.                             |
-| Reconciliation | App webhooks signal the repository workflow, with durable retries and a daily sweep.                    | Repository issue events trigger the workflow, with a daily sweep.         |
-| Delivery       | The App returns issue state through OIDC; the repository workflow updates `frog/sync`.                  | The repository workflow reports issues and updates `frog/sync`.           |
-| Setup          | Needs the App, the App workflow, and Actions-created pull requests enabled.                             | Needs the Action-only workflow and Actions-created pull requests enabled. |
-| Operations     | Uses the App service and Actions minutes.                                                               | Uses Actions minutes; no service to run.                                  |
+| Area           | GitHub App                                                                             | Action-only                                                               |
+| -------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Trust          | Contents read; issues and pull requests write. The workflow owns source writes.        | Uses this repository's `GITHUB_TOKEN`; no third-party App installation.   |
+| Scope          | Cross-repository reporting and reconciliation where installed and allowed.             | Same repository only; `target:` entries stay deferred.                    |
+| Pull requests  | Reports during the pull request and posts or updates one comment.                      | Reports after merge, without commenting on the author's pull request.     |
+| Forks          | Installation credentials work independently of the fork token.                         | Cannot safely report from fork pull requests.                             |
+| Reconciliation | App webhooks signal the repository workflow, with durable retries and a daily sweep.   | Repository issue events trigger the workflow, with a daily sweep.         |
+| Delivery       | The App returns issue state through OIDC; the repository workflow updates `frog/sync`. | The repository workflow reports issues and updates `frog/sync`.           |
+| Setup          | Needs the App, the App workflow, and Actions-created pull requests enabled.            | Needs the Action-only workflow and Actions-created pull requests enabled. |
+| Operations     | Uses the App service and Actions minutes.                                              | Uses Actions minutes; no service to run.                                  |
 
 Before using either method, enable **Allow GitHub Actions to create and approve pull
 requests** under **Settings > Actions > General**. Pull-request checks created by `GITHUB_TOKEN` wait
@@ -310,11 +310,12 @@ jobs:
         uses: wevm/frog/reconcile@v1
 ```
 
-The App can read repository contents and pull requests and write issues, but it cannot write source.
-The workflow authenticates to the App with GitHub OIDC. The App returns issue state only; the Action
-derives every change from the checked-out reports and writes it with this repository's `GITHUB_TOKEN`.
-GitHub's Contents permission covers the whole selected repository, not only the friction log. Choose
-Action-only if you do not want to grant that read access.
+The App has read access to repository contents and write access to issues and pull requests, but it
+cannot write source. Its pull-request comment token is scoped to one repository and has no Contents
+access. The workflow authenticates to the App with GitHub OIDC. The App returns issue state only; the
+Action derives every change from the checked-out reports and writes it with this repository's
+`GITHUB_TOKEN`. GitHub's Contents permission covers the whole selected repository, not only the
+friction log. Choose Action-only if you do not want to grant that read access.
 
 ### Action-only Mode
 
