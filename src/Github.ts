@@ -352,40 +352,6 @@ function legacyCommentBody(value: string | null | undefined): string | undefined
   return value.slice(note + 2, marker).trim()
 }
 
-async function locateLegacyReport(
-  client: Client,
-  options: Pick<findOccurrence.Options, 'existing' | 'expectedAuthor' | 'repo'>,
-  report: string,
-): Promise<MarkerLocation | undefined> {
-  const issueBody = parseBody(options.existing.body)
-  if (
-    (!options.expectedAuthor || options.existing.author === options.expectedAuthor) &&
-    options.existing.body?.includes(renderOccurrence(`${report}:${issueBody}`))
-  )
-    return { body: options.existing.body, status: 'created' }
-
-  for (let page = 1; ; page++) {
-    const response = await client.issues.listComments({
-      ...split(options.repo),
-      issue_number: options.existing.number,
-      page,
-      per_page: 100,
-    })
-    const comment = response.data.find((comment) => {
-      if (options.expectedAuthor && comment.user?.login !== options.expectedAuthor) return false
-      const body = legacyCommentBody(comment.body)
-      return body !== undefined && comment.body?.includes(renderOccurrence(`${report}:${body}`))
-    })
-    if (comment)
-      return {
-        body: comment.body,
-        comment: comment.id,
-        status: 'commented',
-      }
-    if (response.data.length < 100) return undefined
-  }
-}
-
 function matchesMirror(issue: Issue, marker: Marker | undefined): boolean {
   if (!marker?.origin || !marker.path) return false
   const existing = parseMarker(issue.body)
@@ -396,26 +362,66 @@ async function locateReport(
   client: Client,
   options: findReport.Options,
 ): Promise<ReportLocation | undefined> {
-  const parameters = {
-    existing: options.existing,
-    repo: options.repo,
-    ...(options.expectedAuthor ? { expectedAuthor: options.expectedAuthor } : {}),
+  const reportMarker = renderReport(options.report)
+  const occurrenceMarker = options.occurrence ? renderOccurrence(options.occurrence) : undefined
+  const trustedIssue = !options.expectedAuthor || options.existing.author === options.expectedAuthor
+  let occurrence: ReportLocation | undefined
+  let legacy: ReportLocation | undefined
+
+  if (trustedIssue) {
+    if (options.existing.body?.includes(reportMarker))
+      return { body: options.existing.body, kind: 'report', status: 'created' }
+    if (occurrenceMarker && options.existing.body?.includes(occurrenceMarker))
+      occurrence = { body: options.existing.body, kind: 'occurrence', status: 'created' }
+    const body = parseBody(options.existing.body)
+    if (options.existing.body?.includes(renderOccurrence(`${options.report}:${body}`)))
+      legacy = { body: options.existing.body, kind: 'legacy', status: 'created' }
   }
-  const report = await locateMarker(client, parameters, renderReport(options.report))
-  if (report) return { ...report, kind: 'report' }
 
-  const occurrence = options.occurrence
-    ? await locateMarker(client, parameters, renderOccurrence(options.occurrence))
-    : undefined
-  if (occurrence) return { ...occurrence, kind: 'occurrence' }
+  for (let page = 1; ; page++) {
+    const response = await client.issues.listComments({
+      ...split(options.repo),
+      issue_number: options.existing.number,
+      page,
+      per_page: 100,
+    })
+    for (const comment of response.data) {
+      if (options.expectedAuthor && comment.user?.login !== options.expectedAuthor) continue
+      if (comment.body?.includes(reportMarker))
+        return {
+          body: comment.body,
+          comment: comment.id,
+          kind: 'report',
+          status: 'commented',
+        }
+      if (!occurrence && occurrenceMarker && comment.body?.includes(occurrenceMarker))
+        occurrence = {
+          body: comment.body,
+          comment: comment.id,
+          kind: 'occurrence',
+          status: 'commented',
+        }
+      if (!legacy) {
+        const body = legacyCommentBody(comment.body)
+        if (
+          body !== undefined &&
+          comment.body?.includes(renderOccurrence(`${options.report}:${body}`))
+        )
+          legacy = {
+            body: comment.body,
+            comment: comment.id,
+            kind: 'legacy',
+            status: 'commented',
+          }
+      }
+    }
+    // Keep scanning after lower-priority matches because an exact report may appear later.
+    if (response.data.length < 100) break
+  }
 
-  const legacy = await locateLegacyReport(client, parameters, options.report)
-  if (legacy) return { ...legacy, kind: 'legacy' }
-
-  if (
-    (!options.expectedAuthor || options.existing.author === options.expectedAuthor) &&
-    matchesMirror(options.existing, options.marker)
-  )
+  if (occurrence) return occurrence
+  if (legacy) return legacy
+  if (trustedIssue && matchesMirror(options.existing, options.marker))
     return { body: options.existing.body, kind: 'mirror', status: 'created' }
   return undefined
 }
@@ -1070,12 +1076,25 @@ export async function matcher(client: Client, options: matcher.Options): Promise
     !options.exclude?.(issue) &&
     (!options.expectedAuthor || issue.author === options.expectedAuthor)
   const labelledIssues = push ? (await list(client, options)).filter(accepts) : []
-  const labelled = toIndex(labelledIssues)
+  const titleOverrides = new Map<number, string>()
+  const updateIndex = (index: Map<string, Issue>, issues: readonly Issue[]) => {
+    index.clear()
+    for (const issue of issues) {
+      const title = titleOverrides.get(issue.number)
+      const key =
+        title === undefined ? (parseMarker(issue.body)?.hash ?? hash(issue.title)) : hash(title)
+      index.set(key, preferred(index.get(key), issue))
+    }
+  }
+  const labelled = new Map<string, Issue>()
+  updateIndex(labelled, labelledIssues)
   let unlabelled: Promise<{ index: Map<string, Issue>; issues: readonly Issue[] }> | undefined
   const fallback = () => {
     unlabelled ??= listAll(client, options).then((issues) => {
       const accepted = issues.filter(accepts)
-      return { index: toIndex(accepted), issues: accepted }
+      const index = new Map<string, Issue>()
+      updateIndex(index, accepted)
+      return { index, issues: accepted }
     })
     return unlabelled
   }
@@ -1120,20 +1139,11 @@ export async function matcher(client: Client, options: matcher.Options): Promise
     return commented
   }
   const reindex = async (issue: Issue, title: string) => {
-    const update = (index: Map<string, Issue>, issues: readonly Issue[]) => {
-      index.clear()
-      for (const candidate of issues) {
-        const key =
-          candidate.number === issue.number
-            ? hash(title)
-            : (parseMarker(candidate.body)?.hash ?? hash(candidate.title))
-        index.set(key, preferred(index.get(key), candidate))
-      }
-    }
-    update(labelled, labelledIssues)
+    titleOverrides.set(issue.number, title)
+    updateIndex(labelled, labelledIssues)
     if (unlabelled) {
       const fallback = await unlabelled
-      update(fallback.index, fallback.issues)
+      updateIndex(fallback.index, fallback.issues)
     }
     return issue
   }
@@ -1275,7 +1285,7 @@ export async function publish(client: Client, options: publish.Options): Promise
               : location.status === 'created'
                 ? existing.body === body && existing.title === entry.title
                 : location.body ===
-                  renderRecurrence({ body: entry.body, marker, provenance, report })
+                  renderRecurrence({ body: entry.body, marker, occurrence, provenance, report })
             : false
         if (current) return { issue: existing.number, mutated: false, status: location.status }
 

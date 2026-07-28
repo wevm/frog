@@ -130,6 +130,47 @@ test('behavior: two entries with the same title in one run collapse onto one iss
   expect(instance.issues.get(repo)).toHaveLength(1)
 })
 
+test('behavior: stable identity wins over a same-title issue filed earlier in the run', async () => {
+  const cwd = await helpers.repo({ remote })
+  const previous = {
+    body: 'Old body.',
+    id: 'b',
+    severity: 'minor',
+    title: 'Old title',
+  } as const
+  const instance = await github({
+    [repo]: [
+      {
+        body: Github.renderBody({
+          body: previous.body,
+          marker: {
+            hash: Github.hash(previous.title),
+            origin: repo,
+            path: Store.toPath(previous.id),
+            severity: previous.severity,
+          },
+          report: Github.report({ entry: previous, origin: repo }),
+        }),
+        title: previous.title,
+      },
+    ],
+  })
+  for (const id of ['a', 'b'])
+    await Store.write({ body, severity: 'minor', title: 'Shared title' }, { id, root: cwd })
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+  expect(result.created).toEqual([
+    { id: 'a', issue: `${repo}#2`, title: 'Shared title' },
+    { id: 'b', issue: `${repo}#1`, title: 'Shared title' },
+  ])
+  expect(result.commented).toEqual([])
+  expect((await Store.get('a', { root: cwd })).issue).toBe(`${repo}#2`)
+  expect((await Store.get('b', { root: cwd })).issue).toBe(`${repo}#1`)
+  expect(instance.comments(repo, 1)).toEqual([])
+  expect(instance.comments(repo, 2)).toEqual([])
+})
+
 test('behavior: a same-destination failure preserves earlier links and defers the tail', async () => {
   const cwd = await helpers.repo({ remote })
   const errors = {} as Record<string, number>

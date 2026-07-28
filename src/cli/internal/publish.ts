@@ -165,7 +165,7 @@ export async function file(options: file.Options): Promise<Outcome> {
       const path = Store.toPath(entry.id)
       const marker = { hash, origin, path, severity: entry.severity }
       const existing =
-        seen.get(hash) ?? (await matcher.match(entry.title, { marker, occurrence, report }))
+        (await matcher.match(entry.title, { marker, occurrence, report })) ?? seen.get(hash)
 
       if (dryRun) {
         const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
