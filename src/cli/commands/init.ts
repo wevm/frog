@@ -12,6 +12,9 @@ type TemplateOptions = {
   command: string
 }
 
+const agentsInstruction =
+  'Add these rules near the top of `AGENTS.md`, under the appropriate section. Create the file if missing; otherwise amend it in place, preserve all existing content, and never replace the file.'
+
 function rules(options: TemplateOptions): string {
   return (
     '- Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
@@ -52,7 +55,7 @@ write-up. The next reader runs the reproduction instead of rebuilding it.
 
 ## For Agents
 
-Add this to \`AGENTS.md\` under the appropriate section:
+${agentsInstruction}
 
 ${rules(options)}
 
@@ -165,7 +168,7 @@ export const init = Cli.create('init', {
             `- Action-only for same-repository automation without granting a third-party App access.\n\n` +
             `Prompt the user to choose one before installing the App or adding a workflow. ` +
             `See https://github.com/wevm/frog#automation-modes for setup.\n\n` +
-            `Add this to \`AGENTS.md\` under the appropriate section:\n\n${guidelines}\n\nThen:`,
+            `${agentsInstruction}\n\n${guidelines}\n\nThen:`,
         },
       },
     )

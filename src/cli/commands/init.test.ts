@@ -9,6 +9,7 @@ import * as Store from '../../Store.js'
 
 test('behavior: scaffolds the directory', async () => {
   const cwd = await helpers.repo()
+  await fs.writeFile(path.join(cwd, 'AGENTS.md'), 'custom\n', 'utf8')
 
   expect(await cli.data(['init', '--cwd', cwd])).toMatchInlineSnapshot(`
     {
@@ -37,7 +38,7 @@ test('behavior: scaffolds the directory', async () => {
 
     Prompt the user to choose one before installing the App or adding a workflow. See https://github.com/wevm/frog#automation-modes for setup.
 
-    Add this to \`AGENTS.md\` under the appropriate section:
+    Add these rules near the top of \`AGENTS.md\`, under the appropriate section. Create the file if missing; otherwise amend it in place, preserve all existing content, and never replace the file.
 
     - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`npx frog log\`.
     - Do not add global, system, or internal friction.
@@ -60,9 +61,13 @@ test('behavior: scaffolds the directory', async () => {
   expect(readme).not.toContain('uses: wevm/frog/action@v1')
   expect(readme).toContain('## Logging Friction')
   expect(readme).toContain('## For Agents')
+  expect(readme).toContain(
+    'Create the file if missing; otherwise amend it in place, preserve all existing content, and never replace the file.',
+  )
   expect(readme).toContain('npx frog list')
   expect(readme).toContain('npx frog log')
   expect(readme).not.toMatch(/(?:^|`)frog (?:list|log)/m)
+  expect(await fs.readFile(path.join(cwd, 'AGENTS.md'), 'utf8')).toBe('custom\n')
 
   // The scaffolded config must validate against the schema it advertises.
   expect(await Config.resolve({ root: cwd })).toEqual(
