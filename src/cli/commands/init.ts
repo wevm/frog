@@ -158,7 +158,7 @@ export const init = Cli.create('init', {
       { created, existing },
       {
         cta: {
-          commands: [{ command: 'log', description: 'Write the first entry' }],
+          commands: [{ command: `${command} log`, description: 'Write the first entry' }],
           description:
             `Frog supports two automation methods:\n\n` +
             `- GitHub App for pull-request feedback, forks, and cross-repository reporting.\n` +

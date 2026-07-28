@@ -1,4 +1,4 @@
-import { cli } from '../src/cli/Cli.js'
+import { serve } from '../src/cli/Cli.js'
 
 export type Result = {
   /** Exit code, or `undefined` when the command never exited non-zero. */
@@ -25,7 +25,7 @@ export async function run(
 ): Promise<Result> {
   let stdout = ''
   let code: number | undefined
-  await cli.serve([...argv, '--json', '--full-output'], {
+  await serve([...argv, '--json', '--full-output'], {
     env,
     exit(value) {
       code ??= value

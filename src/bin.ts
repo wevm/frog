@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { cli } from './cli/Cli.js'
+import { serve } from './cli/Cli.js'
 
-await cli.serve()
+await serve()

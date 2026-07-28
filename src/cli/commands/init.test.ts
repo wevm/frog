@@ -46,7 +46,7 @@ test('behavior: scaffolds the directory', async () => {
     Then:"
   `)
   expect(cta?.commands?.[0]).toEqual({
-    command: 'frog log',
+    command: 'npx frog log',
     description: 'Write the first entry',
   })
   const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
@@ -89,7 +89,7 @@ test.each([
 ])('behavior: uses the %s runner in generated guidance', async (command, userAgent) => {
   const cwd = await helpers.repo()
 
-  const { envelope } = await cli.run(['init', '--cwd', cwd], {
+  const { envelope } = await cli.run(['--format', 'json', 'init', '--cwd', cwd], {
     npm_config_user_agent: userAgent,
   })
   const cta = envelope.meta?.['cta'] as
@@ -100,7 +100,7 @@ test.each([
     | undefined
   const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
 
-  expect(cta?.commands?.[0]?.command).toBe('frog log')
+  expect(cta?.commands?.[0]?.command).toBe(`${command} log`)
   expect(cta?.description).toContain(`\`${command} log\``)
   expect(cta?.description).toContain(`\`${command} list\``)
   expect(readme).toContain(`${command} list`)
