@@ -144,14 +144,6 @@ ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as 
 npx frog list
 ```
 
-### MCP
-
-`mcp add` exposes each command as a typed tool, so agents call Frog directly rather than composing shell.
-
-```sh
-npx frog mcp add
-```
-
 ### Logging Upstream
 
 Reports friction to another project instead of your own. A target is an npm package or an `owner/repo`,
