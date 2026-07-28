@@ -2,4 +2,4 @@
 'frog': patch
 ---
 
-Globally installed Frog during `frog init`, with package-manager detection and a `--no-global` opt-out.
+Added global installation to `npx frog init`, with package-manager detection and a `--no-global` opt-out.
