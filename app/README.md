@@ -8,15 +8,18 @@ writes repository contents: each repository owns those writes through its Frog w
 
 The App requests only these repository permissions:
 
-| Permission    | Access | Purpose                                       |
-| ------------- | ------ | --------------------------------------------- |
-| Contents      | Read   | Read config and friction reports              |
-| Issues        | Write  | Report friction and post coordination signals |
-| Metadata      | Read   | Resolve repositories and default branches     |
-| Pull requests | Read   | Inspect pull-request reports                  |
+| Permission    | Access | Purpose                                              |
+| ------------- | ------ | ---------------------------------------------------- |
+| Contents      | Read   | Read config and friction reports                     |
+| Issues        | Write  | Report friction and post coordination signals        |
+| Metadata      | Read   | Resolve repositories and default branches            |
+| Pull requests | Write  | Inspect reports and post or update the App's comment |
 
 GitHub's Contents permission covers each selected repository, not only `.agents/friction-log`. Use
 Action-only when that repository-wide read grant is not acceptable.
+
+Pull requests write also permits pull-request metadata changes and reviews. Frog scopes its comment
+token to one repository and requests Pull requests write without Contents access.
 
 Source reconciliation runs in `.github/workflows/friction-log.yml`. The workflow grants
 `contents: write`, `pull-requests: write`, and `id-token: write` to
@@ -98,8 +101,8 @@ The `Main` workflow creates the queues, deploys the Worker, and syncs its secret
 1. **Create the App** from [`app.yml`](./app.yml) at `https://github.com/settings/apps/new`, or an
    organization's equivalent. Generate a webhook secret and private key.
 
-   Updating this manifest does not change an existing App. In its GitHub settings, set Contents and
-   Pull requests to read, Issues to write, Metadata to read, subscribe to Pull request and Issues
+   Updating this manifest does not change an existing App. In its GitHub settings, set Contents to
+   read, Pull requests and Issues to write, Metadata to read, subscribe to Pull request and Issues
    events, and remove the Push event.
 
 2. **Add the repository secrets** used by the deployment workflow:
