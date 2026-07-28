@@ -16,7 +16,6 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/verify.yml
-    secrets: inherit
 
   changesets:
     name: Changesets

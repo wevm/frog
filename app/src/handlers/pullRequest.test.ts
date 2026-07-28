@@ -31,21 +31,18 @@ function entry(title: string, frontmatter: Record<string, string> = {}): string 
 async function run(
   url: string,
   options: {
-    headRef?: string | undefined
-    headRepo?: string | null | undefined
     installed?: Record<string, Octokit> | undefined
     serialize?: Serialize | undefined
   } = {},
 ) {
   const octokit = client(url)
   return pullRequest({
+    app: 'frog-fm[bot]',
     actor: '@contributor',
     base,
     baseRef: 'main',
     client: octokit,
     head: 'head',
-    headRef: options.headRef ?? 'head',
-    headRepo: options.headRepo === undefined ? base : options.headRepo,
     installation: async (repo) => options.installed?.[repo],
     pr: 42,
     registry: `${url}/registry`,
@@ -98,59 +95,13 @@ test('behavior: records the pull request and the reporter on the issue', async (
   expect(body).toContain('Logged by @contributor')
 })
 
-// The link belongs with the change that introduced the entry, so the merge carries a filed entry rather
-// than needing a follow-up commit to link it.
-test('behavior: the link is written onto the pull request branch', async () => {
+test('security: the App leaves the pull request branch untouched', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
   )
 
-  await run(instance.url)
-
-  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: link friction'])
-  expect(instance.files(base, 'head')[`${dir}/a/friction.md`]).toContain(`issue: '${base}#1'`)
-})
-
-test('behavior: the commit message comes from config', async () => {
-  const instance = await github(
-    {},
-    {
-      files: {
-        [base]: { [`${dir}/config.json`]: JSON.stringify({ commit: { link: 'chore: wip' } }) },
-      },
-      head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } },
-    },
-  )
-
-  await run(instance.url)
-
-  expect(instance.messages(base, 'head')).toEqual(['initial', 'head', 'chore: wip'])
-})
-
-// The issue is already filed by this point, so a branch the App cannot write to must not fail the
-// delivery: that would lose the report on the pull request and retry until dead-lettering.
-test('behavior: an unwritable head branch still reports on the pull request', async () => {
-  const instance = await github(
-    {},
-    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
-  )
-
-  const report = await run(instance.url, { headRef: 'deleted-branch' })
-
-  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
-  expect(instance.comments(base, 42)).toHaveLength(1)
-})
-
-// A fork's branch belongs to a repository the App holds no installation on, so the link waits for the
-// push handler instead.
-test('behavior: a fork branch is left untouched', async () => {
-  const instance = await github(
-    {},
-    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
-  )
-
-  const report = await run(instance.url, { headRepo: 'contributor/frog' })
+  const report = await run(instance.url)
 
   expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.messages(base, 'head')).toEqual(['initial', 'head'])
@@ -191,9 +142,9 @@ test('behavior: a second run opens no issue and adds no comment', async () => {
   await run(instance.url)
   const second = await run(instance.url)
 
-  // The first run linked the entry on the branch, so the second sees it as already filed.
-  expect(second.created).toEqual([])
-  expect(second.linked).toEqual([{ id: 'a', issue: `${base}#1` }])
+  // The branch stays pending, but the occurrence marker makes the second filing a no-op.
+  expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(second.linked).toEqual([])
   expect(instance.issues.get(base)).toHaveLength(1)
   // The issue itself stays quiet. Keying the occurrence on the delivery instead of on what is being
   // reported put a "Hit again" here for every push to an untouched entry.
@@ -211,6 +162,39 @@ test('behavior: many pushes to one pull request leave one issue and no comments'
 
   expect(instance.issues.get(base)).toHaveLength(1)
   expect(instance.comments(base, 1)).toHaveLength(0)
+})
+
+test('behavior: a title edit reuses the issue carrying the occurrence', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  await run(instance.url)
+  instance.write(base, `${dir}/a/friction.md`, entry('Filters renamed'), 'head')
+  const second = await run(instance.url)
+
+  expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(0)
+})
+
+test('behavior: a title edit reuses an occurrence carried by a comment', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+  const changed = entry('Filters ignored').replace('swallowed', 'dropped')
+
+  await run(instance.url)
+  instance.write(base, `${dir}/a/friction.md`, changed, 'head')
+  await run(instance.url)
+  instance.write(base, `${dir}/a/friction.md`, changed.replace('ignored', 'renamed'), 'head')
+  const third = await run(instance.url)
+
+  expect(third.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(1)
 })
 
 // The one repeat worth having: the entry changed, so the issue should hear about it.
@@ -394,7 +378,7 @@ describe('cross-repo', () => {
   })
 
   test('behavior: files upstream without waiting for a human', async () => {
-    const instance = await github({}, seed({ outbound: { allowedRepos: [upstream] } }))
+    const instance = await github({}, seed({}))
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
@@ -418,7 +402,7 @@ describe('cross-repo', () => {
   })
 
   test('behavior: defers a target the sender has not allowlisted', async () => {
-    const instance = await github({}, seed({ outbound: { auto: true } }))
+    const instance = await github({}, seed({ outbound: { allowedRepos: [] } }))
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 

@@ -1,4 +1,7 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { Cli, z } from 'incur'
+import * as AppSync from '../../AppSync.js'
 import * as Git from '../../Git.js'
 import * as Github from '../../Github.js'
 import * as Mirrors from '../../Mirrors.js'
@@ -28,6 +31,16 @@ export const sync = Cli.create('sync', {
       .describe('Commit the changes. On by default; pass `--no-commit` to leave them staged.'),
     cwd: context.cwdOption,
     dryRun: z.boolean().optional().describe('Report what would change without changing it.'),
+    expectedAuthor: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Issue author trusted by automated reconciliation.'),
+    state: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Content-free reconciliation state from the Frog GitHub App.'),
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
   }),
   alias: { dryRun: 'n' },
@@ -69,6 +82,144 @@ export const sync = Cli.create('sync', {
           'Configure both `user.name` and `user.email` before Frog commits reconciled entries.',
       })
 
+    if (c.options.state) {
+      const loaded = await attempt(
+        fs
+          .readFile(path.resolve(c.options.state), 'utf8')
+          .then((contents) => AppSync.from(JSON.parse(contents))),
+      )
+      if (!loaded.ok) return c.error({ code: loaded.code, message: loaded.message })
+
+      const snapshot = loaded.value
+      const head = await Git.head({ cwd: root })
+      if (snapshot.repository.fullName !== repo || snapshot.repository.sha !== head)
+        return c.error({
+          code: 'APP_STATE_MISMATCH',
+          message: 'App reconciliation state does not describe this repository checkout.',
+        })
+      if (!snapshot.complete) {
+        const legacy = new Set(
+          mirrors.value.mirrors.flatMap((mirror) => {
+            if (
+              mirror.occurrence !== undefined ||
+              snapshot.reports[AppSync.legacyOccurrence(mirror.issue)]?.state !== 'open'
+            )
+              return []
+            const id = Store.toId(mirror.path)
+            return id ? [id] : []
+          }),
+        )
+        const ids = [
+          ...new Set([
+            ...entries.value.map((entry) => entry.id),
+            ...mirrors.value.mirrors
+              .map((mirror) => Store.toId(mirror.path))
+              .filter((id): id is string => id !== undefined),
+          ]),
+        ]
+        if (ids.length === 0)
+          return c.error({
+            code: 'APP_STATE_INCOMPLETE',
+            message: 'The Frog App could not inspect every report. No changes were applied.',
+          })
+        return c.ok({
+          cleared: [],
+          committed: false,
+          deferred: ids.map((id) =>
+            legacy.has(id)
+              ? {
+                  code: 'APP_LEGACY_MIRROR',
+                  id,
+                  reason:
+                    'This report predates repository-owned recovery snapshots. Recreate it manually from its issue.',
+                }
+              : {
+                  code: 'APP_STATE_INCOMPLETE',
+                  id,
+                  reason: 'The Frog App could not inspect every report.',
+                },
+          ),
+          removed: [],
+          reopened: [],
+          updated: [],
+        })
+      }
+
+      const planned = await attempt(
+        Promise.resolve(
+          AppSync.plan(snapshot, {
+            entries: entries.value,
+            mirrors: mirrors.value.mirrors,
+          }),
+        ),
+      )
+      if (!planned.ok) return c.error({ code: planned.code, message: planned.message })
+
+      const plan = planned.value
+      const byId = new Map(entries.value.map((entry) => [entry.id, entry]))
+      const cleared = plan.clearLink.map((entry) => ({ id: entry.id, title: entry.title }))
+      const removed = plan.remove.flatMap((id) => {
+        const entry = byId.get(id)
+        return entry ? [{ id, title: entry.title }] : []
+      })
+      const reopened = plan.write
+        .filter((entry) => !byId.has(entry.id))
+        .map((entry) => ({ id: entry.id, title: entry.title }))
+      const updated = plan.write.map((entry) => ({ id: entry.id, title: entry.title }))
+      const nextMirrors = Mirrors.update(mirrors.value, {
+        forget: plan.forget,
+        remember: plan.remember,
+      })
+      const mirrorsChanged = Mirrors.serialize(nextMirrors) !== Mirrors.serialize(mirrors.value)
+
+      if (c.options.dryRun || (AppSync.empty(plan) && !mirrorsChanged))
+        return c.ok({
+          cleared,
+          committed: false,
+          deferred: [],
+          removed,
+          reopened,
+          updated,
+        })
+
+      await Git.rm(plan.remove.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
+      for (const id of plan.remove) await Store.remove(id, { root })
+      for (const entry of [...plan.write, ...plan.clearLink])
+        await Store.write(entry, { id: entry.id, root })
+      if (mirrorsChanged) await Mirrors.write(nextMirrors, { root })
+
+      const touched = [...plan.write, ...plan.clearLink].map((entry) => Store.toPath(entry.id))
+      if (mirrorsChanged) touched.push(Mirrors.file)
+      const commit = await attempt(
+        (async () => {
+          if (c.options.commit === false) return false
+          await Git.add(touched, { cwd: root })
+          return Git.commit('chore: sync friction log', {
+            cwd: root,
+            files: [...plan.remove.map(Store.toDir), ...touched],
+          })
+        })(),
+      )
+      if (!commit.ok) return c.error({ code: 'COMMIT_FAILED', message: commit.message })
+
+      return c.ok(
+        {
+          cleared,
+          committed: commit.value,
+          deferred: [],
+          removed,
+          reopened,
+          updated,
+        },
+        {
+          cta: {
+            commands: [{ command: 'list', description: 'See what is left' }],
+            description: 'Next:',
+          },
+        },
+      )
+    }
+
     const ready = await publisher.prepare({
       config,
       env: c.env,
@@ -109,8 +260,21 @@ export const sync = Cli.create('sync', {
       const issues = await attempt(
         Sync.state({
           entries: entries.value,
-          get: (issue) => Github.get(ready.client, { issue, repo: destination }),
-          list: () => Github.list(ready.client, { label: ready.label, repo: destination }),
+          get: async (issue) => {
+            const value = await Github.get(ready.client, { issue, repo: destination })
+            return !c.options.expectedAuthor || value?.author === c.options.expectedAuthor
+              ? value
+              : undefined
+          },
+          list: async () => {
+            const values = await Github.list(ready.client, {
+              label: ready.label,
+              repo: destination,
+            })
+            return c.options.expectedAuthor
+              ? values.filter((issue) => issue.author === c.options.expectedAuthor)
+              : values
+          },
           remembered: remembered
             .map((mirror) => Github.parseLink(mirror.issue)?.issue)
             .filter((issue): issue is number => issue !== undefined),

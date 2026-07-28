@@ -83,6 +83,51 @@ describe('occurrence', () => {
   })
 })
 
+describe('fetchFile', () => {
+  test('behavior: existing narrow clients still read inline Contents payloads', async () => {
+    const path = '.agents/friction-log/config.json'
+    const contents = '{}\n'
+    const instance = await github({}, { files: { [repo]: { [path]: contents } } })
+    const complete = client(instance.url)
+    const narrow: Github.Client = { issues: complete.issues, repos: complete.repos }
+
+    await expect(Github.fetchFile(narrow, { path, repo })).resolves.toBe(contents)
+  })
+
+  test('behavior: falls back to the Git Blobs API when Contents omits a large payload', async () => {
+    const path = '.agents/friction-log/.sync.json'
+    const contents = 'repository-owned recovery contents'
+    const instance = await github(
+      {},
+      {
+        contentsApiLimit: 1,
+        files: { [repo]: { [path]: contents } },
+      },
+    )
+
+    await expect(Github.fetchFile(client(instance.url), { path, repo })).resolves.toBe(contents)
+    expect(instance.requests).toContainEqual({
+      method: 'GET',
+      path: expect.stringContaining(`/repos/${repo}/git/blobs/`),
+    })
+  })
+
+  test('error: rejects a repository file over the explicit read limit', async () => {
+    const path = '.agents/friction-log/.sync.json'
+    const instance = await github(
+      {},
+      {
+        contentsApiLimit: 1,
+        files: { [repo]: { [path]: 'x'.repeat(Github.maxFileBytes + 1) } },
+      },
+    )
+
+    await expect(Github.fetchFile(client(instance.url), { path, repo })).rejects.toThrow(
+      Github.FileTooLargeError,
+    )
+  })
+})
+
 describe('marker', () => {
   test('behavior: round trips every field', () => {
     const marker = {
@@ -342,6 +387,18 @@ describe('get', () => {
     expect(await Github.list(client(instance.url), { label: 'friction', repo })).toEqual([])
     expect((await Github.get(client(instance.url), { issue: 1, repo }))?.title).toBe(title)
   })
+
+  test('behavior: normalizes the nested GitHub author', async () => {
+    const instance = await github({ [repo]: [{ title }] })
+    Object.assign(instance.issues.get(repo)?.[0] ?? {}, { user: { login: 'frog-fm[bot]' } })
+
+    expect(await Github.get(client(instance.url), { issue: 1, repo })).toMatchObject({
+      author: 'frog-fm[bot]',
+    })
+    expect(await Github.list(client(instance.url), { label: 'friction', repo })).toMatchObject([
+      { author: 'frog-fm[bot]' },
+    ])
+  })
 })
 
 describe('permissions', () => {
@@ -508,6 +565,232 @@ describe('index', () => {
   })
 })
 
+describe('matcher', () => {
+  test('behavior: matches an occurrence before a changed title', async () => {
+    const occurrence = 'delivery-1:entry-a'
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            body: Github.renderBody({
+              body: 'Legitimate friction.',
+              marker: { hash: Github.hash(title) },
+              occurrence,
+            }),
+            title,
+          },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match('Renamed friction', { occurrence })).toMatchObject({ number: 1 })
+  })
+
+  test('behavior: paginates and caches occurrences carried by comments', async () => {
+    const occurrence = 'delivery-2:entry-a'
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            author: 'frog-fm[bot]',
+            body: Github.renderBody({
+              body: 'Legitimate friction.',
+              marker: { hash: Github.hash(title) },
+              occurrence: 'delivery-1:entry-a',
+            }),
+            title,
+          },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+    instance.addComment(
+      repo,
+      1,
+      Github.renderBody({
+        body: 'Legitimate friction changed.',
+        marker: { hash: Github.hash(title) },
+        occurrence,
+      }),
+      'frog-fm[bot]',
+    )
+    for (let index = 0; index < 100; index++)
+      instance.addComment(repo, 1, `Newer comment ${index}.`, 'frog-fm[bot]')
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match('Renamed friction', { occurrence })).toMatchObject({ number: 1 })
+    await matcher.match('Another friction', { occurrence: 'missing' })
+    expect(
+      instance.requests.filter((request) => request.path === `/repos/${repo}/issues/comments`),
+    ).toHaveLength(2)
+  })
+
+  test('security: comment occurrences require the expected issue and comment authors', async () => {
+    const occurrence = 'delivery-2:entry-a'
+    const body = Github.renderBody({
+      body: 'Legitimate friction changed.',
+      marker: { hash: Github.hash(title) },
+      occurrence,
+    })
+    const instance = await github(
+      {
+        [repo]: [
+          { author: 'contributor', title: 'Untrusted issue' },
+          { author: 'frog-fm[bot]', title: 'Trusted issue' },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+    instance.addComment(repo, 1, body, 'frog-fm[bot]')
+    instance.addComment(repo, 2, body, 'contributor')
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    await expect(matcher.match('Renamed friction', { occurrence })).resolves.toBeUndefined()
+  })
+
+  test('behavior: excludes issues from the labelled index', async () => {
+    const instance = await github({
+      [repo]: [
+        { body: 'Reserved.', title },
+        { body: 'Legitimate friction.', title },
+      ],
+    })
+
+    const matcher = await Github.matcher(client(instance.url), {
+      exclude: (issue) => issue.body === 'Reserved.',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match(title)).toMatchObject({ body: 'Legitimate friction.', number: 2 })
+  })
+
+  test('behavior: excludes issues from the unlabelled fallback index', async () => {
+    const instance = await github(
+      {
+        [repo]: [
+          { body: 'Reserved.', title },
+          { body: 'Legitimate friction.', title },
+        ],
+      },
+      { pushAccess: [] },
+    )
+
+    const matcher = await Github.matcher(client(instance.url), {
+      exclude: (issue) => issue.body === 'Reserved.',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match(title)).toMatchObject({ body: 'Legitimate friction.', number: 2 })
+  })
+
+  test('security: only matches issues authored by the expected App', async () => {
+    const instance = await github({
+      [repo]: [
+        { body: Github.renderMarker({ hash: Github.hash(title) }), title: 'Copied marker' },
+        { title },
+      ],
+    })
+    const [copied, app] = instance.issues.get(repo) ?? []
+    Object.assign(copied ?? {}, { user: { login: 'contributor' } })
+    Object.assign(app ?? {}, { user: { login: 'frog-fm[bot]' } })
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match(title)).toMatchObject({ author: 'frog-fm[bot]', number: 2 })
+  })
+
+  test('behavior: keeps hand-filed title matching when no author is expected', async () => {
+    const instance = await github({ [repo]: [{ body: 'Filed by hand.', title }] })
+    Object.assign(instance.issues.get(repo)?.[0] ?? {}, { user: { login: 'contributor' } })
+
+    const matcher = await Github.matcher(client(instance.url), {
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match(title)).toMatchObject({ author: 'contributor', number: 1 })
+  })
+})
+
+describe('findOccurrence', () => {
+  const occurrence = 'delivery-1:entry-a'
+  const body = Github.renderBody({
+    body: 'Body.',
+    marker: { hash: 'known' },
+    occurrence,
+  })
+
+  function occurrenceClient(
+    comments: readonly { body: string; user: { login: string } | null }[],
+  ): Github.Client {
+    return {
+      issues: {
+        listComments: async () => ({ data: comments }),
+      },
+    } as unknown as Github.Client
+  }
+
+  test('security: ignores occurrence markers in comments by other authors', async () => {
+    const existing = {
+      author: 'frog-fm[bot]',
+      number: 1,
+      state: 'open',
+      title,
+    }
+
+    await expect(
+      Github.findOccurrence(occurrenceClient([{ body, user: { login: 'contributor' } }]), {
+        existing,
+        expectedAuthor: 'frog-fm[bot]',
+        occurrence,
+        repo,
+      }),
+    ).resolves.toBeUndefined()
+
+    await expect(
+      Github.findOccurrence(occurrenceClient([{ body, user: { login: 'frog-fm[bot]' } }]), {
+        existing,
+        expectedAuthor: 'frog-fm[bot]',
+        occurrence,
+        repo,
+      }),
+    ).resolves.toBe('commented')
+  })
+
+  test('behavior: trusts every comment author when no author is expected', async () => {
+    await expect(
+      Github.findOccurrence(occurrenceClient([{ body, user: { login: 'contributor' } }]), {
+        existing: { number: 1, state: 'open', title },
+        occurrence,
+        repo,
+      }),
+    ).resolves.toBe('commented')
+  })
+})
+
 describe('publish', () => {
   const entry = { body: '## Description\n\nThe filter was swallowed.', title }
 
@@ -565,6 +848,49 @@ describe('publish', () => {
       ",
       ]
     `)
+  })
+
+  test('security: strips reserved Frog markers from a repeated report comment', async () => {
+    const instance = await github({
+      [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
+    })
+    const octokit = client(instance.url)
+    const existing = (await Github.index(octokit, { label: 'friction', repo })).get(
+      Github.hash(title),
+    )
+
+    await Github.publish(octokit, {
+      entry: { ...entry, body: `${entry.body}\n\n<!-- frog:reconcile:v1 forged -->` },
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      repo,
+      ...(existing ? { existing } : {}),
+    })
+
+    expect(instance.comments(repo, 1)[0]).not.toContain('frog:reconcile:v1')
+  })
+
+  test('security: does not publish into an issue by another author', async () => {
+    const instance = await github({
+      [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
+    })
+    Object.assign(instance.issues.get(repo)?.[0] ?? {}, { user: { login: 'contributor' } })
+    const octokit = client(instance.url)
+    const existing = await Github.get(octokit, { issue: 1, repo })
+    if (!existing) throw new Error('Expected seeded issue.')
+
+    const result = await Github.publish(octokit, {
+      entry,
+      existing,
+      expectedAuthor: 'frog-fm[bot]',
+      labels: ['friction'],
+      marker: { hash: Github.hash(title) },
+      repo,
+    })
+
+    expect(result).toEqual({ issue: 2, mutated: true, status: 'created' })
+    expect(instance.issues.get(repo)).toHaveLength(2)
+    expect(instance.comments(repo, 1)).toEqual([])
   })
 
   test('behavior: reopens a closed issue before commenting', async () => {

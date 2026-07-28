@@ -1,6 +1,9 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import * as AppSync from '../../AppSync.js'
 import * as Entry from '../../Entry.js'
 import * as Github from '../../Github.js'
 import * as Mirrors from '../../Mirrors.js'
@@ -69,6 +72,27 @@ test('behavior: a closed issue deletes its entry and commits', async () => {
   expect(await Store.list({ root: cwd })).toEqual([])
   expect(await helpers.git(['log', '-1', '--format=%s'], cwd)).toBe('chore: sync friction log')
   expect(await helpers.git(['status', '--porcelain'], cwd)).toBe('')
+})
+
+test('security: automated reconciliation never deletes from another author issue', async () => {
+  const cwd = await helpers.repo({ remote })
+  await Store.write(
+    { body: 'Body.', issue: `${repo}#1`, severity: 'minor', title },
+    { id: 'a', root: cwd },
+  )
+  await helpers.commit('log friction', cwd)
+  const instance = await github({
+    [repo]: [{ author: 'contributor', body: issueBody('a'), state: 'closed', title }],
+  })
+
+  const result = await cli.data<Outcome>(
+    ['sync', '--cwd', cwd, '--expected-author', 'github-actions[bot]'],
+    env(instance.url),
+  )
+
+  expect(result.removed).toEqual([])
+  expect(result.cleared).toEqual([{ id: 'a', title }])
+  expect(await Store.list({ root: cwd })).toEqual(['a'])
 })
 
 test('behavior: closing takes the committed reproduction with it', async () => {
@@ -434,4 +458,205 @@ test('error: a failed commit is reported', async () => {
   await helpers.git(['config', 'gpg.program', '/usr/bin/false'], cwd)
 
   expect((await cli.error(['sync', '--cwd', cwd], env(instance.url))).code).toBe('COMMIT_FAILED')
+})
+
+describe('--state', () => {
+  async function state(
+    cwd: string,
+    reports: AppSync.Snapshot['reports'],
+    options: {
+      complete?: boolean | undefined
+      repo?: string | undefined
+      sha?: string | undefined
+    } = {},
+  ): Promise<string> {
+    const directory = await helpers.tmpdir()
+    const file = path.join(directory, 'state.json')
+    await fs.writeFile(
+      file,
+      AppSync.serialize({
+        complete: options.complete ?? true,
+        reports,
+        repository: {
+          fullName: options.repo ?? repo,
+          id: 42,
+          sha: options.sha ?? (await helpers.git(['rev-parse', 'HEAD'], cwd)),
+        },
+        version: 1,
+      }),
+      'utf8',
+    )
+    return file
+  }
+
+  test('behavior: links an open report without a GitHub token or network request', async () => {
+    const cwd = await helpers.repo({ remote })
+    const value: Entry.Entry = {
+      body: 'Body.',
+      id: 'a',
+      severity: 'minor',
+      title,
+    }
+    await Store.write(value, { id: value.id, root: cwd })
+    await helpers.commit('log friction', cwd)
+    const occurrence = AppSync.occurrence({ entry: value })
+    const file = await state(cwd, {
+      [occurrence]: { number: 7, repo, state: 'open' },
+    })
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd, '--state', file])
+
+    expect(result).toMatchObject({
+      committed: true,
+      deferred: [],
+      updated: [{ id: value.id, title }],
+    })
+    expect((await Store.get(value.id, { root: cwd })).issue).toBe(`${repo}#7`)
+  })
+
+  test('behavior: a close captures repository-owned contents and a reopen restores them', async () => {
+    const cwd = await helpers.repo({ remote })
+    const value: Entry.Entry = {
+      body: 'Body.',
+      id: 'a',
+      issue: `${repo}#7`,
+      labels: ['tooling'],
+      severity: 'major',
+      title,
+    }
+    await Store.write(value, { id: value.id, root: cwd })
+    await helpers.commit('link friction', cwd)
+    const occurrence = AppSync.occurrence({ entry: value })
+    const closed = await state(cwd, {
+      [occurrence]: { number: 7, repo, state: 'closed' },
+    })
+
+    const removed = await cli.data<Outcome>(['sync', '--cwd', cwd, '--state', closed])
+
+    expect(removed.removed).toEqual([{ id: value.id, title }])
+    expect(await Store.list({ root: cwd })).toEqual([])
+    expect((await Mirrors.resolve({ root: cwd })).mirrors).toMatchObject([
+      {
+        contents: Entry.serialize(value),
+        issue: `${repo}#7`,
+        occurrence,
+        path: Store.toPath(value.id),
+      },
+    ])
+
+    const opened = await state(cwd, {
+      [occurrence]: { number: 7, repo, state: 'open' },
+    })
+    const restored = await cli.data<Outcome>(['sync', '--cwd', cwd, '--state', opened])
+
+    expect(restored.reopened).toEqual([{ id: value.id, title }])
+    expect(await Store.get(value.id, { root: cwd })).toEqual(value)
+  })
+
+  test('behavior: incomplete App state defers without applying partial reports', async () => {
+    const cwd = await helpers.repo({ remote })
+    const value: Entry.Entry = {
+      body: 'Body.',
+      id: 'a',
+      severity: 'minor',
+      title,
+    }
+    await Store.write(value, { id: value.id, root: cwd })
+    await helpers.commit('log friction', cwd)
+    const occurrence = AppSync.occurrence({ entry: value })
+    const file = await state(
+      cwd,
+      { [occurrence]: { number: 7, repo, state: 'open' } },
+      { complete: false },
+    )
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd, '--state', file])
+
+    expect(result).toMatchObject({
+      committed: false,
+      deferred: [
+        {
+          code: 'APP_STATE_INCOMPLETE',
+          id: value.id,
+          reason: 'The Frog App could not inspect every report.',
+        },
+      ],
+      updated: [],
+    })
+    expect((await Store.get(value.id, { root: cwd })).issue).toBeUndefined()
+  })
+
+  test('behavior: a reopened legacy mirror explains why it cannot be restored', async () => {
+    const cwd = await helpers.repo({ remote })
+    const issue = `${repo}#7`
+    const mirror = { issue, path: Store.toPath('a') }
+    await Mirrors.write(Mirrors.update(Mirrors.empty(), { remember: [mirror] }), { root: cwd })
+    await helpers.commit('remember friction', cwd)
+    const file = await state(
+      cwd,
+      {
+        [AppSync.legacyOccurrence(issue)]: { number: 7, repo, state: 'open' },
+      },
+      { complete: false },
+    )
+
+    const result = await cli.data<Outcome>(['sync', '--cwd', cwd, '--state', file])
+
+    expect(result).toMatchObject({
+      committed: false,
+      deferred: [
+        {
+          code: 'APP_LEGACY_MIRROR',
+          id: 'a',
+          reason:
+            'This report predates repository-owned recovery snapshots. Recreate it manually from its issue.',
+        },
+      ],
+      reopened: [],
+      updated: [],
+    })
+  })
+
+  test('security: state for another repository or commit is rejected', async () => {
+    const cwd = await helpers.repo({ remote })
+    await helpers.writeFile('README.md', '# demo\n', cwd)
+    await helpers.commit('initial', cwd)
+    const otherRepo = await state(cwd, {}, { repo: 'attacker/repo' })
+    const otherSha = await state(cwd, {}, { sha: 'f'.repeat(40) })
+
+    expect((await cli.error(['sync', '--cwd', cwd, '--state', otherRepo])).code).toBe(
+      'APP_STATE_MISMATCH',
+    )
+    expect((await cli.error(['sync', '--cwd', cwd, '--state', otherSha])).code).toBe(
+      'APP_STATE_MISMATCH',
+    )
+  })
+
+  test('security: paths and contents injected into the wire response are rejected', async () => {
+    const cwd = await helpers.repo({ remote })
+    await helpers.writeFile('README.md', '# demo\n', cwd)
+    await helpers.commit('initial', cwd)
+    const directory = await helpers.tmpdir()
+    const file = path.join(directory, 'malicious.json')
+    await fs.writeFile(
+      file,
+      JSON.stringify({
+        complete: true,
+        patch: 'README.md',
+        reports: {},
+        repository: {
+          fullName: repo,
+          id: 42,
+          sha: await helpers.git(['rev-parse', 'HEAD'], cwd),
+        },
+        version: 1,
+      }),
+      'utf8',
+    )
+
+    expect((await cli.error(['sync', '--cwd', cwd, '--state', file])).code).toBe(
+      'INVALID_APP_SYNC_STATE',
+    )
+    expect(await fs.readFile(path.join(cwd, 'README.md'), 'utf8')).toBe('# demo\n')
+  })
 })

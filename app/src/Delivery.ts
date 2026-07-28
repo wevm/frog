@@ -58,7 +58,7 @@ export type Event =
       id: string
       name: 'issues'
       payload: {
-        action: 'closed' | 'edited'
+        action: 'closed' | 'reopened'
         installation: Installation
         issue: Github.Issue
         repository: Repository
@@ -210,7 +210,7 @@ export function fromWebhook(options: {
     }
   }
 
-  const selected = action(payload['action'], ['closed', 'edited', 'reopened'] as const, 'action')
+  const selected = action(payload['action'], ['closed', 'reopened'] as const, 'action')
   if (!selected) return undefined
   const issue = object(payload['issue'], 'issue')
   return {
@@ -288,7 +288,7 @@ export async function toEvent(
     id: delivery.id,
     name: delivery.name,
     payload: {
-      action: issue.state === 'closed' ? 'closed' : 'edited',
+      action: issue.state === 'closed' ? 'closed' : 'reopened',
       installation: delivery.payload.installation,
       issue,
       repository: delivery.payload.repository,

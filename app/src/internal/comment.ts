@@ -4,8 +4,7 @@ import type { Octokit } from 'octokit'
 /**
  * Marks the one comment Frog keeps on a pull request.
  *
- * An explicit marker rather than a match on the bot's login, which can be renamed. It also leaves room
- * for a second kind of comment without confusing the two.
+ * Paired with the App author's login when updating, so copied markers cannot redirect Frog's edit.
  */
 export const marker = '<!-- frog:comment -->'
 
@@ -105,7 +104,7 @@ export function render(report: Report): string | undefined {
  * @param client - Installation client for the repository.
  */
 export async function upsert(client: Octokit, options: upsert.Options): Promise<void> {
-  const { body, pr, repo } = options
+  const { author, body, pr, repo } = options
   const { owner, repo: name } = Github.split(repo)
 
   const existing = await client.paginate(client.rest.issues.listComments, {
@@ -114,7 +113,9 @@ export async function upsert(client: Octokit, options: upsert.Options): Promise<
     per_page: 100,
     repo: name,
   })
-  const mine = existing.find((comment) => comment.body?.includes(marker))
+  const mine = existing.find(
+    (comment) => comment.user?.login === author && comment.body?.includes(marker),
+  )
 
   if (mine) {
     await client.rest.issues.updateComment({ body, comment_id: mine.id, owner, repo: name })
@@ -126,6 +127,8 @@ export async function upsert(client: Octokit, options: upsert.Options): Promise<
 export declare namespace upsert {
   /** Options for {@link upsert}. */
   type Options = {
+    /** Exact GitHub login of this App's bot user. */
+    author: string
     /** Comment body, already carrying {@link marker}. */
     body: string
     /** Pull request number. */

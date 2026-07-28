@@ -125,13 +125,17 @@ export declare namespace prepare {
  * that were not filed. Re-running picks up where it stopped.
  */
 export async function file(options: file.Options): Promise<Outcome> {
-  const { client, config, dryRun, entries, label, origin, pr, repo, root } = options
+  const { client, config, dryRun, entries, expectedAuthor, label, origin, pr, repo, root } = options
 
   // A cross-repo target may name its own labels, in which case dedupe must index by one of those and
   // not by the sender's.
   const applied = options.labels?.length ? options.labels : config.labels
 
-  const matcher = await Github.matcher(client, { label: applied[0] ?? label, repo })
+  const matcher = await Github.matcher(client, {
+    ...(expectedAuthor ? { expectedAuthor } : {}),
+    label: applied[0] ?? label,
+    repo,
+  })
   const [author, sha] = await Promise.all([Git.author({ cwd: root }), Git.head({ cwd: root })])
 
   const commented: Link[] = []
@@ -162,7 +166,12 @@ export async function file(options: file.Options): Promise<Outcome> {
       if (dryRun) {
         const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
         const status = existing
-          ? await Github.findOccurrence(client, { existing, occurrence, repo })
+          ? await Github.findOccurrence(client, {
+              existing,
+              occurrence,
+              repo,
+              ...(expectedAuthor ? { expectedAuthor } : {}),
+            })
           : undefined
         const category = status ?? (existing ? 'commented' : 'created')
         ;(category === 'commented' ? commented : created).push({
@@ -183,6 +192,7 @@ export async function file(options: file.Options): Promise<Outcome> {
       reserved = true
       const result = await Github.publish(client, {
         entry: entry,
+        ...(expectedAuthor ? { expectedAuthor } : {}),
         labels: Github.toLabels({
           entry: entry,
           labels: applied,
@@ -207,7 +217,13 @@ export async function file(options: file.Options): Promise<Outcome> {
       await Store.write({ ...entry, issue }, { id: entry.id, root })
       written.push(path)
 
-      if (!existing) seen.set(hash, { number: result.issue, state: 'open', title: entry.title })
+      if (!existing)
+        seen.set(hash, {
+          ...(expectedAuthor ? { author: expectedAuthor } : {}),
+          number: result.issue,
+          state: 'open',
+          title: entry.title,
+        })
     } catch (error) {
       // Once the request starts, a transport failure cannot prove GitHub did not apply it.
       if (reserved) consumed += 1
@@ -231,6 +247,8 @@ export declare namespace file {
     dryRun?: boolean | undefined
     /** Entries to file. Every one must belong to `repo`. */
     entries: readonly Entry.Entry[]
+    /** Issue author trusted for matching and replay markers. Every author is trusted when omitted. */
+    expectedAuthor?: string | undefined
     /** Labels to apply, overriding the sender's. Set when a target named its own. */
     labels?: readonly string[] | undefined
     /**

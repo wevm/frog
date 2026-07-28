@@ -59,7 +59,7 @@ test('behavior: an acquired claim hydrates before dispatch and preserves its del
     id: delivery.id,
     name: 'issues',
     payload: {
-      action: 'edited',
+      action: 'reopened',
       installation: { id: 42 },
       issue: { number: 9, state: 'open', title: 'Current title' },
       repository: { full_name: 'acme/app' },
@@ -91,7 +91,7 @@ test('error: changing the delivery id prevents dispatch and abandons the claim',
           id: 'different',
           name: 'issues',
           payload: {
-            action: 'edited',
+            action: 'reopened',
             installation: { id: 42 },
             issue: { number: 9, state: 'open', title: 'Current title' },
             repository: { full_name: 'acme/app' },

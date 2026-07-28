@@ -33,6 +33,11 @@ export const publish = Cli.create('publish', {
       .describe('Commit the issue links. On by default; pass `--no-commit` to leave them staged.'),
     cwd: context.cwdOption,
     dryRun: z.boolean().optional().describe('Report what would be filed without filing it.'),
+    expectedAuthor: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Issue author trusted for automated matching and replay markers.'),
     max: z.coerce
       .number()
       .int()
@@ -176,6 +181,7 @@ export const publish = Cli.create('publish', {
               ...ready,
               config,
               entries: group.entries,
+              ...(c.options.expectedAuthor ? { expectedAuthor: c.options.expectedAuthor } : {}),
               origin: ready.repo,
               repo: destination,
               root,

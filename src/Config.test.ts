@@ -19,11 +19,6 @@ describe('from', () => {
         ],
         "maxPerRun": 10,
         "outbound": {
-          "allowedRepos": [],
-          "enabled": true,
-        },
-        "pullRequest": {
-          "branch": "frog/sync",
           "enabled": true,
         },
       }

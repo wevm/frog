@@ -26,6 +26,9 @@ inputs:
   max:
     description: Maximum entries to publish in this run. The repository config applies when absent.
     default: ''
+  issue-author:
+    description: GitHub login trusted as the author of issues created by this token.
+    default: github-actions[bot]
   version:
     description: Frog npm version to install when command is absent.
     default: '1'
@@ -86,6 +89,7 @@ runs:
         FROG_INPUT_COMMIT: ${{ inputs.commit }}
         FROG_INPUT_DRY_RUN: ${{ inputs['dry-run'] }}
         FROG_INPUT_MAX: ${{ inputs.max }}
+        FROG_INPUT_ISSUE_AUTHOR: ${{ inputs['issue-author'] }}
         FROG_INPUT_VERSION: ${{ inputs.version }}
         FROG_INPUT_GIT_NAME: ${{ inputs['git-name'] }}
         FROG_INPUT_GIT_EMAIL: ${{ inputs['git-email'] }}
@@ -148,6 +152,22 @@ runs:
           fail "$FROG_INPUT_CWD is not inside a git repository."
         fi
 
+        token="$FROG_INPUT_TOKEN"
+        issue_author="$FROG_INPUT_ISSUE_AUTHOR"
+        if [[ ! "$issue_author" =~ ^[A-Za-z0-9_.-]+(\[bot\])?$ ]]; then
+          fail 'issue-author must be a GitHub login.'
+        fi
+        if [[ "${GITHUB_EVENT_NAME:-}" == 'issues' ]]; then
+          if [[ -z "${GITHUB_EVENT_PATH:-}" || ! -f "$GITHUB_EVENT_PATH" ]]; then
+            fail 'GITHUB_EVENT_PATH is required for issue events.'
+          fi
+          event_author="$(jq -r '.issue.user.login // empty' "$GITHUB_EVENT_PATH")"
+          if [[ "$event_author" != "$issue_author" ]]; then
+            echo '::warning::Ignoring an issue event from an untrusted report author.'
+            exit 0
+          fi
+        fi
+
         if ! git -C "$cwd" config --local user.name "$FROG_INPUT_GIT_NAME"; then
           fail 'Could not configure git user.name.'
         fi
@@ -155,7 +175,6 @@ runs:
           fail 'Could not configure git user.email.'
         fi
 
-        token="$FROG_INPUT_TOKEN"
         auth_header=''
         if [[ -n "$token" ]]; then
           echo "::add-mask::$token"
@@ -257,7 +276,12 @@ runs:
           fi
         fi
 
-        common=(--cwd "$cwd" --json --full-output)
+        common=(
+          --cwd "$cwd"
+          --expected-author "$issue_author"
+          --json
+          --full-output
+        )
         if [[ "$FROG_INPUT_COMMIT" == 'false' ]]; then common+=(--no-commit); fi
         if [[ "$FROG_INPUT_DRY_RUN" == 'true' ]]; then common+=(--dry-run); fi
 

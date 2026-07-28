@@ -73,7 +73,7 @@ test('behavior: queues an issue identity instead of its potentially oversized bo
     id: 'delivery-3',
     name: 'issues',
     payload: {
-      action: 'edited',
+      action: 'reopened',
       ...common,
       issue: { body: '🐸'.repeat(Delivery.maxBytes), number: 9, title: 'Ignored until hydration' },
     },
@@ -184,7 +184,7 @@ test('behavior: issue hydration uses current state after a delayed event', async
     id: 'delivery-6',
     name: 'issues',
     payload: {
-      action: 'edited',
+      action: 'reopened',
       installation: { id: 42 },
       issue: {
         body: 'Current body.',

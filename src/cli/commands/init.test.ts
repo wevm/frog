@@ -30,7 +30,12 @@ test('behavior: scaffolds the directory', async () => {
       }
     | undefined
   expect(cta?.description).toMatchInlineSnapshot(`
-    "Prompt the user to choose the GitHub App or Action-only setup described in \`.agents/friction-log/README.md\`. Do not install the App or add a workflow before they answer.
+    "Frog supports two automation methods:
+
+    - GitHub App for pull-request feedback, forks, and cross-repository reporting.
+    - Action-only for same-repository automation without granting a third-party App access.
+
+    Prompt the user to choose one before installing the App or adding a workflow. See https://github.com/wevm/frog#automation-modes for setup.
 
     Add this to \`AGENTS.md\` under the appropriate section:
 
@@ -51,7 +56,7 @@ test('behavior: scaffolds the directory', async () => {
   expect(readme).not.toContain('## Action-only')
   expect(readme).not.toContain('| Area | GitHub App | Action-only |')
   expect(readme).not.toContain('github.com/apps/frog-fm')
-  expect(readme).not.toContain('Create `.github/workflows/frog.yml`')
+  expect(readme).not.toContain('Create `.github/workflows/friction-log.yml`')
   expect(readme).not.toContain('uses: wevm/frog/action@v1')
   expect(readme).toContain('## Logging Friction')
   expect(readme).toContain('## For Agents')
@@ -66,7 +71,7 @@ test('behavior: scaffolds the directory', async () => {
     Entry.sections.map((section) => section.label),
   )
 
-  await expect(fs.readFile(path.join(cwd, '.github/workflows/frog.yml'))).rejects.toThrow()
+  await expect(fs.readFile(path.join(cwd, '.github/workflows/friction-log.yml'))).rejects.toThrow()
 })
 
 test('behavior: the issue form scaffolds local entries', async () => {
@@ -100,7 +105,7 @@ test('behavior: re-running never clobbers local edits', async () => {
 
 test('behavior: leaves the automation choice alone', async () => {
   const cwd = await helpers.repo()
-  const workflow = path.join(cwd, '.github/workflows/frog.yml')
+  const workflow = path.join(cwd, '.github/workflows/friction-log.yml')
   await fs.mkdir(path.dirname(workflow), { recursive: true })
   await fs.writeFile(workflow, 'custom\n', 'utf8')
 

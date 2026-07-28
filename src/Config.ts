@@ -74,9 +74,9 @@ export const Schema = z.object({
     .object({
       allowedRepos: z
         .array(z.string().regex(repoAllowPattern))
-        .default([])
+        .optional()
         .describe(
-          'Targets this repository may file against. Always read from the base branch, never a pull request head.',
+          'Targets this repository may file against. Absent allows every target that accepts inbound friction. Always read from the base branch, never a pull request head.',
         ),
       enabled: z
         .boolean()
@@ -85,16 +85,6 @@ export const Schema = z.object({
     })
     .prefault({})
     .describe('Where friction may be reported, and whether automation may do it unattended.'),
-  pullRequest: z
-    .union([z.boolean(), z.object({ branch: z.string().min(1).optional() })])
-    .default(true)
-    .describe(
-      'Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which needs no merge but fails where that branch is protected.',
-    )
-    .transform((value) => ({
-      branch: (typeof value === 'object' ? value.branch : undefined) ?? 'frog/sync',
-      enabled: value !== false,
-    })),
   repo: z
     .string()
     .regex(repoPattern)

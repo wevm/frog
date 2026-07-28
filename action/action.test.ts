@@ -59,6 +59,11 @@ async function setup(): Promise<setup.Result> {
   await fs.writeFile(
     command,
     `#!/usr/bin/env bash
+if [[ -n "$FROG_EXPECT_AUTHOR" ]]; then
+  if [[ " $* " != *" --expected-author $FROG_EXPECT_AUTHOR "* ]]; then exit 64; fi
+elif [[ " $* " == *" --expected-author "* ]]; then
+  exit 65
+fi
 if [[ "$1" == "$FROG_TEST_COMMIT" ]]; then
   printf '%s\\n' "$1" >> "$GITHUB_WORKSPACE/action-change.txt"
   git -C "$GITHUB_WORKSPACE" add action-change.txt
@@ -111,6 +116,8 @@ async function run(
   fixture: setup.Result,
   options: {
     commit: '' | 'publish' | 'sync'
+    eventAuthor?: string | undefined
+    issueAuthor?: string | undefined
     publish: string
     publishStatus?: '0' | '1' | undefined
     sync: string
@@ -120,6 +127,15 @@ async function run(
   const action = parse(await fs.readFile(path.join(root, 'action', 'action.yml'), 'utf8')) as Action
   const script = action.runs?.steps?.find((step) => step.id === 'frog')?.run
   if (!script) throw new Error('Could not find the Frog action shell step.')
+  const issueAuthor = options.issueAuthor ?? 'github-actions[bot]'
+  if (options.eventAuthor)
+    await fs.writeFile(
+      fixture.event,
+      `${JSON.stringify({
+        issue: { user: { login: options.eventAuthor } },
+        repository: { default_branch: 'main' },
+      })}\n`,
+    )
 
   await exec('bash', ['-c', script], {
     cwd: fixture.cwd,
@@ -132,14 +148,17 @@ async function run(
       FROG_INPUT_DRY_RUN: 'false',
       FROG_INPUT_GIT_EMAIL: '41898282+github-actions[bot]@users.noreply.github.com',
       FROG_INPUT_GIT_NAME: 'github-actions[bot]',
+      FROG_INPUT_ISSUE_AUTHOR: issueAuthor,
       FROG_INPUT_MAX: '',
       FROG_INPUT_PUSH: 'pull-request',
       FROG_INPUT_REMOTE: 'origin',
       FROG_INPUT_TOKEN: 'test-token',
       FROG_INPUT_VERSION: '1',
+      FROG_EXPECT_AUTHOR: issueAuthor,
       FROG_TEST_COMMIT: options.commit,
       GH_LOG: fixture.log,
       GITHUB_EVENT_PATH: fixture.event,
+      GITHUB_EVENT_NAME: options.eventAuthor ? 'issues' : 'push',
       GITHUB_OUTPUT: fixture.output,
       GITHUB_REPOSITORY: 'wevm/demo',
       GITHUB_SERVER_URL: 'https://github.com',
@@ -227,4 +246,39 @@ test('behavior: resets an existing review branch after a complete run', async ()
     ),
   ).toBe(fixture.main)
   expect(await fs.readFile(fixture.log, 'utf8')).toContain('pr edit 42')
+})
+
+test('security: accepts an explicit custom-token author', async () => {
+  const fixture = await setup()
+  await run(fixture, {
+    commit: '',
+    issueAuthor: 'custom-app[bot]',
+    publish: envelope({ committed: false, deferred: false }),
+    sync: envelope({ committed: false, deferred: false }),
+  })
+
+  expect(
+    await helpers.git(
+      ['--git-dir', fixture.remote, 'rev-parse', 'refs/heads/frog/sync'],
+      fixture.temp,
+    ),
+  ).toBe(fixture.main)
+})
+
+test('security: ignores issue events from another author', async () => {
+  const fixture = await setup()
+  await run(fixture, {
+    commit: '',
+    eventAuthor: 'attacker',
+    publish: envelope({ committed: false, deferred: false }),
+    sync: envelope({ committed: false, deferred: false }),
+  })
+
+  expect(
+    await helpers.git(
+      ['--git-dir', fixture.remote, 'rev-parse', 'refs/heads/frog/sync'],
+      fixture.temp,
+    ),
+  ).toBe(fixture.queued)
+  await expect(fs.readFile(fixture.output, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
 })

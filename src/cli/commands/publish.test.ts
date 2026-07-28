@@ -73,6 +73,32 @@ test('behavior: comments rather than duplicating when an issue already covers it
   expect(instance.comments(repo, 1)).toHaveLength(1)
 })
 
+test('security: automated publishing ignores an issue owned by another author', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github(
+    {
+      [repo]: [
+        {
+          author: 'contributor',
+          body: Github.renderMarker({ hash: Github.hash('Filters ignored') }),
+          title: 'Filters ignored',
+        },
+      ],
+    },
+    { author: 'github-actions[bot]' },
+  )
+  await Store.write({ body, severity: 'minor', title: 'Filters ignored' }, { id: 'a', root: cwd })
+
+  const result = await cli.data<Outcome>(
+    ['publish', '--cwd', cwd, '--expected-author', 'github-actions[bot]'],
+    env(instance.url),
+  )
+
+  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#2`, title: 'Filters ignored' }])
+  expect(instance.issues.get(repo)).toHaveLength(2)
+  expect(instance.comments(repo, 1)).toEqual([])
+})
+
 // The App re-runs publish on every pull request `synchronize`, so this has to hold.
 test('behavior: running twice never opens a second issue', async () => {
   const cwd = await helpers.repo({ remote })
@@ -365,11 +391,6 @@ describe('cross-repo', () => {
     const cwd = await helpers.repo({ remote })
     const instance = await github({}, accepts())
     await install(cwd, 'viem', upstream)
-    await helpers.writeFile(
-      Config.file,
-      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
-      cwd,
-    )
     await Store.write(
       { body, severity: 'major', target: 'viem', title: 'Upstream friction' },
       { id: 'a', root: cwd },
@@ -487,6 +508,7 @@ describe('cross-repo', () => {
     const cwd = await helpers.repo({ remote })
     const instance = await github({}, accepts())
     await install(cwd, 'viem', upstream)
+    await helpers.writeFile(Config.file, JSON.stringify({ outbound: { allowedRepos: [] } }), cwd)
     await Store.write(
       { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
       { id: 'a', root: cwd },

@@ -77,8 +77,7 @@
       "type": "object",
       "properties": {
         "allowedRepos": {
-          "default": [],
-          "description": "Targets this repository may file against. Always read from the base branch, never a pull request head.",
+          "description": "Targets this repository may file against. Absent allows every target that accepts inbound friction. Always read from the base branch, never a pull request head.",
           "type": "array",
           "items": {
             "type": "string",
@@ -91,24 +90,6 @@
           "type": "boolean"
         }
       }
-    },
-    "pullRequest": {
-      "default": true,
-      "description": "Reconcile a closed or reopened issue through a pull request. An object names the branch it is opened from. Set `false` to commit straight to the default branch instead, which needs no merge but fails where that branch is protected.",
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "branch": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        }
-      ]
     },
     "repo": {
       "description": "`owner/name` this repository's own friction is filed against. Defaults to the origin remote.",
