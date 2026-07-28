@@ -28,6 +28,28 @@ function commentBody(delivery: string): string {
 }
 
 /**
+ * Checks whether an issue is the exact App-owned reconciliation control issue.
+ *
+ * @param issue - Issue to inspect.
+ * @param options - Expected App identity.
+ * @returns Whether the issue is reserved for reconciliation wakeups.
+ */
+export function isControlIssue(
+  issue: Pick<Github.Issue, 'author' | 'body' | 'title'>,
+  options: isControlIssue.Options,
+): boolean {
+  return issue.author === options.author && issue.title === title && issue.body === issueBody()
+}
+
+export declare namespace isControlIssue {
+  /** Controls which App installation owns the reconciliation issue. */
+  type Options = {
+    /** Authenticated GitHub App bot login. */
+    author: string
+  }
+}
+
+/**
  * Creates or updates the one App-owned comment that wakes a repository's reconciliation workflow.
  *
  * The issue stays closed so it does not pollute the repository's work queue. Neither its body nor the
@@ -43,8 +65,15 @@ export async function wake(client: Octokit, options: wake.Options): Promise<wake
     per_page: 100,
     state: 'all',
   })
-  let control = issues.find(
-    (issue) => issue.user?.login === author && issue.title === title && issue.body === issueBody(),
+  let control = issues.find((issue) =>
+    isControlIssue(
+      {
+        body: issue.body,
+        title: issue.title,
+        ...(issue.user?.login ? { author: issue.user.login } : {}),
+      },
+      { author },
+    ),
   )
 
   if (!control) {

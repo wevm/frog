@@ -148,6 +148,28 @@ test('security: issue comments must be initiated by the stable Frog bot identity
   ).rejects.toThrowError('Invalid GitHub Actions identity.')
 })
 
+test.each(['release+stable', 'main@2'])(
+  'behavior: accepts the valid %s branch name',
+  async (branch) => {
+    const branchRef = `refs/heads/${branch}`
+
+    await expect(
+      Oidc.verify(
+        await token(
+          claims({
+            ref: branchRef,
+            workflow_ref: `${repository}/.github/workflows/friction-log.yml@${branchRef}`,
+          }),
+        ),
+        options(),
+      ),
+    ).resolves.toMatchObject({
+      ref: branchRef,
+      workflow_ref: `${repository}/.github/workflows/friction-log.yml@${branchRef}`,
+    })
+  },
+)
+
 test.each(['push', 'schedule', 'workflow_dispatch'])(
   'behavior: accepts the %s workflow event without restricting its actor',
   async (event_name) => {
@@ -166,6 +188,13 @@ test.each([
   ['repository', { repository: '../other' }],
   ['repository id', { repository_id: '0' }],
   ['ref', { ref: 'refs/pull/1/merge' }],
+  [
+    'empty branch ref',
+    {
+      ref: 'refs/heads/',
+      workflow_ref: `${repository}/.github/workflows/friction-log.yml@refs/heads/`,
+    },
+  ],
   ['ref type', { ref_type: 'tag' }],
   ['commit sha', { sha: 'invalid' }],
   ['workflow sha', { workflow_sha: 'b'.repeat(40) }],

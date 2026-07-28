@@ -23,9 +23,13 @@ describe('resolve', () => {
       outbound?: Partial<Config.Outbound> | undefined
     } = {},
   ): Target.resolve.Options {
-    const { allowedRepos = [], outbound, ...rest } = overrides
+    const { allowedRepos, outbound, ...rest } = overrides
     return {
-      outbound: { allowedRepos, enabled: true, ...outbound },
+      outbound: {
+        ...(allowedRepos ? { allowedRepos } : {}),
+        enabled: true,
+        ...outbound,
+      },
       readConfig: async () => undefined,
       readRepo: async () => undefined,
       self,
@@ -118,10 +122,7 @@ describe('resolve', () => {
 
   describe('repositories', () => {
     test('behavior: an explicit repository that accepts inbound friction', async () => {
-      const result = await Target.resolve(
-        upstream,
-        options({ allowedRepos: [upstream], readConfig: accepts() }),
-      )
+      const result = await Target.resolve(upstream, options({ readConfig: accepts() }))
       expect(result).toEqual({ ok: true, target: { kind: 'repo', repo: upstream } })
     })
 
@@ -226,7 +227,10 @@ describe('resolve', () => {
     })
 
     test('error: the target is not on the sender allowedRepos list', async () => {
-      const result = await Target.resolve(upstream, options({ readConfig: accepts() }))
+      const result = await Target.resolve(
+        upstream,
+        options({ allowedRepos: [], readConfig: accepts() }),
+      )
       expect(result.ok === false && result.code).toBe('TARGET_NOT_ALLOWED')
     })
 

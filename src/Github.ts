@@ -835,7 +835,8 @@ export type Matcher = {
 export async function matcher(client: Client, options: matcher.Options): Promise<Matcher> {
   const { push } = await permissions(client, { repo: options.repo })
   const accepts = (issue: Issue) =>
-    !options.expectedAuthor || issue.author === options.expectedAuthor
+    !options.exclude?.(issue) &&
+    (!options.expectedAuthor || issue.author === options.expectedAuthor)
   const labelled = push
     ? toIndex((await list(client, options)).filter(accepts))
     : new Map<string, Issue>()
@@ -859,6 +860,8 @@ export async function matcher(client: Client, options: matcher.Options): Promise
 export declare namespace matcher {
   /** Options for {@link matcher}. */
   type Options = index.Options & {
+    /** Predicate for issues that must never participate in friction dedupe. */
+    exclude?: ((issue: Issue) => boolean) | undefined
     /** Issue author eligible for matching. Every author is eligible when omitted. */
     expectedAuthor?: string | undefined
   }

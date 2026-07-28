@@ -566,6 +566,43 @@ describe('index', () => {
 })
 
 describe('matcher', () => {
+  test('behavior: excludes issues from the labelled index', async () => {
+    const instance = await github({
+      [repo]: [
+        { body: 'Reserved.', title },
+        { body: 'Legitimate friction.', title },
+      ],
+    })
+
+    const matcher = await Github.matcher(client(instance.url), {
+      exclude: (issue) => issue.body === 'Reserved.',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match(title)).toMatchObject({ body: 'Legitimate friction.', number: 2 })
+  })
+
+  test('behavior: excludes issues from the unlabelled fallback index', async () => {
+    const instance = await github(
+      {
+        [repo]: [
+          { body: 'Reserved.', title },
+          { body: 'Legitimate friction.', title },
+        ],
+      },
+      { pushAccess: [] },
+    )
+
+    const matcher = await Github.matcher(client(instance.url), {
+      exclude: (issue) => issue.body === 'Reserved.',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match(title)).toMatchObject({ body: 'Legitimate friction.', number: 2 })
+  })
+
   test('security: only matches issues authored by the expected App', async () => {
     const instance = await github({
       [repo]: [

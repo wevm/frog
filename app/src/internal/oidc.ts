@@ -304,14 +304,7 @@ function isBase64Url(value: unknown): value is string {
 }
 
 function isBranchRef(value: unknown): value is string {
-  return (
-    typeof value === 'string' &&
-    /^refs\/heads\/[A-Za-z0-9][A-Za-z0-9._/-]{0,254}$/.test(value) &&
-    !value.includes('..') &&
-    !value.endsWith('.') &&
-    !value.endsWith('/') &&
-    !value.includes('//')
-  )
+  return typeof value === 'string' && value.startsWith('refs/heads/') && value !== 'refs/heads/'
 }
 
 function isEventName(value: unknown): value is Claims['event_name'] {

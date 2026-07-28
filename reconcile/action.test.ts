@@ -30,6 +30,12 @@ async function setup(): Promise<setup.Result> {
     '---\ntitle: Existing\nseverity: minor\n---\n\nExisting.\n',
     cwd,
   )
+  const artifacts = path.join(cwd, '.agents/friction-log/existing/artifacts')
+  await fs.mkdir(artifacts, { recursive: true })
+  await fs.writeFile(path.join(artifacts, 'reproduce.sh'), '#!/usr/bin/env bash\n', {
+    mode: 0o755,
+  })
+  await fs.symlink('reproduce.sh', path.join(artifacts, 'reproduce-link'))
   const main = await helpers.commit('initial', cwd)
   await helpers.git(['push', '--set-upstream', 'origin', 'main'], cwd)
 
@@ -113,6 +119,12 @@ case "$FROG_TEST_CHANGE" in
     git -C "$GITHUB_WORKSPACE" mv \\
       .agents/friction-log/existing/friction.md \\
       .agents/friction-log/renamed/friction.md
+    ;;
+  delete-executable)
+    rm -- "$GITHUB_WORKSPACE/.agents/friction-log/existing/artifacts/reproduce.sh"
+    ;;
+  delete-symlink)
+    rm -- "$GITHUB_WORKSPACE/.agents/friction-log/existing/artifacts/reproduce-link"
     ;;
 esac
 
@@ -376,6 +388,29 @@ test.each(['symlink', 'mode'])('security: rejects a %s change', async (change) =
   const fixture = await setup()
   expect(await failure(fixture, change)).toContain('Frog produced an unsafe repository change.')
   expect(await remoteHead(fixture)).toBe(fixture.queued)
+})
+
+test.each([
+  ['executable', 'delete-executable', 'reproduce.sh'],
+  ['symlink', 'delete-symlink', 'reproduce-link'],
+])('behavior: deletes a tracked %s artifact', async (_kind, change, name) => {
+  const fixture = await setup()
+  await run(fixture, change)
+
+  const head = await remoteHead(fixture)
+  expect(
+    await helpers.git(
+      [
+        'diff',
+        '--name-status',
+        fixture.main,
+        head,
+        '--',
+        `.agents/friction-log/existing/artifacts/${name}`,
+      ],
+      fixture.cwd,
+    ),
+  ).toBe(`D\t.agents/friction-log/existing/artifacts/${name}`)
 })
 
 test('security: rejects a rename between otherwise allowed paths', async () => {

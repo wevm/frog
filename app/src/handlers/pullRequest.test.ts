@@ -345,7 +345,7 @@ describe('cross-repo', () => {
   })
 
   test('behavior: files upstream without waiting for a human', async () => {
-    const instance = await github({}, seed({ outbound: { allowedRepos: [upstream] } }))
+    const instance = await github({}, seed({}))
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 
@@ -369,7 +369,7 @@ describe('cross-repo', () => {
   })
 
   test('behavior: defers a target the sender has not allowlisted', async () => {
-    const instance = await github({}, seed({ outbound: { auto: true } }))
+    const instance = await github({}, seed({ outbound: { allowedRepos: [] } }))
 
     const report = await run(instance.url, { installed: { [upstream]: client(instance.url) } })
 

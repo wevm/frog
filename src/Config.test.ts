@@ -19,7 +19,6 @@ describe('from', () => {
         ],
         "maxPerRun": 10,
         "outbound": {
-          "allowedRepos": [],
           "enabled": true,
         },
         "pullRequest": {

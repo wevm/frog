@@ -65,10 +65,10 @@ to recreate the report manually from its issue.
 ## Cross-repo reporting
 
 Reporting to another repository needs an installation there. No installation means no token, so the
-App cannot report where it has not been installed: consent is enforced by GitHub rather than
-configuration.
+App cannot report where it has not been installed.
 
-The sender must opt in too. Name the target in `outbound.allowedRepos`:
+Outbound reporting is enabled by default, but the receiving repository must opt in. A sender can
+restrict its destinations with `outbound.allowedRepos`:
 
 ```jsonc
 // .agents/friction-log/config.json in the reporting repository
@@ -77,8 +77,8 @@ The sender must opt in too. Name the target in `outbound.allowedRepos`:
 }
 ```
 
-The list is empty by default. Set `outbound.enabled` to `false` to switch reporting off without emptying
-the list.
+Without `allowedRepos`, every repository that accepts the sender is eligible. Set `outbound.enabled` to
+`false` to switch outbound reporting off.
 
 The receiving repository opts in separately:
 

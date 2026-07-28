@@ -4,6 +4,7 @@ import type { Octokit } from 'octokit'
 import type * as comment from './comment.js'
 import * as resolvers from './resolvers.js'
 import * as serialization from './serialize.js'
+import * as signal from './signal.js'
 
 /** What filing a set of entries did. */
 export type Filing = {
@@ -115,6 +116,7 @@ export async function file(options: file.Options): Promise<Filing> {
     await serialize(destination, async () => {
       const applied = group.labels?.length ? group.labels : config.labels
       const matcher = await Github.matcher(target.rest, {
+        exclude: (issue) => signal.isControlIssue(issue, { author: app }),
         expectedAuthor: app,
         label: applied[0] ?? 'friction',
         repo: destination,

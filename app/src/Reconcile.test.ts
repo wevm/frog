@@ -3,6 +3,7 @@ import { Octokit } from 'octokit'
 import { github } from '../../test/github.js'
 import * as AppSync from '../../src/AppSync.js'
 import { InvalidRepositoryError, reconcile } from './Reconcile.js'
+import * as signal from './internal/signal.js'
 
 const app = 'frog-fm[bot]'
 const repo = 'acme/app'
@@ -17,14 +18,16 @@ function client(url: string): Octokit {
   })
 }
 
-function entry(options: { id?: string; issue?: string; target?: string } = {}): Entry.Entry {
+function entry(
+  options: { id?: string; issue?: string; target?: string; title?: string } = {},
+): Entry.Entry {
   return {
     body: 'The filter was swallowed.',
     id: options.id ?? 'a',
     ...(options.issue ? { issue: options.issue } : {}),
     severity: 'minor',
     ...(options.target ? { target: options.target } : {}),
-    title: 'Filters ignored',
+    title: options.title ?? 'Filters ignored',
   }
 }
 
@@ -82,6 +85,38 @@ test('behavior: files a pending report and returns content-free open state', asy
   expect(wire).not.toContain(pending.title)
 })
 
+test('behavior: excludes the control issue but reuses a legitimate same-title report', async () => {
+  const pending = entry({ title: 'Frog reconciliation' })
+  const instance = await github({}, { files: { [repo]: files([pending]) } })
+  const control = await signal.wake(client(instance.url), {
+    author: app,
+    delivery: 'delivery-1',
+    repo,
+  })
+
+  const first = await run(instance.url)
+  const occurrence = AppSync.occurrence({ entry: pending })
+
+  expect(first.reports[occurrence]).toEqual({ number: 2, repo, state: 'open' })
+  expect(instance.issues.get(repo)).toHaveLength(2)
+  expect(instance.issues.get(repo)?.[control.issue - 1]).toMatchObject({
+    state: 'closed',
+    title: 'Frog reconciliation',
+  })
+  const report = instance.issues.get(repo)?.[1]
+  expect(report).toMatchObject({
+    state: 'open',
+    title: pending.title,
+  })
+  expect(Github.parseMarker(report?.body)).toMatchObject({ hash: Github.hash(pending.title) })
+
+  const replay = await run(instance.url)
+
+  expect(replay.reports[occurrence]).toEqual({ number: 2, repo, state: 'open' })
+  expect(instance.issues.get(repo)).toHaveLength(2)
+  expect(instance.issues.get(repo)?.[control.issue - 1]?.state).toBe('closed')
+})
+
 test('behavior: preserves cross-repository reporting through installed targets', async () => {
   const upstream = 'wevm/viem'
   const pending = entry({ target: upstream })
@@ -89,11 +124,7 @@ test('behavior: preserves cross-repository reporting through installed targets',
     {},
     {
       files: {
-        [repo]: files([pending], {
-          [Config.file]: JSON.stringify({
-            outbound: { allowedRepos: [upstream] },
-          }),
-        }),
+        [repo]: files([pending]),
         [upstream]: {
           [Config.file]: JSON.stringify({ inbound: { enabled: true } }),
         },

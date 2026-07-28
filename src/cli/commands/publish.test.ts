@@ -391,11 +391,6 @@ describe('cross-repo', () => {
     const cwd = await helpers.repo({ remote })
     const instance = await github({}, accepts())
     await install(cwd, 'viem', upstream)
-    await helpers.writeFile(
-      Config.file,
-      JSON.stringify({ outbound: { allowedRepos: [upstream] } }),
-      cwd,
-    )
     await Store.write(
       { body, severity: 'major', target: 'viem', title: 'Upstream friction' },
       { id: 'a', root: cwd },
@@ -513,6 +508,7 @@ describe('cross-repo', () => {
     const cwd = await helpers.repo({ remote })
     const instance = await github({}, accepts())
     await install(cwd, 'viem', upstream)
+    await helpers.writeFile(Config.file, JSON.stringify({ outbound: { allowedRepos: [] } }), cwd)
     await Store.write(
       { body, severity: 'minor', target: 'viem', title: 'Upstream friction' },
       { id: 'a', root: cwd },

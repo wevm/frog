@@ -74,9 +74,9 @@ export const Schema = z.object({
     .object({
       allowedRepos: z
         .array(z.string().regex(repoAllowPattern))
-        .default([])
+        .optional()
         .describe(
-          'Targets this repository may file against. Always read from the base branch, never a pull request head.',
+          'Targets this repository may file against. Absent allows every target that accepts inbound friction. Always read from the base branch, never a pull request head.',
         ),
       enabled: z
         .boolean()

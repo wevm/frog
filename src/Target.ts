@@ -60,10 +60,9 @@ export type Resolution =
  * directly or through a package's `repository` field, and consent is then read from that repository's
  * own default branch.
  *
- * Two gates guard a target that is not this repository. The receiver must have committed a config
- * accepting inbound friction, and may restrict who reports. The sender must have listed the target in
- * `outbound.allowedRepos`, read from the base branch so a pull request cannot name its own destination.
- * Setting `outbound.enabled` to false refuses every target but this repository.
+ * The receiver must have committed a config accepting inbound friction, and may restrict who reports.
+ * Outbound reporting is on by default. The sender may restrict targets with `outbound.allowedRepos`,
+ * read from the base branch, or disable every target with `outbound.enabled`.
  *
  * @returns The target, or a refusal naming which gate stopped it.
  */
@@ -117,7 +116,7 @@ export async function resolve(
       ok: false,
     }
 
-  if (!allowed(outbound.allowedRepos, repo))
+  if (outbound.allowedRepos && !allowed(outbound.allowedRepos, repo))
     return {
       code: 'TARGET_NOT_ALLOWED',
       message: `\`${repo}\` is not listed in \`outbound.allowedRepos\`.`,

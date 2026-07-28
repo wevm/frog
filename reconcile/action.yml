@@ -304,10 +304,16 @@ runs:
                   "$path" =~ ^\.agents/friction-log/[^./][^/]*/friction\.md$ ]] || return 1
                 ;;
               D)
-                [[ "$old_mode" == '100644' && "$new_mode" == '000000' ]] || return 1
-                [[ "$path" == '.agents/friction-log/.sync.json' ||
-                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/friction\.md$ ||
-                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/artifacts/.+$ ]] || return 1
+                [[ "$new_mode" == '000000' ]] || return 1
+                if [[ "$path" == '.agents/friction-log/.sync.json' ||
+                  "$path" =~ ^\.agents/friction-log/[^./][^/]*/friction\.md$ ]]; then
+                  [[ "$old_mode" == '100644' ]] || return 1
+                elif [[ "$path" =~ ^\.agents/friction-log/[^./][^/]*/artifacts/.+$ ]]; then
+                  [[ "$old_mode" == '100644' || "$old_mode" == '100755' ||
+                    "$old_mode" == '120000' ]] || return 1
+                else
+                  return 1
+                fi
                 ;;
               *) return 1 ;;
             esac
