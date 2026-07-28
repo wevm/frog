@@ -223,6 +223,32 @@ function renderOccurrence(occurrence: string): string {
   return `<!-- frog:occurrence:${occurrenceVersion} ${digest} -->`
 }
 
+const occurrenceRegex = new RegExp(
+  `<!-- frog:occurrence:${occurrenceVersion} [0-9a-f]{64} -->`,
+  'g',
+)
+
+function commentIssueNumber(value: string, repo: string): number | undefined {
+  try {
+    const parts = new URL(value).pathname.split('/').filter(Boolean).map(decodeURIComponent)
+    const [owner, name] = repo.split('/')
+    const [prefix, issueOwner, issueRepo, resource, number] = parts.slice(-5)
+    const parsed = Number(number)
+    if (
+      prefix !== 'repos' ||
+      issueOwner !== owner ||
+      issueRepo !== name ||
+      resource !== 'issues' ||
+      !Number.isSafeInteger(parsed) ||
+      parsed <= 0
+    )
+      return undefined
+    return parsed
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * Finds where an occurrence is already recorded on an issue.
  *
@@ -482,13 +508,17 @@ function toIndex(issues: readonly Issue[]): Map<string, Issue> {
   const indexed = new Map<string, Issue>()
   for (const issue of issues) {
     const key = parseMarker(issue.body)?.hash ?? hash(issue.title)
-    // Prefer an open issue, then the lowest number.
-    const current = indexed.get(key)
-    if (!current) indexed.set(key, issue)
-    else if (current.state !== 'open' && issue.state === 'open') indexed.set(key, issue)
-    else if (current.state === issue.state && issue.number < current.number) indexed.set(key, issue)
+    indexed.set(key, preferred(indexed.get(key), issue))
   }
   return indexed
+}
+
+function preferred(current: Issue | undefined, candidate: Issue): Issue {
+  // Prefer an open issue, then the lowest number.
+  if (!current) return candidate
+  if (current.state !== 'open' && candidate.state === 'open') return candidate
+  if (current.state === candidate.state && candidate.number < current.number) return candidate
+  return current
 }
 
 /**
@@ -816,11 +846,12 @@ export type Matcher = {
   /** Whether the token may label issues here. When false, the receiver's labels are dropped. */
   labelled: boolean
   /**
-   * Finds the issue already covering a title.
+   * Finds the issue already covering an occurrence or title.
    *
    * @param title - Entry title.
+   * @param options - Stable occurrence, when one is available.
    */
-  match: (title: string) => Promise<Issue | undefined>
+  match: (title: string, options?: matcher.MatchOptions) => Promise<Issue | undefined>
 }
 
 /**
@@ -837,27 +868,83 @@ export async function matcher(client: Client, options: matcher.Options): Promise
   const accepts = (issue: Issue) =>
     !options.exclude?.(issue) &&
     (!options.expectedAuthor || issue.author === options.expectedAuthor)
-  const labelled = push
-    ? toIndex((await list(client, options)).filter(accepts))
-    : new Map<string, Issue>()
-  let unlabelled: Promise<Map<string, Issue>> | undefined
+  const labelledIssues = push ? (await list(client, options)).filter(accepts) : []
+  const labelled = toIndex(labelledIssues)
+  let unlabelled: Promise<{ index: Map<string, Issue>; issues: readonly Issue[] }> | undefined
+  const fallback = () => {
+    unlabelled ??= listAll(client, options).then((issues) => {
+      const accepted = issues.filter(accepts)
+      return { index: toIndex(accepted), issues: accepted }
+    })
+    return unlabelled
+  }
+  let commented: Promise<Map<string, Issue>> | undefined
+  const commentOccurrences = () => {
+    commented ??= (async () => {
+      const accepted = new Map((await fallback()).issues.map((issue) => [issue.number, issue]))
+      const indexed = new Map<string, Issue>()
+      if (accepted.size === 0) return indexed
+
+      // One bounded repository scan is cached for this filing group. Markers require exact issue and
+      // comment authors.
+      for (let page = 1; page <= 50; page++) {
+        const response = await client.issues.listCommentsForRepo({
+          ...split(options.repo),
+          direction: 'desc',
+          page,
+          per_page: 100,
+          sort: 'created',
+        })
+        for (const comment of response.data) {
+          if (options.expectedAuthor && comment.user?.login !== options.expectedAuthor) continue
+          const number = commentIssueNumber(comment.issue_url, options.repo)
+          const issue = number ? accepted.get(number) : undefined
+          if (!issue) continue
+          for (const marker of comment.body?.match(occurrenceRegex) ?? [])
+            indexed.set(marker, preferred(indexed.get(marker), issue))
+        }
+        if (response.data.length < 100) break
+      }
+      return indexed
+    })()
+    return commented
+  }
 
   return {
     labelled: push,
-    match: async (title) => {
+    match: async (title, parameters = {}) => {
+      if (parameters.occurrence) {
+        const marker = renderOccurrence(parameters.occurrence)
+        let existing: Issue | undefined
+        for (const issue of labelledIssues)
+          if (issue.body?.includes(marker)) existing = preferred(existing, issue)
+        if (existing) return existing
+
+        for (const issue of (await fallback()).issues)
+          if (issue.body?.includes(marker)) existing = preferred(existing, issue)
+        if (existing) return existing
+
+        existing = (await commentOccurrences()).get(marker)
+        if (existing) return existing
+      }
+
       const key = hash(title)
       const existing = labelled.get(key)
       if (existing) return existing
 
       // Even a token with push access can encounter an issue whose configured label was removed.
       // The fallback listing runs once per filing group, so a replay still finds the side effect.
-      unlabelled ??= listAll(client, options).then((issues) => toIndex(issues.filter(accepts)))
-      return (await unlabelled).get(key)
+      return (await fallback()).index.get(key)
     },
   }
 }
 
 export declare namespace matcher {
+  /** Optional stable identity used before title deduplication. */
+  type MatchOptions = {
+    /** Stable occurrence key from {@link occurrence}. */
+    occurrence?: string | undefined
+  }
   /** Options for {@link matcher}. */
   type Options = index.Options & {
     /** Predicate for issues that must never participate in friction dedupe. */

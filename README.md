@@ -285,7 +285,9 @@ jobs:
       github.ref_name == github.event.repository.default_branch &&
       (github.event_name != 'issue_comment' ||
       (github.event.issue.user.login == 'frog-fm[bot]' &&
-      github.actor == 'frog-fm[bot]'))
+      github.event.issue.title == 'Frog reconciliation' &&
+      contains(github.event.issue.body, '<!-- frog:reconcile-issue:v1 -->') &&
+      github.event.comment.user.login == 'frog-fm[bot]'))
     runs-on: ubuntu-latest
     permissions:
       contents: write

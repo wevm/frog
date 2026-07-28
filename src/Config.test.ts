@@ -21,10 +21,6 @@ describe('from', () => {
         "outbound": {
           "enabled": true,
         },
-        "pullRequest": {
-          "branch": "frog/sync",
-          "enabled": true,
-        },
       }
     `)
   })

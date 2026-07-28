@@ -56,7 +56,8 @@ the App read a fork's reports without installation access to the fork. Links lan
 source repository's workflow.
 
 Coordination comments are wakeup signals only. Their bodies do not select reports, repositories,
-paths, or mutations.
+paths, or mutations. The workflow filters report comments; the Action ignores non-control issues and
+rejects malformed signals on the control issue.
 
 Recovery records created before repository-owned snapshots cannot restore a reopened report without
 accepting issue content from the App. Frog leaves those records deferred and asks the repository owner

@@ -164,6 +164,39 @@ test('behavior: many pushes to one pull request leave one issue and no comments'
   expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
+test('behavior: a title edit reuses the issue carrying the occurrence', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+
+  await run(instance.url)
+  instance.write(base, `${dir}/a/friction.md`, entry('Filters renamed'), 'head')
+  const second = await run(instance.url)
+
+  expect(second.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(0)
+})
+
+test('behavior: a title edit reuses an occurrence carried by a comment', async () => {
+  const instance = await github(
+    {},
+    { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
+  )
+  const changed = entry('Filters ignored').replace('swallowed', 'dropped')
+
+  await run(instance.url)
+  instance.write(base, `${dir}/a/friction.md`, changed, 'head')
+  await run(instance.url)
+  instance.write(base, `${dir}/a/friction.md`, changed.replace('ignored', 'renamed'), 'head')
+  const third = await run(instance.url)
+
+  expect(third.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(instance.issues.get(base)).toHaveLength(1)
+  expect(instance.comments(base, 1)).toHaveLength(1)
+})
+
 // The one repeat worth having: the entry changed, so the issue should hear about it.
 test('behavior: an edited entry comments once', async () => {
   const instance = await github(

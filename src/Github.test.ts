@@ -566,6 +566,105 @@ describe('index', () => {
 })
 
 describe('matcher', () => {
+  test('behavior: matches an occurrence before a changed title', async () => {
+    const occurrence = 'delivery-1:entry-a'
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            body: Github.renderBody({
+              body: 'Legitimate friction.',
+              marker: { hash: Github.hash(title) },
+              occurrence,
+            }),
+            title,
+          },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match('Renamed friction', { occurrence })).toMatchObject({ number: 1 })
+  })
+
+  test('behavior: paginates and caches occurrences carried by comments', async () => {
+    const occurrence = 'delivery-2:entry-a'
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            author: 'frog-fm[bot]',
+            body: Github.renderBody({
+              body: 'Legitimate friction.',
+              marker: { hash: Github.hash(title) },
+              occurrence: 'delivery-1:entry-a',
+            }),
+            title,
+          },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+    instance.addComment(
+      repo,
+      1,
+      Github.renderBody({
+        body: 'Legitimate friction changed.',
+        marker: { hash: Github.hash(title) },
+        occurrence,
+      }),
+      'frog-fm[bot]',
+    )
+    for (let index = 0; index < 100; index++)
+      instance.addComment(repo, 1, `Newer comment ${index}.`, 'frog-fm[bot]')
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    expect(await matcher.match('Renamed friction', { occurrence })).toMatchObject({ number: 1 })
+    await matcher.match('Another friction', { occurrence: 'missing' })
+    expect(
+      instance.requests.filter((request) => request.path === `/repos/${repo}/issues/comments`),
+    ).toHaveLength(2)
+  })
+
+  test('security: comment occurrences require the expected issue and comment authors', async () => {
+    const occurrence = 'delivery-2:entry-a'
+    const body = Github.renderBody({
+      body: 'Legitimate friction changed.',
+      marker: { hash: Github.hash(title) },
+      occurrence,
+    })
+    const instance = await github(
+      {
+        [repo]: [
+          { author: 'contributor', title: 'Untrusted issue' },
+          { author: 'frog-fm[bot]', title: 'Trusted issue' },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+    instance.addComment(repo, 1, body, 'frog-fm[bot]')
+    instance.addComment(repo, 2, body, 'contributor')
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    await expect(matcher.match('Renamed friction', { occurrence })).resolves.toBeUndefined()
+  })
+
   test('behavior: excludes issues from the labelled index', async () => {
     const instance = await github({
       [repo]: [

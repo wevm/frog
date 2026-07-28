@@ -171,6 +171,13 @@ printf '%s\\n' "$FROG_TEST_STATE" > "$output"
 set -euo pipefail
 printf '%s\\n' "$*" >> "$GH_LOG"
 if [[ "$1" == 'pr' && "$2" == 'list' ]]; then
+  head=''
+  previous=''
+  for argument in "$@"; do
+    if [[ "$previous" == '--head' ]]; then head="$argument"; fi
+    previous="$argument"
+  done
+  [[ "$head" == 'frog/sync' ]] || exit 70
   if [[ "$FROG_TEST_CHANGE" == 'create' ]]; then
     printf '%s\\n' '[]'
     exit 0
@@ -242,7 +249,7 @@ async function run(fixture: setup.Result, change: string): Promise<void> {
   const script = action.runs?.steps?.find((step) => step.id === 'reconcile')?.run
   if (!script) throw new Error('Could not find the reconciliation shell step.')
 
-  if (change === 'valid-signal' || change === 'forged-signal')
+  if (change === 'valid-signal' || change === 'forged-signal' || change === 'unrelated-comment')
     await fs.writeFile(
       fixture.event,
       `${JSON.stringify({
@@ -251,17 +258,26 @@ async function run(fixture: setup.Result, change: string): Promise<void> {
           body:
             change === 'valid-signal'
               ? `Reconcile the friction log.\n\n<!-- frog:reconcile:v1 delivery=${'a'.repeat(64)} -->\n`
-              : 'A copied <!-- frog:reconcile:v1 delivery=forged --> marker.',
+              : change === 'forged-signal'
+                ? 'A copied <!-- frog:reconcile:v1 delivery=forged --> marker.'
+                : 'Hit again.',
           user: { id: 309546769 },
         },
-        issue: {
-          body:
-            'Frog keeps this issue closed and uses one comment on it to request friction-log reconciliation.\n' +
-            'The comment is only a wakeup signal; the workflow fetches authenticated state separately.\n\n' +
-            '<!-- frog:reconcile-issue:v1 -->\n',
-          title: 'Frog reconciliation',
-          user: { id: 309546769 },
-        },
+        issue:
+          change === 'unrelated-comment'
+            ? {
+                body: 'A normal Frog report.\n\n<!-- frog:v1 -->\n',
+                title: 'Frog reconciliation',
+                user: { id: 309546769 },
+              }
+            : {
+                body:
+                  'Frog keeps this issue closed and uses one comment on it to request friction-log reconciliation.\n' +
+                  'The comment is only a wakeup signal; the workflow fetches authenticated state separately.\n\n' +
+                  '<!-- frog:reconcile-issue:v1 -->\n',
+                title: 'Frog reconciliation',
+                user: { id: 309546769 },
+              },
         repository: { default_branch: 'main', full_name: 'wevm/demo', id: 123 },
       })}\n`,
     )
@@ -290,7 +306,9 @@ async function run(fixture: setup.Result, change: string): Promise<void> {
       GH_LOG: fixture.ghLog,
       GITHUB_EVENT_PATH: fixture.event,
       GITHUB_EVENT_NAME:
-        change === 'valid-signal' || change === 'forged-signal' ? 'issue_comment' : 'push',
+        change === 'valid-signal' || change === 'forged-signal' || change === 'unrelated-comment'
+          ? 'issue_comment'
+          : 'push',
       GITHUB_OUTPUT: fixture.output,
       GITHUB_REF: 'refs/heads/main',
       GITHUB_REPOSITORY: 'wevm/demo',
@@ -342,6 +360,7 @@ test('behavior: uses only OIDC state from the broker and updates the same-reposi
     '.agents/friction-log/report/friction.md',
   )
   expect(await fs.readFile(fixture.ghLog, 'utf8')).toContain('pr edit 42')
+  expect(await fs.readFile(fixture.ghLog, 'utf8')).toContain('--head frog/sync')
 })
 
 test('behavior: creates and verifies a same-repository pull request', async () => {
@@ -354,15 +373,27 @@ test('behavior: creates and verifies a same-repository pull request', async () =
   expect(log).toContain('pr view https://github.com/wevm/demo/pull/43')
 })
 
-test('security: accepts only the exact App-owned reconciliation signal', async () => {
-  const valid = await setup()
-  await run(valid, 'valid-signal')
+test('behavior: accepts the exact App-owned reconciliation signal', async () => {
+  const fixture = await setup()
+  await run(fixture, 'valid-signal')
+})
 
-  const forged = await setup()
-  expect(await failure(forged, 'forged-signal')).toContain(
+test('behavior: ignores App-authored comments on report issues', async () => {
+  const fixture = await setup()
+  await run(fixture, 'unrelated-comment')
+
+  expect(await remoteHead(fixture)).toBe(fixture.queued)
+  await expect(fs.readFile(fixture.curlLog, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+  await expect(fs.readFile(fixture.frogLog, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+  await expect(fs.readFile(fixture.ghLog, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+})
+
+test('security: rejects a forged signal on the App-owned control issue', async () => {
+  const fixture = await setup()
+  expect(await failure(fixture, 'forged-signal')).toContain(
     'The issue comment is not an exact Frog reconciliation signal.',
   )
-  expect(await remoteHead(forged)).toBe(forged.queued)
+  expect(await remoteHead(fixture)).toBe(fixture.queued)
 })
 
 test('behavior: leaves no branch or pull request after a complete no-op', async () => {

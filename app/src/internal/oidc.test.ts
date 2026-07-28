@@ -10,6 +10,15 @@ let privateKey: CryptoKey
 let publicKey: JsonWebKey & { kid: string }
 
 beforeAll(async () => {
+  const key = await signingKey('test-key')
+  privateKey = key.privateKey
+  publicKey = key.publicKey
+})
+
+async function signingKey(kid: string): Promise<{
+  privateKey: CryptoKey
+  publicKey: JsonWebKey & { kid: string }
+}> {
   const pair = await crypto.subtle.generateKey(
     {
       hash: 'SHA-256',
@@ -20,14 +29,16 @@ beforeAll(async () => {
     true,
     ['sign', 'verify'],
   )
-  privateKey = pair.privateKey
-  publicKey = {
-    ...(await crypto.subtle.exportKey('jwk', pair.publicKey)),
-    alg: 'RS256',
-    kid: 'test-key',
-    use: 'sig',
-  } as JsonWebKey & { kid: string }
-})
+  return {
+    privateKey: pair.privateKey,
+    publicKey: {
+      ...(await crypto.subtle.exportKey('jwk', pair.publicKey)),
+      alg: 'RS256',
+      kid,
+      use: 'sig',
+    } as JsonWebKey & { kid: string },
+  }
+}
 
 function claims(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -74,14 +85,16 @@ function encode(value: string | Uint8Array): string {
 function fetchJwks(
   keys: readonly (JsonWebKey & { kid?: string })[] = [publicKey],
 ): typeof globalThis.fetch {
-  return vi.fn(async () => {
-    const body = JSON.stringify({ keys })
-    return new Response(body, {
-      headers: {
-        'content-length': String(new TextEncoder().encode(body).byteLength),
-        'content-type': 'application/json',
-      },
-    })
+  return vi.fn(async () => jwks(keys))
+}
+
+function jwks(keys: readonly (JsonWebKey & { kid?: string })[]): Response {
+  const body = JSON.stringify({ keys })
+  return new Response(body, {
+    headers: {
+      'content-length': String(new TextEncoder().encode(body).byteLength),
+      'content-type': 'application/json',
+    },
   })
 }
 
@@ -113,6 +126,79 @@ test('security: caches the bounded GitHub signing-key set', async () => {
 
   await Oidc.verify(await token(), verify)
   await Oidc.verify(await token(), verify)
+
+  expect(fetch).toHaveBeenCalledOnce()
+})
+
+test('security: refreshes the cached signing keys once after rotation', async () => {
+  const rotated = await signingKey('rotated-key')
+  const refreshed = Promise.withResolvers<Response>()
+  let requests = 0
+  const fetch = vi.fn(async () => {
+    requests += 1
+    if (requests === 1) return jwks([publicKey])
+    return refreshed.promise
+  })
+  const verify = options({ fetch })
+
+  await Oidc.verify(await token(), verify)
+
+  const rotatedToken = await token(
+    claims(),
+    { alg: 'RS256', kid: rotated.publicKey.kid, typ: 'JWT' },
+    rotated.privateKey,
+  )
+  const verifications = [Oidc.verify(rotatedToken, verify), Oidc.verify(rotatedToken, verify)]
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+  refreshed.resolve(jwks([rotated.publicKey]))
+
+  await expect(Promise.all(verifications)).resolves.toEqual([claims(), claims()])
+  expect(fetch).toHaveBeenCalledTimes(2)
+})
+
+test('security: throttles repeated and concurrent unknown signing keys', async () => {
+  const refreshed = Promise.withResolvers<Response>()
+  let requests = 0
+  const fetch = vi.fn(async () => {
+    requests += 1
+    if (requests === 1) return jwks([publicKey])
+    return refreshed.promise
+  })
+  const verify = options({ fetch })
+
+  await Oidc.verify(await token(), verify)
+
+  const unknown = await Promise.all(
+    ['unknown-one', 'unknown-two'].map((kid) => token(claims(), { alg: 'RS256', kid, typ: 'JWT' })),
+  )
+  const verifications = unknown.map((value) =>
+    expect(Oidc.verify(value, verify)).rejects.toThrowError('Invalid GitHub Actions identity.'),
+  )
+  await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+  refreshed.resolve(jwks([publicKey]))
+  await Promise.all(verifications)
+
+  await expect(
+    Oidc.verify(await token(claims(), { alg: 'RS256', kid: 'unknown-three', typ: 'JWT' }), verify),
+  ).rejects.toThrowError('Invalid GitHub Actions identity.')
+  expect(fetch).toHaveBeenCalledTimes(2)
+})
+
+test('security: does not double-fetch unknown signing keys on initial load', async () => {
+  const fetch = fetchJwks()
+  const verify = options({ fetch })
+  const unknown = await Promise.all(
+    ['unknown-one', 'unknown-two'].map((kid) => token(claims(), { alg: 'RS256', kid, typ: 'JWT' })),
+  )
+
+  await Promise.all(
+    unknown.map((value) =>
+      expect(Oidc.verify(value, verify)).rejects.toThrowError('Invalid GitHub Actions identity.'),
+    ),
+  )
+  await expect(
+    Oidc.verify(await token(claims(), { alg: 'RS256', kid: 'unknown-three', typ: 'JWT' }), verify),
+  ).rejects.toThrowError('Invalid GitHub Actions identity.')
 
   expect(fetch).toHaveBeenCalledOnce()
 })

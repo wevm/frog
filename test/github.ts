@@ -9,6 +9,8 @@ import http from 'node:http'
  * dependency-free.
  */
 export type Instance = {
+  /** Adds a comment without an HTTP round trip, for pagination and trust-boundary fixtures. */
+  addComment: (repo: string, issue: number, body: string, author?: string) => void
   /** Comment bodies on an issue, oldest first. */
   comments: (repo: string, issue: number) => readonly string[]
   /** Contents of a branch, for asserting what a commit produced. */
@@ -241,12 +243,13 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
       requests.push({ method: request.method ?? 'GET', path: url.pathname })
 
       const list = /^\/repos\/([^/]+)\/([^/]+)\/issues$/.exec(url.pathname)
+      const repositoryComments = /^\/repos\/([^/]+)\/([^/]+)\/issues\/comments$/.exec(url.pathname)
       const comment = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)\/comments$/.exec(url.pathname)
       const one = /^\/repos\/([^/]+)\/([^/]+)\/issues\/(\d+)$/.exec(url.pathname)
       const repository = /^\/repos\/([^/]+)\/([^/]+)$/.exec(url.pathname)
       const contents = /^\/repos\/([^/]+)\/([^/]+)\/contents\/(.*)$/.exec(url.pathname)
 
-      const owned = list ?? comment ?? one ?? repository ?? contents
+      const owned = list ?? repositoryComments ?? comment ?? one ?? repository ?? contents
       const status = owned ? errors[`${owned[1]}/${owned[2]}`] : undefined
       if (status) return json(response, status, { message: 'Not Found' })
 
@@ -396,6 +399,23 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
           return
         }
         return json(response, 201, issue)
+      }
+
+      if (repositoryComments && request.method === 'GET') {
+        const repo = `${repositoryComments[1]}/${repositoryComments[2]}`
+        const direction = url.searchParams.get('direction') ?? 'desc'
+        const page = Number(url.searchParams.get('page') ?? '1')
+        const perPage = Number(url.searchParams.get('per_page') ?? '30')
+        const listed = comments
+          .filter((entry) => entry.key.startsWith(`${repo}#`))
+          .sort((a, b) => (direction === 'asc' ? a.id - b.id : b.id - a.id))
+          .map((entry) => ({
+            ...entry,
+            issue_url: `https://api.github.com/repos/${repo}/issues/${entry.key.slice(
+              entry.key.lastIndexOf('#') + 1,
+            )}`,
+          }))
+        return json(response, 200, listed.slice((page - 1) * perPage, page * perPage))
       }
 
       if (comment && request.method === 'POST') {
@@ -605,6 +625,14 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
   if (address === null || typeof address === 'string') throw new Error('Server has no port.')
 
   return {
+    addComment(repo, issue, body, login = author) {
+      comments.push({
+        body,
+        id: comments.length + 1,
+        key: `${repo}#${issue}`,
+        user: { login },
+      })
+    },
     comments(repo, issue) {
       return comments.filter((entry) => entry.key === `${repo}#${issue}`).map((entry) => entry.body)
     },

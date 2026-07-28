@@ -1,6 +1,7 @@
 const actorId = '309546769'
 const issuer = 'https://token.actions.githubusercontent.com'
 const jwksUrl = `${issuer}/.well-known/jwks`
+const jwksCooldown = 30
 const maxJwksBytes = 64 * 1_024
 const maxTokenBytes = 16 * 1_024
 const jwksTtl = 5 * 60
@@ -172,25 +173,85 @@ type KeySet = {
   keys: ReadonlyMap<string, JsonWebKey>
 }
 
-const keySets = new WeakMap<typeof globalThis.fetch, KeySet>()
+type KeySetState = {
+  cached: KeySet | undefined
+  refreshAfter: number
+  refreshing: Promise<KeySet> | undefined
+}
+
+const keySetStates = new WeakMap<typeof globalThis.fetch, KeySetState>()
 
 async function fetchKey(
   kid: string,
   fetch_: typeof globalThis.fetch,
   now: number,
 ): Promise<JsonWebKey> {
-  let cached = keySets.get(fetch_)
+  let state = keySetStates.get(fetch_)
+  if (!state) {
+    state = {
+      cached: undefined,
+      refreshAfter: 0,
+      refreshing: undefined,
+    }
+    keySetStates.set(fetch_, state)
+  }
+
+  let cached = state.cached
+  let loaded = false
   if (!cached || cached.expiresAt <= now) {
-    cached = {
+    cached = await loadKeySet(state, fetch_, now)
+    loaded = true
+  }
+
+  let key = cached.keys.get(kid)
+  if (!key) {
+    if (loaded) {
+      // A fresh set already checked current keys; do not let an unknown id trigger a second request.
+      state.refreshAfter = Math.max(state.refreshAfter, now + jwksCooldown)
+      throw new Error()
+    }
+    cached = await refreshKeySet(state, fetch_, now)
+    key = cached.keys.get(kid)
+  }
+  if (!key) throw new Error()
+  return key
+}
+
+async function refreshKeySet(
+  state: KeySetState,
+  fetch_: typeof globalThis.fetch,
+  now: number,
+): Promise<KeySet> {
+  // Key ids are attacker-controlled, so share refreshes and limit them independently of the cache TTL.
+  if (state.refreshing) return state.refreshing
+  if (state.refreshAfter > now) throw new Error()
+
+  state.refreshAfter = now + jwksCooldown
+  return loadKeySet(state, fetch_, now)
+}
+
+async function loadKeySet(
+  state: KeySetState,
+  fetch_: typeof globalThis.fetch,
+  now: number,
+): Promise<KeySet> {
+  if (state.refreshing) return state.refreshing
+
+  const refreshing = (async () => {
+    const cached = {
       expiresAt: now + jwksTtl,
       keys: await fetchKeys(fetch_),
     }
-    keySets.set(fetch_, cached)
-  }
+    state.cached = cached
+    return cached
+  })()
+  state.refreshing = refreshing
 
-  const key = cached.keys.get(kid)
-  if (!key) throw new Error()
-  return key
+  try {
+    return await refreshing
+  } finally {
+    if (state.refreshing === refreshing) state.refreshing = undefined
+  }
 }
 
 async function fetchKeys(

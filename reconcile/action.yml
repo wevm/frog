@@ -110,10 +110,15 @@ runs:
             if ! jq -e \
               --arg body "$control_body" \
               --argjson bot 309546769 '
-                (.action == "created" or .action == "edited") and
                 .issue.user.id == $bot and
                 .issue.title == "Frog reconciliation" and
-                .issue.body == ($body + "\n") and
+                .issue.body == ($body + "\n")
+              ' "$GITHUB_EVENT_PATH" >/dev/null; then
+              exit 0
+            fi
+            if ! jq -e \
+              --argjson bot 309546769 '
+                (.action == "created" or .action == "edited") and
                 .comment.user.id == $bot and
                 (
                   .comment.body
@@ -379,6 +384,7 @@ runs:
           GH_TOKEN="$token" gh pr list \
             --repo "$repository" \
             --base "$default_branch" \
+            --head "$branch" \
             --state open \
             --json number,headRefName,headRepository,headRepositoryOwner |
             jq -er \

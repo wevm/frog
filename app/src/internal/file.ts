@@ -126,8 +126,8 @@ export async function file(options: file.Options): Promise<Filing> {
 
       for (const entry of group.entries) {
         const hash = Github.hash(entry.title)
-        const existing = seen.get(hash) ?? (await matcher.match(entry.title))
         const occurrence = Github.occurrence({ entry, origin })
+        const existing = (await matcher.match(entry.title, { occurrence })) ?? seen.get(hash)
         const result = await (async () => {
           if (mutated < config.maxPerRun)
             return Github.publish(target.rest, {
