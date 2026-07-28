@@ -33,8 +33,8 @@ export const targets = Cli.create('targets', {
   async run(c) {
     const { repo, root } = await context.resolve({ cwd: c.options.cwd })
 
-    // Consent lives on the target repository, so this needs a client. Works unauthenticated at 60
-    // requests an hour. The day-long cache keeps runs within that limit.
+    // Consent lives on the target repository, costing one request per distinct repository. Use any
+    // available token for GitHub's authenticated limit; the day-long cache makes later runs cheap.
     const token = await octokit.token({
       env: c.env,
       ...(c.options.token ? { token: c.options.token } : {}),

@@ -17,11 +17,31 @@ const concurrency = 8
  */
 export function resolvers(options: resolvers.Options): Target.resolve.Options {
   const { outbound, client, root, self, store } = options
+  let declared: Promise<ReadonlySet<string>> | undefined
+  let indexed: Promise<Inventory> | undefined
+  const direct = () => (declared ??= rootDependencies(root))
+  const inventory = () => (indexed ??= installed(root))
 
   return {
     outbound,
     readConfig: reader({ client, ...(store ? { store } : {}) }),
-    readRepo: (name) => repoOf(name, root),
+    async readRepo(name) {
+      if ((await direct()).has(name)) {
+        const declared = await installedPackage(name, root)
+        if (!declared) return undefined
+        if (declared.name === name) return declared.repo
+      }
+
+      const indexed = await inventory()
+      const canonical = indexed.canonical.repositories.get(name)
+      if (canonical || indexed.canonical.names.has(name)) return canonical
+
+      const alias = indexed.aliases.repositories.get(name)
+      if (alias || indexed.aliases.names.has(name)) return alias
+
+      // Preserve support for manually installed root packages that the project does not declare.
+      return (await installedPackage(name, root))?.repo
+    },
     self,
   }
 }
@@ -98,35 +118,13 @@ export type Accepting = {
 /**
  * Dependencies that accept friction reports.
  *
- * Scans the declared dependencies rather than walking `node_modules`, which keeps the disk half of this a
- * handful of reads instead of thousands. Consent then costs one API call per distinct repository, cached
- * for a day.
+ * Walks the installed dependency graph so nested packages and pnpm's virtual store are both covered.
+ * Consent costs one API call per distinct repository, cached for a day.
  */
 export async function accepting(options: accepting.Options): Promise<readonly Accepting[]> {
   const { client, root, self, store } = options
 
-  const own = await fs
-    .readFile(path.join(root, 'package.json'), 'utf8')
-    .then((contents) => JSON.parse(contents) as Dependencies)
-    .catch(() => undefined)
-
-  const names = [
-    ...new Set([
-      ...Object.keys(own?.dependencies ?? {}),
-      ...Object.keys(own?.devDependencies ?? {}),
-      ...Object.keys(own?.optionalDependencies ?? {}),
-      ...Object.keys(own?.peerDependencies ?? {}),
-    ]),
-  ].sort()
-
-  const resolved = (
-    await Promise.all(
-      names.map(async (name) => {
-        const repo = await repoOf(name, root)
-        return repo ? { name, repo } : undefined
-      }),
-    )
-  ).filter((entry): entry is Accepting => entry !== undefined)
+  const resolved = (await installed(root)).targets
 
   // Several packages of one monorepo share a repository, and asking about it once is enough.
   const repos = [...new Set(resolved.map((entry) => entry.repo))]
@@ -164,32 +162,216 @@ type Dependencies = {
   dependencies?: Record<string, string> | undefined
   devDependencies?: Record<string, string> | undefined
   homepage?: string | undefined
+  name?: string | undefined
   optionalDependencies?: Record<string, string> | undefined
   peerDependencies?: Record<string, string> | undefined
   repository?: { url?: string | undefined } | string | undefined
 }
 
-/**
- * Repository an installed package declares.
- *
- * `repository` is the field npm defines for this, and it resolves 98.5% of what is actually installed
- * here. `homepage` and `bugs` are tried after it for the handful that omit it.
- */
-async function repoOf(name: string, root: string): Promise<string | undefined> {
-  const contents = await fs
-    .readFile(path.join(root, 'node_modules', name, 'package.json'), 'utf8')
-    .catch(() => undefined)
-  if (!contents) return undefined
+type Candidate = {
+  direct: boolean
+  directRepos: Set<string>
+  exactDirect: boolean
+  exactDirectRepo?: string | undefined
+  repos: Set<string>
+}
 
-  const declared = (() => {
-    try {
-      return JSON.parse(contents) as Dependencies
-    } catch {
-      return undefined
+type Index = {
+  names: ReadonlySet<string>
+  repositories: ReadonlyMap<string, string>
+}
+
+type Inventory = {
+  aliases: Index
+  canonical: Index
+  targets: readonly Accepting[]
+}
+
+type Pending = {
+  direct: boolean
+  from: string
+  name: string
+}
+
+/** Every installed package name that resolves to one unambiguous GitHub repository. */
+async function installed(root: string): Promise<Inventory> {
+  const own = await readPackage(path.join(root, 'package.json'))
+  if (!own)
+    return {
+      aliases: { names: new Set(), repositories: new Map() },
+      canonical: { names: new Set(), repositories: new Map() },
+      targets: [],
     }
-  })()
+
+  const pending: Pending[] = dependencies(own, true).map((name) => ({
+    direct: true,
+    from: root,
+    name,
+  }))
+  const aliases = new Map<string, Candidate>()
+  const canonical = new Map<string, Candidate>()
+  const listed = new Set<string>()
+  const seen = new Set<string>()
+
+  for (let index = 0; index < pending.length; index++) {
+    const next = pending[index]!
+    const file = await resolvePackage(next.name, next.from)
+    if (!file) continue
+
+    const declared = await readPackage(file)
+    const repo = declared ? repositoryOf(declared) : undefined
+    const canonicalName = declared?.name && packageParts(declared.name) ? declared.name : next.name
+    listed.add(canonicalName)
+
+    addCandidate(canonical, canonicalName, {
+      direct: next.direct,
+      exactDirect: next.direct && canonicalName === next.name,
+      repo,
+    })
+    if (canonicalName !== next.name)
+      addCandidate(aliases, next.name, {
+        direct: next.direct,
+        exactDirect: next.direct,
+        repo,
+      })
+
+    if (!declared || seen.has(file)) continue
+    seen.add(file)
+    for (const name of dependencies(declared, false))
+      pending.push({ direct: false, from: path.dirname(file), name })
+  }
+
+  const canonicalRepositories = repositories(canonical)
+
+  return {
+    aliases: { names: new Set(aliases.keys()), repositories: repositories(aliases) },
+    canonical: { names: new Set(canonical.keys()), repositories: canonicalRepositories },
+    targets: [...listed].sort().flatMap((name) => {
+      const repo = canonicalRepositories.get(name)
+      return repo ? [{ name, repo }] : []
+    }),
+  }
+}
+
+function addCandidate(
+  candidates: Map<string, Candidate>,
+  name: string,
+  options: { direct: boolean; exactDirect: boolean; repo: string | undefined },
+): void {
+  const { direct, exactDirect, repo } = options
+  const candidate = candidates.get(name) ?? {
+    direct: false,
+    directRepos: new Set<string>(),
+    exactDirect: false,
+    repos: new Set<string>(),
+  }
+  candidate.direct ||= direct
+  if (direct && repo) candidate.directRepos.add(repo)
+  if (exactDirect) {
+    candidate.exactDirect = true
+    candidate.exactDirectRepo = repo
+  }
+  if (repo) candidate.repos.add(repo)
+  candidates.set(name, candidate)
+}
+
+function repositories(candidates: ReadonlyMap<string, Candidate>): ReadonlyMap<string, string> {
+  const resolved = new Map<string, string>()
+  for (const [name, candidate] of [...candidates].sort(([a], [b]) => a.localeCompare(b))) {
+    const repo = candidate.exactDirect
+      ? candidate.exactDirectRepo
+      : candidate.direct
+        ? candidate.directRepos.size === 1
+          ? candidate.directRepos.values().next().value
+          : undefined
+        : candidate.repos.size === 1
+          ? candidate.repos.values().next().value
+          : undefined
+    if (repo) resolved.set(name, repo)
+  }
+  return resolved
+}
+
+async function rootDependencies(root: string): Promise<ReadonlySet<string>> {
+  const own = await readPackage(path.join(root, 'package.json'))
+  return new Set(own ? dependencies(own, true) : [])
+}
+
+/** Dependency names installed for a project or package. */
+function dependencies(declared: Dependencies, root: boolean): string[] {
+  return [
+    ...new Set([
+      ...Object.keys(declared.dependencies ?? {}),
+      ...(root ? Object.keys(declared.devDependencies ?? {}) : []),
+      ...Object.keys(declared.optionalDependencies ?? {}),
+      ...Object.keys(declared.peerDependencies ?? {}),
+    ]),
+  ].sort()
+}
+
+/** Resolves a dependency using Node's ancestor `node_modules` lookup from a real package path. */
+async function resolvePackage(name: string, from: string): Promise<string | undefined> {
+  const parts = packageParts(name)
+  if (!parts) return undefined
+
+  let directory = from
+  while (true) {
+    const candidate = path.join(directory, 'node_modules', ...parts, 'package.json')
+    const file = await fs.realpath(candidate).catch(() => undefined)
+    if (file) return file
+
+    const parent = path.dirname(directory)
+    if (parent === directory) return undefined
+    directory = parent
+  }
+}
+
+/** Reads an installed package's canonical name and repository. */
+async function installedPackage(
+  name: string,
+  root: string,
+): Promise<{ name: string; repo?: string | undefined } | undefined> {
+  const file = await resolvePackage(name, root)
+  if (!file) return undefined
+  const declared = await readPackage(file)
   if (!declared) return undefined
 
+  const canonical = declared.name && packageParts(declared.name) ? declared.name : name
+  const repo = repositoryOf(declared)
+  return { name: canonical, ...(repo ? { repo } : {}) }
+}
+
+/** Splits an npm package name without allowing it to escape `node_modules`. */
+function packageParts(name: string): string[] | undefined {
+  if (!name || name.includes('\\')) return undefined
+  const parts = name.split('/')
+  if (parts.some((part) => !part || part === '.' || part === '..')) return undefined
+  if (name.startsWith('@')) return parts.length === 2 ? parts : undefined
+  return parts.length === 1 ? parts : undefined
+}
+
+async function readPackage(file: string): Promise<Dependencies | undefined> {
+  const contents = await fs.readFile(file, 'utf8').catch(() => undefined)
+  return contents === undefined ? undefined : parsePackage(contents)
+}
+
+function parsePackage(contents: string): Dependencies | undefined {
+  try {
+    const value = JSON.parse(contents) as unknown
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+      ? (value as Dependencies)
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Repository a package declares.
+ *
+ * `repository` is npm's standard field. `homepage` and `bugs` cover packages that omit it.
+ */
+function repositoryOf(declared: Dependencies): string | undefined {
   const { bugs, homepage, repository } = declared
   const candidates = [
     typeof repository === 'string' ? repository : repository?.url,

@@ -158,6 +158,24 @@ describe('--target', () => {
     }
   }
 
+  async function installDeep(cwd: string) {
+    await helpers.writeFile(
+      'package.json',
+      JSON.stringify({ dependencies: { parent: '^1.0.0' }, name: 'app' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/parent/package.json',
+      JSON.stringify({ dependencies: { viem: '^2.0.0' }, name: 'parent' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/parent/node_modules/viem/package.json',
+      JSON.stringify({ name: 'viem', repository: `https://github.com/${upstream}` }),
+      cwd,
+    )
+  }
+
   test('behavior: scaffolds the entry from the target form', async () => {
     const cwd = await consumer()
     const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
@@ -175,6 +193,110 @@ describe('--target', () => {
 
       ### Current Behavior"
     `)
+  })
+
+  test('behavior: scaffolds from a transitive package target', async () => {
+    const cwd = await consumer()
+    await installDeep(cwd)
+    const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
+
+    const { id } = await cli.data<Logged>(['log', title, '--target', 'viem', '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect((await Store.get(id, { root: cwd })).body).toContain('### Viem Version')
+  })
+
+  test('behavior: scaffolds from the canonical name of an aliased package', async () => {
+    const cwd = await consumer()
+    await helpers.writeFile(
+      'package.json',
+      JSON.stringify({ dependencies: { legacy: 'npm:viem@^2.0.0' }, name: 'app' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/legacy/package.json',
+      JSON.stringify({ name: 'viem', repository: `https://github.com/${upstream}` }),
+      cwd,
+    )
+    const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
+
+    const { id } = await cli.data<Logged>(['log', title, '--target', 'viem', '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect((await Store.get(id, { root: cwd })).body).toContain('### Viem Version')
+  })
+
+  test('behavior: a canonical transitive target wins over a colliding dependency alias', async () => {
+    const cwd = await consumer()
+    await helpers.writeFile(
+      'package.json',
+      JSON.stringify({
+        dependencies: { legacy: 'npm:actual@^1.0.0', parent: '^1.0.0' },
+        name: 'app',
+      }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/legacy/package.json',
+      JSON.stringify({ name: 'actual', repository: 'https://github.com/acme/actual' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/parent/package.json',
+      JSON.stringify({ dependencies: { legacy: '^2.0.0' }, name: 'parent' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/parent/node_modules/legacy/package.json',
+      JSON.stringify({ name: 'legacy', repository: `https://github.com/${upstream}` }),
+      cwd,
+    )
+    const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
+
+    const { id } = await cli.data<Logged>(['log', title, '--target', 'legacy', '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect((await Store.get(id, { root: cwd })).body).toContain('### Viem Version')
+    expect(instance.requests.some((request) => request.path.includes('acme/actual'))).toBe(false)
+  })
+
+  test('behavior: resolves a listed package when another installed copy has no repository', async () => {
+    const cwd = await consumer()
+    await helpers.writeFile(
+      'package.json',
+      JSON.stringify({ dependencies: { one: '^1.0.0', two: '^1.0.0' }, name: 'app' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/one/package.json',
+      JSON.stringify({ dependencies: { viem: '^1.0.0' }, name: 'one' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/two/package.json',
+      JSON.stringify({ dependencies: { viem: '^2.0.0' }, name: 'two' }),
+      cwd,
+    )
+    await helpers.writeFile('node_modules/viem/package.json', JSON.stringify({ name: 'viem' }), cwd)
+    await helpers.writeFile(
+      'node_modules/two/node_modules/viem/package.json',
+      JSON.stringify({ name: 'viem', repository: `https://github.com/${upstream}` }),
+      cwd,
+    )
+    const instance = await github({}, accepting({ '.github/ISSUE_TEMPLATE/bug_report.yml': form }))
+
+    const { id } = await cli.data<Logged>(['log', title, '--target', 'viem', '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect((await Store.get(id, { root: cwd })).body).toContain('### Viem Version')
   })
 
   test('behavior: a template named in the target config wins', async () => {

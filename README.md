@@ -164,7 +164,11 @@ frog mcp add
 ### Logging Upstream
 
 Reports friction to another project instead of your own. A target is an npm package or an `owner/repo`,
-and it has to have opted in: `targets` lists the ones your dependencies declare.
+and it has to have opted in: `targets` lists accepting packages across the installed dependency tree,
+including transitive dependencies.
+
+Large dependency trees may exceed GitHub's anonymous API limit. Authenticate `gh` or set
+`GITHUB_TOKEN` so `targets` can check every distinct repository.
 
 A package names its repository through the standard `repository` field, and consent is then read from that
 repository's own default branch. So nothing a package says can send a report somewhere that has not itself

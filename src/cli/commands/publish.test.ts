@@ -376,6 +376,25 @@ describe('cross-repo', () => {
     )
   }
 
+  /** Installs a package beneath another installed dependency. */
+  async function installDeep(cwd: string, name: string, repo: string): Promise<void> {
+    await helpers.writeFile(
+      'package.json',
+      JSON.stringify({ dependencies: { parent: '^1.0.0' }, name: 'app' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      'node_modules/parent/package.json',
+      JSON.stringify({ dependencies: { [name]: '^1.0.0' }, name: 'parent' }),
+      cwd,
+    )
+    await helpers.writeFile(
+      `node_modules/parent/node_modules/${name}/package.json`,
+      JSON.stringify({ name, repository: `https://github.com/${repo}` }),
+      cwd,
+    )
+  }
+
   /** The upstream repository, with its inbound policy committed where consent is now read from. */
   function accepts(
     inbound: unknown = { enabled: true },
@@ -404,6 +423,22 @@ describe('cross-repo', () => {
     expect(instance.issues.get(upstream)?.[0]?.title).toBe('Upstream friction')
     // The consumer's repository gets nothing.
     expect(instance.issues.get(repo)).toBeUndefined()
+  })
+
+  test('behavior: files on a target named by a transitive package', async () => {
+    const cwd = await helpers.repo({ remote })
+    const instance = await github({}, accepts())
+    await installDeep(cwd, 'viem', upstream)
+    await Store.write(
+      { body, severity: 'major', target: 'viem', title: 'Upstream friction' },
+      { id: 'a', root: cwd },
+    )
+
+    const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+    expect(result.created).toEqual([
+      { id: 'a', issue: `${upstream}#1`, title: 'Upstream friction' },
+    ])
   })
 
   test('behavior: applies the labels the receiver asked for', async () => {

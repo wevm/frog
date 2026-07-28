@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
@@ -9,13 +11,21 @@ type Listed = { targets: { name: string; repo: string }[] }
 async function install(
   cwd: string,
   name: string,
-  options: { bugs?: string; homepage?: string; repository?: string } = {},
+  options: {
+    bugs?: string
+    dependencies?: Record<string, string>
+    directory?: string
+    homepage?: string
+    packageName?: string
+    repository?: string
+  } = {},
 ): Promise<void> {
   await helpers.writeFile(
-    `node_modules/${name}/package.json`,
+    `${options.directory ?? 'node_modules'}/${name}/package.json`,
     JSON.stringify({
-      name,
+      name: options.packageName ?? name,
       ...(options.bugs ? { bugs: { url: options.bugs } } : {}),
+      ...(options.dependencies ? { dependencies: options.dependencies } : {}),
       ...(options.homepage ? { homepage: options.homepage } : {}),
       ...(options.repository ? { repository: { type: 'git', url: options.repository } } : {}),
     }),
@@ -91,6 +101,198 @@ test('behavior: includes optional dependencies', async () => {
   )
 
   expect(result.targets).toEqual([{ name: 'viem', repo: 'wevm/viem' }])
+})
+
+test('behavior: includes nested transitive dependencies', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { parent: '^1.0.0' })
+  await install(cwd, 'parent', { dependencies: { deep: '^1.0.0' } })
+  await install(cwd, 'deep', {
+    directory: 'node_modules/parent/node_modules',
+    repository: 'https://github.com/acme/deep',
+  })
+
+  const instance = await github({}, { files: { 'acme/deep': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'deep', repo: 'acme/deep' }])
+})
+
+test('behavior: includes transitive dependencies in a pnpm virtual store', async () => {
+  const cwd = await helpers.repo()
+  const parentStore = 'node_modules/.pnpm/parent@1.0.0/node_modules'
+  const deepStore = 'node_modules/.pnpm/deep@1.0.0/node_modules'
+  await declare(cwd, { parent: '^1.0.0' })
+  await install(cwd, 'parent', {
+    dependencies: { deep: '^1.0.0' },
+    directory: parentStore,
+  })
+  await install(cwd, 'deep', {
+    directory: deepStore,
+    repository: 'https://github.com/acme/deep',
+  })
+  await fs.symlink('.pnpm/parent@1.0.0/node_modules/parent', path.join(cwd, 'node_modules/parent'))
+  await fs.symlink('../../deep@1.0.0/node_modules/deep', path.join(cwd, parentStore, 'deep'))
+
+  const instance = await github({}, { files: { 'acme/deep': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'deep', repo: 'acme/deep' }])
+})
+
+test('behavior: lists an aliased dependency by its canonical package name', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { legacy: 'npm:actual@^1.0.0' })
+  await install(cwd, 'legacy', {
+    packageName: 'actual',
+    repository: 'https://github.com/acme/actual',
+  })
+
+  const instance = await github({}, { files: { 'acme/actual': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'actual', repo: 'acme/actual' }])
+})
+
+test('behavior: an exact direct package wins over an alias with the same canonical name', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { actual: '^2.0.0', legacy: 'npm:actual@^1.0.0' })
+  await install(cwd, 'actual', { repository: 'https://github.com/acme/new' })
+  await install(cwd, 'legacy', {
+    packageName: 'actual',
+    repository: 'https://github.com/acme/old',
+  })
+
+  const instance = await github(
+    {},
+    {
+      files: {
+        'acme/new': { [Config.file]: config(true) },
+        'acme/old': { [Config.file]: config(true) },
+      },
+    },
+  )
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'actual', repo: 'acme/new' }])
+  expect(instance.requests.some((request) => request.path.includes('acme/old'))).toBe(false)
+})
+
+test('behavior: a canonical transitive package wins over a colliding dependency alias', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { legacy: 'npm:actual@^1.0.0', parent: '^1.0.0' })
+  await install(cwd, 'legacy', {
+    packageName: 'actual',
+    repository: 'https://github.com/acme/actual',
+  })
+  await install(cwd, 'parent', { dependencies: { legacy: '^2.0.0' } })
+  await install(cwd, 'legacy', {
+    directory: 'node_modules/parent/node_modules',
+    repository: 'https://github.com/acme/legacy',
+  })
+
+  const instance = await github(
+    {},
+    {
+      files: {
+        'acme/actual': { [Config.file]: config(true) },
+        'acme/legacy': { [Config.file]: config(true) },
+      },
+    },
+  )
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([
+    { name: 'actual', repo: 'acme/actual' },
+    { name: 'legacy', repo: 'acme/legacy' },
+  ])
+})
+
+test('behavior: omits a transitive package whose installed copies name different repositories', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { one: '^1.0.0', two: '^1.0.0' })
+  await install(cwd, 'one', { dependencies: { shared: '^1.0.0' } })
+  await install(cwd, 'two', { dependencies: { shared: '^2.0.0' } })
+  await install(cwd, 'shared', {
+    directory: 'node_modules/one/node_modules',
+    repository: 'https://github.com/acme/one',
+  })
+  await install(cwd, 'shared', {
+    directory: 'node_modules/two/node_modules',
+    repository: 'https://github.com/acme/two',
+  })
+
+  const instance = await github()
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([])
+  expect(instance.requests).toEqual([])
+})
+
+test('behavior: includes a transitive package when only one installed copy names a repository', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { one: '^1.0.0', two: '^1.0.0' })
+  await install(cwd, 'one', { dependencies: { shared: '^1.0.0' } })
+  await install(cwd, 'two', { dependencies: { shared: '^2.0.0' } })
+  await install(cwd, 'shared')
+  await install(cwd, 'shared', {
+    directory: 'node_modules/two/node_modules',
+    repository: 'https://github.com/acme/shared',
+  })
+
+  const instance = await github({}, { files: { 'acme/shared': { [Config.file]: config(true) } } })
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'shared', repo: 'acme/shared' }])
+})
+
+test('behavior: a root package wins over a conflicting transitive copy', async () => {
+  const cwd = await helpers.repo()
+  await declare(cwd, { parent: '^1.0.0', shared: '^1.0.0' })
+  await install(cwd, 'parent', { dependencies: { shared: '^2.0.0' } })
+  await install(cwd, 'shared', { repository: 'https://github.com/acme/root' })
+  await install(cwd, 'shared', {
+    directory: 'node_modules/parent/node_modules',
+    repository: 'https://github.com/acme/nested',
+  })
+
+  const instance = await github(
+    {},
+    {
+      files: {
+        'acme/nested': { [Config.file]: config(true) },
+        'acme/root': { [Config.file]: config(true) },
+      },
+    },
+  )
+  const result = await cli.data<Listed>(
+    ['targets', '--cwd', cwd],
+    env(instance.url, await helpers.tmpdir()),
+  )
+
+  expect(result.targets).toEqual([{ name: 'shared', repo: 'acme/root' }])
+  expect(instance.requests.some((request) => request.path.includes('acme/nested'))).toBe(false)
 })
 
 test('behavior: applies each receiver allowFrom policy', async () => {
