@@ -10,7 +10,6 @@ export const cli = Cli.create('frog', {
   description: 'Automated friction logging for agents.',
   sync: {
     depth: 1,
-    include: ['_root'],
     suggestions: [
       'log the friction I just hit',
       'show me which of my dependencies accept friction reports',

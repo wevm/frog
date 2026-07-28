@@ -99,7 +99,7 @@ export const Schema = z.object({
  *
  * Field documentation lives on {@link Schema} as `.describe()`, the one exception in this package.
  * Only `.describe()` reaches `schema.json`, and duplicating it as TSDoc would give two sources that
- * drift. Run `frog publish --schema` to read it.
+ * drift. Run `pnpx frog publish --schema` to read it.
  */
 export type Config = z.output<typeof Schema>
 

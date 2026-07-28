@@ -45,7 +45,6 @@
   "files": [
     "dist",
     "src",
-    "SKILL.md",
     "schema.json"
   ],
   "exports": {

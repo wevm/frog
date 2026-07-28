@@ -61,21 +61,15 @@ Run `npx frog init`, then set up Frog in my project.
 ## Install
 
 ```bash
-npm i -D frog
+npx frog init
 ```
 
 ```bash
-pnpm i -D frog
+pnpx frog init
 ```
 
 ```bash
-bun i -D frog
-```
-
-Then, once per repository:
-
-```bash
-frog init
+bunx frog init
 ```
 
 Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
@@ -97,7 +91,7 @@ workflow; use the current setup below.
 
 | Step | What happens                                                    | Example                                                       |
 | ---- | --------------------------------------------------------------- | ------------------------------------------------------------- |
-| 1    | Agent hits friction while working and runs `frog log`           | —                                                             |
+| 1    | Agent hits friction while working and runs `npx frog log`       | —                                                             |
 | 2    | The entry commits alongside the change that provoked it         | [`0de4ab6`](https://github.com/wevm/frog-demo/commit/0de4ab6) |
 | 3    | Frog comments on the pull request, naming what it found         | [#1](https://github.com/wevm/frog-demo/pull/1)                |
 | 4    | Frog reports the entry as an issue and writes its `issue:` link | [#2](https://github.com/wevm/frog-demo/issues/2)              |
@@ -112,8 +106,8 @@ Action-only uses the repository's workflow and `GITHUB_TOKEN`, without installin
 
 | Step | What happens                                                                                                   | Example                                                                                                                             |
 | ---- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | Run `frog init`, choose Action-only, and add the repository workflow.                                          | [`5a3142b`](https://github.com/wevm/frog-demo-action/commit/5a3142b)                                                                |
-| 2    | An agent hits friction and runs `frog log`; the report uses the repository's friction issue form.              | [`friction.md`](https://github.com/wevm/frog-demo-action/blob/5a3142b/.agents/friction-log/20260728085722-load-turns-a/friction.md) |
+| 1    | Run `pnpx frog init`, choose Action-only, and add the repository workflow.                                     | [`5a3142b`](https://github.com/wevm/frog-demo-action/commit/5a3142b)                                                                |
+| 2    | An agent hits friction and runs `pnpx frog log`; the report uses the repository's friction issue form.         | [`friction.md`](https://github.com/wevm/frog-demo-action/blob/5a3142b/.agents/friction-log/20260728085722-load-turns-a/friction.md) |
 | 3    | Frog reports the friction as an issue and opens or updates one accumulating `frog/sync` pull request.          | [#1](https://github.com/wevm/frog-demo-action/issues/1) · [#2](https://github.com/wevm/frog-demo-action/pull/2)                     |
 | 4    | A fix closes the issue.                                                                                        | [#3](https://github.com/wevm/frog-demo-action/pull/3)                                                                               |
 | 5    | The issue event or next scheduled run updates the same `frog/sync` pull request to delete the resolved report. | [#2](https://github.com/wevm/frog-demo-action/pull/2)                                                                               |
@@ -128,10 +122,11 @@ Action-only uses the repository's workflow and `GITHUB_TOKEN`, without installin
 Records one friction as an entry: a directory holding the write-up and anything needed to reproduce it.
 Prompts for the details in a terminal, or takes them as flags.
 
-`--publish` reports it as an issue immediately. Otherwise it stays pending until the next `frog publish`.
+`--publish` reports it as an issue immediately. Otherwise it stays pending until the next
+`npx frog publish`.
 
 ```sh
-frog log
+npx frog log
 ```
 
 ```
@@ -146,19 +141,15 @@ Shows every unresolved entry: what it is, whether it has been reported, where it
 ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as a CI check.
 
 ```sh
-frog list
+npx frog list
 ```
 
-### Skills and MCP
-
-Teaches agents **when** to log, which is the part they cannot infer. The rule is _log when you worked around
-something_; see [`SKILL.md`](./SKILL.md) for the full trigger.
+### MCP
 
 `mcp add` exposes each command as a typed tool, so agents call Frog directly rather than composing shell.
 
 ```sh
-frog skills add
-frog mcp add
+npx frog mcp add
 ```
 
 ### Logging Upstream
@@ -174,8 +165,8 @@ Naming a target also scaffolds the entry from that project's GitHub issue form, 
 questions it actually asks rather than Frog's own. A project that names no form keeps Frog's sections.
 
 ```sh
-frog targets
-frog log --target viem
+npx frog targets
+npx frog log --target viem
 ```
 
 ### Accept Inbound Logs
@@ -191,7 +182,7 @@ Accept friction reported by other repositories with `.agents/friction-log/config
 }
 ```
 
-`frog init` enables inbound reports by default. Run `frog init --no-inbound` to initialize without
+`npx frog init` enables inbound reports by default. Run `npx frog init --no-inbound` to initialize without
 accepting inbound reports.
 
 ## CLI Reference
@@ -319,7 +310,7 @@ friction log. Choose Action-only if you do not want to grant that read access.
 
 ### Action-only Mode
 
-`frog init` describes both methods without choosing one. For Action-only, create
+`npx frog init` describes both methods without choosing one. For Action-only, create
 `.github/workflows/friction-log.yml` without installing the App:
 
 ```yaml

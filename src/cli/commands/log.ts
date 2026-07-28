@@ -93,7 +93,7 @@ export const log = Cli.create('log', {
       options: { severity: 'major', target: 'viem' },
     },
   ],
-  hint: 'Run `frog list` first: this friction may already be recorded.',
+  hint: 'Run `npx frog list` first: this friction may already be recorded.',
   output: z.object({
     artifacts: z
       .string()
@@ -111,8 +111,8 @@ export const log = Cli.create('log', {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const interactive = prompt.interactive()
 
-    // Piped input carries the whole entry, shaped like a commit message. It makes bare `frog log`
-    // usable without a terminal, where a prompt cannot run at all.
+    // Piped input carries the whole entry, shaped like a commit message. It keeps `log` usable
+    // without a terminal, where a prompt cannot run at all.
     //
     // Skipped once the arguments cover both parts. Reading it then only costs the wait.
     const piped = c.args.title && c.options.body ? undefined : await attempt(stdin.read())
