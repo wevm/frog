@@ -159,21 +159,41 @@ export async function file(options: file.Options): Promise<Outcome> {
     let reserved = false
     try {
       const hash = Github.hash(entry.title)
-      const existing = seen.get(hash) ?? (await matcher.match(entry.title))
+      const report = Github.report({ entry, origin })
       const occurrence = Github.occurrence({ entry, origin })
+      const revision = Github.revision({ entry, origin })
+      const existing = seen.get(hash) ?? (await matcher.match(entry.title, { occurrence, report }))
       const path = Store.toPath(entry.id)
 
       if (dryRun) {
         const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
         const status = existing
-          ? await Github.findOccurrence(client, {
+          ? await Github.findRevision(client, {
               existing,
-              occurrence,
               repo,
+              revision,
               ...(expectedAuthor ? { expectedAuthor } : {}),
             })
           : undefined
-        const category = status ?? (existing ? 'commented' : 'created')
+        const location =
+          status ??
+          (existing
+            ? await Github.findReport(client, {
+                existing,
+                report,
+                repo,
+                ...(expectedAuthor ? { expectedAuthor } : {}),
+              })
+            : undefined) ??
+          (existing
+            ? await Github.findOccurrence(client, {
+                existing,
+                occurrence,
+                repo,
+                ...(expectedAuthor ? { expectedAuthor } : {}),
+              })
+            : undefined)
+        const category = location ?? (existing ? 'commented' : 'created')
         ;(category === 'commented' ? commented : created).push({
           id: entry.id,
           issue: link,
@@ -203,6 +223,8 @@ export async function file(options: file.Options): Promise<Outcome> {
         occurrence,
         provenance: { ...provenance, ...(pr ? { pr } : {}) },
         repo,
+        report,
+        revision,
         ...(existing ? { existing } : {}),
       })
       if (result.mutated) consumed += 1

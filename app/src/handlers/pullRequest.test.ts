@@ -197,7 +197,7 @@ test('behavior: a title edit reuses the issue carrying the occurrence', async ()
   expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
-test('behavior: a title edit reuses an occurrence carried by a comment', async () => {
+test('behavior: title and body edits keep updating the original issue', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -210,13 +210,14 @@ test('behavior: a title edit reuses an occurrence carried by a comment', async (
   instance.write(base, `${dir}/a/friction.md`, changed.replace('ignored', 'renamed'), 'head')
   const third = await run(instance.url)
 
-  expect(third.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(third.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(instance.issues.get(base)?.[0]?.title).toBe('Filters renamed')
+  expect(Github.parseBody(instance.issues.get(base)?.[0]?.body)).toBe('The filter was dropped.')
+  expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
-// The one repeat worth having: the entry changed, so the issue should hear about it.
-test('behavior: an edited entry comments once', async () => {
+test('behavior: an edited entry updates once', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -233,12 +234,11 @@ test('behavior: an edited entry comments once', async () => {
   await run(instance.url)
 
   expect(instance.issues.get(base)).toHaveLength(1)
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(Github.parseBody(instance.issues.get(base)?.[0]?.body)).toBe('The filter was dropped.')
+  expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
-// The edit that a title-shaped hash would have thrown away: punctuation and case only. Adding the `--`
-// a command was missing changes what the report means, so the issue has to hear about it.
-test('behavior: an edit of only punctuation still comments', async () => {
+test('behavior: an edit of only punctuation still updates', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -256,7 +256,10 @@ test('behavior: an edit of only punctuation still comments', async () => {
   instance.write(base, `${dir}/a/friction.md`, after, 'head')
   await run(instance.url)
 
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(Github.parseBody(instance.issues.get(base)?.[0]?.body)).toBe(
+    'Run `pnpm test -- src/foo.test.ts`.',
+  )
+  expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
 test('behavior: concurrent deliveries with the same title open one issue', async () => {

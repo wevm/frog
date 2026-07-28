@@ -255,6 +255,20 @@ test('behavior: a replayed issue does not consume the next run ceiling', async (
     { id: 'b', issue: '(new)', title: 'Friction b' },
   ])
 
+  await Store.write(
+    { body: 'Edited.', severity: 'minor', title: 'Friction a' },
+    { id: 'a', root: cwd },
+  )
+  const edited = await cli.data<Outcome>(
+    ['publish', '--cwd', cwd, '--max', '1', '--dry-run'],
+    env(instance.url),
+  )
+  expect(edited.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Friction a' }])
+  expect(edited.deferred).toEqual([
+    { code: 'OVER_CEILING', id: 'b', reason: 'over the ceiling of 1 per run' },
+  ])
+
+  await Store.write({ body, severity: 'minor', title: 'Friction a' }, { id: 'a', root: cwd })
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
 
   expect(result.created).toEqual([

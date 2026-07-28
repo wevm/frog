@@ -126,8 +126,11 @@ export async function file(options: file.Options): Promise<Filing> {
 
       for (const entry of group.entries) {
         const hash = Github.hash(entry.title)
+        const report = Github.report({ entry, origin })
         const occurrence = Github.occurrence({ entry, origin })
-        const existing = (await matcher.match(entry.title, { occurrence })) ?? seen.get(hash)
+        const revision = Github.revision({ entry, origin })
+        const existing =
+          (await matcher.match(entry.title, { occurrence, report })) ?? seen.get(hash)
         const result = await (async () => {
           if (mutated < config.maxPerRun)
             return Github.publish(target.rest, {
@@ -142,15 +145,17 @@ export async function file(options: file.Options): Promise<Filing> {
               occurrence,
               provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
               repo: destination,
+              report,
+              revision,
               ...(existing ? { existing } : {}),
             })
 
           const status = existing
-            ? await Github.findOccurrence(target.rest, {
+            ? await Github.findRevision(target.rest, {
                 existing,
                 expectedAuthor: app,
-                occurrence,
                 repo: destination,
+                revision,
               })
             : undefined
           if (status && existing) return { issue: existing.number, mutated: false, status }
