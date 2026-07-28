@@ -3,7 +3,9 @@ import { runtime, type Runtime } from './App.js'
 import * as Delivery from './Delivery.js'
 import * as Reconcile from './Reconcile.js'
 import { WebhookCoordinator } from './WebhookCoordinator.js'
+import * as body from './internal/body.js'
 import * as dispatch from './internal/dispatch.js'
+import * as failure from './internal/failure.js'
 import * as oidc from './internal/oidc.js'
 import * as deliveryQueue from './internal/queue.js'
 import * as serialization from './internal/serialize.js'
@@ -12,14 +14,6 @@ import * as webhook from './internal/webhook.js'
 const reconcilePath = '/github/reconcile'
 const reconcileAudience = 'https://frog.wevm.dev/github/reconcile'
 const webhookPath = '/github'
-
-function failure(error: unknown): { name: string; status?: number | undefined } {
-  const value = error as { name?: unknown; status?: unknown }
-  return {
-    name: typeof value.name === 'string' ? value.name : 'UnknownError',
-    ...(typeof value.status === 'number' ? { status: value.status } : {}),
-  }
-}
 
 /** Bindings the Worker needs, set as secrets. */
 export type Env = {
@@ -95,7 +89,7 @@ async function reconcile(request: Request, env: Env): Promise<Response> {
       headers: { allow: 'POST', 'cache-control': 'no-store' },
       status: 405,
     })
-  if (request.body !== null)
+  if (!(await body.empty(request.body)))
     return new Response('Bad Request', {
       headers: { 'cache-control': 'no-store' },
       status: 400,
@@ -153,7 +147,7 @@ async function reconcile(request: Request, env: Env): Promise<Response> {
   } catch (error) {
     if (error instanceof ForbiddenError || error instanceof oidc.InvalidError) return forbidden()
     if (error instanceof StaleError) return conflict()
-    console.error('Reconciliation failed.', failure(error))
+    console.error('Reconciliation failed.', failure.from(error))
     return new Response('Service Unavailable', {
       headers: { 'cache-control': 'no-store' },
       status: 503,
@@ -211,11 +205,11 @@ const worker = {
       return await webhook.receive(request, {
         enqueue: (delivery) => env.WEBHOOKS.send(delivery, { contentType: 'json' }),
         error: (error, context) =>
-          console.error('Webhook enqueue failed.', context, failure(error)),
+          console.error('Webhook enqueue failed.', context, failure.from(error)),
         verify: (body, signature) => app(env).app.webhooks.verify(body, signature),
       })
     } catch (error) {
-      console.error('Webhook ingress failed.', { delivery: id, event: name }, failure(error))
+      console.error('Webhook ingress failed.', { delivery: id, event: name }, failure.from(error))
       return new Response('Service Unavailable', { status: 503 })
     }
   },
@@ -223,7 +217,7 @@ const worker = {
   async queue(batch: MessageBatch<Delivery.Delivery>, env: Env): Promise<void> {
     await deliveryQueue.consume(batch.messages, {
       error: (error, context) =>
-        console.error('Webhook processing failed.', context, failure(error)),
+        console.error('Webhook processing failed.', context, failure.from(error)),
       process: (delivery) => processQueued(env, delivery),
     })
   },
