@@ -55,8 +55,7 @@ if it has opted in.
 Prompt your agent:
 
 ```txt
-Run `npx frog init`, prompt me to choose between the GitHub App and Action-only automation, then set up
-Frog in this project.
+Run `npx frog init`, then set up Frog in my project.
 ```
 
 ## Install
