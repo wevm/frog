@@ -1,5 +1,12 @@
 # frog
 
+## 1.0.6
+
+### Patch Changes
+
+- 3bb2b8b: Added least-privilege GitHub App reconciliation, enabled receiver-gated outbound reporting by default, and hardened issue matching, branch validation, and artifact deletion.
+- ae294c1: Removed automation setup guidance from generated friction log READMEs.
+
 ## 1.0.5
 
 ### Patch Changes
