@@ -115,9 +115,18 @@ test('behavior: verifies a token signed by GitHub for the trusted workflow', asy
     'https://token.actions.githubusercontent.com/.well-known/jwks',
     expect.objectContaining({
       headers: { accept: 'application/json' },
-      redirect: 'error',
+      redirect: 'manual',
     }),
   )
+})
+
+test('security: rejects redirected signing-key responses', async () => {
+  const fetch = vi.fn(async () => Response.redirect('https://attacker.test/keys', 302))
+
+  await expect(Oidc.verify(await token(), options({ fetch }))).rejects.toThrowError(
+    'Invalid GitHub Actions identity.',
+  )
+  expect(fetch).toHaveBeenCalledOnce()
 })
 
 test('security: caches the bounded GitHub signing-key set', async () => {

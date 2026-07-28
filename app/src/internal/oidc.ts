@@ -259,7 +259,8 @@ async function fetchKeys(
 ): Promise<ReadonlyMap<string, JsonWebKey>> {
   const response = await fetch_(jwksUrl, {
     headers: { accept: 'application/json' },
-    redirect: 'error',
+    // Workers rejects `error`; manual returns redirects for the status guard below.
+    redirect: 'manual',
     signal: AbortSignal.timeout(5_000),
   })
   if (!response.ok) throw new Error()
