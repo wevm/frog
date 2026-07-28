@@ -10,7 +10,7 @@ import * as Store from '../../Store.js'
 test('behavior: scaffolds the directory', async () => {
   const cwd = await helpers.repo()
 
-  expect(await cli.data(['init', '--cwd', cwd])).toMatchInlineSnapshot(`
+  expect(await cli.data(['init', '--no-global', '--cwd', cwd])).toMatchInlineSnapshot(`
     {
       "created": [
         ".agents/friction-log/README.md",
@@ -22,7 +22,7 @@ test('behavior: scaffolds the directory', async () => {
   `)
 
   // Automation changes repository access or workflows, so init leaves that choice to the user.
-  const { envelope } = await cli.run(['init', '--cwd', await helpers.repo()])
+  const { envelope } = await cli.run(['init', '--no-global', '--cwd', await helpers.repo()])
   const cta = envelope.meta?.['cta'] as
     | {
         commands?: { command?: string; description?: string }[]
@@ -82,7 +82,7 @@ test('behavior: scaffolds the directory', async () => {
 
 test('behavior: the issue form scaffolds local entries', async () => {
   const cwd = await helpers.repo()
-  await cli.data(['init', '--cwd', cwd])
+  await cli.data(['init', '--no-global', '--cwd', cwd])
 
   const contents = await fs.readFile(path.join(cwd, IssueForm.dir, IssueForm.filename), 'utf8')
   const form = IssueForm.parse(contents)
@@ -95,10 +95,10 @@ test('behavior: the issue form scaffolds local entries', async () => {
 
 test('behavior: re-running never clobbers local edits', async () => {
   const cwd = await helpers.repo()
-  await cli.data(['init', '--cwd', cwd])
+  await cli.data(['init', '--no-global', '--cwd', cwd])
   await fs.writeFile(path.join(cwd, Config.file), '{ "maxPerRun": 3 }', 'utf8')
 
-  expect(await cli.data(['init', '--cwd', cwd])).toMatchObject({
+  expect(await cli.data(['init', '--no-global', '--cwd', cwd])).toMatchObject({
     created: [],
     existing: [
       '.agents/friction-log/README.md',
@@ -115,7 +115,7 @@ test('behavior: leaves the automation choice alone', async () => {
   await fs.mkdir(path.dirname(workflow), { recursive: true })
   await fs.writeFile(workflow, 'custom\n', 'utf8')
 
-  await cli.data(['init', '--cwd', cwd])
+  await cli.data(['init', '--no-global', '--cwd', cwd])
 
   expect(await fs.readFile(workflow, 'utf8')).toBe('custom\n')
 })
@@ -126,7 +126,7 @@ test('behavior: never clobbers an existing friction issue form', async () => {
   await fs.mkdir(path.dirname(file), { recursive: true })
   await fs.writeFile(file, 'custom\n', 'utf8')
 
-  const result = await cli.data<{ existing: string[] }>(['init', '--cwd', cwd])
+  const result = await cli.data<{ existing: string[] }>(['init', '--no-global', '--cwd', cwd])
 
   expect(result.existing).toContain('.github/ISSUE_TEMPLATE/friction.yml')
   expect(await fs.readFile(file, 'utf8')).toBe('custom\n')
@@ -136,8 +136,84 @@ describe('--no-inbound', () => {
   test('behavior: disables friction reported by other repositories', async () => {
     const cwd = await helpers.repo()
 
-    await cli.data(['init', '--no-inbound', '--cwd', cwd])
+    await cli.data(['init', '--no-global', '--no-inbound', '--cwd', cwd])
 
     expect((await Config.resolve({ root: cwd })).inbound.enabled).toBe(false)
+  })
+})
+
+describe('global installation', () => {
+  test.each([
+    ['npm@11.0.0', 'npm', ['install', '--global', 'frog']],
+    ['pnpm@11.0.0', 'pnpm', ['add', '--global', 'frog']],
+    ['bun@1.2.0', 'bun', ['add', '--global', 'frog']],
+    ['yarn@1.22.22', 'yarn', ['global', 'add', 'frog']],
+    ['yarn@4.9.2', 'npm', ['install', '--global', 'frog']],
+  ])('behavior: installs with %s before scaffolding', async (value, executable, args) => {
+    const cwd = await helpers.repo()
+    const command = await helpers.fakeCommand(executable)
+    const manifest = `${JSON.stringify({ packageManager: value }, null, 2)}\n`
+    await helpers.writeFile('package.json', manifest, cwd)
+
+    await cli.data(['init', '--cwd', cwd], { PATH: command.bin })
+
+    expect(await command.calls()).toEqual([{ args, cwd }])
+    expect(await fs.readFile(path.join(cwd, 'package.json'), 'utf8')).toBe(manifest)
+    await expect(fs.stat(path.join(cwd, 'node_modules'))).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  test('behavior: resolves package-manager metadata from the repository root', async () => {
+    const cwd = await helpers.repo()
+    const nested = path.join(cwd, 'packages/app')
+    const command = await helpers.fakeCommand('pnpm')
+    await helpers.writeFile('package.json', '{"packageManager":"pnpm@11.0.0"}\n', cwd)
+    await fs.mkdir(nested, { recursive: true })
+
+    await cli.data(['init', '--cwd', nested], { PATH: command.bin })
+
+    expect(await command.calls()).toEqual([{ args: ['add', '--global', 'frog'], cwd }])
+  })
+
+  test('behavior: falls back to the invoking package manager', async () => {
+    const cwd = await helpers.repo()
+    const command = await helpers.fakeCommand('pnpm')
+
+    await cli.data(['init', '--cwd', cwd], {
+      PATH: command.bin,
+      npm_config_user_agent: 'pnpm/11.0.0 npm/? node/v24',
+    })
+
+    expect(await command.calls()).toEqual([{ args: ['add', '--global', 'frog'], cwd }])
+  })
+
+  test('behavior: --no-global skips package-manager resolution and installation', async () => {
+    const cwd = await helpers.repo()
+    const bin = await helpers.tmpdir()
+    await helpers.writeFile('package.json', '{"packageManager":"pnpm@11.0.0"}\n', cwd)
+
+    expect(await cli.data(['init', '--no-global', '--cwd', cwd], { PATH: bin })).toMatchObject({
+      created: expect.any(Array),
+      existing: [],
+    })
+  })
+
+  test('behavior: an install failure leaves the repository untouched', async () => {
+    const cwd = await helpers.repo()
+    const command = await helpers.fakeCommand('npm', { exitCode: 17 })
+
+    expect(
+      await cli.error(['init', '--cwd', cwd], {
+        PATH: command.bin,
+        npm_config_user_agent: 'npm/11.0.0 node/v24',
+      }),
+    ).toEqual({
+      code: 'INSTALL_FAILED',
+      message:
+        'Failed to install Frog globally: `npm install --global frog` exited with code 17. ' +
+        'Run the command directly for details, or rerun `npx frog init --no-global` to skip installation.',
+    })
+    expect(await command.calls()).toEqual([{ args: ['install', '--global', 'frog'], cwd }])
+    await expect(fs.stat(path.join(cwd, Store.dir))).rejects.toMatchObject({ code: 'ENOENT' })
+    await expect(fs.stat(path.join(cwd, IssueForm.dir))).rejects.toMatchObject({ code: 'ENOENT' })
   })
 })

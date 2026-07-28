@@ -5,7 +5,9 @@ import * as Config from '../../Config.js'
 import * as Entry from '../../Entry.js'
 import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
+import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
+import * as packageManager from '../internal/packageManager.js'
 
 /** The rules to paste into `AGENTS.md`. */
 export const rules =
@@ -95,8 +97,22 @@ ${Entry.sections
 
 export const init = Cli.create('init', {
   description: 'Create the friction log, config, and issue form.',
+  env: z.object({
+    PATH: z.string().optional().describe('Executable search path used for global installation.'),
+    npm_config_user_agent: z
+      .string()
+      .optional()
+      .describe(
+        'Invoking package manager, used when the repository has no package-manager metadata.',
+      ),
+  }),
   options: z.object({
     cwd: context.cwdOption,
+    global: z
+      .boolean()
+      .default(true)
+      .optional()
+      .describe('Install Frog globally. Pass `--no-global` to skip during setup.'),
     inbound: z
       .boolean()
       .default(true)
@@ -112,6 +128,16 @@ export const init = Cli.create('init', {
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
+
+    if (c.options.global !== false) {
+      const command = await packageManager.resolve({ env: c.env, root })
+      const installed = await attempt(packageManager.install(command, { cwd: root, env: c.env }))
+      if (!installed.ok)
+        return c.error({
+          code: installed.code,
+          message: installed.message,
+        })
+    }
 
     const files = [
       [`${Store.dir}/README.md`, readme()],

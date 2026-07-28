@@ -60,22 +60,20 @@ Run `npx frog init`, then set up Frog in my project.
 
 ## Install
 
+Run once per repository:
+
 ```bash
-npm i -D frog
+npx frog init
 ```
 
-```bash
-pnpm i -D frog
-```
+Frog detects the repository's package manager and installs itself globally with npm, pnpm, Yarn Classic,
+or Bun before scaffolding the friction log. Yarn Modern falls back to npm because it no longer supports
+global installs.
+
+Use `--no-global` only when `frog` is already available another way:
 
 ```bash
-bun i -D frog
-```
-
-Then, once per repository:
-
-```bash
-frog init
+npx frog init --no-global
 ```
 
 Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before

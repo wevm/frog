@@ -18,6 +18,62 @@ export async function tmpdir(): Promise<string> {
   return dir
 }
 
+/** Creates an executable that records its working directory and arguments. */
+export async function fakeCommand(
+  name: string,
+  options: fakeCommand.Options = {},
+): Promise<fakeCommand.Result> {
+  const bin = await tmpdir()
+  const file = path.join(bin, process.platform === 'win32' ? `${name}.cjs` : name)
+  const log = path.join(bin, 'calls.jsonl')
+  const script = `#!${process.execPath}
+const fs = require('node:fs')
+fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify({
+  args: process.argv.slice(2),
+  cwd: process.cwd(),
+}) + '\\n')
+process.stdout.write('fake stdout\\n')
+process.stderr.write('fake stderr\\n')
+process.exit(${options.exitCode ?? 0})
+`
+  await fs.writeFile(file, script, { mode: 0o755 })
+
+  if (process.platform === 'win32')
+    await fs.writeFile(
+      path.join(bin, `${name}.cmd`),
+      `@echo off\r\n"${process.execPath}" "${file}" %*\r\n`,
+      'utf8',
+    )
+
+  return {
+    bin,
+    async calls() {
+      const contents = await fs.readFile(log, 'utf8').catch(() => '')
+      return contents
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line) as fakeCommand.Call)
+    },
+  }
+}
+
+export declare namespace fakeCommand {
+  type Call = {
+    args: string[]
+    cwd: string
+  }
+
+  type Options = {
+    exitCode?: number | undefined
+  }
+
+  type Result = {
+    bin: string
+    calls(): Promise<Call[]>
+  }
+}
+
 /** Runs git in `cwd`, returning trimmed stdout. */
 export async function git(args: readonly string[], cwd: string): Promise<string> {
   const { stdout } = await exec('git', [...args], { cwd })
