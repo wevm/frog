@@ -4,46 +4,16 @@
   "framework": null,
   "installCommand": "",
   "outputDirectory": ".",
-  "rewrites": [
+  "redirects": [
     {
       "source": "/install",
-      "destination": "/install.sh"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/install",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
+      "destination": "https://github.com/wevm/frog/releases/latest/download/install.sh",
+      "permanent": false
     },
     {
       "source": "/install.ps1",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        }
-      ]
+      "destination": "https://github.com/wevm/frog/releases/latest/download/install.ps1",
+      "permanent": false
     }
   ]
 }

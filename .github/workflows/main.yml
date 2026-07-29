@@ -53,17 +53,9 @@ jobs:
           git tag --annotate --force "$tag" "$GITHUB_SHA" --message "$tag"
           git push --force origin "refs/tags/$tag"
 
-      - name: Upload standalone binaries
-        id: binaries
+      - name: Release standalone binaries
         if: steps.changesets.outputs.published == 'true'
-        uses: wevm/incur/release@32c2fdf3724214374a97e0e3c142244ca26a7548 # v1
-
-      # Changesets uses frog@<version>, while Incur updaters require v<version> releases.
-      - name: Publish standalone binaries
-        if: steps.changesets.outputs.published == 'true'
-        run: gh release edit "${{ steps.binaries.outputs.release_tag }}" --draft=false --latest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: wevm/incur/release@1adcd9b9df2525d311a3cec5c3419552987641b3 # incur@0.4.24
 
   deploy:
     name: Deploy
