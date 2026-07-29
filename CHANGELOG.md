@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.14
+
+### Patch Changes
+
+- eaa1fdf: Validated supplied bodies against local issue forms before writing friction entries.
+
 ## 1.0.13
 
 ### Patch Changes
