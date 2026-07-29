@@ -23,7 +23,7 @@ token to one repository and requests Pull requests write without Contents access
 
 Source reconciliation runs in `.github/workflows/friction-log.yml`. The workflow grants
 `contents: write`, `pull-requests: write`, and `id-token: write` to
-`wevm/frog/reconcile@v1`; it grants no issue access.
+`wevm/frog/reconcile@b01b51b94a2cac4242e861c1d63fcd0ac1ab6df8`; it grants no issue access.
 
 The Action exchanges GitHub's OIDC token for a content-free snapshot. The Worker verifies the
 repository id, repository name, default-branch ref, workflow, event, and exact commit before returning
@@ -31,8 +31,9 @@ only opaque occurrence hashes and issue state. Report bodies, paths, patches, co
 credentials never cross that boundary. The Action derives every change from its own exact checkout,
 validates the resulting diff, and updates `frog/sync` with the repository's token.
 
-Users who do not want to grant the App access can instead run `wevm/frog/action@v1`. Action-only reports
-after merge with the repository's token and handles same-repository friction only.
+Users who do not want to grant the App access can instead run
+`wevm/frog/action@b01b51b94a2cac4242e861c1d63fcd0ac1ab6df8`. Action-only reports after merge with
+the repository's token and handles same-repository friction only.
 
 ## Why the App is richer
 
