@@ -45,14 +45,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update Action tag
-        if: steps.changesets.outputs.published == 'true'
-        run: |
-          major="$(node -p "require('./package.json').version.split('.')[0]")"
-          tag="v$major"
-          git tag --annotate --force "$tag" "$GITHUB_SHA" --message "$tag"
-          git push --force origin "refs/tags/$tag"
-
       - name: Release standalone binaries
         if: steps.changesets.outputs.published == 'true'
         uses: wevm/incur/release@1adcd9b9df2525d311a3cec5c3419552987641b3 # incur@0.4.24
