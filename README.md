@@ -106,6 +106,8 @@ yarn dlx frog init
 
 You can use these runners with any Frog command, e.g. `npx frog list`.
 
+### 3. Choose Automation Method
+
 Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
 changing repository access or adding a workflow:
 
