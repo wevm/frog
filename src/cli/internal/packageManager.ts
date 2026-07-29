@@ -18,7 +18,7 @@ const commands = {
   bun: 'bunx frog',
   npm: 'npx frog',
   pnpm: 'pnpx frog',
-  yarn: 'npx frog',
+  yarn: 'yarn dlx frog',
 } as const satisfies Record<Manager, string>
 
 const managers = {
@@ -32,7 +32,7 @@ const managers = {
   yarnpkg: 'yarn',
 } as const satisfies Record<string, Manager>
 
-/** Returns the Frog command for the project package manager, falling back to the invoking manager. */
+/** Returns the Frog command for a detected project or invoking package manager. */
 export async function resolve(options: resolve.Options = {}) {
   const manager = options.root
     ? await fs
@@ -40,11 +40,12 @@ export async function resolve(options: resolve.Options = {}) {
         .then((contents) => fromIdentifier((JSON.parse(contents) as Manifest).packageManager))
         .catch(() => undefined)
     : undefined
-  return commands[manager ?? fromEnvironment(options.env ?? process.env) ?? 'npm']
+  const resolved = manager ?? fromEnvironment(options.env ?? process.env)
+  return resolved ? commands[resolved] : undefined
 }
 
 export declare namespace resolve {
-  /** Options for selecting a project's Frog runner. */
+  /** Options for selecting a project's Frog command. */
   type Options = {
     /** Environment used when the project does not declare a package manager. */
     env?: Environment | undefined

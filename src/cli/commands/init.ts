@@ -10,6 +10,7 @@ import * as packageManager from '../internal/packageManager.js'
 
 type TemplateOptions = {
   command: string
+  install: boolean
 }
 
 const agentsInstruction =
@@ -17,8 +18,12 @@ const agentsInstruction =
 
 function rules(options: TemplateOptions): string {
   return (
+    (options.install
+      ? '- If `frog` is not installed, install the binary: `curl -fsSL https://frog.fm/install | sh`.\n'
+      : '') +
     '- Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
-    `\`${options.command} log\`.\n- Do not add global, system, or internal friction.\n` +
+    `\`${options.command} log\`.\n` +
+    '- Do not add global, system, or internal friction.\n' +
     `- Run \`${options.command} list\` first to see what is already known.`
   )
 }
@@ -109,11 +114,11 @@ export const init = Cli.create('init', {
     npm_config_user_agent: z
       .string()
       .optional()
-      .describe('Package-manager user agent used to select the Frog runner.'),
+      .describe('Package-manager user agent used to select the Frog command.'),
     npm_execpath: z
       .string()
       .optional()
-      .describe('Package-manager executable path used to select the Frog runner.'),
+      .describe('Package-manager executable path used to select the Frog command.'),
   }),
   options: z.object({
     cwd: context.cwdOption,
@@ -132,11 +137,13 @@ export const init = Cli.create('init', {
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
-    const command = await packageManager.resolve({ env: c.env, root })
-    const guidelines = rules({ command })
+    const runner = await packageManager.resolve({ env: c.env, root })
+    const command = runner ?? 'frog'
+    const options = { command, install: !runner }
+    const guidelines = rules(options)
 
     const files = [
-      [`${Store.dir}/README.md`, readme({ command })],
+      [`${Store.dir}/README.md`, readme(options)],
       [Config.file, c.options.inbound !== false ? config : noInboundConfig],
       [`${IssueForm.dir}/${IssueForm.filename}`, form],
     ] as const

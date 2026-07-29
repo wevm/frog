@@ -40,14 +40,15 @@ test('behavior: scaffolds the directory', async () => {
 
     Add these rules near the top of \`AGENTS.md\`, under the appropriate section. Create the file if missing; otherwise amend it in place, preserve all existing content, and never replace the file.
 
-    - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`npx frog log\`.
+    - If \`frog\` is not installed, install the binary: \`curl -fsSL https://frog.fm/install | sh\`.
+    - Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with \`frog log\`.
     - Do not add global, system, or internal friction.
-    - Run \`npx frog list\` first to see what is already known.
+    - Run \`frog list\` first to see what is already known.
 
     Then:"
   `)
   expect(cta?.commands?.[0]).toEqual({
-    command: 'npx frog log',
+    command: 'frog log',
     description: 'Write the first entry',
   })
   const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
@@ -64,9 +65,11 @@ test('behavior: scaffolds the directory', async () => {
   expect(readme).toContain(
     'Create the file if missing; otherwise amend it in place, preserve all existing content, and never replace the file.',
   )
-  expect(readme).toContain('npx frog list')
-  expect(readme).toContain('npx frog log')
-  expect(readme).not.toMatch(/(?:^|`)frog (?:list|log)/m)
+  expect(readme).toContain(
+    'If `frog` is not installed, install the binary: `curl -fsSL https://frog.fm/install | sh`.',
+  )
+  expect(readme).toContain('frog list')
+  expect(readme).toContain('frog log')
   expect(await fs.readFile(path.join(cwd, 'AGENTS.md'), 'utf8')).toBe('custom\n')
 
   // The scaffolded config must validate against the schema it advertises.
@@ -89,34 +92,40 @@ test('behavior: scaffolds the directory', async () => {
 })
 
 test.each([
-  ['pnpx frog', 'npm/11.0.0 node/v24', 'pnpm@11.15.0'],
-  ['bunx frog', 'bun/1.2.0 npm/? node/v24', undefined],
-])('behavior: uses the %s runner in generated guidance', async (command, userAgent, manager) => {
-  const cwd = await helpers.repo()
-  if (manager)
-    await fs.writeFile(
-      path.join(cwd, 'package.json'),
-      JSON.stringify({ packageManager: manager }),
-      'utf8',
-    )
+  { manager: 'pnpm@11.15.0', runner: 'pnpx frog', userAgent: 'npm/11.0.0 node/v24' },
+  { manager: 'yarn@4.9.2', runner: 'yarn dlx frog', userAgent: 'npm/11.0.0 node/v24' },
+  { manager: undefined, runner: 'bunx frog', userAgent: 'bun/1.2.0 npm/? node/v24' },
+])(
+  'behavior: generated guidance preserves package-manager commands',
+  async ({ manager, runner, userAgent }) => {
+    const cwd = await helpers.repo()
+    if (manager)
+      await fs.writeFile(
+        path.join(cwd, 'package.json'),
+        JSON.stringify({ packageManager: manager }),
+        'utf8',
+      )
 
-  const { envelope } = await cli.run(['--format', 'json', 'init', '--cwd', cwd], {
-    npm_config_user_agent: userAgent,
-  })
-  const cta = envelope.meta?.['cta'] as
-    | {
-        commands?: { command?: string }[]
-        description?: string
-      }
-    | undefined
-  const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
+    const { envelope } = await cli.run(['--format', 'json', 'init', '--cwd', cwd], {
+      npm_config_user_agent: userAgent,
+    })
+    const cta = envelope.meta?.['cta'] as
+      | {
+          commands?: { command?: string }[]
+          description?: string
+        }
+      | undefined
+    const readme = await fs.readFile(path.join(cwd, path.dirname(Config.file), 'README.md'), 'utf8')
 
-  expect(cta?.commands?.[0]?.command).toBe(`${command} log`)
-  expect(cta?.description).toContain(`\`${command} log\``)
-  expect(cta?.description).toContain(`\`${command} list\``)
-  expect(readme).toContain(`${command} list`)
-  expect(readme).toContain(`${command} log`)
-})
+    expect(cta?.commands?.[0]?.command).toBe(`${runner} log`)
+    expect(cta?.description).toContain(`\`${runner} log\``)
+    expect(cta?.description).toContain(`\`${runner} list\``)
+    expect(cta?.description).not.toContain('install the binary')
+    expect(readme).toContain(`${runner} list`)
+    expect(readme).toContain(`${runner} log`)
+    expect(readme).not.toContain('install the binary')
+  },
+)
 
 test('behavior: the issue form scaffolds local entries', async () => {
   const cwd = await helpers.repo()

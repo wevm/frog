@@ -21,7 +21,7 @@ export const targets = Cli.create('targets', {
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
   }),
   examples: [{ description: 'Which dependencies accept reports' }],
-  hint: 'Report to one of these with `npx frog log --target <name>`.',
+  hint: 'Report to one of these with `frog log --target <name>`.',
   output: z.object({
     targets: z.array(
       z.object({

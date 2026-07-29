@@ -33,7 +33,7 @@ export const cli = Cli.create('frog', {
   .command(sync)
   .command(targets)
 
-/** Serves init with the project runner so Incur preserves absolute CTA commands. */
+/** Serves init with the project runner when one is detected. */
 export async function serve(
   argv: string[] = process.argv.slice(2),
   options: Cli.serve.Options = {},
@@ -42,6 +42,7 @@ export async function serve(
 
   const { root } = await context.resolve({ cwd: option(argv, '--cwd') })
   const runner = await packageManager.resolve({ env: options.env, root })
+  if (!runner) return cli.serve(argv, options)
   return Cli.create(runner).command(init).serve(argv, options)
 }
 
