@@ -6,6 +6,11 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/",
+      "destination": "https://github.com/wevm/frog",
+      "permanent": true
+    },
+    {
       "source": "/install",
       "destination": "https://github.com/wevm/frog/releases/latest/download/install.sh",
       "permanent": false

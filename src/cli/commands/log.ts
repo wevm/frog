@@ -93,7 +93,7 @@ export const log = Cli.create('log', {
       options: { severity: 'major', target: 'viem' },
     },
   ],
-  hint: 'Run `npx frog list` first: this friction may already be recorded.',
+  hint: 'Run `frog list` first: this friction may already be recorded.',
   output: z.object({
     artifacts: z
       .string()
