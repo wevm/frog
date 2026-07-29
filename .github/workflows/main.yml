@@ -55,7 +55,7 @@ jobs:
 
       - name: Release standalone binaries
         if: steps.changesets.outputs.published == 'true'
-        uses: wevm/incur/release@main
+        uses: wevm/incur/release@v1
 
   deploy:
     name: Deploy
