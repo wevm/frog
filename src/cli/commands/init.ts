@@ -6,20 +6,29 @@ import * as Entry from '../../Entry.js'
 import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 import * as context from '../internal/context.js'
+import * as packageManager from '../internal/packageManager.js'
+
+type TemplateOptions = {
+  command: string
+  install: boolean
+}
 
 const agentsInstruction =
   'Add these rules near the top of `AGENTS.md`, under the appropriate section. Create the file if missing; otherwise amend it in place, preserve all existing content, and never replace the file.'
 
-function rules(): string {
+function rules(options: TemplateOptions): string {
   return (
-    "- Run Frog commands as `frog ...`. If `frog` is unavailable, install the standalone executable, install the package globally, or use the project's package-manager executor.\n" +
-    '- Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with `frog log`.\n' +
+    (options.install
+      ? '- If `frog` is not installed, install the binary: `curl -fsSL https://frog.fm/install | sh`.\n'
+      : '') +
+    '- Log papercuts and friction (tooling, docs, APIs, tests, conventions) as you hit them with ' +
+    `\`${options.command} log\`.\n` +
     '- Do not add global, system, or internal friction.\n' +
-    '- Run `frog list` first to see what is already known.'
+    `- Run \`${options.command} list\` first to see what is already known.`
   )
 }
 
-function readme(): string {
+function readme(options: TemplateOptions): string {
   return `# Friction log
 
 Friction hit while working in this repository, one directory per item:
@@ -39,11 +48,11 @@ Do not maintain an index here. This directory is the index.
 ## Logging Friction
 
 \`\`\`sh
-frog list    # what is already known
-frog log     # add one
+${options.command} list    # what is already known
+${options.command} log     # add one
 \`\`\`
 
-\`frog log\` writes the sections to fill in. Each id is when the friction was hit plus its title, so
+\`${options.command} log\` writes the sections to fill in. Each id is when the friction was hit plus its title, so
 the directory reads oldest-first.
 
 Put anything that reproduces the friction in that entry's \`${Store.artifacts}/\` and reference it from the
@@ -53,7 +62,7 @@ write-up. The next reader runs the reproduction instead of rebuilding it.
 
 ${agentsInstruction}
 
-${rules()}
+${rules(options)}
 
 Managed by [Frog](https://github.com/wevm/frog).
 `
@@ -101,6 +110,16 @@ ${Entry.sections
 
 export const init = Cli.create('init', {
   description: 'Create the friction log, config, and issue form.',
+  env: z.object({
+    npm_config_user_agent: z
+      .string()
+      .optional()
+      .describe('Package-manager user agent used to select the Frog command.'),
+    npm_execpath: z
+      .string()
+      .optional()
+      .describe('Package-manager executable path used to select the Frog command.'),
+  }),
   options: z.object({
     cwd: context.cwdOption,
     inbound: z
@@ -118,10 +137,13 @@ export const init = Cli.create('init', {
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
-    const guidelines = rules()
+    const runner = await packageManager.resolve({ env: c.env, root })
+    const command = runner ?? 'frog'
+    const options = { command, install: !runner }
+    const guidelines = rules(options)
 
     const files = [
-      [`${Store.dir}/README.md`, readme()],
+      [`${Store.dir}/README.md`, readme(options)],
       [Config.file, c.options.inbound !== false ? config : noInboundConfig],
       [`${IssueForm.dir}/${IssueForm.filename}`, form],
     ] as const
@@ -146,7 +168,7 @@ export const init = Cli.create('init', {
       { created, existing },
       {
         cta: {
-          commands: [{ command: 'frog log', description: 'Write the first entry' }],
+          commands: [{ command: `${command} log`, description: 'Write the first entry' }],
           description:
             `Frog supports two automation methods:\n\n` +
             `- GitHub App for pull-request feedback, forks, and cross-repository reporting.\n` +
