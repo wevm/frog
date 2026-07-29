@@ -69,6 +69,29 @@ describe('parse', () => {
         "I checked there isn't [already an issue](https://github.com/wevm/viem/issues) for the bug I encountered.",
       ]
     `)
+    expect(checkbox?.requiredOptions).toEqual(checkbox?.options)
+  })
+
+  test('behavior: preserves each individually required checkbox option', () => {
+    const [checkbox] =
+      IssueForm.parse(
+        [
+          'name: Bug',
+          'body:',
+          '  - type: checkboxes',
+          '    attributes:',
+          '      label: Agreements',
+          '      options:',
+          '        - label: Optional',
+          '        - label: Required One',
+          '          required: true',
+          '        - label: Required Two',
+          '          required: true',
+        ].join('\n'),
+      )?.fields ?? []
+
+    expect(checkbox?.options).toEqual(['Optional', 'Required One', 'Required Two'])
+    expect(checkbox?.requiredOptions).toEqual(['Required One', 'Required Two'])
   })
 
   test('behavior: reads the labels a project applies', () => {

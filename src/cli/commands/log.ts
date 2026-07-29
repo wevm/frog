@@ -140,14 +140,20 @@ export const log = Cli.create('log', {
 
     const body = c.options.body ?? (input?.body || undefined)
 
-    // Always load this repository's form from disk so a supplied body cannot bypass it.
-    const own = !c.options.target ? await attempt(form.own(root)) : undefined
+    // An explicit target can still resolve to this repository, directly or through a package.
+    const targetRepo = c.options.target ? await target.repository(c.options.target, root) : repo
+    const ownTarget = !c.options.target || (repo !== undefined && targetRepo === repo)
+
+    // Always load this repository's configured form from disk so a supplied body cannot bypass it.
+    const own = ownTarget
+      ? await attempt(form.own(root, { named: config.inbound.template }))
+      : undefined
 
     // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
     // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
     // an unreachable target costs the scaffold, not the entry.
     const upstream =
-      !body && c.options.target
+      body === undefined && c.options.target && !ownTarget
         ? await attempt(
             form.scaffold(c.options.target, {
               outbound: config.outbound,
@@ -162,8 +168,11 @@ export const log = Cli.create('log', {
       (upstream?.ok ? upstream.value : undefined) ??
       (own?.ok && own.value ? IssueForm.scaffold(own.value) : undefined)
 
-    const validation = body && own?.ok && own.value ? form.validate(own.value, body) : undefined
-    if (validation && (validation.missing.length > 0 || validation.unanswered.length > 0)) {
+    const ownForm = own?.ok ? own.value : undefined
+    const validateBody = (value: string) => {
+      if (!ownForm) return undefined
+      const validation = form.validate(ownForm, value)
+      if (validation.missing.length === 0 && validation.unanswered.length === 0) return undefined
       const details = [
         validation.missing.length > 0
           ? `Missing or out-of-order headings: ${validation.missing
@@ -176,7 +185,7 @@ export const log = Cli.create('log', {
               .join(', ')}.`
           : undefined,
       ].filter(Boolean)
-      return c.error({
+      return {
         code: 'BODY_DOES_NOT_MATCH_FORM',
         message: `Body does not match this repository's issue form. ${details.join(' ')}`,
         cta: {
@@ -188,8 +197,11 @@ export const log = Cli.create('log', {
           ],
           description: 'Try:',
         },
-      })
+      }
     }
+
+    const initialBodyError = body !== undefined ? validateBody(body) : undefined
+    if (initialBodyError) return c.error(initialBodyError)
 
     // A scaffold satisfies the guard: it asks for the same detail, one question at a time. Without a
     // terminal it is the only way to reach a template.
@@ -249,6 +261,8 @@ export const log = Cli.create('log', {
           .then(() => Store.get(id, { root })),
       )
       if (!edited.ok) return c.error({ code: edited.code, message: edited.message })
+      const editedBodyError = validateBody(edited.value.body)
+      if (editedBodyError) return c.error(editedBodyError)
     }
 
     if (!c.options.publish)
@@ -265,8 +279,13 @@ export const log = Cli.create('log', {
         },
       )
 
-    // The entry is already on disk. Every failure past this point reports why it stayed pending
-    // rather than failing the command.
+    const entry = await attempt(Store.get(id, { root }))
+    if (!entry.ok) return c.error({ code: entry.code, message: entry.message })
+    const publishBodyError = validateBody(entry.value.body)
+    if (publishBodyError) return c.error(publishBodyError)
+
+    // The entry is already on disk. Every publishing failure past this point reports why it stayed
+    // pending rather than failing the command.
     const filed = await attempt(
       (async () => {
         const ready = await publisher.prepare({
@@ -277,9 +296,8 @@ export const log = Cli.create('log', {
         })
         if ('code' in ready) return ready
 
-        const entry = await Store.get(id, { root })
         const resolution = await Target.resolve(
-          entry.target,
+          entry.value.target,
           target.resolvers({
             outbound: config.outbound,
             client: ready.client,
@@ -293,7 +311,7 @@ export const log = Cli.create('log', {
         const outcome = await publisher.file({
           ...ready,
           config,
-          entries: [entry],
+          entries: [entry.value],
           origin: ready.repo,
           repo: resolution.target.repo,
           root,

@@ -10,8 +10,53 @@ import * as Store from '../../Store.js'
 
 const title = '`pnpm test -- <files>` ignores file filters'
 const body = '## Description\n\nThe filter was swallowed.'
+const ownForm = [
+  'name: Friction',
+  'body:',
+  '  - type: textarea',
+  '    attributes:',
+  '      label: Expected Behavior',
+  '  - type: textarea',
+  '    attributes:',
+  '      label: Current Behavior',
+  '    validations:',
+  '      required: true',
+  '  - type: textarea',
+  '    attributes:',
+  '      label: Possible Solution',
+].join('\n')
+const ownBody = [
+  '### Expected Behavior',
+  '',
+  '### Current Behavior',
+  '',
+  'The filter was swallowed.',
+  '',
+  '### Possible Solution',
+].join('\n')
 
 type Logged = { file: string; id: string; title: string }
+
+async function writeOwnForm(cwd: string, contents = ownForm, filename = 'friction.yml') {
+  await helpers.writeFile(`.github/ISSUE_TEMPLATE/${filename}`, contents, cwd)
+}
+
+async function editor(body: string) {
+  const file = path.join(await helpers.tmpdir(), 'editor.mjs')
+  await writeFile(
+    file,
+    [
+      "import fs from 'node:fs'",
+      'const file = process.argv[2]',
+      "const contents = fs.readFileSync(file, 'utf8')",
+      'const frontmatter = /^---[^]*?\\n---\\n/.exec(contents)?.[0]',
+      "if (!frontmatter) throw new Error('frontmatter missing')",
+      `fs.writeFileSync(file, frontmatter + '\\n' + ${JSON.stringify(body)} + '\\n')`,
+    ].join('\n'),
+    'utf8',
+  )
+  return `node ${file}`
+}
 
 test('behavior: writes an entry', async () => {
   const cwd = await helpers.repo()
@@ -82,25 +127,7 @@ test('behavior: scaffolds from this repository own issue form', async () => {
 
 test('error: a supplied body must preserve this repository own issue form', async () => {
   const cwd = await helpers.repo()
-  await helpers.writeFile(
-    '.github/ISSUE_TEMPLATE/friction.yml',
-    [
-      'name: Friction',
-      'body:',
-      '  - type: textarea',
-      '    attributes:',
-      '      label: Expected Behavior',
-      '  - type: textarea',
-      '    attributes:',
-      '      label: Current Behavior',
-      '    validations:',
-      '      required: true',
-      '  - type: textarea',
-      '    attributes:',
-      '      label: Possible Solution',
-    ].join('\n'),
-    cwd,
-  )
+  await writeOwnForm(cwd)
 
   const result = await cli.error(['log', title, '--body', body, '--cwd', cwd])
 
@@ -115,38 +142,107 @@ test('error: a supplied body must preserve this repository own issue form', asyn
 
 test('behavior: a supplied body may leave optional form sections empty', async () => {
   const cwd = await helpers.repo()
+  await writeOwnForm(cwd)
+
+  const { id } = await cli.data<Logged>(['log', title, '--body', ownBody, '--cwd', cwd])
+
+  expect((await Store.get(id, { root: cwd })).body).toBe(ownBody)
+})
+
+test('error: an explicitly empty body must preserve this repository own issue form', async () => {
+  const cwd = await helpers.repo()
+  await writeOwnForm(cwd)
+
+  const result = await cli.error(['log', title, '--body', '', '--cwd', cwd])
+
+  expect(result.code).toBe('BODY_DOES_NOT_MATCH_FORM')
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
+test('error: an explicit self target must preserve this repository own issue form', async () => {
+  const cwd = await helpers.repo({ remote: 'git@github.com:acme/app.git' })
+  await writeOwnForm(cwd)
+
+  const result = await cli.error([
+    'log',
+    title,
+    '--body',
+    body,
+    '--target',
+    'acme/app',
+    '--cwd',
+    cwd,
+  ])
+
+  expect(result.code).toBe('BODY_DOES_NOT_MATCH_FORM')
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
+test('error: a package target resolving to self must preserve this repository own issue form', async () => {
+  const cwd = await helpers.repo({ remote: 'git@github.com:acme/app.git' })
+  await writeOwnForm(cwd)
   await helpers.writeFile(
-    '.github/ISSUE_TEMPLATE/friction.yml',
+    'node_modules/self-package/package.json',
+    JSON.stringify({ repository: 'https://github.com/acme/app.git' }),
+    cwd,
+  )
+
+  const result = await cli.error([
+    'log',
+    title,
+    '--body',
+    body,
+    '--target',
+    'self-package',
+    '--cwd',
+    cwd,
+  ])
+
+  expect(result.code).toBe('BODY_DOES_NOT_MATCH_FORM')
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
+test('behavior: this repository configured issue form wins', async () => {
+  const cwd = await helpers.repo()
+  await writeOwnForm(
+    cwd,
+    'name: Default\nbody:\n  - type: textarea\n    attributes:\n      label: Default Field\n',
+  )
+  await writeOwnForm(
+    cwd,
     [
-      'name: Friction',
+      'name: Configured',
       'body:',
       '  - type: textarea',
       '    attributes:',
-      '      label: Expected Behavior',
-      '  - type: textarea',
-      '    attributes:',
-      '      label: Current Behavior',
+      '      label: Configured Field',
       '    validations:',
       '      required: true',
-      '  - type: textarea',
-      '    attributes:',
-      '      label: Possible Solution',
     ].join('\n'),
+    'configured.yml',
+  )
+  await helpers.writeFile(
+    Config.file,
+    JSON.stringify({ inbound: { template: 'configured.yml' } }),
     cwd,
   )
-  const formBody = [
-    '### Expected Behavior',
-    '',
-    '### Current Behavior',
-    '',
-    'The filter was swallowed.',
-    '',
-    '### Possible Solution',
-  ].join('\n')
+  const configuredBody = '### Configured Field\n\nThe configured answer.'
 
-  const { id } = await cli.data<Logged>(['log', title, '--body', formBody, '--cwd', cwd])
+  const { id } = await cli.data<Logged>(['log', title, '--body', configuredBody, '--cwd', cwd])
 
-  expect((await Store.get(id, { root: cwd })).body).toBe(formBody)
+  expect((await Store.get(id, { root: cwd })).body).toBe(configuredBody)
+})
+
+test('error: a body broken in the editor must preserve this repository own issue form', async () => {
+  const cwd = await helpers.repo()
+  await writeOwnForm(cwd)
+
+  const result = await cli.error(['log', title, '--open', '--cwd', cwd], {
+    VISUAL: await editor(body),
+  })
+
+  expect(result.code).toBe('BODY_DOES_NOT_MATCH_FORM')
+  expect((await Store.read({ root: cwd }))[0]?.body).toBe(body)
 })
 
 test('error: a supplied body must answer required form fields', async () => {
@@ -384,6 +480,20 @@ describe('--publish', () => {
     expect(result.issue).toBe(`${repo}#1`)
     expect((await Store.get(result.id, { root: cwd })).issue).toBe(`${repo}#1`)
     expect(instance.issues.get(repo)?.[0]?.title).toBe(title)
+  })
+
+  test('error: does not file an unanswered issue-form scaffold', async () => {
+    const cwd = await helpers.repo({ remote })
+    await writeOwnForm(cwd)
+    const instance = await github()
+
+    const result = await cli.error(['log', title, '--publish', '--cwd', cwd], {
+      GITHUB_API_URL: instance.url,
+      GITHUB_TOKEN: 'test-token',
+    })
+
+    expect(result.code).toBe('BODY_DOES_NOT_MATCH_FORM')
+    expect(instance.issues.get(repo)).toBeUndefined()
   })
 
   // Filing is opt-in even when GitHub is reachable: the entry belongs in the same commit as the work,

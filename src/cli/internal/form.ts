@@ -71,7 +71,10 @@ export declare namespace scaffold {
  * @param root - Repository root.
  * @returns The form, or `undefined` when this repository publishes no form.
  */
-export async function own(root: string): Promise<IssueForm.Form | undefined> {
+export async function own(
+  root: string,
+  options: own.Options = {},
+): Promise<IssueForm.Form | undefined> {
   return IssueForm.find({
     list: (at) =>
       fs
@@ -79,7 +82,15 @@ export async function own(root: string): Promise<IssueForm.Form | undefined> {
         .then((names) => names.map((name) => `${at}/${name}`))
         .catch(() => []),
     read: (at) => fs.readFile(path.join(root, at), 'utf8').catch(() => undefined),
+    ...(options.named ? { named: options.named } : {}),
   })
+}
+
+export declare namespace own {
+  type Options = {
+    /** Form named by this repository's inbound configuration. */
+    named?: string | undefined
+  }
 }
 
 /**
@@ -93,13 +104,7 @@ export async function own(root: string): Promise<IssueForm.Form | undefined> {
  * @returns Missing or out-of-order headings and required fields without answers.
  */
 export function validate(issueForm: IssueForm.Form, body: string): validate.Result {
-  const headings = [...body.matchAll(/^(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/gm)].map(
-    (match) => ({
-      end: (match.index ?? 0) + match[0].length,
-      label: match[2]?.trim() ?? '',
-      start: match.index ?? 0,
-    }),
-  )
+  const headings = parseHeadings(body)
 
   const missing: string[] = []
   const matched: { field: IssueForm.Field; heading: (typeof headings)[number] }[] = []
@@ -126,12 +131,59 @@ export function validate(issueForm: IssueForm.Form, body: string): validate.Resu
         .slice(current.heading.end, next?.heading.start)
         .replace(/<!--[^]*?-->/g, '')
         .trim()
-      if (field.kind === 'checkboxes') return !/(?:^|\n)\s*-\s*\[[xX]\]/.test(answer)
+      if (field.kind === 'checkboxes') {
+        const checked = new Set(
+          [...answer.matchAll(/^\s*-\s*\[[xX]\]\s+(.+?)\s*$/gm)].map(
+            (match) => match[1]?.trim() ?? '',
+          ),
+        )
+        if (field.requiredOptions?.some((option) => !checked.has(option))) return true
+        return field.required && checked.size === 0
+      }
       return answer.length === 0
     })
     .map(({ field }) => field.label)
 
   return { missing, unanswered }
+}
+
+/** ATX headings outside fenced code blocks, with body offsets for section slicing. */
+function parseHeadings(body: string) {
+  const headings: { end: number; label: string; start: number }[] = []
+  let fence: { marker: '`' | '~'; size: number } | undefined
+  let offset = 0
+
+  for (const terminated of body.match(/[^\n]*(?:\n|$)/g) ?? []) {
+    if (!terminated) continue
+    const line = terminated.replace(/\r?\n$/, '')
+
+    if (fence) {
+      const currentFence = fence
+      const closing = /^ {0,3}(`+|~+)[ \t]*$/.exec(line)?.[1]
+      if (closing?.startsWith(currentFence.marker) && closing.length >= currentFence.size)
+        fence = undefined
+      offset += terminated.length
+      continue
+    }
+
+    const opening = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1]
+    if (opening) {
+      fence = { marker: opening[0] as '`' | '~', size: opening.length }
+      offset += terminated.length
+      continue
+    }
+
+    const heading = /^ {0,3}(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/.exec(line)
+    if (heading)
+      headings.push({
+        end: offset + line.length,
+        label: heading[2]?.trim() ?? '',
+        start: offset,
+      })
+    offset += terminated.length
+  }
+
+  return headings
 }
 
 export declare namespace validate {
