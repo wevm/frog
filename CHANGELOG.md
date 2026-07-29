@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.12
+
+### Patch Changes
+
+- d10576b: Updated package.
+
 ## 1.0.11
 
 ### Patch Changes
