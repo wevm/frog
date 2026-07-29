@@ -45,18 +45,60 @@ test('behavior: files a pending entry and writes the link back', async () => {
   })
 })
 
-test('behavior: skips entries already linked', async () => {
+test('behavior: updates an already-linked entry in place', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github()
+  await Store.write({ body, severity: 'minor', title: 'Already filed' }, { id: 'a', root: cwd })
+
+  await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
   await Store.write(
-    { body, issue: `${repo}#7`, severity: 'minor', title: 'Already filed' },
+    {
+      body: 'Updated details.',
+      issue: `${repo}#1`,
+      severity: 'major',
+      title: 'Updated title',
+    },
     { id: 'a', root: cwd },
   )
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-  expect(result).toMatchObject({ commented: [], created: [], deferred: [] })
-  expect(instance.issues.get(repo)).toBeUndefined()
+  expect(result).toMatchObject({
+    commented: [],
+    committed: false,
+    created: [{ id: 'a', issue: `${repo}#1`, title: 'Updated title' }],
+    deferred: [],
+  })
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect(instance.issues.get(repo)?.[0]?.title).toBe('Updated title')
+  expect(Github.parseBody(instance.issues.get(repo)?.[0]?.body)).toBe('Updated details.')
+  expect(Github.parseMarker(instance.issues.get(repo)?.[0]?.body)?.severity).toBe('major')
+  expect(instance.comments(repo, 1)).toEqual([])
+})
+
+test('behavior: defers an invalid linked issue without mutating it', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github({ [repo]: [{ title: 'Unrelated issue' }] })
+  await Store.write(
+    { body, issue: `${repo}#1`, severity: 'minor', title: 'Already filed' },
+    { id: 'a', root: cwd },
+  )
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+  expect(result).toMatchObject({
+    commented: [],
+    created: [],
+    deferred: [
+      {
+        code: 'LINK_INVALID',
+        id: 'a',
+        reason: 'The linked issue `wevm/demo#1` is missing or does not carry this Frog report.',
+      },
+    ],
+  })
+  expect(instance.issues.get(repo)?.[0]?.title).toBe('Unrelated issue')
+  expect(instance.comments(repo, 1)).toEqual([])
 })
 
 test('behavior: comments rather than duplicating when an issue already covers it', async () => {
@@ -128,6 +170,47 @@ test('behavior: two entries with the same title in one run collapse onto one iss
     { id: 'b', issue: `${repo}#1`, title: '  FILTERS   ignored!  ' },
   ])
   expect(instance.issues.get(repo)).toHaveLength(1)
+})
+
+test('behavior: stable identity wins over a same-title issue filed earlier in the run', async () => {
+  const cwd = await helpers.repo({ remote })
+  const previous = {
+    body: 'Old body.',
+    id: 'b',
+    severity: 'minor',
+    title: 'Old title',
+  } as const
+  const instance = await github({
+    [repo]: [
+      {
+        body: Github.renderBody({
+          body: previous.body,
+          marker: {
+            hash: Github.hash(previous.title),
+            origin: repo,
+            path: Store.toPath(previous.id),
+            severity: previous.severity,
+          },
+          report: Github.report({ entry: previous, origin: repo }),
+        }),
+        title: previous.title,
+      },
+    ],
+  })
+  for (const id of ['a', 'b'])
+    await Store.write({ body, severity: 'minor', title: 'Shared title' }, { id, root: cwd })
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+  expect(result.created).toEqual([
+    { id: 'a', issue: `${repo}#2`, title: 'Shared title' },
+    { id: 'b', issue: `${repo}#1`, title: 'Shared title' },
+  ])
+  expect(result.commented).toEqual([])
+  expect((await Store.get('a', { root: cwd })).issue).toBe(`${repo}#2`)
+  expect((await Store.get('b', { root: cwd })).issue).toBe(`${repo}#1`)
+  expect(instance.comments(repo, 1)).toEqual([])
+  expect(instance.comments(repo, 2)).toEqual([])
 })
 
 test('behavior: a same-destination failure preserves earlier links and defers the tail', async () => {
@@ -255,6 +338,20 @@ test('behavior: a replayed issue does not consume the next run ceiling', async (
     { id: 'b', issue: '(new)', title: 'Friction b' },
   ])
 
+  await Store.write(
+    { body: 'Edited.', severity: 'minor', title: 'Friction a' },
+    { id: 'a', root: cwd },
+  )
+  const edited = await cli.data<Outcome>(
+    ['publish', '--cwd', cwd, '--max', '1', '--dry-run'],
+    env(instance.url),
+  )
+  expect(edited.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Friction a' }])
+  expect(edited.deferred).toEqual([
+    { code: 'OVER_CEILING', id: 'b', reason: 'over the ceiling of 1 per run' },
+  ])
+
+  await Store.write({ body, severity: 'minor', title: 'Friction a' }, { id: 'a', root: cwd })
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--max', '1'], env(instance.url))
 
   expect(result.created).toEqual([
@@ -263,6 +360,40 @@ test('behavior: a replayed issue does not consume the next run ceiling', async (
   ])
   expect(instance.issues.get(repo)).toHaveLength(2)
   expect(instance.comments(repo, 1)).toEqual([])
+})
+
+test('behavior: --dry-run classifies an edited v1 issue by its actual location', async () => {
+  const cwd = await helpers.repo({ remote })
+  const report = `${repo}:a`
+  const path = Store.toPath('a')
+  const instance = await github({
+    [repo]: [
+      {
+        body: Github.renderBody({
+          body: 'Old body.',
+          marker: {
+            hash: Github.hash('Old title'),
+            origin: repo,
+            path,
+            severity: 'minor',
+          },
+          occurrence: `${report}:Old body.`,
+        }),
+        title: 'Old title',
+      },
+    ],
+  })
+  await Store.write(
+    { body: 'Edited body.', severity: 'minor', title: 'Renamed friction' },
+    { id: 'a', root: cwd },
+  )
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd, '--dry-run'], env(instance.url))
+
+  expect(result.created).toEqual([{ id: 'a', issue: `${repo}#1`, title: 'Renamed friction' }])
+  expect(result.commented).toEqual([])
+  expect(instance.issues.get(repo)?.[0]?.title).toBe('Old title')
+  expect((await Store.get('a', { root: cwd })).issue).toBeUndefined()
 })
 
 test('behavior: commits the links by default', async () => {

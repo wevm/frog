@@ -65,21 +65,84 @@ describe('hash', () => {
   })
 })
 
-describe('occurrence', () => {
-  // Pinned deliberately. The App and CLI hash this exact value, so changing its bytes would make a
-  // repository running both modes report the same entry twice.
+describe('report', () => {
+  // Pinned deliberately. The App and CLI share this identity across automation modes.
   test('behavior: is stable', () => {
+    const value = Github.report({
+      entry: {
+        body: 'Body:\n\nunchanged.',
+        id: 'entry-a',
+        severity: 'minor',
+        title: 'A friction',
+      },
+      origin: 'acme/app',
+    })
+
+    expect(value).toBe('acme/app:entry-a')
     expect(
-      Github.occurrence({
+      Github.report({
+        entry: {
+          body: 'Edited.',
+          id: 'entry-a',
+          severity: 'major',
+          title: 'Renamed friction',
+        },
+        origin: 'acme/app',
+      }),
+    ).toBe(value)
+    expect(
+      Github.report({
         entry: {
           body: 'Body:\n\nunchanged.',
-          id: 'entry-a',
+          id: 'entry-b',
           severity: 'minor',
           title: 'A friction',
         },
         origin: 'acme/app',
       }),
-    ).toBe('acme/app:entry-a:Body:\n\nunchanged.')
+    ).not.toBe(value)
+  })
+})
+
+describe('occurrence', () => {
+  test('behavior: preserves the v1 compatibility key', () => {
+    const value = {
+      body: 'Body.',
+      id: 'entry-a',
+      severity: 'minor',
+      title: 'A friction',
+    } as const
+    const occurrence = Github.occurrence({ entry: value, origin: 'acme/app' })
+
+    expect(occurrence).toBe('acme/app:entry-a:Body.')
+    expect(Github.occurrence({ entry: { ...value, title: 'Renamed' }, origin: 'acme/app' })).toBe(
+      occurrence,
+    )
+    expect(Github.occurrence({ entry: { ...value, severity: 'major' }, origin: 'acme/app' })).toBe(
+      occurrence,
+    )
+  })
+})
+
+describe('revision', () => {
+  test('behavior: changes with report content', () => {
+    const value = {
+      body: 'Body.',
+      id: 'entry-a',
+      severity: 'minor',
+      title: 'A friction',
+    } as const
+    const revision = Github.revision({ entry: value, origin: 'acme/app' })
+
+    expect(Github.revision({ entry: { ...value, body: 'Edited.' }, origin: 'acme/app' })).not.toBe(
+      revision,
+    )
+    expect(Github.revision({ entry: { ...value, title: 'Renamed' }, origin: 'acme/app' })).not.toBe(
+      revision,
+    )
+    expect(
+      Github.revision({ entry: { ...value, severity: 'major' }, origin: 'acme/app' }),
+    ).not.toBe(revision)
   })
 })
 
@@ -566,8 +629,8 @@ describe('index', () => {
 })
 
 describe('matcher', () => {
-  test('behavior: matches an occurrence before a changed title', async () => {
-    const occurrence = 'delivery-1:entry-a'
+  test('behavior: matches a report before a changed title', async () => {
+    const report = 'acme/app:entry-a'
     const instance = await github(
       {
         [repo]: [
@@ -575,7 +638,7 @@ describe('matcher', () => {
             body: Github.renderBody({
               body: 'Legitimate friction.',
               marker: { hash: Github.hash(title) },
-              occurrence,
+              report,
             }),
             title,
           },
@@ -590,11 +653,86 @@ describe('matcher', () => {
       repo,
     })
 
-    expect(await matcher.match('Renamed friction', { occurrence })).toMatchObject({ number: 1 })
+    expect(await matcher.match('Renamed friction', { report })).toMatchObject({ number: 1 })
   })
 
-  test('behavior: paginates and caches occurrences carried by comments', async () => {
-    const occurrence = 'delivery-2:entry-a'
+  test('behavior: retains earlier title changes while reindexing later reports', async () => {
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            body: Github.renderBody({
+              body: 'First body.',
+              marker: { hash: Github.hash('First old title') },
+              report: 'acme/app:entry-a',
+            }),
+            title: 'First old title',
+          },
+          {
+            body: Github.renderBody({
+              body: 'Second body.',
+              marker: { hash: Github.hash('Second old title') },
+              report: 'acme/app:entry-b',
+            }),
+            title: 'Second old title',
+          },
+        ],
+      },
+      { pushAccess: [] },
+    )
+    const matcher = await Github.matcher(client(instance.url), { label: 'friction', repo })
+
+    await expect(
+      matcher.match('First new title', { report: 'acme/app:entry-a' }),
+    ).resolves.toMatchObject({ number: 1 })
+    await expect(
+      matcher.match('Second new title', { report: 'acme/app:entry-b' }),
+    ).resolves.toMatchObject({ number: 2 })
+    await expect(
+      matcher.match('First old title', { report: 'acme/app:entry-c' }),
+    ).resolves.toBeUndefined()
+    await expect(matcher.match('First new title')).resolves.toMatchObject({ number: 1 })
+  })
+
+  test('behavior: matches a legacy mirror after its title and body change', async () => {
+    const report = 'acme/app:entry-a'
+    const path = '.agents/friction-log/entry-a/friction.md'
+    const instance = await github(
+      {
+        [repo]: [
+          {
+            body: Github.renderBody({
+              body: 'Old body.',
+              marker: { hash: Github.hash(title), origin: 'acme/app', path },
+              occurrence: `${report}:Old body.`,
+            }),
+            title,
+          },
+        ],
+      },
+      { author: 'frog-fm[bot]', pushAccess: [] },
+    )
+
+    const matcher = await Github.matcher(client(instance.url), {
+      expectedAuthor: 'frog-fm[bot]',
+      label: 'friction',
+      repo,
+    })
+
+    expect(
+      await matcher.match('Renamed friction', {
+        marker: { hash: Github.hash('Renamed friction'), origin: 'acme/app', path },
+        occurrence: `${report}:Edited body.`,
+        report,
+      }),
+    ).toMatchObject({ number: 1 })
+    expect(
+      instance.requests.filter((request) => request.path === `/repos/${repo}/issues/comments`),
+    ).toEqual([])
+  })
+
+  test('behavior: paginates and caches reports carried by comments', async () => {
+    const report = 'acme/app:entry-a'
     const instance = await github(
       {
         [repo]: [
@@ -617,7 +755,7 @@ describe('matcher', () => {
       Github.renderBody({
         body: 'Legitimate friction changed.',
         marker: { hash: Github.hash(title) },
-        occurrence,
+        report,
       }),
       'frog-fm[bot]',
     )
@@ -630,8 +768,8 @@ describe('matcher', () => {
       repo,
     })
 
-    expect(await matcher.match('Renamed friction', { occurrence })).toMatchObject({ number: 1 })
-    await matcher.match('Another friction', { occurrence: 'missing' })
+    expect(await matcher.match('Renamed friction', { report })).toMatchObject({ number: 1 })
+    await matcher.match('Another friction', { report: 'missing' })
     expect(
       instance.requests.filter((request) => request.path === `/repos/${repo}/issues/comments`),
     ).toHaveLength(2)
@@ -830,8 +968,8 @@ describe('publish', () => {
     const result = await Github.publish(octokit, {
       entry,
       labels: ['friction'],
-      marker: { hash: Github.hash(title) },
-      provenance: { author: 'Test User', pr: 'acme/app#42' },
+      marker: { hash: Github.hash(title), origin: 'acme/app' },
+      provenance: { author: '@jxom', pr: 'acme/app#42' },
       repo,
       ...(existing ? { existing } : {}),
     })
@@ -840,11 +978,16 @@ describe('publish', () => {
     expect(instance.issues.get(repo)).toHaveLength(1)
     expect(instance.comments(repo, 1)).toMatchInlineSnapshot(`
       [
-        "Hit again by Test User via acme/app#42.
+        "Hit again by [**@jxom**](https://github.com/jxom) in acme/app via [#42](https://github.com/acme/app/pull/42).
+
+      <details>
+      <summary>Details</summary>
 
       ## Description
 
       The filter was swallowed.
+
+      </details>
       ",
       ]
     `)
@@ -941,33 +1084,200 @@ describe('publish', () => {
     expect(instance.issues.get(repo)).toHaveLength(1)
   })
 
-  test('behavior: replay after issue creation does not add a hit-again comment', async () => {
+  test('behavior: an edited report updates its issue in place', async () => {
     const instance = await github({}, { pushAccess: [] })
     const octokit = client(instance.url)
-    const occurrence = 'delivery-1:entry-a'
+    const report = 'report-a'
 
     const first = await Github.publish(octokit, {
       entry,
       labels: ['friction'],
       marker: { hash: Github.hash(title) },
-      occurrence,
+      occurrence: 'occurrence-a',
+      provenance: { author: '@original', pr: 'acme/app#1' },
       repo,
+      report,
+      revision: 'revision-1',
     })
     const matcher = await Github.matcher(octokit, { label: 'friction', repo })
-    const existing = await matcher.match(title)
-    const replayed = await Github.publish(octokit, {
-      entry,
+    const changed = { body: 'Updated details.', title: 'Updated title' }
+    const existing = await matcher.match(changed.title, { report })
+    const updated = await Github.publish(octokit, {
+      entry: changed,
       labels: ['friction'],
-      marker: { hash: Github.hash(title) },
-      occurrence,
+      marker: { hash: Github.hash(changed.title) },
+      occurrence: 'occurrence-a',
+      provenance: { author: '@editor', pr: 'acme/app#2' },
       repo,
+      report,
+      revision: 'revision-2',
       ...(existing ? { existing } : {}),
+    })
+    const current = await Github.get(octokit, { issue: 1, repo })
+    if (!current) throw new Error('Expected updated issue.')
+    const replayed = await Github.publish(octokit, {
+      entry: changed,
+      existing: current,
+      labels: ['friction'],
+      marker: { hash: Github.hash(changed.title) },
+      occurrence: 'occurrence-a',
+      provenance: { author: '@editor', pr: 'acme/app#2' },
+      repo,
+      report,
+      revision: 'revision-2',
     })
 
     expect(first).toEqual({ issue: 1, mutated: true, status: 'created' })
+    expect(updated).toEqual({ issue: 1, mutated: true, status: 'created' })
     expect(replayed).toEqual({ issue: 1, mutated: false, status: 'created' })
     expect(instance.issues.get(repo)).toHaveLength(1)
+    expect(instance.issues.get(repo)?.[0]?.title).toBe(changed.title)
+    expect(Github.parseBody(instance.issues.get(repo)?.[0]?.body)).toBe(changed.body)
+    expect(instance.issues.get(repo)?.[0]?.body).toContain('Logged by @original via acme/app#1')
+    expect(instance.issues.get(repo)?.[0]?.body).not.toContain('@editor')
     expect(instance.comments(repo, 1)).toEqual([])
+  })
+
+  test('behavior: migrates a v1 issue without adding a recurrence', async () => {
+    const occurrence = 'acme/app:entry-a:Body.'
+    const report = 'acme/app:entry-a'
+    const marker = { hash: Github.hash(title), origin: 'acme/app', path: 'entry-a/friction.md' }
+    const legacyBody = `${Github.renderBody({ body: 'Body.', marker, occurrence }).trimEnd()}\n\nMaintainer note.\n`
+    const instance = await github({
+      [repo]: [{ body: legacyBody, title }],
+    })
+    const octokit = client(instance.url)
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(title, { occurrence, report })
+    if (!existing) throw new Error('Expected v1 issue.')
+
+    const migrated = await Github.publish(octokit, {
+      entry: { body: 'Body.', title },
+      existing,
+      labels: ['friction'],
+      marker,
+      occurrence,
+      repo,
+      report,
+      revision: 'revision-a',
+    })
+
+    expect(migrated).toEqual({ issue: 1, mutated: true, status: 'created' })
+    expect(instance.comments(repo, 1)).toEqual([])
+    expect(instance.issues.get(repo)?.[0]?.body).toContain('Maintainer note.')
+
+    const current = await Github.get(octokit, { issue: 1, repo })
+    if (!current) throw new Error('Expected migrated issue.')
+    await expect(
+      Github.publish(octokit, {
+        entry: { body: 'Body.', title },
+        existing: current,
+        labels: ['friction'],
+        marker,
+        occurrence,
+        repo,
+        report,
+        revision: 'revision-a',
+      }),
+    ).resolves.toEqual({ issue: 1, mutated: false, status: 'created' })
+
+    const edited = await Github.get(octokit, { issue: 1, repo })
+    if (!edited) throw new Error('Expected migrated issue.')
+    await expect(
+      Github.publish(octokit, {
+        entry: { body: 'Edited body.', title },
+        existing: edited,
+        labels: ['friction'],
+        marker,
+        occurrence: `${report}:Edited body.`,
+        repo,
+        report,
+        revision: 'revision-b',
+      }),
+    ).resolves.toEqual({ issue: 1, mutated: true, status: 'created' })
+
+    const body = instance.issues.get(repo)?.[0]?.body ?? ''
+    expect(Github.parseBody(body)).toBe('Edited body.')
+    expect(body).toContain('Maintainer note.')
+    expect(body.match(/<!-- frog:report:v1 /g)).toHaveLength(1)
+    expect(body.match(/<!-- frog:revision:v1 /g)).toHaveLength(1)
+    expect(instance.comments(repo, 1)).toEqual([])
+  })
+
+  test('behavior: a v1 migration updates the exact issue title', async () => {
+    const before = 'BUILD-cache misses!'
+    const after = 'Build cache misses'
+    const occurrence = 'acme/app:entry-a:Body.'
+    const report = 'acme/app:entry-a'
+    const marker = {
+      hash: Github.hash(after),
+      origin: 'acme/app',
+      path: 'entry-a/friction.md',
+    }
+    const instance = await github({
+      [repo]: [
+        {
+          body: Github.renderBody({ body: 'Body.', marker, occurrence }),
+          title: before,
+        },
+      ],
+    })
+    const octokit = client(instance.url)
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(after, { occurrence, report })
+    if (!existing) throw new Error('Expected v1 issue.')
+
+    await Github.publish(octokit, {
+      entry: { body: 'Body.', title: after },
+      existing,
+      labels: ['friction'],
+      marker,
+      occurrence,
+      repo,
+      report,
+      revision: 'revision-a',
+    })
+
+    expect(instance.issues.get(repo)?.[0]?.title).toBe(after)
+    expect(instance.comments(repo, 1)).toEqual([])
+  })
+
+  test('behavior: migrates an edited v1 recurrence comment in place', async () => {
+    const report = 'acme/app:entry-b'
+    const occurrence = `${report}:Updated body.`
+    const changedTitle = 'Renamed friction'
+    const legacy = Github.renderBody({
+      body: 'Old body.',
+      marker: { hash: Github.hash(title) },
+      occurrence: `${report}:Old body.`,
+    })
+    const marker = legacy.match(/<!-- frog:occurrence:v1 [0-9a-f]{64} -->/)?.[0]
+    if (!marker) throw new Error('Expected v1 occurrence marker.')
+    const instance = await github({
+      [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
+    })
+    instance.addComment(repo, 1, `Hit again in \`acme/app\`.\n\nOld body.\n\n${marker}\n`)
+    const octokit = client(instance.url)
+    const matcher = await Github.matcher(octokit, { label: 'friction', repo })
+    const existing = await matcher.match(changedTitle, { occurrence, report })
+    if (!existing) throw new Error('Expected v1 recurrence.')
+
+    const migrated = await Github.publish(octokit, {
+      entry: { body: 'Updated body.', title: changedTitle },
+      existing,
+      labels: ['friction'],
+      marker: { hash: Github.hash(changedTitle), origin: 'acme/app' },
+      occurrence,
+      repo,
+      report,
+      revision: 'revision-b',
+    })
+
+    expect(migrated).toEqual({ issue: 1, mutated: true, status: 'commented' })
+    expect(instance.comments(repo, 1)).toHaveLength(1)
+    expect(instance.comments(repo, 1)[0]).toContain('Updated body.')
+    expect(instance.comments(repo, 1)[0]).toContain('<summary>Details</summary>')
+    expect(instance.issues.get(repo)).toHaveLength(1)
   })
 
   // An entry left in the log after its issue was closed is re-filed on every push. Reopening there
@@ -1033,7 +1343,92 @@ describe('publish', () => {
     expect(instance.comments(repo, 1)).toHaveLength(1)
   })
 
-  test('behavior: replay after commenting does not add the comment twice', async () => {
+  test('behavior: scans comments once when locating a report', async () => {
+    const report = 'acme/app:entry-a'
+    const instance = await github({
+      [repo]: [
+        {
+          body: Github.renderBody({
+            body: 'Existing body.',
+            marker: { hash: Github.hash(title), origin: 'acme/app', path: 'existing.md' },
+            report: 'acme/app:existing',
+          }),
+          title,
+        },
+      ],
+    })
+    instance.addComment(
+      repo,
+      1,
+      Github.renderBody({
+        body: 'Untrusted body.',
+        marker: { hash: Github.hash(title) },
+        report,
+      }),
+      'contributor',
+    )
+    for (let index = 1; index < 100; index++)
+      instance.addComment(repo, 1, `Existing comment ${index}.`, 'frog-fm[bot]')
+    const octokit = client(instance.url)
+    const existing = await Github.get(octokit, { issue: 1, repo })
+    if (!existing) throw new Error('Expected seeded issue.')
+
+    await expect(
+      Github.publish(octokit, {
+        entry,
+        existing,
+        expectedAuthor: 'frog-fm[bot]',
+        labels: ['friction'],
+        marker: { hash: Github.hash(title), origin: 'acme/app', path: 'entry-a.md' },
+        occurrence: 'occurrence-a',
+        repo,
+        report,
+      }),
+    ).resolves.toEqual({ issue: 1, mutated: true, status: 'commented' })
+
+    expect(instance.comments(repo, 1)).toHaveLength(101)
+    expect(
+      instance.requests.filter(
+        (request) =>
+          request.method === 'GET' && request.path === `/repos/${repo}/issues/1/comments`,
+      ),
+    ).toHaveLength(2)
+  })
+
+  test('behavior: a revisionless recurrence replays without another update', async () => {
+    const instance = await github({
+      [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
+    })
+    const octokit = client(instance.url)
+    const existing = (await Github.index(octokit, { label: 'friction', repo })).get(
+      Github.hash(title),
+    )
+    if (!existing) throw new Error('Expected seeded issue.')
+    const publish = () =>
+      Github.publish(octokit, {
+        entry,
+        existing,
+        labels: ['friction'],
+        marker: { hash: Github.hash(title) },
+        occurrence: 'occurrence-a',
+        repo,
+        report: 'report-a',
+      })
+
+    await expect(publish()).resolves.toEqual({
+      issue: 1,
+      mutated: true,
+      status: 'commented',
+    })
+    await expect(publish()).resolves.toEqual({
+      issue: 1,
+      mutated: false,
+      status: 'commented',
+    })
+    expect(instance.comments(repo, 1)).toHaveLength(1)
+  })
+
+  test('behavior: an edited recurrence updates its comment in place', async () => {
     const instance = await github({
       [repo]: [{ body: Github.renderMarker({ hash: Github.hash(title) }), title }],
     })
@@ -1050,29 +1445,39 @@ describe('publish', () => {
         issue_number: existing.number,
       })
 
-    const publish = (occurrence: string) =>
+    const publish = (report: string, revision: string, body = entry.body) =>
       Github.publish(octokit, {
-        entry,
+        entry: { ...entry, body },
         existing,
         labels: ['friction'],
         marker: { hash: Github.hash(title) },
-        occurrence,
+        occurrence: `${report}:${body}`,
         repo,
+        report,
+        revision,
       })
 
-    await expect(publish('delivery-1:entry-a')).resolves.toEqual({
+    await expect(publish('report-a', 'revision-1')).resolves.toEqual({
       issue: 1,
       mutated: true,
       status: 'commented',
     })
-    await expect(publish('delivery-1:entry-a')).resolves.toEqual({
+    await expect(publish('report-a', 'revision-1')).resolves.toEqual({
       issue: 1,
       mutated: false,
       status: 'commented',
     })
     expect(instance.comments(repo, 1)).toHaveLength(101)
 
-    await publish('delivery-2:entry-a')
+    await expect(publish('report-a', 'revision-2', 'Updated details.')).resolves.toEqual({
+      issue: 1,
+      mutated: true,
+      status: 'commented',
+    })
+    expect(instance.comments(repo, 1)).toHaveLength(101)
+    expect(instance.comments(repo, 1).at(-1)).toContain('Updated details.')
+
+    await publish('report-b', 'revision-1')
     expect(instance.comments(repo, 1)).toHaveLength(102)
   })
 })

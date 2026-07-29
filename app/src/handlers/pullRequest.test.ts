@@ -197,7 +197,7 @@ test('behavior: a title edit reuses the issue carrying the occurrence', async ()
   expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
-test('behavior: a title edit reuses an occurrence carried by a comment', async () => {
+test('behavior: title and body edits keep updating the original issue', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -210,13 +210,119 @@ test('behavior: a title edit reuses an occurrence carried by a comment', async (
   instance.write(base, `${dir}/a/friction.md`, changed.replace('ignored', 'renamed'), 'head')
   const third = await run(instance.url)
 
-  expect(third.commented).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(third.created).toEqual([{ id: 'a', issue: `${base}#1` }])
   expect(instance.issues.get(base)).toHaveLength(1)
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(instance.issues.get(base)?.[0]?.title).toBe('Filters renamed')
+  expect(Github.parseBody(instance.issues.get(base)?.[0]?.body)).toBe('The filter was dropped.')
+  expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
-// The one repeat worth having: the entry changed, so the issue should hear about it.
-test('behavior: an edited entry comments once', async () => {
+test('behavior: a severity-only edit updates the original issue', async () => {
+  const path = `${dir}/a/friction.md`
+  const previous = {
+    body: 'The filter was swallowed.',
+    id: 'a',
+    severity: 'minor',
+    title: 'Filters ignored',
+  } as const
+  const marker = {
+    hash: Github.hash(previous.title),
+    origin: base,
+    path,
+    severity: previous.severity,
+  }
+  const instance = await github(
+    {
+      [base]: [
+        {
+          body: Github.renderBody({
+            body: previous.body,
+            marker,
+            occurrence: Github.occurrence({ entry: previous, origin: base }),
+            report: Github.report({ entry: previous, origin: base }),
+            revision: Github.revision({ entry: previous, origin: base }),
+          }),
+          title: previous.title,
+        },
+      ],
+    },
+    {
+      files: { [base]: { [path]: entry(previous.title, { issue: `${base}#1` }) } },
+      head: {
+        [base]: {
+          [path]: entry(previous.title, { issue: `${base}#1`, severity: 'major' }),
+        },
+      },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report.created).toEqual([{ id: 'a', issue: `${base}#1` }])
+  expect(report.linked).toEqual([])
+  expect(Github.parseMarker(instance.issues.get(base)?.[0]?.body)?.severity).toBe('major')
+  expect(instance.comments(base, 1)).toEqual([])
+})
+
+test.each([
+  ['pending', {}],
+  ['linked', { issue: `${base}#1` }],
+] as const)(
+  'behavior: renaming a %s report frees its old title for a new entry',
+  async (_, link) => {
+    const path = `${dir}/a/friction.md`
+    const previous = {
+      body: 'The filter was swallowed.',
+      id: 'a',
+      severity: 'minor',
+      title: 'Filters ignored',
+    } as const
+    const instance = await github(
+      {
+        [base]: [
+          {
+            body: Github.renderBody({
+              body: previous.body,
+              marker: {
+                hash: Github.hash(previous.title),
+                origin: base,
+                path,
+                severity: previous.severity,
+              },
+              occurrence: Github.occurrence({ entry: previous, origin: base }),
+              report: Github.report({ entry: previous, origin: base }),
+              revision: Github.revision({ entry: previous, origin: base }),
+            }),
+            title: previous.title,
+          },
+        ],
+      },
+      {
+        files: { [base]: { [path]: entry(previous.title, link) } },
+        head: {
+          [base]: {
+            [path]: entry('Filters renamed', link),
+            [`${dir}/b/friction.md`]: entry(previous.title),
+          },
+        },
+      },
+    )
+
+    const report = await run(instance.url)
+
+    expect(report.created).toEqual([
+      { id: 'a', issue: `${base}#1` },
+      { id: 'b', issue: `${base}#2` },
+    ])
+    expect(instance.issues.get(base)?.map((issue) => issue.title)).toEqual([
+      'Filters renamed',
+      'Filters ignored',
+    ])
+    expect(instance.comments(base, 1)).toEqual([])
+  },
+)
+
+test('behavior: an edited entry updates once', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -233,12 +339,11 @@ test('behavior: an edited entry comments once', async () => {
   await run(instance.url)
 
   expect(instance.issues.get(base)).toHaveLength(1)
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(Github.parseBody(instance.issues.get(base)?.[0]?.body)).toBe('The filter was dropped.')
+  expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
-// The edit that a title-shaped hash would have thrown away: punctuation and case only. Adding the `--`
-// a command was missing changes what the report means, so the issue has to hear about it.
-test('behavior: an edit of only punctuation still comments', async () => {
+test('behavior: an edit of only punctuation still updates', async () => {
   const instance = await github(
     {},
     { head: { [base]: { [`${dir}/a/friction.md`]: entry('Filters ignored') } } },
@@ -256,7 +361,10 @@ test('behavior: an edit of only punctuation still comments', async () => {
   instance.write(base, `${dir}/a/friction.md`, after, 'head')
   await run(instance.url)
 
-  expect(instance.comments(base, 1)).toHaveLength(1)
+  expect(Github.parseBody(instance.issues.get(base)?.[0]?.body)).toBe(
+    'Run `pnpm test -- src/foo.test.ts`.',
+  )
+  expect(instance.comments(base, 1)).toHaveLength(0)
 })
 
 test('behavior: concurrent deliveries with the same title open one issue', async () => {
@@ -291,6 +399,36 @@ test('behavior: an already-linked entry is listed, not filed again', async () =>
     linked: [{ id: 'a', issue: `${base}#1` }],
   })
   expect(instance.issues.get(base)).toHaveLength(1)
+})
+
+test('security: a linked edit does not replace a missing issue', async () => {
+  const path = `${dir}/a/friction.md`
+  const issue = `${base}#99`
+  const instance = await github(
+    {},
+    {
+      files: { [base]: { [path]: entry('Filters ignored', { issue }) } },
+      head: {
+        [base]: { [path]: entry('Filters ignored', { issue, severity: 'major' }) },
+      },
+    },
+  )
+
+  const report = await run(instance.url)
+
+  expect(report).toMatchObject({
+    commented: [],
+    created: [],
+    deferred: [
+      {
+        code: 'LINK_INVALID',
+        id: 'a',
+        reason: `The linked issue \`${issue}\` is missing or does not carry this Frog report.`,
+      },
+    ],
+    linked: [],
+  })
+  expect(instance.issues.get(base)).toBeUndefined()
 })
 
 test('behavior: a malformed entry is reported without stopping the rest', async () => {
@@ -406,6 +544,74 @@ describe('cross-repo', () => {
     expect(Github.parseMarker(instance.issues.get(upstream)?.[0]?.body)).toMatchObject({
       origin: base,
     })
+  })
+
+  test('behavior: linked edits keep their established destination', async () => {
+    const alternate = 'wevm/ox'
+    const path = `${dir}/a/friction.md`
+    const previous = {
+      body: 'The filter was swallowed.',
+      id: 'a',
+      issue: `${upstream}#1`,
+      severity: 'minor',
+      target: 'viem',
+      title: 'Upstream friction',
+    } as const
+    const instance = await github(
+      {
+        [upstream]: [
+          {
+            body: Github.renderBody({
+              body: previous.body,
+              marker: {
+                hash: Github.hash(previous.title),
+                origin: base,
+                path,
+                severity: previous.severity,
+              },
+              occurrence: Github.occurrence({ entry: previous, origin: base }),
+              report: Github.report({ entry: previous, origin: base }),
+              revision: Github.revision({ entry: previous, origin: base }),
+            }),
+            title: previous.title,
+          },
+        ],
+      },
+      {
+        files: {
+          [base]: {
+            [path]: entry(previous.title, { issue: previous.issue, target: previous.target }),
+          },
+          [alternate]: {
+            [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }),
+          },
+          [upstream]: {
+            [`${dir}/config.json`]: JSON.stringify({ inbound: { enabled: true } }),
+          },
+        },
+        head: {
+          [base]: {
+            [path]: entry(previous.title, {
+              issue: previous.issue,
+              severity: 'major',
+              target: 'ox',
+            }),
+          },
+        },
+        packages: { ox: alternate, viem: upstream },
+      },
+    )
+
+    const report = await run(instance.url, {
+      installed: {
+        [alternate]: client(instance.url),
+        [upstream]: client(instance.url),
+      },
+    })
+
+    expect(report.created).toEqual([{ id: 'a', issue: `${upstream}#1` }])
+    expect(Github.parseMarker(instance.issues.get(upstream)?.[0]?.body)?.severity).toBe('major')
+    expect(instance.issues.get(alternate)).toBeUndefined()
   })
 
   // No installation on the receiver means no token, so GitHub itself prevents the filing.

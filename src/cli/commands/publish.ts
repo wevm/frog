@@ -1,6 +1,7 @@
 import { Cli, z } from 'incur'
 import type * as Entry from '../../Entry.js'
 import * as Git from '../../Git.js'
+import * as Github from '../../Github.js'
 import * as Store from '../../Store.js'
 import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
@@ -14,7 +15,7 @@ function toPr(value: string, repo: string): string {
 }
 
 export const publish = Cli.create('publish', {
-  description: 'File pending entries as GitHub issues.',
+  description: 'Publish friction entries as GitHub issues.',
   env: z.object({
     GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
     GITHUB_API_URL: z
@@ -77,13 +78,18 @@ export const publish = Cli.create('publish', {
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
 
     const deferred: { code: string; id: string; reason: string }[] = []
-    const pending = entries.value.filter((entry) => !entry.issue)
+    const publishable = entries.value
 
     const max = c.options.max ?? config.maxPerRun
-    if (pending.length === 0)
+    if (publishable.length === 0)
       return c.ok({ commented: [], committed: false, created: [], deferred, unlabelled: [] })
 
-    if (c.options.commit !== false && !c.options.dryRun && !(await Git.identity({ cwd: root })))
+    if (
+      publishable.some((entry) => !entry.issue) &&
+      c.options.commit !== false &&
+      !c.options.dryRun &&
+      !(await Git.identity({ cwd: root }))
+    )
       return c.error({
         code: 'NO_GIT_IDENTITY',
         message: 'Configure both `user.name` and `user.email` before Frog commits issue links.',
@@ -120,8 +126,9 @@ export const publish = Cli.create('publish', {
     }
     const candidates: Candidate[] = []
 
-    for (const entry of pending) {
-      const resolution = await attempt(Target.resolve(entry.target, resolvers))
+    for (const entry of publishable) {
+      const link = entry.issue ? Github.parseLink(entry.issue) : undefined
+      const resolution = await attempt(Target.resolve(link?.repo ?? entry.target, resolvers))
       if (!resolution.ok) {
         deferred.push({ code: resolution.code, id: entry.id, reason: resolution.message })
         continue
@@ -213,6 +220,7 @@ export const publish = Cli.create('publish', {
           result.value instanceof publisher.PartialError ? result.value.outcome : result.value
         commented.push(...outcome.commented)
         created.push(...outcome.created)
+        deferred.push(...outcome.deferred)
         for (const destination of outcome.unlabelled)
           if (!unlabelled.includes(destination)) unlabelled.push(destination)
         written.push(...outcome.written)
@@ -244,7 +252,7 @@ export const publish = Cli.create('publish', {
     )
     if (!commit.ok) return c.error({ code: 'COMMIT_FAILED', message: commit.message })
 
-    const position = new Map(pending.map((entry, index) => [entry.id, index]))
+    const position = new Map(publishable.map((entry, index) => [entry.id, index]))
     deferred.sort((a, b) => (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0))
 
     return c.ok(

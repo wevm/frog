@@ -354,8 +354,14 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const repo = `${one[1]}/${one[2]}`
         const found = (issues.get(repo) ?? []).find((issue) => issue.number === Number(one[3]))
         if (!found) return json(response, 404, { message: 'Not Found' })
-        const payload = await readBody<{ state?: 'closed' | 'open' }>(request)
+        const payload = await readBody<{
+          body?: string
+          state?: 'closed' | 'open'
+          title?: string
+        }>(request)
+        if (payload.body !== undefined) found.body = payload.body
         if (payload.state) found.state = payload.state
+        if (payload.title !== undefined) found.title = payload.title
         return json(response, 200, found)
       }
 

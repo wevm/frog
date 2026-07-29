@@ -62,13 +62,16 @@ export async function file(options: file.Options): Promise<Filing> {
   }[] = []
 
   for (const entry of entries) {
-    const resolution = await Target.resolve(entry.target, stack).catch((error: unknown) => {
-      if (error instanceof resolvers.InstallationMissingError) {
-        deferred.push({ code: error.code, id: entry.id, reason: error.message })
-        return undefined
-      }
-      throw error
-    })
+    const link = entry.issue ? Github.parseLink(entry.issue) : undefined
+    const resolution = await Target.resolve(link?.repo ?? entry.target, stack).catch(
+      (error: unknown) => {
+        if (error instanceof resolvers.InstallationMissingError) {
+          deferred.push({ code: error.code, id: entry.id, reason: error.message })
+          return undefined
+        }
+        throw error
+      },
+    )
     if (!resolution) continue
     if (!resolution.ok) {
       deferred.push({ code: resolution.code, id: entry.id, reason: resolution.message })
@@ -126,8 +129,43 @@ export async function file(options: file.Options): Promise<Filing> {
 
       for (const entry of group.entries) {
         const hash = Github.hash(entry.title)
+        const report = Github.report({ entry, origin })
         const occurrence = Github.occurrence({ entry, origin })
-        const existing = (await matcher.match(entry.title, { occurrence })) ?? seen.get(hash)
+        const revision = Github.revision({ entry, origin })
+        const marker = {
+          hash,
+          origin,
+          path: Store.toPath(entry.id),
+          severity: entry.severity,
+        }
+        const link = entry.issue ? Github.parseLink(entry.issue) : undefined
+        let existing: Github.Issue | undefined
+        if (link) {
+          existing = await Github.get(target.rest, { issue: link.issue, repo: link.repo })
+          const location =
+            existing?.author === app
+              ? await Github.findReport(target.rest, {
+                  existing,
+                  expectedAuthor: app,
+                  marker,
+                  occurrence,
+                  repo: destination,
+                  report,
+                })
+              : undefined
+          if (!location) {
+            deferred.push({
+              code: 'LINK_INVALID',
+              id: entry.id,
+              reason: `The linked issue \`${entry.issue}\` is missing or does not carry this Frog report.`,
+            })
+            continue
+          }
+          if (location === 'created')
+            await matcher.match(entry.title, { marker, occurrence, report })
+        } else
+          existing =
+            (await matcher.match(entry.title, { marker, occurrence, report })) ?? seen.get(hash)
         const result = await (async () => {
           if (mutated < config.maxPerRun)
             return Github.publish(target.rest, {
@@ -138,19 +176,21 @@ export async function file(options: file.Options): Promise<Filing> {
                 labels: applied,
               }),
               // `origin` is where the entry file lives, not the destination when reporting upstream.
-              marker: { hash, origin, path: Store.toPath(entry.id), severity: entry.severity },
+              marker,
               occurrence,
               provenance: { ...(actor ? { author: actor } : {}), ...(pr ? { pr } : {}) },
               repo: destination,
+              report,
+              revision,
               ...(existing ? { existing } : {}),
             })
 
           const status = existing
-            ? await Github.findOccurrence(target.rest, {
+            ? await Github.findRevision(target.rest, {
                 existing,
                 expectedAuthor: app,
-                occurrence,
                 repo: destination,
+                revision,
               })
             : undefined
           if (status && existing) return { issue: existing.number, mutated: false, status }
@@ -194,7 +234,7 @@ export declare namespace file {
     client: Octokit
     /** Normalized config, read from the default branch. */
     config: Config.Config
-    /** Entries to resolve and file. Already free of linked ones. */
+    /** Entries to resolve and file. Linked entries update their established Frog issues. */
     entries: readonly Entry.Entry[]
     /** Resolves an installation client for another repository. */
     installation: (repo: string) => Promise<Octokit | undefined>

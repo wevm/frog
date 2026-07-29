@@ -37,15 +37,21 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
   // request.
   const before = await Repository.read(client, { ref: baseRef, repo: base })
   const changed = introduced(contents.entries, before.entries)
+  const existing = new Map(before.entries.map((entry) => [entry.id, entry]))
+  const updates = new Set(
+    changed
+      .filter((entry) => entry.issue && existing.get(entry.id)?.issue === entry.issue)
+      .map((entry) => entry.id),
+  )
 
   const malformed = contents.malformed
-  const { linked, pending } = filing.partition(changed)
+  const { linked } = filing.partition(changed)
 
   const filed = await filing.file({
     app: options.app,
     client,
     config: settings,
-    entries: pending,
+    entries: changed.filter((entry) => !entry.issue || updates.has(entry.id)),
     installation,
     origin: base,
     pr: `${base}#${pr}`,
@@ -58,7 +64,7 @@ export async function pullRequest(options: pullRequest.Options): Promise<comment
     commented: filed.commented,
     created: filed.created,
     deferred: filed.deferred,
-    linked,
+    linked: linked.filter((entry) => !updates.has(entry.id)),
     malformed,
   }
 
@@ -81,7 +87,12 @@ function introduced(
   const existing = new Map(base.map((entry) => [entry.id, entry]))
   return head.filter((entry) => {
     const previous = existing.get(entry.id)
-    return !previous || previous.body !== entry.body || previous.title !== entry.title
+    return (
+      !previous ||
+      previous.body !== entry.body ||
+      previous.severity !== entry.severity ||
+      previous.title !== entry.title
+    )
   })
 }
 
