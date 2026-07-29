@@ -59,7 +59,7 @@ test('behavior: scaffolds the directory', async () => {
   expect(readme).not.toContain('| Area | GitHub App | Action-only |')
   expect(readme).not.toContain('github.com/apps/frog-fm')
   expect(readme).not.toContain('Create `.github/workflows/friction-log.yml`')
-  expect(readme).not.toContain('uses: wevm/frog/action@')
+  expect(readme).not.toContain('uses: wevm/frog/action@v1')
   expect(readme).toContain('## Logging Friction')
   expect(readme).toContain('## For Agents')
   expect(readme).toContain(

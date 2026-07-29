@@ -271,8 +271,8 @@ Both methods update one accumulating `frog/sync` pull request:
 
 - A protected default branch needs a human to merge `frog/sync`. Complete runs force-update the branch;
   deferrals preserve the existing pull request. Do not hand-edit it.
-- The examples pin Frog's action source to a full commit SHA. Add an exact `version` input to pin the
-  installed package; the default `1` tracks compatible npm releases.
+- `@v1` moves with compatible releases. Pin both a full action commit SHA and an exact `version` input
+  to fix Frog itself; npm still resolves the published package's dependency ranges at install time.
 - Never run it on `pull_request`. Fork tokens are read-only, and pull-request config is untrusted.
   `pull_request_target` is unsafe for the same reason.
 - One malformed `friction.md` fails the run because the log cannot be read partially.
@@ -322,7 +322,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Report and reconcile frictions
-        uses: wevm/frog/reconcile@b01b51b94a2cac4242e861c1d63fcd0ac1ab6df8 # frog@1.0.10
+        uses: wevm/frog/reconcile@v1
 ```
 
 The App has read access to repository contents and write access to issues and pull requests, but it
@@ -373,7 +373,7 @@ jobs:
           ref: ${{ github.sha }}
 
       - name: Report and reconcile frictions
-        uses: wevm/frog/action@b01b51b94a2cac4242e861c1d63fcd0ac1ab6df8 # frog@1.0.10
+        uses: wevm/frog/action@v1
         with:
           issue-author: github-actions[bot]
 ```
