@@ -80,6 +80,118 @@ test('behavior: scaffolds from this repository own issue form', async () => {
   `)
 })
 
+test('error: a supplied body must preserve this repository own issue form', async () => {
+  const cwd = await helpers.repo()
+  await helpers.writeFile(
+    '.github/ISSUE_TEMPLATE/friction.yml',
+    [
+      'name: Friction',
+      'body:',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Expected Behavior',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Current Behavior',
+      '    validations:',
+      '      required: true',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Possible Solution',
+    ].join('\n'),
+    cwd,
+  )
+
+  const result = await cli.error(['log', title, '--body', body, '--cwd', cwd])
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "code": "BODY_DOES_NOT_MATCH_FORM",
+      "message": "Body does not match this repository's issue form. Missing or out-of-order headings: \`Expected Behavior\`, \`Current Behavior\`, \`Possible Solution\`.",
+    }
+  `)
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
+test('behavior: a supplied body may leave optional form sections empty', async () => {
+  const cwd = await helpers.repo()
+  await helpers.writeFile(
+    '.github/ISSUE_TEMPLATE/friction.yml',
+    [
+      'name: Friction',
+      'body:',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Expected Behavior',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Current Behavior',
+      '    validations:',
+      '      required: true',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Possible Solution',
+    ].join('\n'),
+    cwd,
+  )
+  const formBody = [
+    '### Expected Behavior',
+    '',
+    '### Current Behavior',
+    '',
+    'The filter was swallowed.',
+    '',
+    '### Possible Solution',
+  ].join('\n')
+
+  const { id } = await cli.data<Logged>(['log', title, '--body', formBody, '--cwd', cwd])
+
+  expect((await Store.get(id, { root: cwd })).body).toBe(formBody)
+})
+
+test('error: a supplied body must answer required form fields', async () => {
+  const cwd = await helpers.repo()
+  await helpers.writeFile(
+    '.github/ISSUE_TEMPLATE/friction.yml',
+    [
+      'name: Friction',
+      'body:',
+      '  - type: checkboxes',
+      '    attributes:',
+      '      label: Check Existing Issues',
+      '      options:',
+      '        - label: I checked for an existing issue.',
+      '    validations:',
+      '      required: true',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Current Behavior',
+      '    validations:',
+      '      required: true',
+    ].join('\n'),
+    cwd,
+  )
+  const formBody = [
+    '### Check Existing Issues',
+    '',
+    '- [ ] I checked for an existing issue.',
+    '',
+    '### Current Behavior',
+    '',
+    '<!-- Required. -->',
+  ].join('\n')
+
+  const result = await cli.error(['log', title, '--body', formBody, '--cwd', cwd])
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "code": "BODY_DOES_NOT_MATCH_FORM",
+      "message": "Body does not match this repository's issue form. Required fields without answers: \`Check Existing Issues\`, \`Current Behavior\`.",
+    }
+  `)
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
 test('error: a title is required', async () => {
   const cwd = await helpers.repo()
   expect(await cli.error(['log', '--body', body, '--cwd', cwd])).toMatchInlineSnapshot(`

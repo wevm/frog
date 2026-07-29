@@ -1,6 +1,7 @@
 import * as clack from '@clack/prompts'
 import { Cli, z } from 'incur'
 import * as Entry from '../../Entry.js'
+import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
@@ -60,7 +61,9 @@ export const log = Cli.create('log', {
     body: z
       .string()
       .optional()
-      .describe('Markdown body. Also read from piped input, or from an editor when interactive.'),
+      .describe(
+        'Complete Markdown body. Must preserve this repository issue form when one exists. Also read from piped input, or from an editor when interactive.',
+      ),
     cwd: context.cwdOption,
     force: z.boolean().optional().describe('Log it even if a similar entry already exists.'),
     label: z.array(z.string().min(1)).optional().describe('Extra issue label. Repeatable.'),
@@ -85,7 +88,6 @@ export const log = Cli.create('log', {
     {
       args: { title: '`pnpm test -- <files>` ignores file filters' },
       description: 'Log friction in this repository',
-      options: { body: '## Description\n\nThe filter was swallowed.' },
     },
     {
       args: { title: '`getBalance` rejects a checksummed address' },
@@ -138,12 +140,12 @@ export const log = Cli.create('log', {
 
     const body = c.options.body ?? (input?.body || undefined)
 
+    // Always load this repository's form from disk so a supplied body cannot bypass it.
+    const own = !c.options.target ? await attempt(form.own(root)) : undefined
+
     // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
     // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
     // an unreachable target costs the scaffold, not the entry.
-    // With no target, use this repository's own form.
-    const own = !body && !c.options.target ? await attempt(form.own(root)) : undefined
-
     const upstream =
       !body && c.options.target
         ? await attempt(
@@ -157,7 +159,37 @@ export const log = Cli.create('log', {
           )
         : undefined
     const scaffold =
-      (upstream?.ok ? upstream.value : undefined) ?? (own?.ok ? own.value : undefined)
+      (upstream?.ok ? upstream.value : undefined) ??
+      (own?.ok && own.value ? IssueForm.scaffold(own.value) : undefined)
+
+    const validation = body && own?.ok && own.value ? form.validate(own.value, body) : undefined
+    if (validation && (validation.missing.length > 0 || validation.unanswered.length > 0)) {
+      const details = [
+        validation.missing.length > 0
+          ? `Missing or out-of-order headings: ${validation.missing
+              .map((label) => `\`${label}\``)
+              .join(', ')}.`
+          : undefined,
+        validation.unanswered.length > 0
+          ? `Required fields without answers: ${validation.unanswered
+              .map((label) => `\`${label}\``)
+              .join(', ')}.`
+          : undefined,
+      ].filter(Boolean)
+      return c.error({
+        code: 'BODY_DOES_NOT_MATCH_FORM',
+        message: `Body does not match this repository's issue form. ${details.join(' ')}`,
+        cta: {
+          commands: [
+            {
+              command: 'log',
+              description: "Omit --body to scaffold from this repository's issue form",
+            },
+          ],
+          description: 'Try:',
+        },
+      })
+    }
 
     // A scaffold satisfies the guard: it asks for the same detail, one question at a time. Without a
     // terminal it is the only way to reach a template.

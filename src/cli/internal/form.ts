@@ -69,10 +69,10 @@ export declare namespace scaffold {
  * The same discovery as an upstream target, off disk rather than over the API.
  *
  * @param root - Repository root.
- * @returns The scaffold, or `undefined` when this repository publishes no form.
+ * @returns The form, or `undefined` when this repository publishes no form.
  */
-export async function own(root: string): Promise<string | undefined> {
-  const form = await IssueForm.find({
+export async function own(root: string): Promise<IssueForm.Form | undefined> {
+  return IssueForm.find({
     list: (at) =>
       fs
         .readdir(path.join(root, at))
@@ -80,6 +80,65 @@ export async function own(root: string): Promise<string | undefined> {
         .catch(() => []),
     read: (at) => fs.readFile(path.join(root, at), 'utf8').catch(() => undefined),
   })
+}
 
-  return form ? IssueForm.scaffold(form) : undefined
+/**
+ * Checks that a supplied body preserves an issue form's headings and required answers.
+ *
+ * Optional fields still need their headings because the project chose the complete form shape. Their
+ * answers may remain empty.
+ *
+ * @param issueForm - The repository's issue form.
+ * @param body - Markdown supplied by the author.
+ * @returns Missing or out-of-order headings and required fields without answers.
+ */
+export function validate(issueForm: IssueForm.Form, body: string): validate.Result {
+  const headings = [...body.matchAll(/^(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/gm)].map(
+    (match) => ({
+      end: (match.index ?? 0) + match[0].length,
+      label: match[2]?.trim() ?? '',
+      start: match.index ?? 0,
+    }),
+  )
+
+  const missing: string[] = []
+  const matched: { field: IssueForm.Field; heading: (typeof headings)[number] }[] = []
+  let cursor = -1
+
+  for (const field of issueForm.fields) {
+    const index = headings.findIndex(
+      (heading, index) => index > cursor && heading.label === field.label,
+    )
+    if (index === -1) {
+      missing.push(field.label)
+      continue
+    }
+    matched.push({ field, heading: headings[index]! })
+    cursor = index
+  }
+
+  const unanswered = matched
+    .filter(({ field }, index) => {
+      if (!field.required) return false
+      const current = matched[index]!
+      const next = matched[index + 1]
+      const answer = body
+        .slice(current.heading.end, next?.heading.start)
+        .replace(/<!--[^]*?-->/g, '')
+        .trim()
+      if (field.kind === 'checkboxes') return !/(?:^|\n)\s*-\s*\[[xX]\]/.test(answer)
+      return answer.length === 0
+    })
+    .map(({ field }) => field.label)
+
+  return { missing, unanswered }
+}
+
+export declare namespace validate {
+  type Result = {
+    /** Form headings absent from the body or appearing in the wrong order. */
+    missing: readonly string[]
+    /** Required fields whose sections contain no answer. */
+    unanswered: readonly string[]
+  }
 }
