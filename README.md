@@ -82,9 +82,9 @@ irm https://frog.fm/install.ps1 | iex
 Or install Frog globally:
 
 ```sh
-npm install --global frog
-pnpm add --global frog
-bun add --global frog
+npm install -g frog
+pnpm add -g frog
+bun add -g frog
 ```
 
 ### 2. Initialize Frog
@@ -104,13 +104,17 @@ bunx frog init
 yarn dlx frog init
 ```
 
+You can use these runners with any Frog command, e.g. `npx frog list`.
+
+### 3. Choose Automation Method
+
 Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
 changing repository access or adding a workflow:
 
-- Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) and add the App
-  workflow below for pull-request comments, forks, and cross-repository reporting.
-- Use the Action-only workflow below for same-repository automation without granting a third-party App
-  access.
+- Install the [Frog GitHub App](https://github.com/apps/frog-fm/installations/new) and add the
+  [App mode](#app-mode) workflow for pull-request comments, forks, and cross-repository reporting.
+- Use the [Action-only mode](#action-only-mode) workflow for same-repository automation without
+  granting a third-party App access.
 
 Choose one method per repository. Running both can create duplicate issues.
 
