@@ -9,7 +9,7 @@ catalog:
   '@octokit/rest': ^22.0.1
   '@types/node': latest
   '@vitest/coverage-v8': latest
-  incur: 0.4.24
+  incur: 0.4.25
   octokit: ^5.0.5
   tsx: ^4.23.1
   typescript: latest
@@ -23,4 +23,4 @@ allowBuilds:
   workerd: true
 
 minimumReleaseAgeExclude:
-  - incur@0.4.24
+  - incur@0.4.25

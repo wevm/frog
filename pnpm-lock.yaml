@@ -25,8 +25,8 @@ catalogs:
       specifier: latest
       version: 4.1.10
     incur:
-      specifier: 0.4.24
-      version: 0.4.24
+      specifier: 0.4.25
+      version: 0.4.25
     octokit:
       specifier: ^5.0.5
       version: 5.0.5
@@ -61,7 +61,7 @@ importers:
         version: 22.0.1
       incur:
         specifier: 'catalog:'
-        version: 0.4.24
+        version: 0.4.25
       yaml:
         specifier: 'catalog:'
         version: 2.9.0
@@ -1930,8 +1930,8 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
-  incur@0.4.24:
-    resolution: {integrity: sha512-W9HbrqXkCD4h6b5mkcyx+qV9mhb/gYe45xllsE17Di5E832MNOMPOvxQKiBW+tWp8BxsSZovxtCjhsDEov8KbA==}
+  incur@0.4.25:
+    resolution: {integrity: sha512-UHMc8OAafcalvhtfPs8rIPAUksRQ7gbR59zq8CWYFUaX1kVssfFQ6aYEb3mWglP4NMfh5HO+IfvzqhwPuCyMmg==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -3990,7 +3990,7 @@ snapshots:
 
   ignore@5.3.2: {}
 
-  incur@0.4.24:
+  incur@0.4.25:
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@modelcontextprotocol/server': 2.0.0-alpha.4
