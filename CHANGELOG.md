@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.15
+
+### Patch Changes
+
+- 7036898: Updated existing reports in place and reserved recurrence comments for new friction entries.
+
 ## 1.0.14
 
 ### Patch Changes
