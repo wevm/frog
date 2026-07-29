@@ -1,4 +1,5 @@
 ---
+'frog': patch
 ---
 
-Updated package
+Updated package.
