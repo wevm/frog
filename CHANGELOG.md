@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.13
+
+### Patch Changes
+
+- aa43e31: Fixed standalone binary releases for package-scoped tags.
+
 ## 1.0.12
 
 ### Patch Changes
