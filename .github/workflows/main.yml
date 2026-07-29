@@ -25,7 +25,7 @@ jobs:
       id-token: write
       pull-requests: write
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     steps:
       - name: Clone repository
@@ -52,6 +52,18 @@ jobs:
           tag="v$major"
           git tag --annotate --force "$tag" "$GITHUB_SHA" --message "$tag"
           git push --force origin "refs/tags/$tag"
+
+      - name: Upload standalone binaries
+        id: binaries
+        if: steps.changesets.outputs.published == 'true'
+        uses: wevm/incur/release@32c2fdf3724214374a97e0e3c142244ca26a7548 # v1
+
+      # Changesets uses frog@<version>, while Incur updaters require v<version> releases.
+      - name: Publish standalone binaries
+        if: steps.changesets.outputs.published == 'true'
+        run: gh release edit "${{ steps.binaries.outputs.release_tag }}" --draft=false --latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     name: Deploy
