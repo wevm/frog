@@ -1,4 +1,4 @@
-import { Cli } from 'incur'
+import { Binary, Cli } from 'incur'
 import { init } from './commands/init.js'
 import { list } from './commands/list.js'
 import { log } from './commands/log.js'
@@ -24,6 +24,7 @@ export const cli = Cli.create('frog', {
       'show me which of my dependencies accept friction reports',
     ],
   },
+  update: Binary.github({ repository: 'wevm/frog' }),
 })
   .command(init)
   .command(list)

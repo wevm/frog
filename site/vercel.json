@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "",
+  "framework": null,
+  "installCommand": "",
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/install",
+      "destination": "https://github.com/wevm/frog/releases/latest/download/install.sh",
+      "permanent": false
+    },
+    {
+      "source": "/install.ps1",
+      "destination": "https://github.com/wevm/frog/releases/latest/download/install.ps1",
+      "permanent": false
+    }
+  ]
+}
