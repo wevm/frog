@@ -13,6 +13,8 @@ export type Outcome = {
   /** Entries whose GitHub mutation succeeded or may have happened. */
   consumed: number
   created: Link[]
+  /** Linked entries that could not safely update their established issue. */
+  deferred: { code: string; id: string; reason: string }[]
   /** Destinations whose labels were dropped because the token cannot label there. */
   unlabelled: string[]
   /** Paths written, for the caller to stage. */
@@ -141,6 +143,7 @@ export async function file(options: file.Options): Promise<Outcome> {
   const commented: Link[] = []
   let consumed = 0
   const created: Link[] = []
+  const deferred: Outcome['deferred'] = []
   const written: string[] = []
   /** Filed during this run, so two entries with one title collapse onto one issue. */
   const seen = new Map<string, Github.Issue>()
@@ -148,6 +151,7 @@ export async function file(options: file.Options): Promise<Outcome> {
     commented,
     consumed,
     created,
+    deferred,
     written,
     unlabelled:
       !matcher.labelled && applied.length > 0 && !dryRun && commented.length + created.length > 0
@@ -164,8 +168,32 @@ export async function file(options: file.Options): Promise<Outcome> {
       const revision = Github.revision({ entry, origin })
       const path = Store.toPath(entry.id)
       const marker = { hash, origin, path, severity: entry.severity }
-      const existing =
-        (await matcher.match(entry.title, { marker, occurrence, report })) ?? seen.get(hash)
+      const link = entry.issue ? Github.parseLink(entry.issue) : undefined
+      let existing: Github.Issue | undefined
+      if (link) {
+        existing = await Github.get(client, { issue: link.issue, repo: link.repo })
+        const location = existing
+          ? await Github.findReport(client, {
+              existing,
+              marker,
+              occurrence,
+              report,
+              repo,
+              ...(expectedAuthor ? { expectedAuthor } : {}),
+            })
+          : undefined
+        if (!location) {
+          deferred.push({
+            code: 'LINK_INVALID',
+            id: entry.id,
+            reason: `The linked issue \`${entry.issue}\` is missing or does not carry this Frog report.`,
+          })
+          continue
+        }
+        if (location === 'created') await matcher.match(entry.title, { marker, occurrence, report })
+      } else
+        existing =
+          (await matcher.match(entry.title, { marker, occurrence, report })) ?? seen.get(hash)
 
       if (dryRun) {
         const link = existing ? Github.toLink({ issue: existing.number, repo }) : '(new)'
@@ -190,6 +218,7 @@ export async function file(options: file.Options): Promise<Outcome> {
               })
             : undefined)
         const category = location ?? (existing ? 'commented' : 'created')
+        if (entry.issue && status) continue
         ;(category === 'commented' ? commented : created).push({
           id: entry.id,
           issue: link,
@@ -225,6 +254,7 @@ export async function file(options: file.Options): Promise<Outcome> {
       })
       if (result.mutated) consumed += 1
       reserved = false
+      if (entry.issue && !result.mutated) continue
 
       const issue = Github.toLink({ issue: result.issue, repo })
       ;(result.status === 'commented' ? commented : created).push({
@@ -232,8 +262,10 @@ export async function file(options: file.Options): Promise<Outcome> {
         issue,
         title: entry.title,
       })
-      await Store.write({ ...entry, issue }, { id: entry.id, root })
-      written.push(path)
+      if (entry.issue !== issue) {
+        await Store.write({ ...entry, issue }, { id: entry.id, root })
+        written.push(path)
+      }
 
       if (!existing)
         seen.set(hash, {

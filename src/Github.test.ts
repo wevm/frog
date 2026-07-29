@@ -726,6 +726,9 @@ describe('matcher', () => {
         report,
       }),
     ).toMatchObject({ number: 1 })
+    expect(
+      instance.requests.filter((request) => request.path === `/repos/${repo}/issues/comments`),
+    ).toEqual([])
   })
 
   test('behavior: paginates and caches reports carried by comments', async () => {
@@ -1091,6 +1094,7 @@ describe('publish', () => {
       labels: ['friction'],
       marker: { hash: Github.hash(title) },
       occurrence: 'occurrence-a',
+      provenance: { author: '@original', pr: 'acme/app#1' },
       repo,
       report,
       revision: 'revision-1',
@@ -1103,6 +1107,7 @@ describe('publish', () => {
       labels: ['friction'],
       marker: { hash: Github.hash(changed.title) },
       occurrence: 'occurrence-a',
+      provenance: { author: '@editor', pr: 'acme/app#2' },
       repo,
       report,
       revision: 'revision-2',
@@ -1116,6 +1121,7 @@ describe('publish', () => {
       labels: ['friction'],
       marker: { hash: Github.hash(changed.title) },
       occurrence: 'occurrence-a',
+      provenance: { author: '@editor', pr: 'acme/app#2' },
       repo,
       report,
       revision: 'revision-2',
@@ -1127,6 +1133,8 @@ describe('publish', () => {
     expect(instance.issues.get(repo)).toHaveLength(1)
     expect(instance.issues.get(repo)?.[0]?.title).toBe(changed.title)
     expect(Github.parseBody(instance.issues.get(repo)?.[0]?.body)).toBe(changed.body)
+    expect(instance.issues.get(repo)?.[0]?.body).toContain('Logged by @original via acme/app#1')
+    expect(instance.issues.get(repo)?.[0]?.body).not.toContain('@editor')
     expect(instance.comments(repo, 1)).toEqual([])
   })
 

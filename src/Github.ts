@@ -1164,17 +1164,6 @@ export async function matcher(client: Client, options: matcher.Options): Promise
         for (const issue of (await fallback()).issues)
           if (issue.body?.includes(marker)) existing = preferred(existing, issue)
         if (existing) return reindex(existing, title)
-
-        existing = (await commentOccurrences()).markers.get(marker)
-        if (existing) return existing
-      }
-
-      if (parameters.report) {
-        let existing: Issue | undefined
-        for (const comment of (await commentOccurrences()).legacy)
-          if (comment.value.includes(renderOccurrence(`${parameters.report}:${comment.body}`)))
-            existing = preferred(existing, comment.issue)
-        if (existing) return existing
       }
 
       if (parameters.marker) {
@@ -1186,6 +1175,22 @@ export async function matcher(client: Client, options: matcher.Options): Promise
         for (const issue of (await fallback()).issues)
           if (matchesMirror(issue, parameters.marker)) existing = preferred(existing, issue)
         if (existing) return reindex(existing, title)
+      }
+
+      if (markers.length > 0) {
+        const comments = await commentOccurrences()
+        for (const marker of markers) {
+          const existing = comments.markers.get(marker)
+          if (existing) return existing
+        }
+
+        if (parameters.report) {
+          let existing: Issue | undefined
+          for (const comment of comments.legacy)
+            if (comment.value.includes(renderOccurrence(`${parameters.report}:${comment.body}`)))
+              existing = preferred(existing, comment.issue)
+          if (existing) return existing
+        }
       }
 
       const key = hash(title)
@@ -1228,14 +1233,33 @@ function appendReportMarkers(
 
 const footerEnd = '. Filed by [Frog](https://github.com/wevm/frog).</sub>'
 
-function preserveBodySuffix(body: string, existing: string | null | undefined): string {
-  const value = existing ?? ''
+function footerRange(value: string): { end: number; start: number } | undefined {
   const marker = lastMarker(value)
-  if (!marker) return body
-  const end = value.indexOf(footerEnd, marker.index + marker[0].length)
-  if (end < 0) return body
-  const suffix = stripMarkers(value.slice(end + footerEnd.length))
-  return suffix ? `${body.trimEnd()}\n\n${suffix}\n` : body
+  if (!marker) return undefined
+  const start = value.indexOf('<sub>', marker.index + marker[0].length)
+  if (start < 0) return undefined
+  const end = value.indexOf(footerEnd, start)
+  if (end < 0) return undefined
+  return { end: end + footerEnd.length, start }
+}
+
+function preserveIssueAttribution(body: string, existing: string | null | undefined): string {
+  const value = existing ?? ''
+  const current = footerRange(body)
+  const previous = footerRange(value)
+  if (!current || !previous) return body
+  const footer = value.slice(previous.start, previous.end)
+  const suffix = stripMarkers(value.slice(previous.end))
+  const updated = `${body.slice(0, current.start)}${footer}\n`
+  return suffix ? `${updated.trimEnd()}\n\n${suffix}\n` : updated
+}
+
+function preserveRecurrenceAttribution(body: string, existing: string | null | undefined): string {
+  const value = existing ?? ''
+  const current = body.indexOf('\n\n')
+  const previous = value.indexOf('\n\n')
+  if (current < 0 || previous < 0 || !value.startsWith('Hit again')) return body
+  return `${value.slice(0, previous)}${body.slice(current)}`
 }
 
 /**
@@ -1278,14 +1302,27 @@ export async function publish(client: Client, options: publish.Options): Promise
       })
       const existingMarker = parseMarker(existing.body)
       if (location) {
+        const updatedBody =
+          location.status === 'created'
+            ? preserveIssueAttribution(body, location.body)
+            : preserveRecurrenceAttribution(
+                renderRecurrence({
+                  body: entry.body,
+                  marker,
+                  occurrence,
+                  provenance,
+                  report,
+                  revision,
+                }),
+                location.body,
+              )
         const current =
           location.kind === 'report'
             ? revision
               ? location.body?.includes(renderRevision(revision))
               : location.status === 'created'
-                ? existing.body === body && existing.title === entry.title
-                : location.body ===
-                  renderRecurrence({ body: entry.body, marker, occurrence, provenance, report })
+                ? existing.body === updatedBody && existing.title === entry.title
+                : location.body === updatedBody
             : false
         if (current) return { issue: existing.number, mutated: false, status: location.status }
 
@@ -1315,21 +1352,14 @@ export async function publish(client: Client, options: publish.Options): Promise
         if (location.status === 'created') {
           await client.issues.update({
             ...split(repo),
-            body: preserveBodySuffix(body, location.body),
+            body: updatedBody,
             issue_number: existing.number,
             title: entry.title,
           })
         } else {
           await client.issues.updateComment({
             ...split(repo),
-            body: renderRecurrence({
-              body: entry.body,
-              marker,
-              occurrence,
-              provenance,
-              report,
-              revision,
-            }),
+            body: updatedBody,
             comment_id: location.comment,
           })
         }

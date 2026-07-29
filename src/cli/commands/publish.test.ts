@@ -45,18 +45,60 @@ test('behavior: files a pending entry and writes the link back', async () => {
   })
 })
 
-test('behavior: skips entries already linked', async () => {
+test('behavior: updates an already-linked entry in place', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github()
+  await Store.write({ body, severity: 'minor', title: 'Already filed' }, { id: 'a', root: cwd })
+
+  await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
   await Store.write(
-    { body, issue: `${repo}#7`, severity: 'minor', title: 'Already filed' },
+    {
+      body: 'Updated details.',
+      issue: `${repo}#1`,
+      severity: 'major',
+      title: 'Updated title',
+    },
     { id: 'a', root: cwd },
   )
 
   const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
 
-  expect(result).toMatchObject({ commented: [], created: [], deferred: [] })
-  expect(instance.issues.get(repo)).toBeUndefined()
+  expect(result).toMatchObject({
+    commented: [],
+    committed: false,
+    created: [{ id: 'a', issue: `${repo}#1`, title: 'Updated title' }],
+    deferred: [],
+  })
+  expect(instance.issues.get(repo)).toHaveLength(1)
+  expect(instance.issues.get(repo)?.[0]?.title).toBe('Updated title')
+  expect(Github.parseBody(instance.issues.get(repo)?.[0]?.body)).toBe('Updated details.')
+  expect(Github.parseMarker(instance.issues.get(repo)?.[0]?.body)?.severity).toBe('major')
+  expect(instance.comments(repo, 1)).toEqual([])
+})
+
+test('behavior: defers an invalid linked issue without mutating it', async () => {
+  const cwd = await helpers.repo({ remote })
+  const instance = await github({ [repo]: [{ title: 'Unrelated issue' }] })
+  await Store.write(
+    { body, issue: `${repo}#1`, severity: 'minor', title: 'Already filed' },
+    { id: 'a', root: cwd },
+  )
+
+  const result = await cli.data<Outcome>(['publish', '--cwd', cwd], env(instance.url))
+
+  expect(result).toMatchObject({
+    commented: [],
+    created: [],
+    deferred: [
+      {
+        code: 'LINK_INVALID',
+        id: 'a',
+        reason: 'The linked issue `wevm/demo#1` is missing or does not carry this Frog report.',
+      },
+    ],
+  })
+  expect(instance.issues.get(repo)?.[0]?.title).toBe('Unrelated issue')
+  expect(instance.comments(repo, 1)).toEqual([])
 })
 
 test('behavior: comments rather than duplicating when an issue already covers it', async () => {
