@@ -27,6 +27,8 @@ export type Field = {
   options?: readonly string[] | undefined
   /** Whether the project requires an answer. */
   required: boolean
+  /** Checkbox choices that the project requires individually. */
+  requiredOptions?: readonly string[] | undefined
 }
 
 /** A project's issue form, reduced to what authoring an entry needs. */
@@ -202,22 +204,25 @@ function toField(element: Element): Field | undefined {
   const label = element.attributes?.label
   if (typeof label !== 'string' || !label) return undefined
 
-  const options = element.attributes?.options
+  const parsedOptions = element.attributes?.options
     ?.map((option) =>
       typeof option === 'string'
-        ? option
+        ? { label: option, required: false }
         : typeof (option as { label?: unknown })?.label === 'string'
-          ? (option as { label: string }).label
+          ? {
+              label: (option as { label: string }).label,
+              required: (option as { required?: unknown }).required === true,
+            }
           : undefined,
     )
-    .filter((option): option is string => Boolean(option))
+    .filter((option): option is { label: string; required: boolean } => option !== undefined)
+  const options = parsedOptions?.map((option) => option.label)
+  const requiredOptions =
+    kind === 'checkboxes'
+      ? parsedOptions?.filter((option) => option.required).map((option) => option.label)
+      : undefined
 
-  // A checkbox carries `required` per option, and any one of them makes the field required.
-  const required =
-    element.validations?.required === true ||
-    (element.attributes?.options ?? []).some(
-      (option) => (option as { required?: unknown })?.required === true,
-    )
+  const required = element.validations?.required === true || Boolean(requiredOptions?.length)
 
   const description = element.attributes?.description
 
@@ -227,5 +232,6 @@ function toField(element: Element): Field | undefined {
     required,
     ...(typeof description === 'string' && description ? { description } : {}),
     ...(options?.length ? { options } : {}),
+    ...(requiredOptions?.length ? { requiredOptions } : {}),
   }
 }

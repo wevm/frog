@@ -4,7 +4,7 @@ import * as Cache from '../../Cache.js'
 import * as Config from '../../Config.js'
 import type * as Github from '../../Github.js'
 import * as GithubModule from '../../Github.js'
-import type * as Target from '../../Target.js'
+import * as Target from '../../Target.js'
 
 /** Concurrent config lookups, bounded so a large dependency list does not open one socket each. */
 const concurrency = 8
@@ -40,6 +40,20 @@ export declare namespace resolvers {
     /** Where to keep config lookups. Absent reads fresh every time. */
     store?: Cache.Cache | undefined
   }
+}
+
+/**
+ * Resolves a target to its declared repository using local data only.
+ *
+ * Repository targets need no lookup. Package targets read their installed `package.json`.
+ *
+ * @param value - Target as written.
+ * @param root - Repository root, holding `node_modules`.
+ * @returns The declared repository, or `undefined` when a package cannot be resolved.
+ */
+export async function repository(value: string, root: string): Promise<string | undefined> {
+  const { kind, name } = Target.classify(value)
+  return kind === 'repo' ? name : repoOf(name, root)
 }
 
 /**
