@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.11
+
+### Patch Changes
+
+- ecd5969: Updated setup documentation and generated agent guidance to prefer standalone installation while retaining project package-manager commands.
+
 ## 1.0.10
 
 ### Patch Changes
