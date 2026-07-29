@@ -82,9 +82,9 @@ irm https://frog.fm/install.ps1 | iex
 Or install Frog globally:
 
 ```sh
-npm install --global frog
-pnpm add --global frog
-bun add --global frog
+npm install -g frog
+pnpm add -g frog
+bun add -g frog
 ```
 
 ### 2. Initialize Frog
@@ -103,6 +103,8 @@ pnpx frog init
 bunx frog init
 yarn dlx frog init
 ```
+
+You can use these runners with any Frog command, e.g. `npx frog list`.
 
 Frog supports two automation methods. If an agent is doing the setup, it should prompt the user before
 changing repository access or adding a workflow:
