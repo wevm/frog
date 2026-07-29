@@ -1,5 +1,11 @@
 # frog
 
+## 1.0.10
+
+### Patch Changes
+
+- cbe013a: Added standalone executables with verified installers, short install URLs, and in-place updates.
+
 ## 1.0.9
 
 ### Patch Changes
