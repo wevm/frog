@@ -21,7 +21,7 @@ export type Options = {
   client: Client
   /** Isolates independent consumers sharing one table. */
   namespace: string
-  /** PostgreSQL schema. Defaults to `public`. */
+  /** Optional PostgreSQL schema. Omit it to use the client's current search path. */
   schema?: string | undefined
 }
 
@@ -34,9 +34,9 @@ type Row = {
 
 /** Creates the tables required by the Postgres adapter. Safe to call repeatedly. */
 export async function migrate(options: Options): Promise<void> {
-  const schema = schemaName(options.schema)
+  const schema = options.schema === undefined ? undefined : schemaName(options.schema)
   const table = tableName(schema)
-  if (schema !== 'public') await options.client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`)
+  if (schema !== undefined) await options.client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`)
   await options.client.query(
     `CREATE TABLE IF NOT EXISTS ${table} (
        namespace text NOT NULL,
@@ -147,15 +147,14 @@ function newId(title: string): string {
   return `${Entry.newId({ title })}-${randomUUID().slice(0, 8)}`
 }
 
-function schemaName(schema = 'public'): string {
+function schemaName(schema: string): string {
   if (!/^[a-z_][a-z0-9_]*$/i.test(schema))
     throw new Error('Postgres schema must be a SQL identifier.')
   return schema
 }
 
-function tableName(schema = 'public'): string {
-  schema = schemaName(schema)
-  return `"${schema}"."frog_entries"`
+function tableName(schema?: string): string {
+  return schema === undefined ? '"frog_entries"' : `"${schemaName(schema)}"."frog_entries"`
 }
 
 function required(value: string, name: string): string {

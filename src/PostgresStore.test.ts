@@ -113,6 +113,19 @@ describe('PostgresStore', () => {
     expect(client.queries[1]).toContain('UNIQUE (namespace, dedupe_key)')
   })
 
+  test('behavior: an omitted schema follows the client search path', async () => {
+    const client = new FakeClient()
+    await PostgresStore.migrate({ client, namespace: 'unused' })
+    expect(client.queries).toHaveLength(1)
+    expect(client.queries[0]).toContain('CREATE TABLE IF NOT EXISTS "frog_entries"')
+
+    const log = new FrictionLog({
+      store: PostgresStore.adapter({ client, namespace: 'consumer-a' }),
+    })
+    await log.record(friction)
+    expect(client.queries.at(-1)).toContain('INSERT INTO "frog_entries"')
+  })
+
   test('behavior: records, deduplicates, updates, lists, and removes through the public API', async () => {
     const client = new FakeClient()
     const log = new FrictionLog({

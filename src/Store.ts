@@ -34,10 +34,7 @@ export type Adapter = {
   /** Reads one entry. */
   get(id: string): Promise<Entry.Entry>
   /** Writes an entry, optionally replacing a known id. */
-  write(
-    entry: Entry.serialize.Options,
-    options?: AdapterWriteOptions,
-  ): Promise<write.ReturnType>
+  write(entry: Entry.serialize.Options, options?: AdapterWriteOptions): Promise<write.ReturnType>
   /** Removes an entry and reports whether it existed. */
   remove(id: string): Promise<boolean>
   /** Lists adapter-owned artifact locations, when the adapter supports artifacts. */

@@ -207,7 +207,9 @@ const unresolved = await frog.records() // canonical entries with deduplicated o
 Run `PostgresStore.migrate({ client, namespace })` from the consumer's migration process before using
 the adapter. It creates one `frog_entries` table; `namespace` isolates independent applications sharing
 that table. The adapter accepts the small `query` interface implemented by `pg` pools and transaction
-clients, so Frog does not install a database driver or own connection credentials.
+clients, so Frog does not install a database driver or own connection credentials. With no `schema`,
+queries follow the client's current Postgres search path. Pass an explicit `schema` to create and fully
+qualify the table there.
 
 Every store implements the exported `FrictionStore` contract. Custom stores can retain entries in a
 remote service, SQLite, or another database. An adapter may provide atomic `record` behavior; otherwise
