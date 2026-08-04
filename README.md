@@ -188,7 +188,7 @@ across database backends. PostgreSQL is the first built-in database, with more o
 #### Usage
 
 Frog stores entries in `.agents/friction-log/` by default. Set `FROG_DATABASE_URL` to use PostgreSQL
-instead, then run the idempotent migration once:
+instead.
 
 ```sh
 FROG_DATABASE_URL=postgres://... frog migrate
