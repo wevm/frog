@@ -180,9 +180,18 @@ ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as 
 frog list
 ```
 
-### Store Logs in Postgres
+### Store Logs in a Database
 
-Frog stores entries in `.agents/friction-log/` by default. Set `FROG_DATABASE_URL` to use Postgres
+Frog provides an isomorphic storage API: application code uses the same `Frog` and `Store` contracts
+across database backends. PostgreSQL is the first built-in database, with more on the way.
+
+| Database   | Status      | Factory                                |
+| ---------- | ----------- | -------------------------------------- |
+| PostgreSQL | Available   | `Store.postgres({ connectionString })` |
+| SQLite     | Coming soon | —                                      |
+| MySQL      | Coming soon | —                                      |
+
+Frog stores entries in `.agents/friction-log/` by default. Set `FROG_DATABASE_URL` to use PostgreSQL
 instead, then run the idempotent migration once:
 
 ```sh
@@ -215,9 +224,9 @@ const unresolved = await frog.logs() // canonical entries with deduplicated occu
 await store.close()
 ```
 
-Every store implements `Store.Store` and preserves the same `Entry` fields. Use `Store.from` to adapt a
-remote service, SQLite database, or another backend. Storage metadata such as occurrence counts stays
-outside the entry schema. Repository and GitHub automation—artifacts, `list --since`,
+Every store implements `Store.Store` and preserves the same `Entry` fields. Use `Store.from` to adapt an
+unsupported database or remote service today. Storage metadata such as occurrence counts stays outside
+the entry schema. Repository and GitHub automation—artifacts, `list --since`,
 `log --open`, `log --publish`, `publish`, and `sync`—remains available only with the file store.
 
 ### Logging Upstream
