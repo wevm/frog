@@ -28,7 +28,10 @@ export const cli = Cli.create('frog', {
       .describe('Postgres URL. Its presence selects the Postgres store.'),
     FROG_NAMESPACE: z.string().optional().describe('Postgres namespace. Defaults to `default`.'),
     FROG_SCHEMA: z.string().optional().describe('Optional Postgres schema.'),
-    FROG_STORE: z.enum(['file', 'postgres']).optional().describe('Override the inferred entry store.'),
+    FROG_STORE: z
+      .enum(['file', 'postgres'])
+      .optional()
+      .describe('Override the inferred entry store.'),
   }),
   sync: {
     depth: 1,
