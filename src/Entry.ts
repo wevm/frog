@@ -157,9 +157,7 @@ export function serialize(entry: serialize.Options): string {
     {
       title,
       severity,
-      ...(normalizedContext && Object.keys(normalizedContext).length
-        ? { context: normalizedContext }
-        : {}),
+      ...(normalizedContext === undefined ? {} : { context: normalizedContext }),
       ...(target ? { target } : {}),
       ...(labels?.length ? { labels } : {}),
       ...(issue ? { issue } : {}),

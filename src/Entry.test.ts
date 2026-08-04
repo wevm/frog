@@ -166,6 +166,12 @@ describe('round trip', () => {
     { body: 'Body.', severity: 'minor', title: 'emoji 🎉 and — dashes' },
     {
       body: 'Body.',
+      context: {},
+      severity: 'minor',
+      title: 'empty context',
+    },
+    {
+      body: 'Body.',
       context: {
         attempts: 2,
         flags: [true, false, null],

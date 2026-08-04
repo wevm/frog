@@ -80,6 +80,20 @@ describe('postgres', () => {
     expect(repeated.entry.id).toBe(first.entry.id)
   })
 
+  test('behavior: colliding title edits preserve independent entry identity', async () => {
+    const store = await postgres.store()
+    const frog = Frog.create({ store })
+    const first = await frog.log(friction)
+    const second = await frog.log({ ...friction, title: 'Different friction' })
+
+    await store.write({ ...friction, title: 'Different friction' }, { id: first.entry.id })
+    const repeated = await frog.log({ ...friction, title: 'different friction!' })
+
+    expect(await store.get(first.entry.id)).toMatchObject({ title: 'Different friction' })
+    expect(repeated).toMatchObject({ created: false, occurrences: 2 })
+    expect(repeated.entry.id).toBe(second.entry.id)
+  })
+
   test('behavior: namespaces isolate consumers and force preserves intentional duplicates', async () => {
     const first = Frog.create({ store: postgres.create({ namespace: 'one' }) })
     const second = Frog.create({ store: postgres.create({ namespace: 'two' }) })
@@ -122,6 +136,15 @@ describe('postgres', () => {
         schema: 'public; DROP TABLE users',
       }),
     ).toThrow('Postgres schema must be a SQL identifier.')
+  })
+
+  test('error: rejects schema names PostgreSQL would truncate', () => {
+    expect(() =>
+      Store.postgres({
+        connectionString: postgres.connectionString(),
+        schema: `s${'a'.repeat(63)}`,
+      }),
+    ).toThrow('Postgres schema must be at most 63 bytes.')
   })
 
   test('behavior: consumer context round trips without Frog interpreting it', () => {

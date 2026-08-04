@@ -401,8 +401,8 @@ type PostgresRow = {
 export function postgres(options: postgres.Options): Store {
   const connectionString = required(options.connectionString, 'connectionString')
   const namespace = required(options.namespace ?? 'default', 'namespace')
-  const sql = postgresjs(connectionString)
   const schema = options.schema === undefined ? undefined : schemaName(options.schema)
+  const sql = postgresjs(connectionString)
   const table =
     schema === undefined ? sql('frog_entries') : sql`${sql(schema)}.${sql('frog_entries')}`
   let closing: Promise<void> | undefined
@@ -472,12 +472,19 @@ export function postgres(options: postgres.Options): Store {
       const dedupeKey = `entry:${id}`
       const titleKey = `title:${Entry.normalizeTitle(entry.title)}`
       await sql`
-        INSERT INTO ${table}(namespace, id, dedupe_key, contents)
+        INSERT INTO ${table} AS existing(namespace, id, dedupe_key, contents)
         VALUES (${namespace}, ${id}, ${dedupeKey}, ${Entry.serialize(entry)})
         ON CONFLICT(namespace, id) DO UPDATE SET
           dedupe_key = CASE
-            WHEN ${table}.dedupe_key LIKE 'title:%' THEN ${titleKey}
-            ELSE ${table}.dedupe_key
+            WHEN existing.dedupe_key LIKE 'title:%' AND NOT EXISTS (
+              SELECT 1
+              FROM ${table} AS duplicate
+              WHERE duplicate.namespace = ${namespace}
+                AND duplicate.dedupe_key = ${titleKey}
+                AND duplicate.id <> ${id}
+            ) THEN ${titleKey}
+            WHEN existing.dedupe_key LIKE 'title:%' THEN ${dedupeKey}
+            ELSE existing.dedupe_key
           END,
           contents = EXCLUDED.contents,
           updated_at = now()
@@ -534,6 +541,7 @@ function newPostgresId(title: string): string {
 function schemaName(schema: string): string {
   if (!/^[a-z_][a-z0-9_]*$/i.test(schema))
     throw new Error('Postgres schema must be a SQL identifier.')
+  if (schema.length > 63) throw new Error('Postgres schema must be at most 63 bytes.')
   return schema
 }
 
