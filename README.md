@@ -195,31 +195,6 @@ FROG_DATABASE_URL=postgres://... frog migrate
 FROG_DATABASE_URL=postgres://... frog list
 ```
 
-Frog includes Postgres.js and owns the store's connection pool. `FROG_NAMESPACE` can isolate several
-consumers in one database (it defaults to `default`), and
-`FROG_SCHEMA` can place the table in a specific schema. An unrelated application `DATABASE_URL` does
-not change Frog's default store.
-
-Applications use the same store through the programmatic API. Frog runs the idempotent migration
-before its first store operation:
-
-```ts
-import { Frog, Store } from 'frog'
-
-const store = Store.postgres({ connectionString: process.env.DATABASE_URL! })
-const frog = Frog.create({ store })
-
-const result = await frog.log({
-  title: 'Search result omitted its freshness',
-  body: 'The caller could not tell when the result was collected.',
-  severity: 'major',
-  context: { source: 'production-agent', execution: 'opaque-reference' },
-})
-
-const unresolved = await frog.logs() // canonical entries with deduplicated occurrence counts
-await store.close()
-```
-
 #### Database Support
 
 | Database      | Status      | Factory                                |
