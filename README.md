@@ -220,8 +220,9 @@ logs through one API while choosing where they live. Repository files are the de
 supported today, and SQLite and Cloudflare D1 are planned.
 
 ```sh
-FROG_DATABASE_URL=postgres://... frog migrate
-FROG_DATABASE_URL=postgres://... frog list
+export FROG_DATABASE_URL=postgres://...
+frog migrate
+frog list
 ```
 
 #### Database Support
