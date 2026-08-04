@@ -26,6 +26,35 @@ function env(url: string): Record<string, string> {
   return { GITHUB_API_URL: url, GITHUB_TOKEN: 'test-token' }
 }
 
+test('error: repository reconciliation requires the file store', async () => {
+  const store = Store.from({
+    name: 'remote',
+    read: async () => [],
+    get: async () => {
+      throw new Error('unused')
+    },
+    write: async () => ({ id: 'unused', location: 'unused' }),
+    remove: async () => false,
+  })
+  const cwd = await helpers.repo({ remote })
+
+  expect((await cli.error(['sync', '--cwd', cwd], {}, { store })).code).toBe(
+    'STORE_UNSUPPORTED_COMMAND',
+  )
+})
+
+test('error: an injected file store must match the command root', async () => {
+  const cwd = await helpers.repo({ remote })
+  const storageRoot = await helpers.repo({ remote })
+  const store = Store.file({ root: storageRoot })
+
+  expect(await cli.error(['sync', '--cwd', cwd], {}, { store })).toMatchObject({
+    code: 'STORE_ROOT_MISMATCH',
+  })
+  expect(await Store.list({ root: cwd })).toEqual([])
+  expect(await Store.list({ root: storageRoot })).toEqual([])
+})
+
 function issueBody(id: string, body = 'Body.', severity?: Entry.Severity): string {
   return Github.renderBody({
     body,

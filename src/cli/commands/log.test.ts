@@ -5,11 +5,63 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import * as Postgres from '../../../test/postgres.js'
 import * as Config from '../../Config.js'
 import * as Store from '../../Store.js'
 
 const title = '`pnpm test -- <files>` ignores file filters'
 const body = '## Description\n\nThe filter was swallowed.'
+const postgres = Postgres.get()
+
+test('error: immediate publishing requires the file store', async () => {
+  const store = await postgres.store()
+  const cwd = await helpers.repo()
+
+  expect(
+    (await cli.error(['log', title, '--body', body, '--publish', '--cwd', cwd], {}, { store }))
+      .code,
+  ).toBe('STORE_UNSUPPORTED_OPTION')
+})
+
+test('behavior: durable-store follow-up does not suggest repository publishing', async () => {
+  const store = await postgres.store()
+  const cwd = await helpers.repo()
+
+  expect(
+    (await cli.run(['log', title, '--body', body, '--cwd', cwd], {}, { store })).envelope,
+  ).toMatchObject({
+    meta: { cta: { commands: [{ command: 'frog list' }] } },
+    ok: true,
+  })
+})
+
+test('behavior: durable-store logging atomically records repeated titles', async () => {
+  const store = await postgres.store()
+  const cwd = await helpers.repo()
+
+  const first = await cli.data<Logged>(['log', title, '--body', body, '--cwd', cwd], {}, { store })
+  const repeated = await cli.data<Logged>(
+    ['log', title.toUpperCase(), '--body', 'Later details.', '--cwd', cwd],
+    {},
+    { store },
+  )
+
+  expect(repeated.id).toBe(first.id)
+  expect(repeated.title).toBe(title)
+  expect(await store.records()).toMatchObject([{ occurrences: 2 }])
+})
+
+test('error: an injected file store must match the command root', async () => {
+  const cwd = await helpers.repo()
+  const storageRoot = await helpers.repo()
+  const store = Store.file({ root: storageRoot })
+
+  expect(
+    await cli.error(['log', title, '--body', body, '--cwd', cwd], {}, { store }),
+  ).toMatchObject({ code: 'STORE_ROOT_MISMATCH' })
+  expect(await Store.list({ root: cwd })).toEqual([])
+  expect(await Store.list({ root: storageRoot })).toEqual([])
+})
 const ownForm = [
   'name: Friction',
   'body:',

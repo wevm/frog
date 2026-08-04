@@ -7,10 +7,12 @@ catalog:
   '@cloudflare/workers-types': ^4.20260701.0
   '@clack/prompts': ^1.7.0
   '@octokit/rest': ^22.0.1
+  '@testcontainers/postgresql': ^12.0.4
   '@types/node': latest
   '@vitest/coverage-v8': latest
   incur: 0.4.25
   octokit: ^5.0.5
+  postgres: ^3.4.9
   tsx: ^4.23.1
   typescript: latest
   vite-plus: latest
@@ -19,7 +21,10 @@ catalog:
   zile: latest
 
 allowBuilds:
+  cpu-features: false
   esbuild: true
+  protobufjs: false
+  ssh2: false
   workerd: true
 
 minimumReleaseAgeExclude:

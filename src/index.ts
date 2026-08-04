@@ -10,6 +10,9 @@ export * as Config from './Config.js'
 /** The entry format: frontmatter, body, ids, and title normalization. */
 export * as Entry from './Entry.js'
 
+/** Storage-independent friction logging for embedded consumers. */
+export * as Frog from './Frog.js'
+
 /** Parses a project's GitHub issue form and renders the entry scaffold it implies. */
 export * as IssueForm from './IssueForm.js'
 
@@ -25,7 +28,7 @@ export * as Mirrors from './Mirrors.js'
 /** Reading and writing entries under `.agents/friction-log`. */
 export * as Store from './Store.js'
 
-/** Reconciling local entries against issue state, as a pure plan both adapters can apply. */
+/** Reconciling local entries against issue state, as a pure plan both stores can apply. */
 export * as Sync from './Sync.js'
 
 /** Resolving where an entry's issue belongs, and every consent gate on the way. */

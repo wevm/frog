@@ -14,8 +14,37 @@ export type Severity = (typeof severities)[number]
 /** Schema for {@link Severity}. */
 export const Severity = z.enum(severities)
 
+/** Recursive value that Frog can serialize and restore without changing its meaning. */
+export type ContextValue =
+  | boolean
+  | null
+  | number
+  | string
+  | readonly ContextValue[]
+  | { readonly [key: string]: ContextValue }
+
+/** Schema for {@link ContextValue}. */
+export const ContextValue: z.ZodType<ContextValue> = z.lazy(() =>
+  z.union([
+    z.boolean(),
+    z.null(),
+    z.number().finite(),
+    z.string(),
+    z.array(ContextValue),
+    z.record(z.string(), ContextValue),
+  ]),
+)
+
+/** Consumer-defined structured context stored without interpretation. */
+export type Context = Readonly<Record<string, ContextValue>>
+
+/** Schema for {@link Context}. */
+export const Context: z.ZodType<Context> = z.record(z.string(), ContextValue)
+
 /** Frontmatter of an entry's write-up. */
 export type Frontmatter = {
+  /** Consumer-defined structured context. Frog stores it but does not interpret it. */
+  context?: Context | undefined
   /** Linked issue as `owner/name#number`. Written by publishing, absent while pending. */
   issue?: string | undefined
   /** Extra issue labels, applied on top of the configured and severity labels. */
@@ -39,6 +68,7 @@ export type Frontmatter = {
  * annotation stops the hand-written type and the schema drifting.
  */
 export const Frontmatter: z.ZodType<Frontmatter> = z.object({
+  context: Context.optional(),
   issue: z
     .string()
     .regex(/^[\w.-]+\/[\w.-]+#\d+$/)
@@ -65,6 +95,8 @@ export type Entry = Frontmatter & {
  */
 const frontmatterRegex = /\s*---([^]*?)\n\s*---(\s*(?:\n|$)[^]*)/
 
+const NoYamlAliases = z.custom<never>(() => false, 'YAML aliases are not supported.')
+
 /**
  * Parses an entry's write-up.
  *
@@ -85,13 +117,30 @@ export function parse(contents: string, options: parse.Options): Entry {
   if (!match) throw new MalformedError({ id })
   const [, frontmatter = '', body = ''] = match
 
-  const data = (() => {
+  const document = (() => {
     try {
-      return YAML.parse(frontmatter)
+      const parsed = YAML.parseDocument(frontmatter)
+      const error = parsed.errors[0]
+      if (error) throw error
+      return parsed
     } catch (error) {
       throw new MalformedError({ cause: error as Error, id })
     }
   })()
+
+  let hasAlias = false
+  YAML.visit(document, {
+    Alias() {
+      hasAlias = true
+      return YAML.visit.BREAK
+    },
+  })
+  if (hasAlias) {
+    const result = NoYamlAliases.safeParse(undefined)
+    if (!result.success) throw new InvalidError({ id, issues: result.error.issues })
+  }
+
+  const data = document.toJS({ maxAliasCount: 0 })
 
   const result = Frontmatter.safeParse(data)
   if (!result.success) throw new InvalidError({ id, issues: result.error.issues })
@@ -121,11 +170,13 @@ export declare namespace parse {
  * @returns File contents, ready to write. Absent optional fields are omitted, not written empty.
  */
 export function serialize(entry: serialize.Options): string {
-  const { body, issue, labels, severity, target, title } = entry
+  const { body, context, issue, labels, severity, target, title } = entry
+  const normalizedContext = context === undefined ? undefined : Context.parse(context)
   const frontmatter = YAML.stringify(
     {
       title,
       severity,
+      ...(normalizedContext === undefined ? {} : { context: normalizedContext }),
       ...(target ? { target } : {}),
       ...(labels?.length ? { labels } : {}),
       ...(issue ? { issue } : {}),

@@ -1,4 +1,5 @@
 import { serve } from '../src/cli/Cli.js'
+import type * as Store from '../src/Store.js'
 
 export type Result = {
   /** Exit code, or `undefined` when the command never exited non-zero. */
@@ -7,6 +8,11 @@ export type Result = {
   envelope: Envelope
   /** Raw stdout. */
   stdout: string
+}
+
+export type Options = {
+  /** Store injected into commands that persist friction. */
+  store?: Store.Store | undefined
 }
 
 type Envelope =
@@ -22,11 +28,13 @@ type Envelope =
 export async function run(
   argv: readonly string[],
   env: Record<string, string | undefined> = {},
+  options: Options = {},
 ): Promise<Result> {
   let stdout = ''
   let code: number | undefined
   await serve([...argv, '--json', '--full-output'], {
     env,
+    ...options,
     exit(value) {
       code ??= value
     },
@@ -41,8 +49,9 @@ export async function run(
 export async function data<value = Record<string, unknown>>(
   argv: readonly string[],
   env?: Record<string, string | undefined>,
+  options?: Options,
 ): Promise<value> {
-  const result = await run(argv, env)
+  const result = await run(argv, env, options)
   if (!result.envelope.ok)
     throw new Error(`Expected success, got ${result.envelope.error.code}: ${result.stdout}`)
   return result.envelope.data as value
@@ -52,8 +61,9 @@ export async function data<value = Record<string, unknown>>(
 export async function error(
   argv: readonly string[],
   env?: Record<string, string | undefined>,
+  options?: Options,
 ): Promise<{ code: string; message: string }> {
-  const result = await run(argv, env)
+  const result = await run(argv, env, options)
   if (result.envelope.ok) throw new Error(`Expected failure, got ${result.stdout}`)
   return result.envelope.error
 }

@@ -10,8 +10,10 @@ import * as Sync from '../../Sync.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
 import * as publisher from '../internal/publish.js'
+import * as environmentStore from '../internal/store.js'
 
 export const sync = Cli.create('sync', {
+  vars: environmentStore.vars,
   description: 'Reconcile entries against issue state.',
   env: z.object({
     GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
@@ -69,8 +71,21 @@ export const sync = Cli.create('sync', {
   }),
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
+    const store = c.var.store ?? Store.file({ root })
 
-    const entries = await attempt(Store.read({ root }))
+    if (store.name !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_COMMAND',
+        message:
+          '`sync` requires the repository file store because reconciliation mirrors are repository-owned.',
+      })
+    if (store.root !== root)
+      return c.error({
+        code: 'STORE_ROOT_MISMATCH',
+        message: 'The injected file store must use the same root as `--cwd`.',
+      })
+
+    const entries = await attempt(store.read())
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
     const mirrors = await attempt(Mirrors.resolve({ root }))
     if (!mirrors.ok) return c.error({ code: mirrors.code, message: mirrors.message })
@@ -183,9 +198,9 @@ export const sync = Cli.create('sync', {
         })
 
       await Git.rm(plan.remove.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
-      for (const id of plan.remove) await Store.remove(id, { root })
+      for (const id of plan.remove) await store.remove(id)
       for (const entry of [...plan.write, ...plan.clearLink])
-        await Store.write(entry, { id: entry.id, root })
+        await store.write(entry, { id: entry.id })
       if (mirrorsChanged) await Mirrors.write(nextMirrors, { root })
 
       const touched = [...plan.write, ...plan.clearLink].map((entry) => Store.toPath(entry.id))
@@ -367,10 +382,10 @@ export const sync = Cli.create('sync', {
     // goes, artifacts included. `ignoreUnmatch` covers entries that were never committed; those are
     // removed from disk below.
     await Git.rm(removedIds.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
-    for (const id of removedIds) await Store.remove(id, { root })
+    for (const id of removedIds) await store.remove(id)
 
     for (const entry of [...plan.write, ...plan.clearLink])
-      await Store.write(entry, { id: entry.id, root })
+      await store.write(entry, { id: entry.id })
     if (mirrorsChanged) await Mirrors.write(nextMirrors, { root })
 
     const touched = [...plan.write, ...plan.clearLink].map((entry) => Store.toPath(entry.id))

@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "tsx": "catalog:",
@@ -62,6 +63,7 @@
     "@clack/prompts": "catalog:",
     "@octokit/rest": "catalog:",
     "incur": "catalog:",
+    "postgres": "catalog:",
     "yaml": "catalog:"
   },
   "engines": {

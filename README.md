@@ -213,6 +213,26 @@ Accept friction reported by other repositories with `.agents/friction-log/config
 `frog init` enables inbound reports by default. Run `frog init --no-inbound` to initialize without
 accepting inbound reports.
 
+### Store Logs in a Database
+
+Frog separates friction logging from persistence, so agents and applications can record and inspect
+logs through one API while choosing where they live. Repository files are the default, PostgreSQL is
+supported today, and SQLite and Cloudflare D1 are planned.
+
+```sh
+export FROG_DATABASE_URL=postgres://...
+frog migrate
+frog list
+```
+
+#### Database Support
+
+| Database      | Status      | Factory                                |
+| ------------- | ----------- | -------------------------------------- |
+| PostgreSQL    | Available   | `Store.postgres({ connectionString })` |
+| SQLite        | Coming soon | —                                      |
+| Cloudflare D1 | Coming soon | —                                      |
+
 ## CLI Reference
 
 ```
@@ -224,7 +244,9 @@ Commands:
   init     Create the friction log, config, and issue form.
   list     List entries with their state.
   log      Write a friction entry.
+  migrate  Create or upgrade the selected store.
   publish  Report pending entries as GitHub issues.
+  resolve  Remove one resolved friction entry.
   sync     Reconcile entries against issue state.
   targets  List dependencies that accept friction reports.
 

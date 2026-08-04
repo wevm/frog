@@ -30,6 +30,7 @@ export async function repo(options: repo.Options = {}): Promise<string> {
   await git(['init', '--initial-branch=main'], dir)
   await git(['config', 'user.name', 'Test User'], dir)
   await git(['config', 'user.email', 'test@example.com'], dir)
+  await git(['config', 'commit.gpgsign', 'false'], dir)
   if (options.remote) await git(['remote', 'add', 'origin', options.remote], dir)
   return dir
 }

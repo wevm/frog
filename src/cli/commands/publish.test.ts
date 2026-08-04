@@ -23,6 +23,23 @@ function env(url: string): Record<string, string> {
   return { GITHUB_API_URL: url, GITHUB_TOKEN: 'test-token' }
 }
 
+test('error: repository publishing requires the file store', async () => {
+  const store = Store.from({
+    name: 'remote',
+    read: async () => [],
+    get: async () => {
+      throw new Error('unused')
+    },
+    write: async () => ({ id: 'unused', location: 'unused' }),
+    remove: async () => false,
+  })
+  const cwd = await helpers.repo({ remote })
+
+  expect((await cli.error(['publish', '--cwd', cwd], {}, { store })).code).toBe(
+    'STORE_UNSUPPORTED_COMMAND',
+  )
+})
+
 test('behavior: files a pending entry and writes the link back', async () => {
   const cwd = await helpers.repo({ remote })
   const instance = await github()

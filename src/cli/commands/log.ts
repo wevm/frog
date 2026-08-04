@@ -1,6 +1,7 @@
 import * as clack from '@clack/prompts'
 import { Cli, z } from 'incur'
 import * as Entry from '../../Entry.js'
+import * as Frog from '../../Frog.js'
 import * as IssueForm from '../../IssueForm.js'
 import * as Store from '../../Store.js'
 import * as Target from '../../Target.js'
@@ -9,6 +10,7 @@ import * as context from '../internal/context.js'
 import * as form from '../internal/form.js'
 import * as prompt from '../internal/prompt.js'
 import * as publisher from '../internal/publish.js'
+import * as environmentStore from '../internal/store.js'
 import * as stdin from '../internal/stdin.js'
 import * as target from '../internal/target.js'
 
@@ -40,6 +42,7 @@ async function promptSeverity(): Promise<Entry.Severity> {
 }
 
 export const log = Cli.create('log', {
+  vars: environmentStore.vars,
   description: 'Write a friction entry.',
   args: z.object({
     title: z.string().min(1).optional().describe('One line, specific enough to search for.'),
@@ -99,8 +102,9 @@ export const log = Cli.create('log', {
   output: z.object({
     artifacts: z
       .string()
+      .optional()
       .describe('Directory for reproduction files. Not created until something writes there.'),
-    file: z.string().describe('Path of the entry, relative to the repository root.'),
+    file: z.string().describe('Store location of the entry.'),
     id: z.string(),
     issue: z.string().optional().describe('Linked issue, when --publish filed one.'),
     title: z.string(),
@@ -111,7 +115,25 @@ export const log = Cli.create('log', {
   }),
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
+    const store = c.var.store ?? Store.file({ root })
     const interactive = prompt.interactive()
+    if (store.name === 'file' && store.root !== undefined && store.root !== root)
+      return c.error({
+        code: 'STORE_ROOT_MISMATCH',
+        message: 'The injected file store must use the same root as `--cwd`.',
+      })
+    if (c.options.publish && store.name !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_OPTION',
+        message: '`--publish` is available only with the repository file store.',
+      })
+    const opensEditor = c.options.open ?? (interactive && !c.options.body)
+    if (opensEditor && store.name !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_OPTION',
+        message:
+          '`--open` is available only with the repository file store. Pass `--body` instead.',
+      })
 
     // Piped input carries the whole entry, shaped like a commit message. It keeps `log` usable
     // without a terminal, where a prompt cannot run at all.
@@ -145,9 +167,10 @@ export const log = Cli.create('log', {
     const ownTarget = !c.options.target || (repo !== undefined && targetRepo === repo)
 
     // Always load this repository's configured form from disk so a supplied body cannot bypass it.
-    const own = ownTarget
-      ? await attempt(form.own(root, { named: config.inbound.template }))
-      : undefined
+    const own =
+      ownTarget && store.name === 'file'
+        ? await attempt(form.own(root, { named: config.inbound.template }))
+        : undefined
 
     // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
     // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
@@ -217,13 +240,15 @@ export const log = Cli.create('log', {
         },
       })
 
-    const entries = await attempt(Store.read({ root }))
-    if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
+    const entries = store.log ? undefined : await attempt(store.read())
+    if (entries && !entries.ok) return c.error({ code: entries.code, message: entries.message })
 
-    // Catch the repeat at authoring time, the only point where it is cheap.
-    const duplicate = entries.value.find(
-      (entry) => Entry.normalizeTitle(entry.title) === Entry.normalizeTitle(title),
-    )
+    // Stores without atomic logging still catch the repeat at authoring time, where it is cheap.
+    const duplicate = entries?.ok
+      ? entries.value.find(
+          (entry) => Entry.normalizeTitle(entry.title) === Entry.normalizeTitle(title),
+        )
+      : undefined
     if (duplicate && !c.options.force)
       return c.error({
         code: 'DUPLICATE_FRICTION',
@@ -241,16 +266,21 @@ export const log = Cli.create('log', {
 
     const severity = c.options.severity ?? (promptedSeverity?.ok ? promptedSeverity.value : 'minor')
 
-    const { file, id } = await Store.write(
-      {
-        body: body ?? scaffold ?? Entry.template,
-        severity,
-        title,
-        ...(c.options.label?.length ? { labels: c.options.label } : {}),
-        ...(c.options.target ? { target: c.options.target } : {}),
-      },
-      { root },
+    const logged = await attempt(
+      Frog.create({ store }).log(
+        {
+          body: body ?? scaffold ?? Entry.template,
+          severity,
+          title,
+          ...(c.options.label?.length ? { labels: c.options.label } : {}),
+          ...(c.options.target ? { target: c.options.target } : {}),
+        },
+        { force: c.options.force },
+      ),
     )
+    if (!logged.ok) return c.error({ code: logged.code, message: logged.message })
+    const { id, title: loggedTitle } = logged.value.entry
+    const file = logged.value.location
 
     // Reached interactively, or on request. The editor is the long-form input path.
     if (c.options.open ?? (interactive && !body)) {
@@ -258,7 +288,7 @@ export const log = Cli.create('log', {
         prompt
           .edit(`${root}/${file}`, { command: c.env.VISUAL ?? c.env.EDITOR ?? 'vi' })
           // Re-read so a body broken in the editor fails here rather than at publish time.
-          .then(() => Store.get(id, { root })),
+          .then(() => store.get(id)),
       )
       if (!edited.ok) return c.error({ code: edited.code, message: edited.message })
       const editedBodyError = validateBody(edited.value.body)
@@ -267,19 +297,26 @@ export const log = Cli.create('log', {
 
     if (!c.options.publish)
       return c.ok(
-        { artifacts: Store.toArtifacts(id), file, id, title },
+        {
+          ...(store.name === 'file' ? { artifacts: Store.toArtifacts(id) } : {}),
+          file,
+          id,
+          title: loggedTitle,
+        },
         {
           cta: {
             commands: [
               { command: 'list', description: 'See everything recorded' },
-              { command: 'publish', description: 'File it as an issue now' },
+              ...(store.name === 'file'
+                ? [{ command: 'publish', description: 'File it as an issue now' }]
+                : []),
             ],
             description: 'Next:',
           },
         },
       )
 
-    const entry = await attempt(Store.get(id, { root }))
+    const entry = await attempt(store.get(id))
     if (!entry.ok) return c.error({ code: entry.code, message: entry.message })
     const publishBodyError = validateBody(entry.value.body)
     if (publishBodyError) return c.error(publishBodyError)
@@ -335,7 +372,7 @@ export const log = Cli.create('log', {
         artifacts: Store.toArtifacts(id),
         file,
         id,
-        title,
+        title: entry.value.title,
         ...(filed.ok && 'issue' in filed.value ? { issue: filed.value.issue } : {}),
         ...(unfiled ? { unfiled } : {}),
       },

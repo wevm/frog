@@ -87,6 +87,16 @@ The filter was swallowed.
       `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. issue: Invalid string: must match pattern /^[\\w.-]+\\/[\\w.-]+#\\d+$/]`,
     )
   })
+
+  test('error: rejects YAML aliases before validating recursive context', () => {
+    expect(() =>
+      Entry.parse("---\ntitle: 'Slow'\ncontext: &context\n  self: *context\n---\n\nBody.\n", {
+        id,
+      }),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. frontmatter: YAML aliases are not supported.]`,
+    )
+  })
 })
 
 describe('serialize', () => {
@@ -139,6 +149,20 @@ describe('serialize', () => {
       Entry.serialize({ body: 'Body.', labels: [], severity: 'minor', title: 'Slow' }),
     ).not.toContain('labels')
   })
+
+  test.each([new Date(), new Map(), undefined, 1n])(
+    'error: rejects context values that cannot round trip: %o',
+    (value) => {
+      expect(() =>
+        Entry.serialize({
+          body: 'Body.',
+          context: { value } as unknown as Entry.Context,
+          severity: 'minor',
+          title: 'Slow',
+        }),
+      ).toThrow()
+    },
+  )
 })
 
 describe('round trip', () => {
@@ -150,6 +174,22 @@ describe('round trip', () => {
     { body: 'Body.', severity: 'minor', title: '@scope/pkg: 100% broken #1 @ 3:00' },
     { body: 'Body.', severity: 'minor', title: 'no: yes, true, null, ~, 0x1' },
     { body: 'Body.', severity: 'minor', title: 'emoji 🎉 and — dashes' },
+    {
+      body: 'Body.',
+      context: {},
+      severity: 'minor',
+      title: 'empty context',
+    },
+    {
+      body: 'Body.',
+      context: {
+        attempts: 2,
+        flags: [true, false, null],
+        source: { kind: 'agent', version: '1' },
+      },
+      severity: 'minor',
+      title: 'structured context',
+    },
     {
       body: '## Description\n\nMulti\n\nline\n\n```ts\nconst a = 1\n```',
       issue: 'wevm/viem#4821',

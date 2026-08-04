@@ -1,14 +1,49 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { tmpdir, writeFile } from '../test/helpers.js'
+import { storeContract } from '../test/storeContract.js'
+import type * as Entry from './Entry.js'
 import * as Store from './Store.js'
 
 const entry = "---\ntitle: 'Filters are ignored'\n---\n\nBody.\n"
+
+storeContract('file', async () => Store.file({ root: await tmpdir() }))
 
 /** Writes an entry's write-up, creating its directory. */
 function write(id: string, root: string, contents = entry) {
   return writeFile(Store.toPath(id), contents, root)
 }
+
+test('behavior: from derives optional operations for a custom store', async () => {
+  const entries = new Map<string, Entry.Entry>()
+  const store = Store.from({
+    name: 'memory',
+    read: async () => [...entries.values()],
+    get: async (id) => entries.get(id)!,
+    write: async (value, options = {}) => {
+      const id = options.id ?? 'memory-id'
+      entries.set(id, { ...value, id })
+      return { id, location: `memory:${id}` }
+    },
+    remove: async (id) => entries.delete(id),
+  })
+  const value = { body: 'Body.', severity: 'minor', title: 'Scoped' } as const
+
+  expect(store.tracksOccurrences).toBe(false)
+  expect(store.location('memory-id')).toBe('memory-id')
+  await expect(store.migrate()).resolves.toBeUndefined()
+  await expect(store.close()).resolves.toBeUndefined()
+  await expect(store.write(value)).resolves.toEqual({
+    id: 'memory-id',
+    location: 'memory:memory-id',
+  })
+  await expect(store.list()).resolves.toEqual(['memory-id'])
+  await expect(store.records()).resolves.toEqual([
+    { entry: { ...value, id: 'memory-id' }, occurrences: 1 },
+  ])
+  await expect(store.files('memory-id')).resolves.toEqual([])
+  await expect(store.remove('memory-id')).resolves.toBe(true)
+})
 
 describe('write', () => {
   test('behavior: mints an id and returns the repo-relative path', async () => {
@@ -93,7 +128,8 @@ describe('write', () => {
 describe('list', () => {
   test('behavior: returns sorted ids and skips non-entries', async () => {
     const root = await tmpdir()
-    for (const id of ['apple', 'zebra', 'middle', '.hidden']) await write(id, root)
+    for (const id of ['apple', 'zebra', 'middle']) await write(id, root)
+    await writeFile(`${Store.dir}/.hidden/${Store.filename}`, entry, root)
     for (const name of ['README.md', 'TEMPLATE.md', 'config.json', 'notes.txt'])
       await writeFile(`${Store.dir}/${name}`, entry, root)
 
@@ -110,6 +146,15 @@ describe('list', () => {
     const root = await tmpdir()
     await write('real', root)
     await writeFile(`${Store.toArtifacts('stray')}/repro.ts`, 'export {}\n', root)
+
+    expect(await Store.list({ root })).toEqual(['real'])
+  })
+
+  test('behavior: unsafe directory names are ignored', async () => {
+    const root = await tmpdir()
+    await write('real', root)
+    for (const id of ['trailing.', 'trailing ', 'nested\\alias'])
+      await writeFile(`${Store.dir}/${id}/${Store.filename}`, entry, root)
 
     expect(await Store.list({ root })).toEqual(['real'])
   })
@@ -178,6 +223,31 @@ describe('remove', () => {
 describe('toDir', () => {
   test('behavior: builds a repo-relative directory', () => {
     expect(Store.toDir('lazy-squids-chew')).toBe('.agents/friction-log/lazy-squids-chew')
+  })
+
+  test('error: rejects path traversal', () => {
+    expect(() => Store.toDir('..')).toThrowErrorMatchingInlineSnapshot(
+      `[Store.InvalidIdError: Friction entry id \`..\` is not path-safe.]`,
+    )
+    expect(() => Store.toDir('../outside')).toThrow()
+    expect(() => Store.toDir('nested\\outside')).toThrow()
+  })
+})
+
+describe('isId', () => {
+  test.each([
+    ['entry', true],
+    ['entry-2', true],
+    ['', false],
+    ['.hidden', false],
+    ['..', false],
+    ['entry.', false],
+    ['entry ', false],
+    ['../outside', false],
+    ['nested/outside', false],
+    ['nested\\outside', false],
+  ])('behavior: %s', (id, expected) => {
+    expect(Store.isId(id)).toBe(expected)
   })
 })
 
