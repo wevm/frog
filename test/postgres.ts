@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql'
-import { Pool } from 'pg'
+import postgresjs from 'postgres'
 import * as Store from '../src/Store.js'
 
 const image = 'postgres:18-alpine'
@@ -8,13 +8,13 @@ const image = 'postgres:18-alpine'
 /** Starts one isolated Postgres container for the importing test file. */
 export function get(): get.ReturnType {
   let container: StartedPostgreSqlContainer | undefined
-  let client: Pool | undefined
+  let client: postgresjs.Sql | undefined
   let connectionString: string | undefined
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer(image).start()
     connectionString = container.getConnectionUri()
-    client = new Pool({ connectionString })
+    client = postgresjs(connectionString)
   }, 120_000)
 
   afterAll(async () => {
@@ -68,8 +68,8 @@ export declare namespace get {
 
   /** Container-backed Postgres test fixture. */
   type ReturnType = {
-    /** Returns the connected pool after the test hook starts the container. */
-    readonly client: () => Pool
+    /** Returns the connected Postgres.js client after the test hook starts the container. */
+    readonly client: () => postgresjs.Sql
     /** Returns the container connection string after the test hook starts the container. */
     readonly connectionString: () => string
     /** Creates an unmigrated store with an isolated namespace. */

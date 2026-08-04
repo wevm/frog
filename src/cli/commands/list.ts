@@ -94,7 +94,10 @@ export const list = Cli.create('list', {
     const listed = await Promise.all(
       selected.map(async (entry) => {
         const files = await store.files(entry.id)
-        const artifacts = files.filter((file) => file.startsWith(`${Store.toArtifacts(entry.id)}/`))
+        const artifacts =
+          store.name === 'file'
+            ? files.filter((file) => file.startsWith(`${Store.toArtifacts(entry.id)}/`))
+            : [...files]
         return {
           id: entry.id,
           ...(store.tracksOccurrences ? { occurrences: occurrences.get(entry.id) ?? 1 } : {}),

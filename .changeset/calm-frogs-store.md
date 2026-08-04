@@ -2,7 +2,7 @@
 'frog': minor
 ---
 
-Added pluggable friction stores, a Postgres factory, and the `Frog.create` logging API.
+Added pluggable friction stores, a Postgres.js-backed `Store.postgres({ connectionString })` factory, and the `Frog.create` logging API.
 
 ```ts
 import { Frog, Store } from 'frog'

@@ -50,6 +50,18 @@ test('behavior: durable-store logging atomically records repeated titles', async
   expect(repeated.title).toBe(title)
   expect(await store.records()).toMatchObject([{ occurrences: 2 }])
 })
+
+test('error: an injected file store must match the command root', async () => {
+  const cwd = await helpers.repo()
+  const storageRoot = await helpers.repo()
+  const store = Store.file({ root: storageRoot })
+
+  expect(
+    await cli.error(['log', title, '--body', body, '--cwd', cwd], {}, { store }),
+  ).toMatchObject({ code: 'STORE_ROOT_MISMATCH' })
+  expect(await Store.list({ root: cwd })).toEqual([])
+  expect(await Store.list({ root: storageRoot })).toEqual([])
+})
 const ownForm = [
   'name: Friction',
   'body:',

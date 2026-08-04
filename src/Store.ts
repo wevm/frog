@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { Pool } from 'pg'
+import postgresjs from 'postgres'
 import * as Entry from './Entry.js'
 
 /** Directory holding entries, relative to the repository root. */
@@ -53,6 +53,8 @@ export type LogResult = StoredEntry & {
 export type Store = {
   /** Stable store name for diagnostics and capability checks. */
   readonly name: string
+  /** Repository root when the store is bound to local files. */
+  readonly root?: string | undefined
   /** Whether the store preserves occurrence counts beyond the canonical entry. */
   readonly tracksOccurrences: boolean
   /** Prepares store-owned storage. Safe to call repeatedly. */
@@ -91,6 +93,7 @@ export type LogOptions = {
 export function from(value: from.Value): Store {
   return {
     name: value.name,
+    ...(value.root !== undefined ? { root: value.root } : {}),
     tracksOccurrences: value.tracksOccurrences ?? value.records !== undefined,
     migrate: value.migrate ?? (async () => {}),
     close: value.close ?? (async () => {}),
@@ -113,6 +116,8 @@ export declare namespace from {
   type Value = {
     /** Stable store name for diagnostics and capability checks. */
     readonly name: string
+    /** Repository root when the store is bound to local files. */
+    readonly root?: string | undefined
     /** Whether the store preserves occurrence counts beyond the canonical entry. */
     readonly tracksOccurrences?: boolean | undefined
     /** Lists every entry in stable id order. */
@@ -144,17 +149,19 @@ export declare namespace from {
 
 /** Binds the repository-file store to one root. */
 export function file(options: file.Options): Store {
+  const root = path.resolve(options.root)
   return from({
     name: 'file',
-    read: () => read(options),
-    list: () => list(options),
-    get: (id) => get(id, options),
+    root,
+    read: () => read({ root }),
+    list: () => list({ root }),
+    get: (id) => get(id, { root }),
     write: async (entry, writeOptions = {}) => {
-      const written = await write(entry, { ...writeOptions, root: options.root })
+      const written = await write(entry, { ...writeOptions, root })
       return { id: written.id, location: written.file }
     },
-    remove: (id) => remove(id, options),
-    files: (id) => files(id, options),
+    remove: (id) => remove(id, { root }),
+    files: (id) => files(id, { root }),
     location: toPath,
   })
 }
@@ -259,7 +266,7 @@ export async function list(options: Options): Promise<readonly string[]> {
     })
 
   const ids = found
-    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    .filter((entry) => entry.isDirectory() && isId(entry.name))
     .map((entry) => entry.name)
     .sort()
 
@@ -394,16 +401,19 @@ type PostgresRow = {
 export function postgres(options: postgres.Options): Store {
   const connectionString = required(options.connectionString, 'connectionString')
   const namespace = required(options.namespace ?? 'default', 'namespace')
-  const table = tableName(options.schema)
-  const client = new Pool({ allowExitOnIdle: true, connectionString })
+  const sql = postgresjs(connectionString)
+  const schema = options.schema === undefined ? undefined : schemaName(options.schema)
+  const table =
+    schema === undefined ? sql('frog_entries') : sql`${sql(schema)}.${sql('frog_entries')}`
   let closing: Promise<void> | undefined
 
   const get = async (id: string): Promise<Entry.Entry> => {
-    const result = await client.query<PostgresRow>(
-      `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 AND id = $2`,
-      [namespace, id],
-    )
-    const row = result.rows[0]
+    const result = await sql<PostgresRow[]>`
+      SELECT id, contents, occurrence_count
+      FROM ${table}
+      WHERE namespace = ${namespace} AND id = ${id}
+    `
+    const row = result[0]
     if (!row) throw notFoundError(id)
     return Entry.parse(row.contents, { id: row.id })
   }
@@ -412,89 +422,88 @@ export function postgres(options: postgres.Options): Store {
     name: 'postgres',
     tracksOccurrences: true,
     location: (id) => postgresLocation(namespace, id),
-    close: () => (closing ??= client.end()),
+    close: () => (closing ??= sql.end()),
     async migrate() {
-      if (options.schema !== undefined)
-        await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName(options.schema)}"`)
-      await client.query(
-        `CREATE TABLE IF NOT EXISTS ${table} (
-           namespace text NOT NULL,
-           id text NOT NULL,
-           dedupe_key text NOT NULL,
-           contents text NOT NULL,
-           occurrence_count integer NOT NULL DEFAULT 1 CHECK (occurrence_count > 0),
-           created_at timestamptz NOT NULL DEFAULT now(),
-           updated_at timestamptz NOT NULL DEFAULT now(),
-           PRIMARY KEY (namespace, id),
-           UNIQUE (namespace, dedupe_key)
-         )`,
-      )
+      if (schema !== undefined) await sql`CREATE SCHEMA IF NOT EXISTS ${sql(schema)}`
+      await sql`
+        CREATE TABLE IF NOT EXISTS ${table} (
+          namespace text NOT NULL,
+          id text NOT NULL,
+          dedupe_key text NOT NULL,
+          contents text NOT NULL,
+          occurrence_count integer NOT NULL DEFAULT 1 CHECK (occurrence_count > 0),
+          created_at timestamptz NOT NULL DEFAULT now(),
+          updated_at timestamptz NOT NULL DEFAULT now(),
+          PRIMARY KEY (namespace, id),
+          UNIQUE (namespace, dedupe_key)
+        )
+      `
     },
     async read() {
-      const result = await client.query<PostgresRow>(
-        `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 ORDER BY id`,
-        [namespace],
-      )
-      return result.rows.map((row) => Entry.parse(row.contents, { id: row.id }))
+      const result = await sql<PostgresRow[]>`
+        SELECT id, contents, occurrence_count
+        FROM ${table}
+        WHERE namespace = ${namespace}
+        ORDER BY id
+      `
+      return result.map((row) => Entry.parse(row.contents, { id: row.id }))
     },
     async records() {
-      const result = await client.query<PostgresRow>(
-        `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 ORDER BY id`,
-        [namespace],
-      )
-      return result.rows.map((row) => ({
+      const result = await sql<PostgresRow[]>`
+        SELECT id, contents, occurrence_count
+        FROM ${table}
+        WHERE namespace = ${namespace}
+        ORDER BY id
+      `
+      return result.map((row) => ({
         entry: Entry.parse(row.contents, { id: row.id }),
         occurrences: Number(row.occurrence_count),
       }))
     },
     async list() {
-      const result = await client.query<{ id: string }>(
-        `SELECT id FROM ${table} WHERE namespace = $1 ORDER BY id`,
-        [namespace],
-      )
-      return result.rows.map((row) => row.id)
+      const result = await sql<{ id: string }[]>`
+        SELECT id FROM ${table} WHERE namespace = ${namespace} ORDER BY id
+      `
+      return result.map((row) => row.id)
     },
     get,
     async write(entry, writeOptions = {}) {
       const id = writeOptions.id ?? newPostgresId(entry.title)
       const dedupeKey = `entry:${id}`
       const titleKey = `title:${Entry.normalizeTitle(entry.title)}`
-      await client.query(
-        `INSERT INTO ${table}(namespace, id, dedupe_key, contents)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT(namespace, id) DO UPDATE SET
-           dedupe_key = CASE
-             WHEN ${table}.dedupe_key LIKE 'title:%' THEN $5
-             ELSE ${table}.dedupe_key
-           END,
-           contents = EXCLUDED.contents,
-           updated_at = now()`,
-        [namespace, id, dedupeKey, Entry.serialize(entry), titleKey],
-      )
+      await sql`
+        INSERT INTO ${table}(namespace, id, dedupe_key, contents)
+        VALUES (${namespace}, ${id}, ${dedupeKey}, ${Entry.serialize(entry)})
+        ON CONFLICT(namespace, id) DO UPDATE SET
+          dedupe_key = CASE
+            WHEN ${table}.dedupe_key LIKE 'title:%' THEN ${titleKey}
+            ELSE ${table}.dedupe_key
+          END,
+          contents = EXCLUDED.contents,
+          updated_at = now()
+      `
       return { id, location: postgresLocation(namespace, id) }
     },
     async remove(id) {
-      const result = await client.query<{ id: string }>(
-        `DELETE FROM ${table} WHERE namespace = $1 AND id = $2 RETURNING id`,
-        [namespace, id],
-      )
-      return result.rows.length > 0
+      const result = await sql<{ id: string }[]>`
+        DELETE FROM ${table} WHERE namespace = ${namespace} AND id = ${id} RETURNING id
+      `
+      return result.length > 0
     },
     async log(entry, logOptions = {}) {
       const id = newPostgresId(entry.title)
       const dedupeKey = logOptions.force
         ? `forced:${id}`
         : `title:${Entry.normalizeTitle(entry.title)}`
-      const result = await client.query<PostgresRow>(
-        `INSERT INTO ${table}(namespace, id, dedupe_key, contents)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT(namespace, dedupe_key) DO UPDATE SET
-           occurrence_count = ${table}.occurrence_count + 1,
-           updated_at = now()
-         RETURNING id, contents, occurrence_count, (occurrence_count = 1) AS created`,
-        [namespace, id, dedupeKey, Entry.serialize(entry)],
-      )
-      const row = result.rows[0]
+      const result = await sql<PostgresRow[]>`
+        INSERT INTO ${table}(namespace, id, dedupe_key, contents)
+        VALUES (${namespace}, ${id}, ${dedupeKey}, ${Entry.serialize(entry)})
+        ON CONFLICT(namespace, dedupe_key) DO UPDATE SET
+          occurrence_count = ${table}.occurrence_count + 1,
+          updated_at = now()
+        RETURNING id, contents, occurrence_count, (occurrence_count = 1) AS created
+      `
+      const row = result[0]
       if (!row) throw new Error('Postgres did not return the logged friction entry.')
       return {
         created: row.created === true,
@@ -526,10 +535,6 @@ function schemaName(schema: string): string {
   if (!/^[a-z_][a-z0-9_]*$/i.test(schema))
     throw new Error('Postgres schema must be a SQL identifier.')
   return schema
-}
-
-function tableName(schema?: string): string {
-  return schema === undefined ? '"frog_entries"' : `"${schemaName(schema)}"."frog_entries"`
 }
 
 function required(value: string, name: string): string {

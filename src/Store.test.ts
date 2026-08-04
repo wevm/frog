@@ -150,6 +150,15 @@ describe('list', () => {
     expect(await Store.list({ root })).toEqual(['real'])
   })
 
+  test('behavior: unsafe directory names are ignored', async () => {
+    const root = await tmpdir()
+    await write('real', root)
+    for (const id of ['trailing.', 'trailing ', 'nested\\alias'])
+      await writeFile(`${Store.dir}/${id}/${Store.filename}`, entry, root)
+
+    expect(await Store.list({ root })).toEqual(['real'])
+  })
+
   test('behavior: a missing directory is not an error', async () => {
     expect(await Store.list({ root: await tmpdir() })).toEqual([])
   })

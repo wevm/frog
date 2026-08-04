@@ -190,7 +190,8 @@ FROG_DATABASE_URL=postgres://... frog migrate
 FROG_DATABASE_URL=postgres://... frog list
 ```
 
-`FROG_NAMESPACE` can isolate several consumers in one database (it defaults to `default`), and
+Frog includes Postgres.js and owns the store's connection pool. `FROG_NAMESPACE` can isolate several
+consumers in one database (it defaults to `default`), and
 `FROG_SCHEMA` can place the table in a specific schema. An unrelated application `DATABASE_URL` does
 not change Frog's default store.
 

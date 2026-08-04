@@ -117,6 +117,11 @@ export const log = Cli.create('log', {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const store = c.var.store ?? Store.file({ root })
     const interactive = prompt.interactive()
+    if (store.name === 'file' && store.root !== undefined && store.root !== root)
+      return c.error({
+        code: 'STORE_ROOT_MISMATCH',
+        message: 'The injected file store must use the same root as `--cwd`.',
+      })
     if (c.options.publish && store.name !== 'file')
       return c.error({
         code: 'STORE_UNSUPPORTED_OPTION',

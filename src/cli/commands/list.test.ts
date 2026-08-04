@@ -111,6 +111,34 @@ test('behavior: a custom store without recurrence metadata omits occurrence coun
   expect(result.entries[0]).not.toHaveProperty('occurrences')
 })
 
+test('behavior: custom stores expose opaque artifact locations', async () => {
+  const entry = { body, id: 'ticket/123', severity: 'minor', title: 'Opaque id' } as const
+  const store = Store.from({
+    name: 'remote',
+    read: async () => [entry],
+    get: async () => entry,
+    write: async () => ({ id: entry.id, location: entry.id }),
+    remove: async () => false,
+    files: async () => ['remote://ticket/123/repro.ts'],
+  })
+
+  const result = await cli.data<{ entries: { artifacts?: string[]; id: string }[] }>(
+    ['list', '--cwd', await helpers.repo()],
+    {},
+    { store },
+  )
+
+  expect(result.entries).toEqual([
+    {
+      artifacts: ['remote://ticket/123/repro.ts'],
+      id: 'ticket/123',
+      severity: 'minor',
+      state: 'pending',
+      title: 'Opaque id',
+    },
+  ])
+})
+
 test('behavior: filters by state', async () => {
   const cwd = await helpers.repo()
   await seed(cwd)

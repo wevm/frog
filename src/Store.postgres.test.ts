@@ -18,17 +18,17 @@ describe('postgres', () => {
     const client = postgres.client()
     const store = postgres.create({ namespace: 'consumer-a', schema: 'frog' })
     const table = async () =>
-      client.query<{ table_name: string }>(
-        `SELECT table_name
-         FROM information_schema.tables
-         WHERE table_schema = 'frog' AND table_name = 'frog_entries'`,
-      )
+      client<{ table_name: string }[]>`
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'frog' AND table_name = 'frog_entries'
+      `
 
-    await expect(table()).resolves.toMatchObject({ rows: [] })
+    await expect(table()).resolves.toEqual([])
     await store.migrate()
     await store.migrate()
 
-    await expect(table()).resolves.toMatchObject({ rows: [{ table_name: 'frog_entries' }] })
+    await expect(table()).resolves.toEqual([{ table_name: 'frog_entries' }])
   })
 
   test('behavior: an omitted schema follows the client search path', async () => {
@@ -39,12 +39,12 @@ describe('postgres', () => {
     await store.migrate()
     await frog.log(friction)
 
-    const result = await client.query<{ table_schema: string }>(
-      `SELECT table_schema
-       FROM information_schema.tables
-       WHERE table_schema = current_schema() AND table_name = 'frog_entries'`,
-    )
-    expect(result.rows).toEqual([{ table_schema: 'public' }])
+    const result = await client<{ table_schema: string }[]>`
+      SELECT table_schema
+      FROM information_schema.tables
+      WHERE table_schema = current_schema() AND table_name = 'frog_entries'
+    `
+    expect(result).toEqual([{ table_schema: 'public' }])
   })
 
   test('behavior: logs, deduplicates, updates, lists, and removes', async () => {

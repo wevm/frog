@@ -15,7 +15,6 @@
     "@changesets/cli": "catalog:",
     "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
-    "@types/pg": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
@@ -64,7 +63,7 @@
     "@clack/prompts": "catalog:",
     "@octokit/rest": "catalog:",
     "incur": "catalog:",
-    "pg": "catalog:",
+    "postgres": "catalog:",
     "yaml": "catalog:"
   },
   "engines": {
