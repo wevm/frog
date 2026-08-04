@@ -198,27 +198,27 @@ not change Frog's default store.
 Applications use the same store through the programmatic API:
 
 ```ts
-import { FrictionLog, PostgresStore } from 'frog'
+import { Frog, Store } from 'frog'
 import { Pool } from 'pg'
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-await PostgresStore.migrate({ client: pool })
-const store = PostgresStore.adapter({ client: pool, namespace: 'support-agent' })
-const frog = new FrictionLog({ store })
+const client = new Pool({ connectionString: process.env.DATABASE_URL })
+const store = Store.postgres(client, { namespace: 'support-agent' })
+await store.migrate()
+const frog = Frog.create({ store })
 
-const result = await frog.record({
+const result = await frog.log({
   title: 'Search result omitted its freshness',
   body: 'The caller could not tell when the result was collected.',
   severity: 'major',
   context: { source: 'production-agent', execution: 'opaque-reference' },
 })
 
-const unresolved = await frog.records() // canonical entries with deduplicated occurrence counts
+const unresolved = await frog.logs() // canonical entries with deduplicated occurrence counts
 ```
 
-Every store implements the exported `FrictionStore` contract and preserves the same `Entry` fields.
-Storage metadata such as occurrence counts stays outside that entry schema. Custom adapters can use a
-remote service, SQLite, or another database. Repository and GitHub automation—artifacts, `list --since`,
+Every store implements `Store.Store` and preserves the same `Entry` fields. Use `Store.from` to adapt a
+remote service, SQLite database, or another backend. Storage metadata such as occurrence counts stays
+outside the entry schema. Repository and GitHub automation—artifacts, `list --since`,
 `log --open`, `log --publish`, `publish`, and `sync`—remains available only with the file store.
 
 ### Logging Upstream

@@ -1,11 +1,14 @@
 import { createRequire } from 'node:module'
-import * as PostgresStore from '../../PostgresStore.js'
-import type * as Store from '../../Store.js'
+import { z } from 'incur'
+import * as Store from '../../Store.js'
 
 export type Environment = Record<string, string | undefined>
 
+/** Middleware variables shared by commands that persist friction. */
+export const vars = z.object({ store: z.custom<Store.Store>().optional() })
+
 export type Selection = {
-  adapter: Store.Adapter
+  store: Store.Store
   close(): Promise<void>
 }
 
@@ -38,7 +41,7 @@ export async function resolve(env: Environment): Promise<Selection | undefined> 
   if (selected.kind === 'file') return undefined
 
   const require = createRequire(import.meta.url)
-  let Pool: new (options: { connectionString: string }) => PostgresStore.Client & {
+  let Pool: new (options: { connectionString: string }) => Store.postgres.Client & {
     end(): Promise<void>
   }
   try {
@@ -48,8 +51,7 @@ export async function resolve(env: Environment): Promise<Selection | undefined> 
   }
   const client = new Pool({ connectionString: selected.connectionString })
   return {
-    adapter: PostgresStore.adapter({
-      client,
+    store: Store.postgres(client, {
       namespace: selected.namespace,
       ...(selected.schema ? { schema: selected.schema } : {}),
     }),

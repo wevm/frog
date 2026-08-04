@@ -7,6 +7,7 @@ import * as Target from '../../Target.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
 import * as publisher from '../internal/publish.js'
+import * as environmentStore from '../internal/store.js'
 import * as target from '../internal/target.js'
 
 /** Normalizes `--pr` into `owner/name#number`, accepting a bare number. */
@@ -15,6 +16,7 @@ function toPr(value: string, repo: string): string {
 }
 
 export const publish = Cli.create('publish', {
+  vars: environmentStore.vars,
   description: 'Publish friction entries as GitHub issues.',
   env: z.object({
     GH_TOKEN: z.string().optional().describe('Fallback when GITHUB_TOKEN is unset.'),
@@ -73,15 +75,16 @@ export const publish = Cli.create('publish', {
   }),
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
+    const store = c.var.store ?? Store.file({ root })
 
-    if (Store.activeName() !== 'file')
+    if (store.name !== 'file')
       return c.error({
         code: 'STORE_UNSUPPORTED_COMMAND',
         message:
           '`publish` requires the repository file store because issue reconciliation is repository-owned.',
       })
 
-    const entries = await attempt(Store.read({ root }))
+    const entries = await attempt(store.read())
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
 
     const deferred: { code: string; id: string; reason: string }[] = []

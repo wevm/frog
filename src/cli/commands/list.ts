@@ -3,11 +3,13 @@ import * as Git from '../../Git.js'
 import * as Store from '../../Store.js'
 import { attempt } from '../internal/attempt.js'
 import * as context from '../internal/context.js'
+import * as environmentStore from '../internal/store.js'
 
 /** Local state of an entry. Remote issue state arrives with `sync`. */
 const State = z.enum(['linked', 'pending'])
 
 export const list = Cli.create('list', {
+  vars: environmentStore.vars,
   description: 'List entries with their state.',
   options: z.object({
     cwd: context.cwdOption,
@@ -46,15 +48,16 @@ export const list = Cli.create('list', {
   }),
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
+    const store = c.var.store ?? Store.file({ root })
 
-    if (c.options.since && Store.activeName() !== 'file')
+    if (c.options.since && store.name !== 'file')
       return c.error({
         code: 'STORE_UNSUPPORTED_OPTION',
         message: '`--since` is available only with the repository file store.',
       })
 
     // Both `c.error` calls stay at the top level of `run`. See `internal/attempt.ts` for why.
-    const records = await attempt(Store.records({ root }))
+    const records = await attempt(store.records())
     if (!records.ok)
       return c.error({
         code: records.code,
@@ -90,11 +93,11 @@ export const list = Cli.create('list', {
 
     const listed = await Promise.all(
       selected.map(async (entry) => {
-        const files = await Store.files(entry.id, { root })
+        const files = await store.files(entry.id)
         const artifacts = files.filter((file) => file.startsWith(`${Store.toArtifacts(entry.id)}/`))
         return {
           id: entry.id,
-          ...(Store.activeName() === 'file' ? {} : { occurrences: occurrences.get(entry.id) ?? 1 }),
+          ...(store.tracksOccurrences ? { occurrences: occurrences.get(entry.id) ?? 1 } : {}),
           severity: entry.severity,
           state: entry.issue ? ('linked' as const) : ('pending' as const),
           title: entry.title,

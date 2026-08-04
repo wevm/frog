@@ -1,4 +1,4 @@
-import { Binary, Cli, z } from 'incur'
+import { Binary, Cli, middleware, z } from 'incur'
 import { init } from './commands/init.js'
 import { list } from './commands/list.js'
 import { log } from './commands/log.js'
@@ -10,7 +10,7 @@ import { targets } from './commands/targets.js'
 import * as context from './internal/context.js'
 import * as packageManager from './internal/packageManager.js'
 import * as environmentStore from './internal/store.js'
-import * as Store from '../Store.js'
+import type * as Store from '../Store.js'
 
 const globalOptionValues = new Set([
   '--filter-output',
@@ -21,56 +21,81 @@ const globalOptionValues = new Set([
 
 const storedCommands = new Set(['list', 'log', 'migrate', 'publish', 'resolve', 'sync'])
 const introspectionOptions = new Set(['--help', '--llms', '--llms-full', '--schema', '--version'])
-
-export const cli = Cli.create('frog', {
-  description: 'Automated friction logging for agents.',
-  env: z.object({
-    FROG_DATABASE_URL: z
-      .string()
-      .optional()
-      .describe('Postgres URL. Its presence selects the Postgres store.'),
-    FROG_NAMESPACE: z.string().optional().describe('Postgres namespace. Defaults to `default`.'),
-    FROG_SCHEMA: z.string().optional().describe('Optional Postgres schema.'),
-  }),
-  sync: {
-    depth: 1,
-    suggestions: [
-      'log the friction I just hit',
-      'show me which of my dependencies accept friction reports',
-    ],
-  },
-  update: Binary.github({ repository: 'wevm/frog' }),
+const envSchema = z.object({
+  FROG_DATABASE_URL: z
+    .string()
+    .optional()
+    .describe('Postgres URL. Its presence selects the Postgres store.'),
+  FROG_NAMESPACE: z.string().optional().describe('Postgres namespace. Defaults to `default`.'),
+  FROG_SCHEMA: z.string().optional().describe('Optional Postgres schema.'),
 })
-  .command(init)
-  .command(list)
-  .command(log)
-  .command(migrate)
-  .command(publish)
-  .command(resolve)
-  .command(sync)
-  .command(targets)
+
+/** Creates the CLI with one optional store for commands that persist friction. */
+export function create(options: create.Options = {}) {
+  return Cli.create('frog', {
+    description: 'Automated friction logging for agents.',
+    env: envSchema,
+    vars: environmentStore.vars,
+    sync: {
+      depth: 1,
+      suggestions: [
+        'log the friction I just hit',
+        'show me which of my dependencies accept friction reports',
+      ],
+    },
+    update: Binary.github({ repository: 'wevm/frog' }),
+  })
+    .use(
+      middleware<typeof environmentStore.vars, typeof envSchema>(async (context, next) => {
+        if (options.store) context.set('store', options.store)
+        await next()
+      }),
+    )
+    .command(init)
+    .command(list)
+    .command(log)
+    .command(migrate)
+    .command(publish)
+    .command(resolve)
+    .command(sync)
+    .command(targets)
+}
+
+export declare namespace create {
+  type Options = {
+    /** Store injected into commands that persist friction. The file store is derived per command by default. */
+    store?: Store.Store | undefined
+  }
+}
+
+export const cli = create()
 
 /** Serves init with the project runner when one is detected. */
-export async function serve(
-  argv: string[] = process.argv.slice(2),
-  options: Cli.serve.Options = {},
-) {
-  const selected = usesStore(argv)
-    ? await environmentStore.resolve(options.env ?? process.env)
-    : undefined
+export async function serve(argv: string[] = process.argv.slice(2), options: serve.Options = {}) {
+  const { store, ...serveOptions } = options
+  const selected =
+    store === undefined && usesStore(argv)
+      ? await environmentStore.resolve(options.env ?? process.env)
+      : undefined
+  const commandStore = store ?? selected?.store
+  const runnerCli = create(commandStore ? { store: commandStore } : {})
   const run = async () => {
-    if (command(argv) !== 'init') return cli.serve(argv, options)
+    if (command(argv) !== 'init') return runnerCli.serve(argv, serveOptions)
 
     const { root } = await context.resolve({ cwd: option(argv, '--cwd') })
     const runner = await packageManager.resolve({ env: options.env, root })
-    if (!runner) return cli.serve(argv, options)
-    return Cli.create(runner).command(init).serve(argv, options)
+    if (!runner) return runnerCli.serve(argv, serveOptions)
+    return Cli.create(runner).command(init).serve(argv, serveOptions)
   }
   try {
-    return selected ? await Store.withAdapter(selected.adapter, run) : await run()
+    return await run()
   } finally {
     await selected?.close()
   }
+}
+
+export declare namespace serve {
+  type Options = Cli.serve.Options & create.Options
 }
 
 export default cli

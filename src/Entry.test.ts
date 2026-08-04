@@ -139,6 +139,20 @@ describe('serialize', () => {
       Entry.serialize({ body: 'Body.', labels: [], severity: 'minor', title: 'Slow' }),
     ).not.toContain('labels')
   })
+
+  test.each([new Date(), new Map(), undefined, 1n])(
+    'error: rejects context values that cannot round trip: %o',
+    (value) => {
+      expect(() =>
+        Entry.serialize({
+          body: 'Body.',
+          context: { value } as unknown as Entry.Context,
+          severity: 'minor',
+          title: 'Slow',
+        }),
+      ).toThrow()
+    },
+  )
 })
 
 describe('round trip', () => {
@@ -150,6 +164,16 @@ describe('round trip', () => {
     { body: 'Body.', severity: 'minor', title: '@scope/pkg: 100% broken #1 @ 3:00' },
     { body: 'Body.', severity: 'minor', title: 'no: yes, true, null, ~, 0x1' },
     { body: 'Body.', severity: 'minor', title: 'emoji 🎉 and — dashes' },
+    {
+      body: 'Body.',
+      context: {
+        attempts: 2,
+        flags: [true, false, null],
+        source: { kind: 'agent', version: '1' },
+      },
+      severity: 'minor',
+      title: 'structured context',
+    },
     {
       body: '## Description\n\nMulti\n\nline\n\n```ts\nconst a = 1\n```',
       issue: 'wevm/viem#4821',

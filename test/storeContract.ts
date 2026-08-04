@@ -16,7 +16,7 @@ const canonicalEntry = {
 } as const satisfies Entry.serialize.Options
 
 /** Runs the canonical persistence contract against a store implementation. */
-export function storeContract(name: string, create: () => Promise<Store.Adapter>) {
+export function storeContract(name: string, create: () => Promise<Store.Store>) {
   describe(`${name} store contract`, () => {
     test('preserves the complete canonical entry schema', async () => {
       const store = await create()
@@ -27,7 +27,7 @@ export function storeContract(name: string, create: () => Promise<Store.Adapter>
       expect(await store.get(written.id)).toEqual({ ...canonicalEntry, id: written.id })
       expect(await store.read()).toEqual([{ ...canonicalEntry, id: written.id }])
       expect(await store.list()).toEqual([written.id])
-      if (store.files) expect(await store.files(written.id)).toEqual(expect.any(Array))
+      expect(await store.files(written.id)).toEqual(expect.any(Array))
 
       const updated = {
         ...canonicalEntry,

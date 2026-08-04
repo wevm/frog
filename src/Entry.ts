@@ -14,10 +14,37 @@ export type Severity = (typeof severities)[number]
 /** Schema for {@link Severity}. */
 export const Severity = z.enum(severities)
 
+/** Recursive value that Frog can serialize and restore without changing its meaning. */
+export type ContextValue =
+  | boolean
+  | null
+  | number
+  | string
+  | readonly ContextValue[]
+  | { readonly [key: string]: ContextValue }
+
+/** Schema for {@link ContextValue}. */
+export const ContextValue: z.ZodType<ContextValue> = z.lazy(() =>
+  z.union([
+    z.boolean(),
+    z.null(),
+    z.number().finite(),
+    z.string(),
+    z.array(ContextValue),
+    z.record(z.string(), ContextValue),
+  ]),
+)
+
+/** Consumer-defined structured context stored without interpretation. */
+export type Context = Readonly<Record<string, ContextValue>>
+
+/** Schema for {@link Context}. */
+export const Context: z.ZodType<Context> = z.record(z.string(), ContextValue)
+
 /** Frontmatter of an entry's write-up. */
 export type Frontmatter = {
   /** Consumer-defined structured context. Frog stores it but does not interpret it. */
-  context?: Readonly<Record<string, unknown>> | undefined
+  context?: Context | undefined
   /** Linked issue as `owner/name#number`. Written by publishing, absent while pending. */
   issue?: string | undefined
   /** Extra issue labels, applied on top of the configured and severity labels. */
@@ -41,7 +68,7 @@ export type Frontmatter = {
  * annotation stops the hand-written type and the schema drifting.
  */
 export const Frontmatter: z.ZodType<Frontmatter> = z.object({
-  context: z.record(z.string(), z.unknown()).optional(),
+  context: Context.optional(),
   issue: z
     .string()
     .regex(/^[\w.-]+\/[\w.-]+#\d+$/)
@@ -125,11 +152,14 @@ export declare namespace parse {
  */
 export function serialize(entry: serialize.Options): string {
   const { body, context, issue, labels, severity, target, title } = entry
+  const normalizedContext = context === undefined ? undefined : Context.parse(context)
   const frontmatter = YAML.stringify(
     {
       title,
       severity,
-      ...(context && Object.keys(context).length ? { context } : {}),
+      ...(normalizedContext && Object.keys(normalizedContext).length
+        ? { context: normalizedContext }
+        : {}),
       ...(target ? { target } : {}),
       ...(labels?.length ? { labels } : {}),
       ...(issue ? { issue } : {}),

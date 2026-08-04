@@ -1,9 +1,7 @@
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
-import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
 import * as Entry from './Entry.js'
-
-const activeAdapter = new AsyncLocalStorage<Adapter | undefined>()
 
 /** Directory holding entries, relative to the repository root. */
 export const dir = '.agents/friction-log'
@@ -20,17 +18,17 @@ export type Options = {
   root: string
 }
 
-/** Options for an adapter write. */
-export type AdapterWriteOptions = {
+/** Options for writing through a store. */
+export type WriteOptions = {
   /** Existing entry id to replace. */
   id?: string | undefined
 }
 
-/** Result of writing through a storage adapter. */
-export type AdapterWriteResult = {
+/** Result of writing through a store. */
+export type WriteResult = {
   /** Stable entry id. */
   id: string
-  /** Adapter-defined location suitable for diagnostics. */
+  /** Store-defined location suitable for diagnostics. */
   location: string
 }
 
@@ -38,66 +36,140 @@ export type AdapterWriteResult = {
 export type StoredEntry = {
   /** Canonical entry payload shared by every store. */
   entry: Entry.Entry
-  /** Number of observations when the adapter tracks recurrence. */
+  /** Number of observations when the store tracks recurrence. */
   occurrences: number
 }
 
-/** Storage operations consumed by Frog's programmatic API. */
-export type Adapter = {
-  /** Stable adapter name for diagnostics. */
+/** Result of logging one friction occurrence. */
+export type LogResult = StoredEntry & {
+  /** Whether this call created a new entry. */
+  created: boolean
+  /** Store-defined location suitable for diagnostics. */
+  location: string
+}
+
+/** Storage operations consumed by Frog. */
+export type Store = {
+  /** Stable store name for diagnostics and capability checks. */
   readonly name: string
-  /** Prepares adapter-owned storage, when required. Safe to call repeatedly. */
-  migrate?(): Promise<void>
+  /** Whether the store preserves occurrence counts beyond the canonical entry. */
+  readonly tracksOccurrences: boolean
+  /** Prepares store-owned storage. Safe to call repeatedly. */
+  readonly migrate: () => Promise<void>
   /** Lists every entry in stable id order. */
-  read(): Promise<readonly Entry.Entry[]>
-  /** Lists entries with recurrence metadata, when tracked by the adapter. */
-  records?(): Promise<readonly StoredEntry[]>
+  readonly read: () => Promise<readonly Entry.Entry[]>
+  /** Lists entries with recurrence metadata. */
+  readonly records: () => Promise<readonly StoredEntry[]>
   /** Lists entry ids in stable order. */
-  list(): Promise<readonly string[]>
+  readonly list: () => Promise<readonly string[]>
   /** Reads one entry. */
-  get(id: string): Promise<Entry.Entry>
+  readonly get: (id: string) => Promise<Entry.Entry>
   /** Writes an entry, optionally replacing a known id. Every canonical entry field must round trip. */
-  write(entry: Entry.serialize.Options, options?: AdapterWriteOptions): Promise<AdapterWriteResult>
+  readonly write: (entry: Entry.serialize.Options, options?: WriteOptions) => Promise<WriteResult>
   /** Removes an entry and reports whether it existed. */
-  remove(id: string): Promise<boolean>
-  /** Lists adapter-owned artifact locations, when the adapter supports artifacts. */
-  files?(id: string): Promise<readonly string[]>
+  readonly remove: (id: string) => Promise<boolean>
+  /** Lists store-owned artifact locations. */
+  readonly files: (id: string) => Promise<readonly string[]>
+  /** Returns the store-defined location for one entry. */
+  readonly location: (id: string) => string
+  /** Atomically logs and deduplicates an occurrence when the store supports it. */
+  readonly log?:
+    | ((entry: Entry.serialize.Options, options?: LogOptions) => Promise<LogResult>)
+    | undefined
 }
 
-/** Runs store operations in one async scope through the supplied adapter. */
-export function withAdapter<T>(store: Adapter, operation: () => Promise<T>): Promise<T> {
-  return activeAdapter.run(store, operation)
+/** Options for logging one friction occurrence. */
+export type LogOptions = {
+  /** Preserve an intentional duplicate instead of deduplicating it. */
+  force?: boolean | undefined
 }
 
-/** Name of the adapter selected for this async scope. Defaults to the repository file store. */
-export function activeName(): string {
-  return activeAdapter.getStore()?.name ?? 'file'
-}
-
-/** Migrates the active adapter, returning whether it owns a migration. The file store needs none. */
-export async function migrate(): Promise<boolean> {
-  const store = activeAdapter.getStore()
-  if (!store?.migrate) return false
-  await store.migrate()
-  return true
-}
-
-/** Binds the existing repository-file store to one root. */
-export function adapter(options: Options): Adapter {
+/** Normalizes a custom store by supplying safe defaults for optional capabilities. */
+export function from(value: from.Value): Store {
   return {
+    name: value.name,
+    tracksOccurrences: value.tracksOccurrences ?? value.records !== undefined,
+    migrate: value.migrate ?? (async () => {}),
+    read: value.read,
+    records:
+      value.records ??
+      (async () => (await value.read()).map((entry) => ({ entry, occurrences: 1 }))),
+    list: value.list ?? (async () => (await value.read()).map((entry) => entry.id).sort()),
+    get: value.get,
+    write: value.write,
+    remove: value.remove,
+    files: value.files ?? (async () => []),
+    location: value.location ?? ((id) => id),
+    ...(value.log ? { log: value.log } : {}),
+  }
+}
+
+export declare namespace from {
+  /** Minimum operations required to adapt a store to Frog. */
+  type Value = {
+    /** Stable store name for diagnostics and capability checks. */
+    readonly name: string
+    /** Whether the store preserves occurrence counts beyond the canonical entry. */
+    readonly tracksOccurrences?: boolean | undefined
+    /** Lists every entry in stable id order. */
+    readonly read: () => Promise<readonly Entry.Entry[]>
+    /** Reads one entry. */
+    readonly get: (id: string) => Promise<Entry.Entry>
+    /** Writes an entry, optionally replacing a known id. */
+    readonly write: (entry: Entry.serialize.Options, options?: WriteOptions) => Promise<WriteResult>
+    /** Removes an entry and reports whether it existed. */
+    readonly remove: (id: string) => Promise<boolean>
+    /** Prepares store-owned storage. Safe to call repeatedly. */
+    readonly migrate?: (() => Promise<void>) | undefined
+    /** Lists entries with recurrence metadata. Derived from `read` by default. */
+    readonly records?: (() => Promise<readonly StoredEntry[]>) | undefined
+    /** Lists entry ids in stable order. Derived from `read` by default. */
+    readonly list?: (() => Promise<readonly string[]>) | undefined
+    /** Lists store-owned artifact locations. Empty by default. */
+    readonly files?: ((id: string) => Promise<readonly string[]>) | undefined
+    /** Returns the store-defined location for one entry. Defaults to its id. */
+    readonly location?: ((id: string) => string) | undefined
+    /** Atomically logs and deduplicates an occurrence when the store supports it. */
+    readonly log?:
+      | ((entry: Entry.serialize.Options, options?: LogOptions) => Promise<LogResult>)
+      | undefined
+  }
+}
+
+/** Binds the repository-file store to one root. */
+export function file(options: file.Options): Store {
+  return from({
     name: 'file',
-    read: () => activeAdapter.run(undefined, () => read(options)),
-    list: () => activeAdapter.run(undefined, () => list(options)),
-    get: (id) => activeAdapter.run(undefined, () => get(id, options)),
+    read: () => read(options),
+    list: () => list(options),
+    get: (id) => get(id, options),
     write: async (entry, writeOptions = {}) => {
-      const written = await activeAdapter.run(undefined, () =>
-        write(entry, { ...writeOptions, root: options.root }),
-      )
+      const written = await write(entry, { ...writeOptions, root: options.root })
       return { id: written.id, location: written.file }
     },
-    remove: (id) => activeAdapter.run(undefined, () => remove(id, options)),
-    files: (id) => activeAdapter.run(undefined, () => files(id, options)),
+    remove: (id) => remove(id, options),
+    files: (id) => files(id, options),
+    location: toPath,
+  })
+}
+
+export declare namespace file {
+  /** Options for {@link file}. */
+  type Options = {
+    /** Repository root. Entries live in `<root>/.agents/friction-log`. */
+    root: string
   }
+}
+
+/** Whether a value is a safe, visible entry-directory name. */
+export function isId(id: string): boolean {
+  return (
+    id.length > 0 &&
+    !id.startsWith('.') &&
+    !id.includes('/') &&
+    !id.includes('\\') &&
+    !id.includes('\0')
+  )
 }
 
 /**
@@ -110,6 +182,7 @@ export function adapter(options: Options): Adapter {
  * @returns The repository-relative directory.
  */
 export function toDir(id: string): string {
+  if (!isId(id)) throw invalidIdError(id)
   return `${dir}/${id}`
 }
 
@@ -144,7 +217,7 @@ export function toId(file: string): string | undefined {
   if (!file.startsWith(`${dir}/`) || !file.endsWith(`/${filename}`)) return undefined
 
   const id = file.slice(dir.length + 1, -(filename.length + 1))
-  if (!id || id.includes('/') || id.startsWith('.')) return undefined
+  if (!isId(id)) return undefined
   return id
 }
 
@@ -154,16 +227,12 @@ export function toId(file: string): string | undefined {
  * @returns Every entry. Throws on the first malformed write-up rather than skipping it.
  */
 export async function read(options: Options): Promise<readonly Entry.Entry[]> {
-  const selected = activeAdapter.getStore()
-  if (selected) return selected.read()
   const ids = await list(options)
   return Promise.all(ids.map((id) => get(id, options)))
 }
 
-/** Lists canonical entries with recurrence metadata when the active adapter tracks it. */
+/** Lists file-store entries with their single-observation metadata. */
 export async function records(options: Options): Promise<readonly StoredEntry[]> {
-  const selected = activeAdapter.getStore()
-  if (selected?.records) return selected.records()
   return (await read(options)).map((entry) => ({ entry, occurrences: 1 }))
 }
 
@@ -175,8 +244,6 @@ export async function records(options: Options): Promise<readonly StoredEntry[]>
  * @returns Entry ids. A missing directory yields an empty list.
  */
 export async function list(options: Options): Promise<readonly string[]> {
-  const selected = activeAdapter.getStore()
-  if (selected) return selected.list()
   const found = await fs
     .readdir(path.join(options.root, dir), { withFileTypes: true })
     .catch((error) => {
@@ -206,8 +273,6 @@ export async function list(options: Options): Promise<readonly string[]> {
  * @param id - Entry id.
  */
 export async function get(id: string, options: Options): Promise<Entry.Entry> {
-  const selected = activeAdapter.getStore()
-  if (selected) return selected.get(id)
   const contents = await fs.readFile(path.join(options.root, toPath(id)), 'utf8')
   return Entry.parse(contents, { id })
 }
@@ -221,8 +286,6 @@ export async function get(id: string, options: Options): Promise<Entry.Entry> {
  * @returns Paths, sorted. Empty when the entry does not exist.
  */
 export async function files(id: string, options: Options): Promise<readonly string[]> {
-  const selected = activeAdapter.getStore()
-  if (selected) return selected.files?.(id) ?? []
   const base = path.join(options.root, toDir(id))
   const found = await fs
     .readdir(base, { recursive: true, withFileTypes: true })
@@ -249,11 +312,6 @@ export async function write(
   entry: Entry.serialize.Options,
   options: write.Options,
 ): Promise<write.ReturnType> {
-  const selected = activeAdapter.getStore()
-  if (selected) {
-    const written = await selected.write(entry, options.id ? { id: options.id } : {})
-    return { file: written.location, id: written.id }
-  }
   const id = options.id ?? (await claim(entry.title, options))
   const file = toPath(id)
   await fs.mkdir(path.join(options.root, toDir(id)), { recursive: true })
@@ -308,8 +366,6 @@ export declare namespace write {
  * not an error, so reconciliation stays safe to re-run.
  */
 export async function remove(id: string, options: Options): Promise<boolean> {
-  const selected = activeAdapter.getStore()
-  if (selected) return selected.remove(id)
   const base = path.join(options.root, toDir(id))
   try {
     await fs.stat(base)
@@ -318,4 +374,187 @@ export async function remove(id: string, options: Options): Promise<boolean> {
   }
   await fs.rm(base, { force: true, recursive: true })
   return true
+}
+
+type PostgresRow = {
+  contents: string
+  created?: boolean | undefined
+  id: string
+  occurrence_count: number | string
+}
+
+/** Creates a Postgres-backed store from a `pg`-compatible client. */
+export function postgres(client: postgres.Client, options: postgres.Options): Store {
+  const namespace = required(options.namespace, 'namespace')
+  const table = tableName(options.schema)
+
+  const get = async (id: string): Promise<Entry.Entry> => {
+    const result = await client.query<PostgresRow>(
+      `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 AND id = $2`,
+      [namespace, id],
+    )
+    const row = result.rows[0]
+    if (!row) throw notFoundError(id)
+    return Entry.parse(row.contents, { id: row.id })
+  }
+
+  return from({
+    name: 'postgres',
+    tracksOccurrences: true,
+    location: (id) => postgresLocation(namespace, id),
+    async migrate() {
+      if (options.schema !== undefined)
+        await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName(options.schema)}"`)
+      await client.query(
+        `CREATE TABLE IF NOT EXISTS ${table} (
+           namespace text NOT NULL,
+           id text NOT NULL,
+           dedupe_key text NOT NULL,
+           contents text NOT NULL,
+           occurrence_count integer NOT NULL DEFAULT 1 CHECK (occurrence_count > 0),
+           created_at timestamptz NOT NULL DEFAULT now(),
+           updated_at timestamptz NOT NULL DEFAULT now(),
+           PRIMARY KEY (namespace, id),
+           UNIQUE (namespace, dedupe_key)
+         )`,
+      )
+    },
+    async read() {
+      const result = await client.query<PostgresRow>(
+        `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 ORDER BY id`,
+        [namespace],
+      )
+      return result.rows.map((row) => Entry.parse(row.contents, { id: row.id }))
+    },
+    async records() {
+      const result = await client.query<PostgresRow>(
+        `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 ORDER BY id`,
+        [namespace],
+      )
+      return result.rows.map((row) => ({
+        entry: Entry.parse(row.contents, { id: row.id }),
+        occurrences: Number(row.occurrence_count),
+      }))
+    },
+    async list() {
+      const result = await client.query<{ id: string }>(
+        `SELECT id FROM ${table} WHERE namespace = $1 ORDER BY id`,
+        [namespace],
+      )
+      return result.rows.map((row) => row.id)
+    },
+    get,
+    async write(entry, writeOptions = {}) {
+      const id = writeOptions.id ?? newPostgresId(entry.title)
+      const dedupeKey = `entry:${id}`
+      const titleKey = `title:${Entry.normalizeTitle(entry.title)}`
+      await client.query(
+        `INSERT INTO ${table}(namespace, id, dedupe_key, contents)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT(namespace, id) DO UPDATE SET
+           dedupe_key = CASE
+             WHEN ${table}.dedupe_key LIKE 'title:%' THEN $5
+             ELSE ${table}.dedupe_key
+           END,
+           contents = EXCLUDED.contents,
+           updated_at = now()`,
+        [namespace, id, dedupeKey, Entry.serialize(entry), titleKey],
+      )
+      return { id, location: postgresLocation(namespace, id) }
+    },
+    async remove(id) {
+      const result = await client.query<{ id: string }>(
+        `DELETE FROM ${table} WHERE namespace = $1 AND id = $2 RETURNING id`,
+        [namespace, id],
+      )
+      return result.rows.length > 0
+    },
+    async log(entry, logOptions = {}) {
+      const id = newPostgresId(entry.title)
+      const dedupeKey = logOptions.force
+        ? `forced:${id}`
+        : `title:${Entry.normalizeTitle(entry.title)}`
+      const result = await client.query<PostgresRow>(
+        `INSERT INTO ${table}(namespace, id, dedupe_key, contents)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT(namespace, dedupe_key) DO UPDATE SET
+           occurrence_count = ${table}.occurrence_count + 1,
+           updated_at = now()
+         RETURNING id, contents, occurrence_count, (occurrence_count = 1) AS created`,
+        [namespace, id, dedupeKey, Entry.serialize(entry)],
+      )
+      const row = result.rows[0]
+      if (!row) throw new Error('Postgres did not return the logged friction entry.')
+      return {
+        created: row.created === true,
+        entry: Entry.parse(row.contents, { id: row.id }),
+        location: postgresLocation(namespace, row.id),
+        occurrences: Number(row.occurrence_count),
+      }
+    },
+  })
+}
+
+export declare namespace postgres {
+  /** Minimal structural client implemented by `pg` pools and transaction clients. */
+  type Client = {
+    /** Executes SQL with optional parameter values. */
+    query<T extends Record<string, unknown> = Record<string, unknown>>(
+      text: string,
+      values?: unknown[],
+    ): Promise<{
+      /** Number of affected rows when the driver supplies it. */
+      rowCount?: number | null | undefined
+      /** Query result rows. */
+      rows: T[]
+    }>
+  }
+
+  /** Postgres store configuration. */
+  type Options = {
+    /** Isolates independent consumers sharing one table. */
+    namespace: string
+    /** Optional PostgreSQL schema. Omit it to use the client's current search path. */
+    schema?: string | undefined
+  }
+}
+
+function newPostgresId(title: string): string {
+  return `${Entry.newId({ title })}-${randomUUID().slice(0, 8)}`
+}
+
+function schemaName(schema: string): string {
+  if (!/^[a-z_][a-z0-9_]*$/i.test(schema))
+    throw new Error('Postgres schema must be a SQL identifier.')
+  return schema
+}
+
+function tableName(schema?: string): string {
+  return schema === undefined ? '"frog_entries"' : `"${schemaName(schema)}"."frog_entries"`
+}
+
+function required(value: string, name: string): string {
+  const normalized = value.trim()
+  if (!normalized) throw new Error(`Postgres ${name} is required.`)
+  return normalized
+}
+
+function postgresLocation(namespace: string, id: string): string {
+  return `postgres:${encodeURIComponent(namespace)}/${encodeURIComponent(id)}`
+}
+
+function notFoundError(id: string): Error & { code: 'ENTRY_NOT_FOUND' } {
+  const error = Object.assign(new Error(`Friction entry \`${id}\` does not exist.`), {
+    code: 'ENTRY_NOT_FOUND' as const,
+  })
+  error.name = 'Store.NotFoundError'
+  return error
+}
+
+function invalidIdError(id: string): Error & { code: 'INVALID_ENTRY_ID' } {
+  const error = Object.assign(new Error(`Friction entry id \`${id}\` is not path-safe.`), {
+    code: 'INVALID_ENTRY_ID' as const,
+  })
+  error.name = 'Store.InvalidIdError'
+  return error
 }

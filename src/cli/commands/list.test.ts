@@ -1,8 +1,7 @@
 import * as cli from '../../../test/cli.js'
 import * as helpers from '../../../test/helpers.js'
-import { FakePostgresClient } from '../../../test/postgres.js'
-import { FrictionLog } from '../../FrictionLog.js'
-import * as PostgresStore from '../../PostgresStore.js'
+import { fakePostgresClient } from '../../../test/postgres.js'
+import * as Frog from '../../Frog.js'
 import * as Store from '../../Store.js'
 
 const body = 'The filter was swallowed.'
@@ -79,19 +78,33 @@ test('behavior: an empty directory lists nothing', async () => {
 })
 
 test('behavior: a durable store lists occurrence counts', async () => {
-  const store = PostgresStore.adapter({
-    client: new FakePostgresClient(),
-    namespace: 'list-test',
-  })
-  const log = new FrictionLog({ store })
-  await log.record({ body, severity: 'minor', title: 'Repeated friction' })
-  await log.record({ body, severity: 'minor', title: 'repeated friction' })
+  const store = Store.postgres(fakePostgresClient(), { namespace: 'list-test' })
+  const frog = Frog.create({ store })
+  await frog.log({ body, severity: 'minor', title: 'Repeated friction' })
+  await frog.log({ body, severity: 'minor', title: 'repeated friction' })
 
-  await Store.withAdapter(store, async () => {
-    expect(await cli.data(['list', '--cwd', await helpers.repo()])).toMatchObject({
-      entries: [{ occurrences: 2, title: 'Repeated friction' }],
-    })
+  expect(await cli.data(['list', '--cwd', await helpers.repo()], {}, { store })).toMatchObject({
+    entries: [{ occurrences: 2, title: 'Repeated friction' }],
   })
+})
+
+test('behavior: a custom store without recurrence metadata omits occurrence counts', async () => {
+  const entry = { body, id: 'one', severity: 'minor', title: 'One occurrence' } as const
+  const store = Store.from({
+    name: 'memory',
+    read: async () => [entry],
+    get: async () => entry,
+    write: async () => ({ id: entry.id, location: entry.id }),
+    remove: async () => false,
+  })
+
+  const result = await cli.data<{ entries: { occurrences?: number | undefined }[] }>(
+    ['list', '--cwd', await helpers.repo()],
+    {},
+    { store },
+  )
+
+  expect(result.entries[0]).not.toHaveProperty('occurrences')
 })
 
 test('behavior: filters by state', async () => {

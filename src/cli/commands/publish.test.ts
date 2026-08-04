@@ -3,10 +3,9 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
-import { FakePostgresClient } from '../../../test/postgres.js'
+import { fakePostgresClient } from '../../../test/postgres.js'
 import * as Config from '../../Config.js'
 import * as Github from '../../Github.js'
-import * as PostgresStore from '../../PostgresStore.js'
 import * as Store from '../../Store.js'
 
 const repo = 'wevm/demo'
@@ -26,15 +25,12 @@ function env(url: string): Record<string, string> {
 }
 
 test('error: repository publishing requires the file store', async () => {
-  const store = PostgresStore.adapter({
-    client: new FakePostgresClient(),
-    namespace: 'publish-test',
-  })
+  const store = Store.postgres(fakePostgresClient(), { namespace: 'publish-test' })
   const cwd = await helpers.repo({ remote })
 
-  await Store.withAdapter(store, async () => {
-    expect((await cli.error(['publish', '--cwd', cwd])).code).toBe('STORE_UNSUPPORTED_COMMAND')
-  })
+  expect((await cli.error(['publish', '--cwd', cwd], {}, { store })).code).toBe(
+    'STORE_UNSUPPORTED_COMMAND',
+  )
 })
 
 test('behavior: files a pending entry and writes the link back', async () => {
