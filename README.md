@@ -215,7 +215,9 @@ accepting inbound reports.
 
 ### Store Logs in a Database
 
-Frog provides an isomorphic storage API.
+Frog separates friction logging from persistence, so agents and applications can record and inspect
+logs through one API while choosing where they live. Repository files are the default, PostgreSQL is
+supported today, and SQLite and Cloudflare D1 are planned.
 
 ```sh
 FROG_DATABASE_URL=postgres://... frog migrate
