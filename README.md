@@ -180,34 +180,6 @@ ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as 
 frog list
 ```
 
-### Store Logs in a Database
-
-Frog provides an isomorphic storage API: application code uses the same `Frog` and `Store` contracts
-across database backends. PostgreSQL is the first built-in database, with more on the way.
-
-#### Usage
-
-Frog stores entries in `.agents/friction-log/` by default. Set `FROG_DATABASE_URL` to use PostgreSQL
-instead.
-
-```sh
-FROG_DATABASE_URL=postgres://... frog migrate
-FROG_DATABASE_URL=postgres://... frog list
-```
-
-#### Database Support
-
-| Database      | Status      | Factory                                |
-| ------------- | ----------- | -------------------------------------- |
-| PostgreSQL    | Available   | `Store.postgres({ connectionString })` |
-| SQLite        | Coming soon | —                                      |
-| Cloudflare D1 | Coming soon | —                                      |
-
-Every store implements `Store.Store` and preserves the same `Entry` fields. Use `Store.from` to adapt an
-unsupported database or remote service today. Storage metadata such as occurrence counts stays outside
-the entry schema. Repository and GitHub automation—artifacts, `list --since`,
-`log --open`, `log --publish`, `publish`, and `sync`—remains available only with the file store.
-
 ### Logging Upstream
 
 Reports friction to another project instead of your own. A target is an npm package or an `owner/repo`,
@@ -240,6 +212,23 @@ Accept friction reported by other repositories with `.agents/friction-log/config
 
 `frog init` enables inbound reports by default. Run `frog init --no-inbound` to initialize without
 accepting inbound reports.
+
+### Store Logs in a Database
+
+Frog provides an isomorphic storage API.
+
+```sh
+FROG_DATABASE_URL=postgres://... frog migrate
+FROG_DATABASE_URL=postgres://... frog list
+```
+
+#### Database Support
+
+| Database      | Status      | Factory                                |
+| ------------- | ----------- | -------------------------------------- |
+| PostgreSQL    | Available   | `Store.postgres({ connectionString })` |
+| SQLite        | Coming soon | —                                      |
+| Cloudflare D1 | Coming soon | —                                      |
 
 ## CLI Reference
 
