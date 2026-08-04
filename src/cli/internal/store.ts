@@ -51,7 +51,8 @@ export async function resolve(env: Environment): Promise<Selection | undefined> 
   }
   const client = new Pool({ connectionString: selected.connectionString })
   return {
-    store: Store.postgres(client, {
+    store: Store.postgres({
+      client,
       namespace: selected.namespace,
       ...(selected.schema ? { schema: selected.schema } : {}),
     }),

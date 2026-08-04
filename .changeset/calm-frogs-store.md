@@ -9,7 +9,7 @@ import { Frog, Store } from 'frog'
 import { Pool } from 'pg'
 
 const client = new Pool({ connectionString: process.env.DATABASE_URL })
-const store = Store.postgres(client, { namespace: 'support-agent' })
+const store = Store.postgres({ client, namespace: 'support-agent' })
 await store.migrate()
 const frog = Frog.create({ store })
 await frog.log({

@@ -16,7 +16,7 @@ const postgres = testPostgres()
 describe('postgres', () => {
   test('behavior: migration creates the configured schema and is idempotent', async () => {
     const client = postgres.client()
-    const store = Store.postgres(client, { namespace: 'consumer-a', schema: 'frog' })
+    const store = Store.postgres({ client, namespace: 'consumer-a', schema: 'frog' })
     const table = async () =>
       client.query<{ table_name: string }>(
         `SELECT table_name
@@ -33,7 +33,7 @@ describe('postgres', () => {
 
   test('behavior: an omitted schema follows the client search path', async () => {
     const client = postgres.client()
-    const store = Store.postgres(client, { namespace: 'search-path' })
+    const store = Store.postgres({ client, namespace: 'search-path' })
     const frog = Frog.create({ store })
 
     await store.migrate()
@@ -82,8 +82,8 @@ describe('postgres', () => {
 
   test('behavior: namespaces isolate consumers and force preserves intentional duplicates', async () => {
     const client = postgres.client()
-    const first = Frog.create({ store: Store.postgres(client, { namespace: 'one' }) })
-    const second = Frog.create({ store: Store.postgres(client, { namespace: 'two' }) })
+    const first = Frog.create({ store: Store.postgres({ client, namespace: 'one' }) })
+    const second = Frog.create({ store: Store.postgres({ client, namespace: 'two' }) })
 
     await first.store.migrate()
     await first.log(friction)
@@ -103,7 +103,7 @@ describe('postgres', () => {
         return { rows: result.rows }
       },
     }
-    const store = Store.postgres(client, { namespace: 'remove-without-row-count' })
+    const store = Store.postgres({ client, namespace: 'remove-without-row-count' })
     await store.migrate()
     const written = await store.write(friction)
 
@@ -113,7 +113,8 @@ describe('postgres', () => {
 
   test('error: rejects unsafe schema names before issuing SQL', () => {
     expect(() =>
-      Store.postgres(postgres.client(), {
+      Store.postgres({
+        client: postgres.client(),
         namespace: 'one',
         schema: 'public; DROP TABLE users',
       }),

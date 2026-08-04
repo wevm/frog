@@ -31,7 +31,8 @@ export function testPostgres(): testPostgres.ReturnType {
   return {
     client: getClient,
     async store(options = {}) {
-      const store = Store.postgres(getClient(), {
+      const store = Store.postgres({
+        client: getClient(),
         namespace: options.namespace ?? randomUUID(),
         ...(options.schema ? { schema: options.schema } : {}),
       })

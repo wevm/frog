@@ -383,8 +383,9 @@ type PostgresRow = {
   occurrence_count: number | string
 }
 
-/** Creates a Postgres-backed store from a `pg`-compatible client. */
-export function postgres(client: postgres.Client, options: postgres.Options): Store {
+/** Creates a Postgres-backed store from a `pg`-compatible client and namespace. */
+export function postgres(options: postgres.Options): Store {
+  const { client } = options
   const namespace = required(options.namespace, 'namespace')
   const table = tableName(options.schema)
 
@@ -512,6 +513,8 @@ export declare namespace postgres {
 
   /** Postgres store configuration. */
   type Options = {
+    /** `pg`-compatible pool or transaction client. */
+    client: Client
     /** Isolates independent consumers sharing one table. */
     namespace: string
     /** Optional PostgreSQL schema. Omit it to use the client's current search path. */
