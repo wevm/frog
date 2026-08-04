@@ -26,24 +26,42 @@ export type AdapterWriteOptions = {
   id?: string | undefined
 }
 
+/** Result of writing through a storage adapter. */
+export type AdapterWriteResult = {
+  /** Stable entry id. */
+  id: string
+  /** Adapter-defined location suitable for diagnostics. */
+  location: string
+}
+
+/** One canonical entry and optional storage metadata. */
+export type StoredEntry = {
+  /** Canonical entry payload shared by every store. */
+  entry: Entry.Entry
+  /** Number of observations when the adapter tracks recurrence. */
+  occurrences: number
+}
+
 /** Storage operations consumed by Frog's programmatic API. */
 export type Adapter = {
   /** Stable adapter name for diagnostics. */
   readonly name: string
-  /** Creates or upgrades adapter-owned storage, when required. Safe to call repeatedly. */
+  /** Prepares adapter-owned storage, when required. Safe to call repeatedly. */
   migrate?(): Promise<void>
   /** Lists every entry in stable id order. */
   read(): Promise<readonly Entry.Entry[]>
+  /** Lists entries with recurrence metadata, when tracked by the adapter. */
+  records?(): Promise<readonly StoredEntry[]>
   /** Lists entry ids in stable order. */
   list(): Promise<readonly string[]>
   /** Reads one entry. */
   get(id: string): Promise<Entry.Entry>
   /** Writes an entry, optionally replacing a known id. Every canonical entry field must round trip. */
-  write(entry: Entry.serialize.Options, options?: AdapterWriteOptions): Promise<write.ReturnType>
+  write(entry: Entry.serialize.Options, options?: AdapterWriteOptions): Promise<AdapterWriteResult>
   /** Removes an entry and reports whether it existed. */
   remove(id: string): Promise<boolean>
   /** Lists adapter-owned artifact locations, when the adapter supports artifacts. */
-  files(id: string): Promise<readonly string[]>
+  files?(id: string): Promise<readonly string[]>
 }
 
 /** Runs store operations in one async scope through the supplied adapter. */
@@ -71,8 +89,12 @@ export function adapter(options: Options): Adapter {
     read: () => activeAdapter.run(undefined, () => read(options)),
     list: () => activeAdapter.run(undefined, () => list(options)),
     get: (id) => activeAdapter.run(undefined, () => get(id, options)),
-    write: (entry, writeOptions = {}) =>
-      activeAdapter.run(undefined, () => write(entry, { ...writeOptions, root: options.root })),
+    write: async (entry, writeOptions = {}) => {
+      const written = await activeAdapter.run(undefined, () =>
+        write(entry, { ...writeOptions, root: options.root }),
+      )
+      return { id: written.id, location: written.file }
+    },
     remove: (id) => activeAdapter.run(undefined, () => remove(id, options)),
     files: (id) => activeAdapter.run(undefined, () => files(id, options)),
   }
@@ -138,6 +160,13 @@ export async function read(options: Options): Promise<readonly Entry.Entry[]> {
   return Promise.all(ids.map((id) => get(id, options)))
 }
 
+/** Lists canonical entries with recurrence metadata when the active adapter tracks it. */
+export async function records(options: Options): Promise<readonly StoredEntry[]> {
+  const selected = activeAdapter.getStore()
+  if (selected?.records) return selected.records()
+  return (await read(options)).map((entry) => ({ entry, occurrences: 1 }))
+}
+
 /**
  * Lists the ids of every entry, sorted.
  *
@@ -193,7 +222,7 @@ export async function get(id: string, options: Options): Promise<Entry.Entry> {
  */
 export async function files(id: string, options: Options): Promise<readonly string[]> {
   const selected = activeAdapter.getStore()
-  if (selected) return selected.files(id)
+  if (selected) return selected.files?.(id) ?? []
   const base = path.join(options.root, toDir(id))
   const found = await fs
     .readdir(base, { recursive: true, withFileTypes: true })
@@ -221,7 +250,10 @@ export async function write(
   options: write.Options,
 ): Promise<write.ReturnType> {
   const selected = activeAdapter.getStore()
-  if (selected) return selected.write(entry, options)
+  if (selected) {
+    const written = await selected.write(entry, options.id ? { id: options.id } : {})
+    return { file: written.location, id: written.id }
+  }
   const id = options.id ?? (await claim(entry.title, options))
   const file = toPath(id)
   await fs.mkdir(path.join(options.root, toDir(id)), { recursive: true })

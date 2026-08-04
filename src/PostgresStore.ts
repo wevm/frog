@@ -6,7 +6,7 @@ import type * as FrictionLog from './FrictionLog.js'
 export type Client = {
   query<T extends Record<string, unknown> = Record<string, unknown>>(
     text: string,
-    values?: readonly unknown[],
+    values?: unknown[],
   ): Promise<{
     /** Number of affected rows when the driver supplies it. */
     rowCount?: number | null | undefined
@@ -15,14 +15,18 @@ export type Client = {
   }>
 }
 
-/** Postgres adapter configuration. */
-export type Options = {
+/** Postgres schema lifecycle configuration. */
+export type MigrationOptions = {
   /** Pool or transaction client used for every query. */
   client: Client
-  /** Isolates independent consumers sharing one table. */
-  namespace: string
   /** Optional PostgreSQL schema. Omit it to use the client's current search path. */
   schema?: string | undefined
+}
+
+/** Postgres adapter configuration. */
+export type Options = MigrationOptions & {
+  /** Isolates independent consumers sharing one table. */
+  namespace: string
 }
 
 type Row = {
@@ -33,7 +37,7 @@ type Row = {
 }
 
 /** Creates the tables required by the Postgres adapter. Safe to call repeatedly. */
-export async function migrate(options: Options): Promise<void> {
+export async function migrate(options: MigrationOptions): Promise<void> {
   const schema = options.schema === undefined ? undefined : schemaName(options.schema)
   const table = tableName(schema)
   if (schema !== undefined) await options.client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`)
@@ -100,15 +104,20 @@ export function adapter(options: Options): FrictionLog.Adapter {
       const id = writeOptions.id ?? newId(entry.title)
       const contents = Entry.serialize(entry)
       const dedupeKey = `entry:${id}`
+      const titleKey = `title:${Entry.normalizeTitle(entry.title)}`
       await client.query(
         `INSERT INTO ${table}(namespace, id, dedupe_key, contents)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT(namespace, id) DO UPDATE SET
+           dedupe_key = CASE
+             WHEN ${table}.dedupe_key LIKE 'title:%' THEN $5
+             ELSE ${table}.dedupe_key
+           END,
            contents = EXCLUDED.contents,
            updated_at = now()`,
-        [namespace, id, dedupeKey, contents],
+        [namespace, id, dedupeKey, contents, titleKey],
       )
-      return { file: location(namespace, id), id }
+      return { id, location: location(namespace, id) }
     },
     async remove(id) {
       const result = await client.query(`DELETE FROM ${table} WHERE namespace = $1 AND id = $2`, [
@@ -122,14 +131,16 @@ export function adapter(options: Options): FrictionLog.Adapter {
     },
     async record(entry, recordOptions = {}) {
       const id = newId(entry.title)
-      const dedupeKey = recordOptions.force ? `forced:${id}` : Entry.normalizeTitle(entry.title)
+      const dedupeKey = recordOptions.force
+        ? `forced:${id}`
+        : `title:${Entry.normalizeTitle(entry.title)}`
       const result = await client.query<Row>(
         `INSERT INTO ${table}(namespace, id, dedupe_key, contents)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT(namespace, dedupe_key) DO UPDATE SET
            occurrence_count = ${table}.occurrence_count + 1,
            updated_at = now()
-         RETURNING id, contents, occurrence_count, (xmax = 0) AS created`,
+         RETURNING id, contents, occurrence_count, (occurrence_count = 1) AS created`,
         [namespace, id, dedupeKey, Entry.serialize(entry)],
       )
       const row = result.rows[0]

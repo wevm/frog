@@ -17,7 +17,7 @@ test('behavior: delegates migration to the selected store', async () => {
     get: async () => {
       throw new Error('unused')
     },
-    write: async () => ({ file: 'unused', id: 'unused' }),
+    write: async () => ({ id: 'unused', location: 'unused' }),
     remove: async () => false,
     files: async () => [],
   }

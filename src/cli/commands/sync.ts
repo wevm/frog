@@ -70,17 +70,19 @@ export const sync = Cli.create('sync', {
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
 
+    if (Store.activeName() !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_COMMAND',
+        message:
+          '`sync` requires the repository file store because reconciliation mirrors are repository-owned.',
+      })
+
     const entries = await attempt(Store.read({ root }))
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
     const mirrors = await attempt(Mirrors.resolve({ root }))
     if (!mirrors.ok) return c.error({ code: mirrors.code, message: mirrors.message })
 
-    if (
-      Store.activeName() === 'file' &&
-      c.options.commit !== false &&
-      !c.options.dryRun &&
-      !(await Git.identity({ cwd: root }))
-    )
+    if (c.options.commit !== false && !c.options.dryRun && !(await Git.identity({ cwd: root })))
       return c.error({
         code: 'NO_GIT_IDENTITY',
         message:
@@ -187,8 +189,7 @@ export const sync = Cli.create('sync', {
           updated,
         })
 
-      if (Store.activeName() === 'file')
-        await Git.rm(plan.remove.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
+      await Git.rm(plan.remove.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
       for (const id of plan.remove) await Store.remove(id, { root })
       for (const entry of [...plan.write, ...plan.clearLink])
         await Store.write(entry, { id: entry.id, root })
@@ -198,7 +199,7 @@ export const sync = Cli.create('sync', {
       if (mirrorsChanged) touched.push(Mirrors.file)
       const commit = await attempt(
         (async () => {
-          if (Store.activeName() !== 'file' || c.options.commit === false) return false
+          if (c.options.commit === false) return false
           await Git.add(touched, { cwd: root })
           return Git.commit('chore: sync friction log', {
             cwd: root,
@@ -372,8 +373,7 @@ export const sync = Cli.create('sync', {
     // Stage before unlinking so tracked entries have their deletion recorded. The whole directory
     // goes, artifacts included. `ignoreUnmatch` covers entries that were never committed; those are
     // removed from disk below.
-    if (Store.activeName() === 'file')
-      await Git.rm(removedIds.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
+    await Git.rm(removedIds.map(Store.toDir), { cwd: root, ignoreUnmatch: true })
     for (const id of removedIds) await Store.remove(id, { root })
 
     for (const entry of [...plan.write, ...plan.clearLink])
@@ -384,7 +384,7 @@ export const sync = Cli.create('sync', {
     if (mirrorsChanged) touched.push(Mirrors.file)
     const commit = await attempt(
       (async () => {
-        if (Store.activeName() !== 'file' || c.options.commit === false) return false
+        if (c.options.commit === false) return false
         await Git.add(touched, { cwd: root })
         return Git.commit('chore: sync friction log', {
           cwd: root,

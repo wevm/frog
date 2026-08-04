@@ -9,7 +9,7 @@ export class FakePostgresClient implements PostgresStore.Client {
 
   async query<T extends Record<string, unknown> = Record<string, unknown>>(
     text: string,
-    values: readonly unknown[] = [],
+    values: unknown[] = [],
   ): Promise<{ rowCount: number; rows: T[] }> {
     this.queries.push(text)
     if (text.startsWith('CREATE ')) return { rowCount: 0, rows: [] }
@@ -48,12 +48,15 @@ export class FakePostgresClient implements PostgresStore.Client {
       }
     }
     if (text.startsWith('INSERT INTO')) {
-      const [, rawId, rawDedupe, rawContents] = values
+      const [, rawId, rawDedupe, rawContents, rawTitleDedupe] = values
       const id = String(rawId)
       const previous = this.rows.get(key(id))
       this.rows.set(key(id), {
         contents: String(rawContents),
-        dedupeKey: String(rawDedupe),
+        dedupeKey:
+          previous?.dedupeKey.startsWith('title:') && typeof rawTitleDedupe === 'string'
+            ? rawTitleDedupe
+            : (previous?.dedupeKey ?? String(rawDedupe)),
         id,
         occurrences: previous?.occurrences ?? 1,
       })

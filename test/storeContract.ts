@@ -23,10 +23,11 @@ export function storeContract(name: string, create: () => Promise<Store.Adapter>
       const written = await store.write(canonicalEntry)
 
       expect(written.id).toBeTruthy()
+      expect(written.location).toBeTruthy()
       expect(await store.get(written.id)).toEqual({ ...canonicalEntry, id: written.id })
       expect(await store.read()).toEqual([{ ...canonicalEntry, id: written.id }])
       expect(await store.list()).toEqual([written.id])
-      expect(await store.files(written.id)).toEqual(expect.any(Array))
+      if (store.files) expect(await store.files(written.id)).toEqual(expect.any(Array))
 
       const updated = {
         ...canonicalEntry,

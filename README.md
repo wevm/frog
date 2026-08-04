@@ -182,17 +182,18 @@ frog list
 
 ### Store Logs in Postgres
 
-Frog stores entries in `.agents/friction-log/` by default. Set the conventional `DATABASE_URL` to use
-Postgres instead, then run the idempotent migration once:
+Frog stores entries in `.agents/friction-log/` by default. Set `FROG_DATABASE_URL` to use Postgres
+instead, then run the idempotent migration once:
 
 ```sh
-DATABASE_URL=postgres://... frog migrate
-DATABASE_URL=postgres://... frog list
+FROG_DATABASE_URL=postgres://... frog migrate
+FROG_DATABASE_URL=postgres://... frog list
 ```
 
-Install `pg` beside Frog when using Postgres. `FROG_NAMESPACE` can isolate several consumers in one
-database (it defaults to `default`), and `FROG_SCHEMA` can place the table in a specific schema. Set
-`FROG_STORE=file` to keep using repository files when `DATABASE_URL` is present.
+Install `pg` beside Frog when using Postgres (and `@types/pg` in TypeScript projects).
+`FROG_NAMESPACE` can isolate several consumers in one database (it defaults to `default`), and
+`FROG_SCHEMA` can place the table in a specific schema. An unrelated application `DATABASE_URL` does
+not change Frog's default store.
 
 Applications use the same store through the programmatic API:
 
@@ -201,7 +202,7 @@ import { FrictionLog, PostgresStore } from 'frog'
 import { Pool } from 'pg'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-await PostgresStore.migrate({ client: pool, namespace: 'support-agent' })
+await PostgresStore.migrate({ client: pool })
 const store = PostgresStore.adapter({ client: pool, namespace: 'support-agent' })
 const frog = new FrictionLog({ store })
 
@@ -217,8 +218,8 @@ const unresolved = await frog.records() // canonical entries with deduplicated o
 
 Every store implements the exported `FrictionStore` contract and preserves the same `Entry` fields.
 Storage metadata such as occurrence counts stays outside that entry schema. Custom adapters can use a
-remote service, SQLite, or another database. Repository-only features such as artifacts, `list --since`,
-and `log --open` remain available only with the file store.
+remote service, SQLite, or another database. Repository and GitHub automation—artifacts, `list --since`,
+`log --open`, `log --publish`, `publish`, and `sync`—remains available only with the file store.
 
 ### Logging Upstream
 

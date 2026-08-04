@@ -113,6 +113,11 @@ export const log = Cli.create('log', {
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const interactive = prompt.interactive()
+    if (c.options.publish && Store.activeName() !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_OPTION',
+        message: '`--publish` is available only with the repository file store.',
+      })
     const opensEditor = c.options.open ?? (interactive && !c.options.body)
     if (opensEditor && Store.activeName() !== 'file')
       return c.error({
@@ -286,7 +291,9 @@ export const log = Cli.create('log', {
           cta: {
             commands: [
               { command: 'list', description: 'See everything recorded' },
-              { command: 'publish', description: 'File it as an issue now' },
+              ...(Store.activeName() === 'file'
+                ? [{ command: 'publish', description: 'File it as an issue now' }]
+                : []),
             ],
             description: 'Next:',
           },

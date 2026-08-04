@@ -14,7 +14,7 @@ const friction = {
 describe('PostgresStore', () => {
   test('behavior: migration is explicit, namespaced, and idempotent SQL', async () => {
     const client = new FakePostgresClient()
-    await PostgresStore.migrate({ client, namespace: 'unused', schema: 'frog' })
+    await PostgresStore.migrate({ client, schema: 'frog' })
     expect(client.queries).toHaveLength(2)
     expect(client.queries[0]).toBe('CREATE SCHEMA IF NOT EXISTS "frog"')
     expect(client.queries[1]).toContain('CREATE TABLE IF NOT EXISTS "frog"."frog_entries"')
@@ -23,7 +23,7 @@ describe('PostgresStore', () => {
 
   test('behavior: an omitted schema follows the client search path', async () => {
     const client = new FakePostgresClient()
-    await PostgresStore.migrate({ client, namespace: 'unused' })
+    await PostgresStore.migrate({ client })
     expect(client.queries).toHaveLength(1)
     expect(client.queries[0]).toContain('CREATE TABLE IF NOT EXISTS "frog_entries"')
 
@@ -53,6 +53,20 @@ describe('PostgresStore', () => {
     await expect(log.remove(first.entry.id)).resolves.toBe(true)
     await expect(log.remove(first.entry.id)).resolves.toBe(false)
     await expect(log.get(first.entry.id)).rejects.toBeInstanceOf(PostgresStore.NotFoundError)
+  })
+
+  test('behavior: updating a recorded title moves its deduplication identity', async () => {
+    const client = new FakePostgresClient()
+    const log = new FrictionLog({
+      store: PostgresStore.adapter({ client, namespace: 'consumer-a' }),
+    })
+    const first = await log.record(friction)
+
+    await log.update(first.entry.id, { ...friction, title: 'Tool state was omitted' })
+    const repeated = await log.record({ ...friction, title: 'tool state was omitted!' })
+
+    expect(repeated).toMatchObject({ created: false, occurrences: 2 })
+    expect(repeated.entry.id).toBe(first.entry.id)
   })
 
   test('behavior: namespaces isolate consumers and force preserves intentional duplicates', async () => {

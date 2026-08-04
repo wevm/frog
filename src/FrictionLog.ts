@@ -2,12 +2,7 @@ import * as Entry from './Entry.js'
 import * as Store from './Store.js'
 
 /** One canonical entry and the number of times it has been observed. */
-export type StoredEntry = {
-  /** The canonical entry representing the friction. */
-  entry: Entry.Entry
-  /** Number of times this adapter has observed the friction, when tracked. */
-  occurrences: number
-}
+export type StoredEntry = Store.StoredEntry
 
 /** Result of recording one friction occurrence. */
 export type RecordResult = StoredEntry & {
@@ -16,8 +11,6 @@ export type RecordResult = StoredEntry & {
 }
 
 export type Adapter = Store.Adapter & {
-  /** Optional occurrence-aware listing supplied by durable adapters. */
-  records?(): Promise<readonly StoredEntry[]>
   /** Optional atomic deduplication supplied by durable adapters. */
   record?(
     entry: Entry.serialize.Options,

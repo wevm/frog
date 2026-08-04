@@ -5,11 +5,36 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import { FakePostgresClient } from '../../../test/postgres.js'
 import * as Config from '../../Config.js'
+import * as PostgresStore from '../../PostgresStore.js'
 import * as Store from '../../Store.js'
 
 const title = '`pnpm test -- <files>` ignores file filters'
 const body = '## Description\n\nThe filter was swallowed.'
+
+test('error: immediate publishing requires the file store', async () => {
+  const store = PostgresStore.adapter({ client: new FakePostgresClient(), namespace: 'log-test' })
+  const cwd = await helpers.repo()
+
+  await Store.withAdapter(store, async () => {
+    expect((await cli.error(['log', title, '--body', body, '--publish', '--cwd', cwd])).code).toBe(
+      'STORE_UNSUPPORTED_OPTION',
+    )
+  })
+})
+
+test('behavior: durable-store follow-up does not suggest repository publishing', async () => {
+  const store = PostgresStore.adapter({ client: new FakePostgresClient(), namespace: 'log-test' })
+  const cwd = await helpers.repo()
+
+  await Store.withAdapter(store, async () => {
+    expect((await cli.run(['log', title, '--body', body, '--cwd', cwd])).envelope).toMatchObject({
+      meta: { cta: { commands: [{ command: 'frog list' }] } },
+      ok: true,
+    })
+  })
+})
 const ownForm = [
   'name: Friction',
   'body:',

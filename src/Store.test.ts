@@ -24,7 +24,7 @@ test('behavior: an async adapter scope redirects every store operation', async (
     write: async (value, options = {}) => {
       const id = options.id ?? 'memory-id'
       entries.set(id, { ...value, id })
-      return { file: `memory:${id}`, id }
+      return { id, location: `memory:${id}` }
     },
     remove: async (id) => entries.delete(id),
     files: async () => [],

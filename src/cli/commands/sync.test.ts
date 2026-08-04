@@ -3,10 +3,12 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
+import { FakePostgresClient } from '../../../test/postgres.js'
 import * as AppSync from '../../AppSync.js'
 import * as Entry from '../../Entry.js'
 import * as Github from '../../Github.js'
 import * as Mirrors from '../../Mirrors.js'
+import * as PostgresStore from '../../PostgresStore.js'
 import * as Store from '../../Store.js'
 
 const repo = 'wevm/demo'
@@ -25,6 +27,15 @@ type Outcome = {
 function env(url: string): Record<string, string> {
   return { GITHUB_API_URL: url, GITHUB_TOKEN: 'test-token' }
 }
+
+test('error: repository reconciliation requires the file store', async () => {
+  const store = PostgresStore.adapter({ client: new FakePostgresClient(), namespace: 'sync-test' })
+  const cwd = await helpers.repo({ remote })
+
+  await Store.withAdapter(store, async () => {
+    expect((await cli.error(['sync', '--cwd', cwd])).code).toBe('STORE_UNSUPPORTED_COMMAND')
+  })
+})
 
 function issueBody(id: string, body = 'Body.', severity?: Entry.Severity): string {
   return Github.renderBody({

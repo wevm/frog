@@ -74,6 +74,13 @@ export const publish = Cli.create('publish', {
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
 
+    if (Store.activeName() !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_COMMAND',
+        message:
+          '`publish` requires the repository file store because issue reconciliation is repository-owned.',
+      })
+
     const entries = await attempt(Store.read({ root }))
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })
 
@@ -85,7 +92,6 @@ export const publish = Cli.create('publish', {
       return c.ok({ commented: [], committed: false, created: [], deferred, unlabelled: [] })
 
     if (
-      Store.activeName() === 'file' &&
       publishable.some((entry) => !entry.issue) &&
       c.options.commit !== false &&
       !c.options.dryRun &&
@@ -246,13 +252,7 @@ export const publish = Cli.create('publish', {
     // One commit, however many destinations were involved.
     const commit = await attempt(
       (async () => {
-        if (
-          Store.activeName() !== 'file' ||
-          c.options.commit === false ||
-          c.options.dryRun ||
-          written.length === 0
-        )
-          return false
+        if (c.options.commit === false || c.options.dryRun || written.length === 0) return false
         await Git.add(written, { cwd: root })
         return Git.commit('chore: sync friction log', { cwd: root, files: written })
       })(),

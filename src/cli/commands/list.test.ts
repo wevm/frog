@@ -1,5 +1,8 @@
 import * as cli from '../../../test/cli.js'
 import * as helpers from '../../../test/helpers.js'
+import { FakePostgresClient } from '../../../test/postgres.js'
+import { FrictionLog } from '../../FrictionLog.js'
+import * as PostgresStore from '../../PostgresStore.js'
 import * as Store from '../../Store.js'
 
 const body = 'The filter was swallowed.'
@@ -72,6 +75,22 @@ test('behavior: an empty directory lists nothing', async () => {
     entries: [],
     linked: 0,
     pending: 0,
+  })
+})
+
+test('behavior: a durable store lists occurrence counts', async () => {
+  const store = PostgresStore.adapter({
+    client: new FakePostgresClient(),
+    namespace: 'list-test',
+  })
+  const log = new FrictionLog({ store })
+  await log.record({ body, severity: 'minor', title: 'Repeated friction' })
+  await log.record({ body, severity: 'minor', title: 'repeated friction' })
+
+  await Store.withAdapter(store, async () => {
+    expect(await cli.data(['list', '--cwd', await helpers.repo()])).toMatchObject({
+      entries: [{ occurrences: 2, title: 'Repeated friction' }],
+    })
   })
 })
 

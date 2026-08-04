@@ -19,19 +19,18 @@ const globalOptionValues = new Set([
   '--token-offset',
 ])
 
+const storedCommands = new Set(['list', 'log', 'migrate', 'publish', 'resolve', 'sync'])
+const introspectionOptions = new Set(['--help', '--llms', '--llms-full', '--schema', '--version'])
+
 export const cli = Cli.create('frog', {
   description: 'Automated friction logging for agents.',
   env: z.object({
-    DATABASE_URL: z
+    FROG_DATABASE_URL: z
       .string()
       .optional()
       .describe('Postgres URL. Its presence selects the Postgres store.'),
     FROG_NAMESPACE: z.string().optional().describe('Postgres namespace. Defaults to `default`.'),
     FROG_SCHEMA: z.string().optional().describe('Optional Postgres schema.'),
-    FROG_STORE: z
-      .enum(['file', 'postgres'])
-      .optional()
-      .describe('Override the inferred entry store.'),
   }),
   sync: {
     depth: 1,
@@ -56,7 +55,9 @@ export async function serve(
   argv: string[] = process.argv.slice(2),
   options: Cli.serve.Options = {},
 ) {
-  const selected = await environmentStore.resolve(options.env ?? process.env)
+  const selected = usesStore(argv)
+    ? await environmentStore.resolve(options.env ?? process.env)
+    : undefined
   const run = async () => {
     if (command(argv) !== 'init') return cli.serve(argv, options)
 
@@ -94,4 +95,9 @@ function option(argv: readonly string[], name: string): string | undefined {
     if (value?.startsWith(`${name}=`)) return value.slice(name.length + 1)
   }
   return undefined
+}
+
+function usesStore(argv: readonly string[]): boolean {
+  if (argv.some((value) => introspectionOptions.has(value))) return false
+  return argv.includes('--mcp') || storedCommands.has(command(argv) ?? '')
 }

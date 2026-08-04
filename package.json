@@ -64,6 +64,14 @@
     "incur": "catalog:",
     "yaml": "catalog:"
   },
+  "peerDependencies": {
+    "pg": ">=8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">=22"
   }

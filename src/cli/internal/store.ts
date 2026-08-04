@@ -20,19 +20,13 @@ export type Configuration =
 
 /** Infers the store from conventional environment variables without opening a connection. */
 export function configuration(env: Environment): Configuration {
-  const connectionString = env['DATABASE_URL']?.trim()
-  const requested = env['FROG_STORE']?.trim().toLowerCase()
-  const kind = requested || (connectionString ? 'postgres' : 'file')
-
-  if (kind === 'file') return { kind }
-  if (kind !== 'postgres')
-    throw new Error(`Unsupported FROG_STORE \`${kind}\`. Use \`file\` or \`postgres\`.`)
-  if (!connectionString) throw new Error('The Postgres store requires DATABASE_URL.')
+  const connectionString = env['FROG_DATABASE_URL']?.trim()
+  if (!connectionString) return { kind: 'file' }
 
   const schema = env['FROG_SCHEMA']?.trim()
   return {
     connectionString,
-    kind,
+    kind: 'postgres',
     namespace: env['FROG_NAMESPACE']?.trim() || 'default',
     ...(schema ? { schema } : {}),
   }
