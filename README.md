@@ -185,11 +185,7 @@ frog list
 Frog provides an isomorphic storage API: application code uses the same `Frog` and `Store` contracts
 across database backends. PostgreSQL is the first built-in database, with more on the way.
 
-| Database      | Status      | Factory                                |
-| ------------- | ----------- | -------------------------------------- |
-| PostgreSQL    | Available   | `Store.postgres({ connectionString })` |
-| SQLite        | Coming soon | —                                      |
-| Cloudflare D1 | Coming soon | —                                      |
+#### Usage
 
 Frog stores entries in `.agents/friction-log/` by default. Set `FROG_DATABASE_URL` to use PostgreSQL
 instead, then run the idempotent migration once:
@@ -223,6 +219,14 @@ const result = await frog.log({
 const unresolved = await frog.logs() // canonical entries with deduplicated occurrence counts
 await store.close()
 ```
+
+#### Database Support
+
+| Database      | Status      | Factory                                |
+| ------------- | ----------- | -------------------------------------- |
+| PostgreSQL    | Available   | `Store.postgres({ connectionString })` |
+| SQLite        | Coming soon | —                                      |
+| Cloudflare D1 | Coming soon | —                                      |
 
 Every store implements `Store.Store` and preserves the same `Entry` fields. Use `Store.from` to adapt an
 unsupported database or remote service today. Storage metadata such as occurrence counts stays outside
