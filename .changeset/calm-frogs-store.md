@@ -8,7 +8,6 @@ Added pluggable friction stores, a Postgres.js-backed `Store.postgres({ connecti
 import { Frog, Store } from 'frog'
 
 const store = Store.postgres({ connectionString: process.env.DATABASE_URL! })
-await store.migrate()
 const frog = Frog.create({ store })
 await frog.log({
   body: 'The workaround used.',

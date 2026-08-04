@@ -14,13 +14,29 @@ export type Frog = {
   readonly logs: () => Promise<readonly Store.StoredEntry[]>
 }
 
-/** Creates a friction logger around one explicitly constructed store. */
+/** Creates a friction logger that prepares its store before the first operation. */
 export function create(options: create.Options): Frog {
   const store = options.store
+  let migrated: Promise<void> | undefined
+  const migrate = () => {
+    if (migrated) return migrated
+    const current = Promise.resolve().then(() => store.migrate())
+    migrated = current.catch((error) => {
+      migrated = undefined
+      throw error
+    })
+    return migrated
+  }
   return {
     store,
-    log: (entry, logOptions = {}) => log(store, entry, logOptions),
-    logs: () => store.records(),
+    async log(entry, logOptions = {}) {
+      await migrate()
+      return log(store, entry, logOptions)
+    },
+    async logs() {
+      await migrate()
+      return store.records()
+    },
   }
 }
 

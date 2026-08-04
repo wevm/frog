@@ -14,6 +14,16 @@ const friction = {
 const postgres = Postgres.get()
 
 describe('postgres', () => {
+  test('behavior: Frog prepares storage before its first operation', async () => {
+    const logStore = postgres.create({ schema: 'frog_create_log' })
+    const logsStore = postgres.create({ schema: 'frog_create_logs' })
+
+    await expect(Frog.create({ store: logStore }).log(friction)).resolves.toMatchObject({
+      created: true,
+    })
+    await expect(Frog.create({ store: logsStore }).logs()).resolves.toEqual([])
+  })
+
   test('behavior: migration creates the configured schema and is idempotent', async () => {
     const client = postgres.client()
     const store = postgres.create({ namespace: 'consumer-a', schema: 'frog' })

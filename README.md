@@ -195,13 +195,13 @@ consumers in one database (it defaults to `default`), and
 `FROG_SCHEMA` can place the table in a specific schema. An unrelated application `DATABASE_URL` does
 not change Frog's default store.
 
-Applications use the same store through the programmatic API:
+Applications use the same store through the programmatic API. Frog runs the idempotent migration
+before its first store operation:
 
 ```ts
 import { Frog, Store } from 'frog'
 
 const store = Store.postgres({ connectionString: process.env.DATABASE_URL! })
-await store.migrate()
 const frog = Frog.create({ store })
 
 const result = await frog.log({
