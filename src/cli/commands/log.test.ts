@@ -5,15 +5,16 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
-import { fakePostgresClient } from '../../../test/postgres.js'
+import { testPostgres } from '../../../test/postgres.js'
 import * as Config from '../../Config.js'
 import * as Store from '../../Store.js'
 
 const title = '`pnpm test -- <files>` ignores file filters'
 const body = '## Description\n\nThe filter was swallowed.'
+const postgres = testPostgres()
 
 test('error: immediate publishing requires the file store', async () => {
-  const store = Store.postgres(fakePostgresClient(), { namespace: 'log-test' })
+  const store = await postgres.store()
   const cwd = await helpers.repo()
 
   expect(
@@ -23,7 +24,7 @@ test('error: immediate publishing requires the file store', async () => {
 })
 
 test('behavior: durable-store follow-up does not suggest repository publishing', async () => {
-  const store = Store.postgres(fakePostgresClient(), { namespace: 'log-test' })
+  const store = await postgres.store()
   const cwd = await helpers.repo()
 
   expect(
@@ -35,7 +36,7 @@ test('behavior: durable-store follow-up does not suggest repository publishing',
 })
 
 test('behavior: durable-store logging atomically records repeated titles', async () => {
-  const store = Store.postgres(fakePostgresClient(), { namespace: 'log-test' })
+  const store = await postgres.store()
   const cwd = await helpers.repo()
 
   const first = await cli.data<Logged>(['log', title, '--body', body, '--cwd', cwd], {}, { store })

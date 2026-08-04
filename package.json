@@ -13,8 +13,11 @@
   },
   "devDependencies": {
     "@changesets/cli": "catalog:",
+    "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "pg": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:",

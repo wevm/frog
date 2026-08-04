@@ -1,7 +1,5 @@
 import * as cli from '../../../test/cli.js'
 import * as helpers from '../../../test/helpers.js'
-import { fakePostgresClient } from '../../../test/postgres.js'
-import * as Frog from '../../Frog.js'
 import * as Store from '../../Store.js'
 
 const body = 'The filter was swallowed.'
@@ -78,10 +76,16 @@ test('behavior: an empty directory lists nothing', async () => {
 })
 
 test('behavior: a durable store lists occurrence counts', async () => {
-  const store = Store.postgres(fakePostgresClient(), { namespace: 'list-test' })
-  const frog = Frog.create({ store })
-  await frog.log({ body, severity: 'minor', title: 'Repeated friction' })
-  await frog.log({ body, severity: 'minor', title: 'repeated friction' })
+  const entry = { body, id: 'one', severity: 'minor', title: 'Repeated friction' } as const
+  const store = Store.from({
+    name: 'durable',
+    tracksOccurrences: true,
+    read: async () => [entry],
+    records: async () => [{ entry, occurrences: 2 }],
+    get: async () => entry,
+    write: async () => ({ id: entry.id, location: entry.id }),
+    remove: async () => false,
+  })
 
   expect(await cli.data(['list', '--cwd', await helpers.repo()], {}, { store })).toMatchObject({
     entries: [{ occurrences: 2, title: 'Repeated friction' }],

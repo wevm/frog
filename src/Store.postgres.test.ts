@@ -1,5 +1,5 @@
-import { fakePostgresClient } from '../test/postgres.js'
 import { storeContract } from '../test/storeContract.js'
+import { testPostgres } from '../test/postgres.js'
 import * as Entry from './Entry.js'
 import * as Frog from './Frog.js'
 import * as Store from './Store.js'
@@ -11,34 +11,44 @@ const friction = {
   title: 'Tool result omitted its state',
 } as const
 
-describe('postgres', () => {
-  test('behavior: migration is explicit, namespaced, and idempotent SQL', async () => {
-    const client = fakePostgresClient()
-    const store = Store.postgres(client, { namespace: 'consumer-a', schema: 'frog' })
+const postgres = testPostgres()
 
+describe('postgres', () => {
+  test('behavior: migration creates the configured schema and is idempotent', async () => {
+    const client = postgres.client()
+    const store = Store.postgres(client, { namespace: 'consumer-a', schema: 'frog' })
+    const table = async () =>
+      client.query<{ table_name: string }>(
+        `SELECT table_name
+         FROM information_schema.tables
+         WHERE table_schema = 'frog' AND table_name = 'frog_entries'`,
+      )
+
+    await expect(table()).resolves.toMatchObject({ rows: [] })
+    await store.migrate()
     await store.migrate()
 
-    expect(client.queries).toHaveLength(2)
-    expect(client.queries[0]).toBe('CREATE SCHEMA IF NOT EXISTS "frog"')
-    expect(client.queries[1]).toContain('CREATE TABLE IF NOT EXISTS "frog"."frog_entries"')
-    expect(client.queries[1]).toContain('UNIQUE (namespace, dedupe_key)')
+    await expect(table()).resolves.toMatchObject({ rows: [{ table_name: 'frog_entries' }] })
   })
 
   test('behavior: an omitted schema follows the client search path', async () => {
-    const client = fakePostgresClient()
-    const store = Store.postgres(client, { namespace: 'consumer-a' })
+    const client = postgres.client()
+    const store = Store.postgres(client, { namespace: 'search-path' })
     const frog = Frog.create({ store })
 
     await store.migrate()
     await frog.log(friction)
 
-    expect(client.queries).toHaveLength(2)
-    expect(client.queries[0]).toContain('CREATE TABLE IF NOT EXISTS "frog_entries"')
-    expect(client.queries[1]).toContain('INSERT INTO "frog_entries"')
+    const result = await client.query<{ table_schema: string }>(
+      `SELECT table_schema
+       FROM information_schema.tables
+       WHERE table_schema = current_schema() AND table_name = 'frog_entries'`,
+    )
+    expect(result.rows).toEqual([{ table_schema: 'public' }])
   })
 
   test('behavior: logs, deduplicates, updates, lists, and removes', async () => {
-    const store = Store.postgres(fakePostgresClient(), { namespace: 'consumer-a' })
+    const store = await postgres.store()
     const frog = Frog.create({ store })
 
     const first = await frog.log(friction)
@@ -59,7 +69,7 @@ describe('postgres', () => {
   })
 
   test('behavior: updating a logged title moves its deduplication identity', async () => {
-    const store = Store.postgres(fakePostgresClient(), { namespace: 'consumer-a' })
+    const store = await postgres.store()
     const frog = Frog.create({ store })
     const first = await frog.log(friction)
 
@@ -71,10 +81,11 @@ describe('postgres', () => {
   })
 
   test('behavior: namespaces isolate consumers and force preserves intentional duplicates', async () => {
-    const client = fakePostgresClient()
+    const client = postgres.client()
     const first = Frog.create({ store: Store.postgres(client, { namespace: 'one' }) })
     const second = Frog.create({ store: Store.postgres(client, { namespace: 'two' }) })
 
+    await first.store.migrate()
     await first.log(friction)
     await first.log(friction, { force: true })
     await second.log(friction)
@@ -83,17 +94,17 @@ describe('postgres', () => {
   })
 
   test('behavior: removal uses returned rows when the client omits rowCount', async () => {
-    const backing = fakePostgresClient()
     const client: Store.postgres.Client = {
       async query<T extends Record<string, unknown> = Record<string, unknown>>(
         text: string,
         values?: unknown[],
       ): Promise<{ rows: T[] }> {
-        const result = await backing.query<T>(text, values)
+        const result = await postgres.client().query<T>(text, values)
         return { rows: result.rows }
       },
     }
-    const store = Store.postgres(client, { namespace: 'consumer-a' })
+    const store = Store.postgres(client, { namespace: 'remove-without-row-count' })
+    await store.migrate()
     const written = await store.write(friction)
 
     await expect(store.remove(written.id)).resolves.toBe(true)
@@ -102,7 +113,7 @@ describe('postgres', () => {
 
   test('error: rejects unsafe schema names before issuing SQL', () => {
     expect(() =>
-      Store.postgres(fakePostgresClient(), {
+      Store.postgres(postgres.client(), {
         namespace: 'one',
         schema: 'public; DROP TABLE users',
       }),
@@ -115,6 +126,4 @@ describe('postgres', () => {
   })
 })
 
-storeContract('Postgres', async () =>
-  Store.postgres(fakePostgresClient(), { namespace: 'contract' }),
-)
+storeContract('Postgres', () => postgres.store())

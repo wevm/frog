@@ -1,114 +1,60 @@
-import type * as Store from '../src/Store.js'
+import { randomUUID } from 'node:crypto'
+import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql'
+import { Pool } from 'pg'
+import * as Store from '../src/Store.js'
 
-type Stored = { contents: string; dedupeKey: string; id: string; occurrences: number }
+const image = 'postgres:18-alpine'
 
-/** Small behavioral Postgres client used by store and contract tests. */
-export type FakePostgresClient = Store.postgres.Client & {
-  /** SQL statements issued through the client. */
-  readonly queries: string[]
-  /** Rows persisted by the fake client. */
-  readonly rows: Map<string, Stored>
+/** Starts one isolated Postgres container for the importing test file. */
+export function testPostgres(): testPostgres.ReturnType {
+  let container: StartedPostgreSqlContainer | undefined
+  let client: Pool | undefined
+
+  beforeAll(async () => {
+    container = await new PostgreSqlContainer(image).start()
+    client = new Pool({ connectionString: container.getConnectionUri() })
+  }, 120_000)
+
+  afterAll(async () => {
+    try {
+      await client?.end()
+    } finally {
+      await container?.stop()
+    }
+  }, 120_000)
+
+  const getClient = () => {
+    if (!client) throw new Error('Postgres test container has not started.')
+    return client
+  }
+
+  return {
+    client: getClient,
+    async store(options = {}) {
+      const store = Store.postgres(getClient(), {
+        namespace: options.namespace ?? randomUUID(),
+        ...(options.schema ? { schema: options.schema } : {}),
+      })
+      await store.migrate()
+      return store
+    },
+  }
 }
 
-/** Creates a behavioral Postgres client for store and contract tests. */
-export function fakePostgresClient(): FakePostgresClient {
-  const queries: string[] = []
-  const rows = new Map<string, Stored>()
-  return {
-    queries,
-    rows,
-    async query<T extends Record<string, unknown> = Record<string, unknown>>(
-      text: string,
-      values: unknown[] = [],
-    ): Promise<{ rowCount: number; rows: T[] }> {
-      queries.push(text)
-      if (text.startsWith('CREATE ')) return { rowCount: 0, rows: [] }
+export declare namespace testPostgres {
+  /** Options for constructing an isolated store inside the test database. */
+  type Options = {
+    /** Namespace for a test that needs to coordinate multiple stores. */
+    namespace?: string | undefined
+    /** Optional schema for the store table. */
+    schema?: string | undefined
+  }
 
-      const namespace = String(values[0])
-      const key = (id: string) => `${namespace}\u0000${id}`
-      if (text.includes('ON CONFLICT(namespace, dedupe_key)')) {
-        const [, rawId, rawDedupe, rawContents] = values
-        const id = String(rawId)
-        const dedupeKey = String(rawDedupe)
-        const existing = [...rows.entries()].find(
-          ([storedKey, row]) =>
-            storedKey.startsWith(`${namespace}\u0000`) && row.dedupeKey === dedupeKey,
-        )?.[1]
-        if (existing) {
-          existing.occurrences += 1
-          return {
-            rowCount: 1,
-            rows: [
-              {
-                contents: existing.contents,
-                created: false,
-                id: existing.id,
-                occurrence_count: existing.occurrences,
-              } as unknown as T,
-            ],
-          }
-        }
-        const stored = { contents: String(rawContents), dedupeKey, id, occurrences: 1 }
-        rows.set(key(id), stored)
-        return {
-          rowCount: 1,
-          rows: [
-            { contents: stored.contents, created: true, id, occurrence_count: 1 } as unknown as T,
-          ],
-        }
-      }
-      if (text.startsWith('INSERT INTO')) {
-        const [, rawId, rawDedupe, rawContents, rawTitleDedupe] = values
-        const id = String(rawId)
-        const previous = rows.get(key(id))
-        rows.set(key(id), {
-          contents: String(rawContents),
-          dedupeKey:
-            previous?.dedupeKey.startsWith('title:') && typeof rawTitleDedupe === 'string'
-              ? rawTitleDedupe
-              : (previous?.dedupeKey ?? String(rawDedupe)),
-          id,
-          occurrences: previous?.occurrences ?? 1,
-        })
-        return { rowCount: 1, rows: [] }
-      }
-      if (text.startsWith('SELECT id, contents')) {
-        const selected =
-          typeof values[1] === 'string'
-            ? [rows.get(key(values[1]))].filter(Boolean)
-            : [...rows.entries()]
-                .filter(([storedKey]) => storedKey.startsWith(`${namespace}\u0000`))
-                .map(([, row]) => row)
-        return {
-          rowCount: selected.length,
-          rows: selected.map(
-            (row) =>
-              ({
-                contents: row!.contents,
-                id: row!.id,
-                occurrence_count: row!.occurrences,
-              }) as unknown as T,
-          ),
-        }
-      }
-      if (text.startsWith('SELECT id FROM')) {
-        const selected = [...rows.entries()].filter(([storedKey]) =>
-          storedKey.startsWith(`${namespace}\u0000`),
-        )
-        return {
-          rowCount: selected.length,
-          rows: selected.map(([, row]) => ({ id: row.id }) as unknown as T),
-        }
-      }
-      if (text.startsWith('DELETE FROM')) {
-        const id = String(values[1])
-        const removed = rows.delete(key(id))
-        return {
-          rowCount: removed ? 1 : 0,
-          rows: removed ? ([{ id }] as unknown as T[]) : [],
-        }
-      }
-      throw new Error(`Unhandled SQL: ${text}`)
-    },
+  /** Container-backed Postgres test fixture. */
+  type ReturnType = {
+    /** Returns the connected pool after the test hook starts the container. */
+    readonly client: () => Pool
+    /** Creates and migrates a store with an isolated namespace. */
+    readonly store: (options?: Options) => Promise<Store.Store>
   }
 }

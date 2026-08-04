@@ -3,7 +3,6 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
-import { fakePostgresClient } from '../../../test/postgres.js'
 import * as AppSync from '../../AppSync.js'
 import * as Entry from '../../Entry.js'
 import * as Github from '../../Github.js'
@@ -28,7 +27,15 @@ function env(url: string): Record<string, string> {
 }
 
 test('error: repository reconciliation requires the file store', async () => {
-  const store = Store.postgres(fakePostgresClient(), { namespace: 'sync-test' })
+  const store = Store.from({
+    name: 'remote',
+    read: async () => [],
+    get: async () => {
+      throw new Error('unused')
+    },
+    write: async () => ({ id: 'unused', location: 'unused' }),
+    remove: async () => false,
+  })
   const cwd = await helpers.repo({ remote })
 
   expect((await cli.error(['sync', '--cwd', cwd], {}, { store })).code).toBe(
