@@ -1,5 +1,5 @@
 import { storeContract } from '../test/storeContract.js'
-import { testPostgres } from '../test/postgres.js'
+import * as Postgres from '../test/postgres.js'
 import * as Entry from './Entry.js'
 import * as Frog from './Frog.js'
 import * as Store from './Store.js'
@@ -11,7 +11,7 @@ const friction = {
   title: 'Tool result omitted its state',
 } as const
 
-const postgres = testPostgres()
+const postgres = Postgres.get()
 
 describe('postgres', () => {
   test('behavior: migration creates the configured schema and is idempotent', async () => {

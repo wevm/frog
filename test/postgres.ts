@@ -6,7 +6,7 @@ import * as Store from '../src/Store.js'
 const image = 'postgres:18-alpine'
 
 /** Starts one isolated Postgres container for the importing test file. */
-export function testPostgres(): testPostgres.ReturnType {
+export function get(): get.ReturnType {
   let container: StartedPostgreSqlContainer | undefined
   let client: Pool | undefined
 
@@ -42,7 +42,7 @@ export function testPostgres(): testPostgres.ReturnType {
   }
 }
 
-export declare namespace testPostgres {
+export declare namespace get {
   /** Options for constructing an isolated store inside the test database. */
   type Options = {
     /** Namespace for a test that needs to coordinate multiple stores. */

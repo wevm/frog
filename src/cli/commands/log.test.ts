@@ -5,13 +5,13 @@ import path from 'node:path'
 import * as cli from '../../../test/cli.js'
 import { github } from '../../../test/github.js'
 import * as helpers from '../../../test/helpers.js'
-import { testPostgres } from '../../../test/postgres.js'
+import * as Postgres from '../../../test/postgres.js'
 import * as Config from '../../Config.js'
 import * as Store from '../../Store.js'
 
 const title = '`pnpm test -- <files>` ignores file filters'
 const body = '## Description\n\nThe filter was swallowed.'
-const postgres = testPostgres()
+const postgres = Postgres.get()
 
 test('error: immediate publishing requires the file store', async () => {
   const store = await postgres.store()
