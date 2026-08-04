@@ -10,6 +10,10 @@ export * as Config from './Config.js'
 /** The entry format: frontmatter, body, ids, and title normalization. */
 export * as Entry from './Entry.js'
 
+/** Storage-independent friction logging for embedded consumers. */
+export { FrictionLog } from './FrictionLog.js'
+export type { Adapter as FrictionStore, RecordResult } from './FrictionLog.js'
+
 /** Parses a project's GitHub issue form and renders the entry scaffold it implies. */
 export * as IssueForm from './IssueForm.js'
 
@@ -24,6 +28,9 @@ export * as Mirrors from './Mirrors.js'
 
 /** Reading and writing entries under `.agents/friction-log`. */
 export * as Store from './Store.js'
+
+/** Optional Postgres store accepting any `pg`-compatible client. */
+export * as PostgresStore from './PostgresStore.js'
 
 /** Reconciling local entries against issue state, as a pure plan both adapters can apply. */
 export * as Sync from './Sync.js'

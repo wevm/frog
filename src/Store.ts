@@ -17,6 +17,46 @@ export type Options = {
   root: string
 }
 
+/** Options for an adapter write. */
+export type AdapterWriteOptions = {
+  /** Existing entry id to replace. */
+  id?: string | undefined
+}
+
+/** Storage operations consumed by Frog's programmatic API. */
+export type Adapter = {
+  /** Stable adapter name for diagnostics. */
+  readonly name: string
+  /** Lists every entry in stable id order. */
+  read(): Promise<readonly Entry.Entry[]>
+  /** Lists entry ids in stable order. */
+  list(): Promise<readonly string[]>
+  /** Reads one entry. */
+  get(id: string): Promise<Entry.Entry>
+  /** Writes an entry, optionally replacing a known id. */
+  write(
+    entry: Entry.serialize.Options,
+    options?: AdapterWriteOptions,
+  ): Promise<write.ReturnType>
+  /** Removes an entry and reports whether it existed. */
+  remove(id: string): Promise<boolean>
+  /** Lists adapter-owned artifact locations, when the adapter supports artifacts. */
+  files(id: string): Promise<readonly string[]>
+}
+
+/** Binds the existing repository-file store to one root. */
+export function adapter(options: Options): Adapter {
+  return {
+    name: 'file',
+    read: () => read(options),
+    list: () => list(options),
+    get: (id) => get(id, options),
+    write: (entry, writeOptions = {}) => write(entry, { ...writeOptions, root: options.root }),
+    remove: (id) => remove(id, options),
+    files: (id) => files(id, options),
+  }
+}
+
 /**
  * Directory holding an entry and anything needed to reproduce it.
  *

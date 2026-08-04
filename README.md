@@ -180,6 +180,38 @@ ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as 
 frog list
 ```
 
+### Embed Frog with another store
+
+Frog's CLI keeps the repository file store as its default. Applications can use the same entry format
+and lifecycle with another store by constructing `FrictionLog` with a store adapter. Omitting `store`
+uses `.agents/friction-log/`, preserving the normal behavior.
+
+```ts
+import { FrictionLog, PostgresStore } from 'frog'
+import { Pool } from 'pg'
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const store = PostgresStore.adapter({ client: pool, namespace: 'support-agent' })
+const frog = new FrictionLog({ store })
+
+const result = await frog.record({
+  title: 'Search result omitted its freshness',
+  body: 'The caller could not tell when the result was collected.',
+  severity: 'major',
+  context: { source: 'production-agent', execution: 'opaque-reference' },
+})
+```
+
+Run `PostgresStore.migrate({ client, namespace })` from the consumer's migration process before using
+the adapter. It creates one `frog_entries` table; `namespace` isolates independent applications sharing
+that table. The adapter accepts the small `query` interface implemented by `pg` pools and transaction
+clients, so Frog does not install a database driver or own connection credentials.
+
+Every store implements the exported `FrictionStore` contract. Custom stores can retain entries in a
+remote service, SQLite, or another database. An adapter may provide atomic `record` behavior; otherwise
+`FrictionLog` supplies the file store's normalized-title deduplication. Consumer-defined `context` is
+stored without interpretation and is never needed by Frog's core behavior.
+
 ### Logging Upstream
 
 Reports friction to another project instead of your own. A target is an npm package or an `owner/repo`,

@@ -16,6 +16,8 @@ export const Severity = z.enum(severities)
 
 /** Frontmatter of an entry's write-up. */
 export type Frontmatter = {
+  /** Consumer-defined structured context. Frog stores it but does not interpret it. */
+  context?: Readonly<Record<string, unknown>> | undefined
   /** Linked issue as `owner/name#number`. Written by publishing, absent while pending. */
   issue?: string | undefined
   /** Extra issue labels, applied on top of the configured and severity labels. */
@@ -39,6 +41,7 @@ export type Frontmatter = {
  * annotation stops the hand-written type and the schema drifting.
  */
 export const Frontmatter: z.ZodType<Frontmatter> = z.object({
+  context: z.record(z.string(), z.unknown()).optional(),
   issue: z
     .string()
     .regex(/^[\w.-]+\/[\w.-]+#\d+$/)
@@ -121,11 +124,12 @@ export declare namespace parse {
  * @returns File contents, ready to write. Absent optional fields are omitted, not written empty.
  */
 export function serialize(entry: serialize.Options): string {
-  const { body, issue, labels, severity, target, title } = entry
+  const { body, context, issue, labels, severity, target, title } = entry
   const frontmatter = YAML.stringify(
     {
       title,
       severity,
+      ...(context && Object.keys(context).length ? { context } : {}),
       ...(target ? { target } : {}),
       ...(labels?.length ? { labels } : {}),
       ...(issue ? { issue } : {}),
