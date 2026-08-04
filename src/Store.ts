@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { Pool } from 'pg'
 import * as Entry from './Entry.js'
 
 /** Directory holding entries, relative to the repository root. */
@@ -56,6 +57,8 @@ export type Store = {
   readonly tracksOccurrences: boolean
   /** Prepares store-owned storage. Safe to call repeatedly. */
   readonly migrate: () => Promise<void>
+  /** Releases store-owned resources. Safe to call repeatedly. */
+  readonly close: () => Promise<void>
   /** Lists every entry in stable id order. */
   readonly read: () => Promise<readonly Entry.Entry[]>
   /** Lists entries with recurrence metadata. */
@@ -90,6 +93,7 @@ export function from(value: from.Value): Store {
     name: value.name,
     tracksOccurrences: value.tracksOccurrences ?? value.records !== undefined,
     migrate: value.migrate ?? (async () => {}),
+    close: value.close ?? (async () => {}),
     read: value.read,
     records:
       value.records ??
@@ -121,6 +125,8 @@ export declare namespace from {
     readonly remove: (id: string) => Promise<boolean>
     /** Prepares store-owned storage. Safe to call repeatedly. */
     readonly migrate?: (() => Promise<void>) | undefined
+    /** Releases store-owned resources. Safe to call repeatedly. */
+    readonly close?: (() => Promise<void>) | undefined
     /** Lists entries with recurrence metadata. Derived from `read` by default. */
     readonly records?: (() => Promise<readonly StoredEntry[]>) | undefined
     /** Lists entry ids in stable order. Derived from `read` by default. */
@@ -384,11 +390,13 @@ type PostgresRow = {
   occurrence_count: number | string
 }
 
-/** Creates a Postgres-backed store from a `pg`-compatible client and namespace. */
+/** Creates a Postgres-backed store from a connection string. */
 export function postgres(options: postgres.Options): Store {
-  const { client } = options
-  const namespace = required(options.namespace, 'namespace')
+  const connectionString = required(options.connectionString, 'connectionString')
+  const namespace = required(options.namespace ?? 'default', 'namespace')
   const table = tableName(options.schema)
+  const client = new Pool({ allowExitOnIdle: true, connectionString })
+  let closing: Promise<void> | undefined
 
   const get = async (id: string): Promise<Entry.Entry> => {
     const result = await client.query<PostgresRow>(
@@ -404,6 +412,7 @@ export function postgres(options: postgres.Options): Store {
     name: 'postgres',
     tracksOccurrences: true,
     location: (id) => postgresLocation(namespace, id),
+    close: () => (closing ??= client.end()),
     async migrate() {
       if (options.schema !== undefined)
         await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName(options.schema)}"`)
@@ -498,27 +507,13 @@ export function postgres(options: postgres.Options): Store {
 }
 
 export declare namespace postgres {
-  /** Minimal structural client implemented by `pg` pools and transaction clients. */
-  type Client = {
-    /** Executes SQL with optional parameter values. */
-    query<T extends Record<string, unknown> = Record<string, unknown>>(
-      text: string,
-      values?: unknown[],
-    ): Promise<{
-      /** Number of affected rows when the driver supplies it. */
-      rowCount?: number | null | undefined
-      /** Query result rows. */
-      rows: T[]
-    }>
-  }
-
   /** Postgres store configuration. */
   type Options = {
-    /** `pg`-compatible pool or transaction client. */
-    client: Client
-    /** Isolates independent consumers sharing one table. */
-    namespace: string
-    /** Optional PostgreSQL schema. Omit it to use the client's current search path. */
+    /** PostgreSQL connection URL. */
+    connectionString: string
+    /** Isolates independent consumers sharing one table. Defaults to `default`. */
+    namespace?: string | undefined
+    /** Optional PostgreSQL schema. Omit it to use the default search path. */
     schema?: string | undefined
   }
 }

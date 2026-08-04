@@ -190,7 +190,6 @@ FROG_DATABASE_URL=postgres://... frog migrate
 FROG_DATABASE_URL=postgres://... frog list
 ```
 
-Install `pg` beside Frog when using Postgres (and `@types/pg` in TypeScript projects).
 `FROG_NAMESPACE` can isolate several consumers in one database (it defaults to `default`), and
 `FROG_SCHEMA` can place the table in a specific schema. An unrelated application `DATABASE_URL` does
 not change Frog's default store.
@@ -199,10 +198,8 @@ Applications use the same store through the programmatic API:
 
 ```ts
 import { Frog, Store } from 'frog'
-import { Pool } from 'pg'
 
-const client = new Pool({ connectionString: process.env.DATABASE_URL })
-const store = Store.postgres({ client, namespace: 'support-agent' })
+const store = Store.postgres({ connectionString: process.env.DATABASE_URL! })
 await store.migrate()
 const frog = Frog.create({ store })
 
@@ -214,6 +211,7 @@ const result = await frog.log({
 })
 
 const unresolved = await frog.logs() // canonical entries with deduplicated occurrence counts
+await store.close()
 ```
 
 Every store implements `Store.Store` and preserves the same `Entry` fields. Use `Store.from` to adapt a

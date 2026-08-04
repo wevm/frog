@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module'
 import { z } from 'incur'
 import * as Store from '../../Store.js'
 
@@ -35,27 +34,18 @@ export function configuration(env: Environment): Configuration {
   }
 }
 
-/** Resolves the optional CLI store without making a database driver a hard Frog dependency. */
+/** Resolves the optional CLI store. */
 export async function resolve(env: Environment): Promise<Selection | undefined> {
   const selected = configuration(env)
   if (selected.kind === 'file') return undefined
 
-  const require = createRequire(import.meta.url)
-  let Pool: new (options: { connectionString: string }) => Store.postgres.Client & {
-    end(): Promise<void>
-  }
-  try {
-    ;({ Pool } = require('pg') as { Pool: typeof Pool })
-  } catch (error) {
-    throw new Error('The Postgres CLI store requires the optional `pg` package.', { cause: error })
-  }
-  const client = new Pool({ connectionString: selected.connectionString })
+  const store = Store.postgres({
+    connectionString: selected.connectionString,
+    namespace: selected.namespace,
+    ...(selected.schema ? { schema: selected.schema } : {}),
+  })
   return {
-    store: Store.postgres({
-      client,
-      namespace: selected.namespace,
-      ...(selected.schema ? { schema: selected.schema } : {}),
-    }),
-    close: () => client.end(),
+    store,
+    close: store.close,
   }
 }

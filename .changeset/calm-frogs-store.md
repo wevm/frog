@@ -6,10 +6,8 @@ Added pluggable friction stores, a Postgres factory, and the `Frog.create` loggi
 
 ```ts
 import { Frog, Store } from 'frog'
-import { Pool } from 'pg'
 
-const client = new Pool({ connectionString: process.env.DATABASE_URL })
-const store = Store.postgres({ client, namespace: 'support-agent' })
+const store = Store.postgres({ connectionString: process.env.DATABASE_URL! })
 await store.migrate()
 const frog = Frog.create({ store })
 await frog.log({
@@ -18,4 +16,5 @@ await frog.log({
   title: 'Tool required a workaround',
 })
 const logs = await frog.logs()
+await store.close()
 ```

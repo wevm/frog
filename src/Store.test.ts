@@ -32,6 +32,7 @@ test('behavior: from derives optional operations for a custom store', async () =
   expect(store.tracksOccurrences).toBe(false)
   expect(store.location('memory-id')).toBe('memory-id')
   await expect(store.migrate()).resolves.toBeUndefined()
+  await expect(store.close()).resolves.toBeUndefined()
   await expect(store.write(value)).resolves.toEqual({
     id: 'memory-id',
     location: 'memory:memory-id',

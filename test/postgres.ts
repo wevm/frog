@@ -9,10 +9,12 @@ const image = 'postgres:18-alpine'
 export function get(): get.ReturnType {
   let container: StartedPostgreSqlContainer | undefined
   let client: Pool | undefined
+  let connectionString: string | undefined
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer(image).start()
-    client = new Pool({ connectionString: container.getConnectionUri() })
+    connectionString = container.getConnectionUri()
+    client = new Pool({ connectionString })
   }, 120_000)
 
   afterAll(async () => {
@@ -28,14 +30,27 @@ export function get(): get.ReturnType {
     return client
   }
 
+  const getConnectionString = () => {
+    if (!connectionString) throw new Error('Postgres test container has not started.')
+    return connectionString
+  }
+
+  const create = (options: get.Options = {}) => {
+    const store = Store.postgres({
+      connectionString: getConnectionString(),
+      namespace: options.namespace ?? randomUUID(),
+      ...(options.schema ? { schema: options.schema } : {}),
+    })
+    onTestFinished(() => store.close())
+    return store
+  }
+
   return {
     client: getClient,
+    connectionString: getConnectionString,
+    create,
     async store(options = {}) {
-      const store = Store.postgres({
-        client: getClient(),
-        namespace: options.namespace ?? randomUUID(),
-        ...(options.schema ? { schema: options.schema } : {}),
-      })
+      const store = create(options)
       await store.migrate()
       return store
     },
@@ -55,6 +70,10 @@ export declare namespace get {
   type ReturnType = {
     /** Returns the connected pool after the test hook starts the container. */
     readonly client: () => Pool
+    /** Returns the container connection string after the test hook starts the container. */
+    readonly connectionString: () => string
+    /** Creates an unmigrated store with an isolated namespace. */
+    readonly create: (options?: Options) => Store.Store
     /** Creates and migrates a store with an isolated namespace. */
     readonly store: (options?: Options) => Promise<Store.Store>
   }

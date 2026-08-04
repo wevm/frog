@@ -17,7 +17,6 @@
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@vitest/coverage-v8": "catalog:",
-    "pg": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:",
@@ -65,15 +64,8 @@
     "@clack/prompts": "catalog:",
     "@octokit/rest": "catalog:",
     "incur": "catalog:",
+    "pg": "catalog:",
     "yaml": "catalog:"
-  },
-  "peerDependencies": {
-    "pg": ">=8.0.0"
-  },
-  "peerDependenciesMeta": {
-    "pg": {
-      "optional": true
-    }
   },
   "engines": {
     "node": ">=22"

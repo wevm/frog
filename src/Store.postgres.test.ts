@@ -16,7 +16,7 @@ const postgres = Postgres.get()
 describe('postgres', () => {
   test('behavior: migration creates the configured schema and is idempotent', async () => {
     const client = postgres.client()
-    const store = Store.postgres({ client, namespace: 'consumer-a', schema: 'frog' })
+    const store = postgres.create({ namespace: 'consumer-a', schema: 'frog' })
     const table = async () =>
       client.query<{ table_name: string }>(
         `SELECT table_name
@@ -33,7 +33,7 @@ describe('postgres', () => {
 
   test('behavior: an omitted schema follows the client search path', async () => {
     const client = postgres.client()
-    const store = Store.postgres({ client, namespace: 'search-path' })
+    const store = postgres.create({ namespace: 'search-path' })
     const frog = Frog.create({ store })
 
     await store.migrate()
@@ -81,9 +81,8 @@ describe('postgres', () => {
   })
 
   test('behavior: namespaces isolate consumers and force preserves intentional duplicates', async () => {
-    const client = postgres.client()
-    const first = Frog.create({ store: Store.postgres({ client, namespace: 'one' }) })
-    const second = Frog.create({ store: Store.postgres({ client, namespace: 'two' }) })
+    const first = Frog.create({ store: postgres.create({ namespace: 'one' }) })
+    const second = Frog.create({ store: postgres.create({ namespace: 'two' }) })
 
     await first.store.migrate()
     await first.log(friction)
@@ -93,29 +92,33 @@ describe('postgres', () => {
     expect(await second.logs()).toHaveLength(1)
   })
 
-  test('behavior: removal uses returned rows when the client omits rowCount', async () => {
-    const client: Store.postgres.Client = {
-      async query<T extends Record<string, unknown> = Record<string, unknown>>(
-        text: string,
-        values?: unknown[],
-      ): Promise<{ rows: T[] }> {
-        const result = await postgres.client().query<T>(text, values)
-        return { rows: result.rows }
-      },
-    }
-    const store = Store.postgres({ client, namespace: 'remove-without-row-count' })
+  test('behavior: namespace defaults to default', async () => {
+    const store = Store.postgres({ connectionString: postgres.connectionString() })
+    onTestFinished(() => store.close())
     await store.migrate()
-    const written = await store.write(friction)
+    const written = await Frog.create({ store }).log(friction)
 
-    await expect(store.remove(written.id)).resolves.toBe(true)
-    await expect(store.remove(written.id)).resolves.toBe(false)
+    expect(written.location).toMatch(/^postgres:default\//)
+  })
+
+  test('behavior: closing the owned pool is idempotent', async () => {
+    const store = postgres.create()
+    await store.migrate()
+
+    await expect(store.close()).resolves.toBeUndefined()
+    await expect(store.close()).resolves.toBeUndefined()
+  })
+
+  test('error: rejects an empty connection string', () => {
+    expect(() => Store.postgres({ connectionString: ' ' })).toThrow(
+      'Postgres connectionString is required.',
+    )
   })
 
   test('error: rejects unsafe schema names before issuing SQL', () => {
     expect(() =>
       Store.postgres({
-        client: postgres.client(),
-        namespace: 'one',
+        connectionString: postgres.connectionString(),
         schema: 'public; DROP TABLE users',
       }),
     ).toThrow('Postgres schema must be a SQL identifier.')
