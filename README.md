@@ -180,17 +180,28 @@ ships a reproduction. Exits 1 on an entry that fails to parse, so it doubles as 
 frog list
 ```
 
-### Embed Frog with another store
+### Store Logs in Postgres
 
-Frog's CLI keeps the repository file store as its default. Applications can use the same entry format
-and lifecycle with another store by constructing `FrictionLog` with a store adapter. Omitting `store`
-uses `.agents/friction-log/`, preserving the normal behavior.
+Frog stores entries in `.agents/friction-log/` by default. Set the conventional `DATABASE_URL` to use
+Postgres instead, then run the idempotent migration once:
+
+```sh
+DATABASE_URL=postgres://... frog migrate
+DATABASE_URL=postgres://... frog list
+```
+
+Install `pg` beside Frog when using Postgres. `FROG_NAMESPACE` can isolate several consumers in one
+database (it defaults to `default`), and `FROG_SCHEMA` can place the table in a specific schema. Set
+`FROG_STORE=file` to keep using repository files when `DATABASE_URL` is present.
+
+Applications use the same store through the programmatic API:
 
 ```ts
 import { FrictionLog, PostgresStore } from 'frog'
 import { Pool } from 'pg'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+await PostgresStore.migrate({ client: pool, namespace: 'support-agent' })
 const store = PostgresStore.adapter({ client: pool, namespace: 'support-agent' })
 const frog = new FrictionLog({ store })
 
@@ -204,38 +215,10 @@ const result = await frog.record({
 const unresolved = await frog.records() // canonical entries with deduplicated occurrence counts
 ```
 
-Run `PostgresStore.migrate({ client, namespace })` from the consumer's migration process before using
-the adapter. It creates one `frog_entries` table; `namespace` isolates independent applications sharing
-that table. The adapter accepts the small `query` interface implemented by `pg` pools and transaction
-clients, so Frog does not install a database driver or own connection credentials. With no `schema`,
-queries follow the client's current Postgres search path. Pass an explicit `schema` to create and fully
-qualify the table there.
-
-Every store implements the exported `FrictionStore` contract. Custom stores can retain entries in a
-remote service, SQLite, or another database. An adapter may provide atomic `record` behavior; otherwise
-`FrictionLog` supplies the file store's normalized-title deduplication. Consumer-defined `context` is
-stored without interpretation and is never needed by Frog's core behavior.
-
-The CLI can use the same adapter. The repository file store remains the default:
-
-```sh
-frog list
-```
-
-Select Postgres through environment variables when the application already owns the table migration:
-
-```sh
-FROG_STORE=postgres \
-FROG_NAMESPACE=my-application \
-DATABASE_URL=postgres://... \
-frog list
-```
-
-`FROG_DATABASE_URL` overrides the conventional `DATABASE_URL`, and `FROG_SCHEMA` optionally qualifies
-the table. Install `pg` beside Frog only when selecting Postgres. `frog log`, `frog list`, and `frog
-resolve <id>` then operate on that namespace; no variables or driver are required for the default file
-store. Repository-only features such as `list --since`, editing an entry with `log --open`, and artifact
-directories remain available only for the file store.
+Every store implements the exported `FrictionStore` contract and preserves the same `Entry` fields.
+Storage metadata such as occurrence counts stays outside that entry schema. Custom adapters can use a
+remote service, SQLite, or another database. Repository-only features such as artifacts, `list --since`,
+and `log --open` remain available only with the file store.
 
 ### Logging Upstream
 
@@ -281,7 +264,9 @@ Commands:
   init     Create the friction log, config, and issue form.
   list     List entries with their state.
   log      Write a friction entry.
+  migrate  Create or upgrade the selected store.
   publish  Report pending entries as GitHub issues.
+  resolve  Remove one resolved friction entry.
   sync     Reconcile entries against issue state.
   targets  List dependencies that accept friction reports.
 

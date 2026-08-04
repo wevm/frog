@@ -30,13 +30,15 @@ export type AdapterWriteOptions = {
 export type Adapter = {
   /** Stable adapter name for diagnostics. */
   readonly name: string
+  /** Creates or upgrades adapter-owned storage, when required. Safe to call repeatedly. */
+  migrate?(): Promise<void>
   /** Lists every entry in stable id order. */
   read(): Promise<readonly Entry.Entry[]>
   /** Lists entry ids in stable order. */
   list(): Promise<readonly string[]>
   /** Reads one entry. */
   get(id: string): Promise<Entry.Entry>
-  /** Writes an entry, optionally replacing a known id. */
+  /** Writes an entry, optionally replacing a known id. Every canonical entry field must round trip. */
   write(entry: Entry.serialize.Options, options?: AdapterWriteOptions): Promise<write.ReturnType>
   /** Removes an entry and reports whether it existed. */
   remove(id: string): Promise<boolean>
@@ -52,6 +54,14 @@ export function withAdapter<T>(store: Adapter, operation: () => Promise<T>): Pro
 /** Name of the adapter selected for this async scope. Defaults to the repository file store. */
 export function activeName(): string {
   return activeAdapter.getStore()?.name ?? 'file'
+}
+
+/** Migrates the active adapter, returning whether it owns a migration. The file store needs none. */
+export async function migrate(): Promise<boolean> {
+  const store = activeAdapter.getStore()
+  if (!store?.migrate) return false
+  await store.migrate()
+  return true
 }
 
 /** Binds the existing repository-file store to one root. */

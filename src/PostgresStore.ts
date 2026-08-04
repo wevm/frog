@@ -70,6 +70,7 @@ export function adapter(options: Options): FrictionLog.Adapter {
 
   const store: FrictionLog.Adapter = {
     name: 'postgres',
+    migrate: () => migrate(options),
     async read() {
       const result = await client.query<Row>(
         `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 ORDER BY id`,

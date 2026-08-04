@@ -1,10 +1,13 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { tmpdir, writeFile } from '../test/helpers.js'
+import { storeContract } from '../test/storeContract.js'
 import type * as Entry from './Entry.js'
 import * as Store from './Store.js'
 
 const entry = "---\ntitle: 'Filters are ignored'\n---\n\nBody.\n"
+
+storeContract('file', async () => Store.adapter({ root: await tmpdir() }))
 
 /** Writes an entry's write-up, creating its directory. */
 function write(id: string, root: string, contents = entry) {

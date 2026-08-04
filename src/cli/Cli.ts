@@ -2,6 +2,7 @@ import { Binary, Cli, z } from 'incur'
 import { init } from './commands/init.js'
 import { list } from './commands/list.js'
 import { log } from './commands/log.js'
+import { migrate } from './commands/migrate.js'
 import { publish } from './commands/publish.js'
 import { resolve } from './commands/resolve.js'
 import { sync } from './commands/sync.js'
@@ -21,14 +22,13 @@ const globalOptionValues = new Set([
 export const cli = Cli.create('frog', {
   description: 'Automated friction logging for agents.',
   env: z.object({
-    DATABASE_URL: z.string().optional().describe('Fallback database URL for the Postgres store.'),
-    FROG_DATABASE_URL: z.string().optional().describe('Database URL used by the Postgres store.'),
-    FROG_NAMESPACE: z
+    DATABASE_URL: z
       .string()
       .optional()
-      .describe('Required Postgres namespace for this consumer.'),
+      .describe('Postgres URL. Its presence selects the Postgres store.'),
+    FROG_NAMESPACE: z.string().optional().describe('Postgres namespace. Defaults to `default`.'),
     FROG_SCHEMA: z.string().optional().describe('Optional Postgres schema.'),
-    FROG_STORE: z.enum(['file', 'postgres']).optional().describe('Entry store. Defaults to file.'),
+    FROG_STORE: z.enum(['file', 'postgres']).optional().describe('Override the inferred entry store.'),
   }),
   sync: {
     depth: 1,
@@ -42,6 +42,7 @@ export const cli = Cli.create('frog', {
   .command(init)
   .command(list)
   .command(log)
+  .command(migrate)
   .command(publish)
   .command(resolve)
   .command(sync)

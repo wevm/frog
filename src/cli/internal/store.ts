@@ -9,18 +9,39 @@ export type Selection = {
   close(): Promise<void>
 }
 
-/** Resolves the optional CLI store without making a database driver a hard Frog dependency. */
-export async function resolve(env: Environment): Promise<Selection | undefined> {
-  const kind = env['FROG_STORE']?.trim().toLowerCase() || 'file'
-  if (kind === 'file') return undefined
+export type Configuration =
+  | { kind: 'file' }
+  | {
+      connectionString: string
+      kind: 'postgres'
+      namespace: string
+      schema?: string | undefined
+    }
+
+/** Infers the store from conventional environment variables without opening a connection. */
+export function configuration(env: Environment): Configuration {
+  const connectionString = env['DATABASE_URL']?.trim()
+  const requested = env['FROG_STORE']?.trim().toLowerCase()
+  const kind = requested || (connectionString ? 'postgres' : 'file')
+
+  if (kind === 'file') return { kind }
   if (kind !== 'postgres')
     throw new Error(`Unsupported FROG_STORE \`${kind}\`. Use \`file\` or \`postgres\`.`)
+  if (!connectionString) throw new Error('The Postgres store requires DATABASE_URL.')
 
-  const connectionString = env['FROG_DATABASE_URL']?.trim() || env['DATABASE_URL']?.trim()
-  if (!connectionString)
-    throw new Error('FROG_STORE=postgres requires FROG_DATABASE_URL or DATABASE_URL.')
-  const namespace = env['FROG_NAMESPACE']?.trim()
-  if (!namespace) throw new Error('FROG_STORE=postgres requires FROG_NAMESPACE.')
+  const schema = env['FROG_SCHEMA']?.trim()
+  return {
+    connectionString,
+    kind,
+    namespace: env['FROG_NAMESPACE']?.trim() || 'default',
+    ...(schema ? { schema } : {}),
+  }
+}
+
+/** Resolves the optional CLI store without making a database driver a hard Frog dependency. */
+export async function resolve(env: Environment): Promise<Selection | undefined> {
+  const selected = configuration(env)
+  if (selected.kind === 'file') return undefined
 
   const require = createRequire(import.meta.url)
   let Pool: new (options: { connectionString: string }) => PostgresStore.Client & {
@@ -31,13 +52,12 @@ export async function resolve(env: Environment): Promise<Selection | undefined> 
   } catch (error) {
     throw new Error('The Postgres CLI store requires the optional `pg` package.', { cause: error })
   }
-  const client = new Pool({ connectionString })
-  const schema = env['FROG_SCHEMA']?.trim()
+  const client = new Pool({ connectionString: selected.connectionString })
   return {
     adapter: PostgresStore.adapter({
       client,
-      namespace,
-      ...(schema ? { schema } : {}),
+      namespace: selected.namespace,
+      ...(selected.schema ? { schema: selected.schema } : {}),
     }),
     close: () => client.end(),
   }
