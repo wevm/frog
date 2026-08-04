@@ -125,6 +125,7 @@ describe('PostgresStore', () => {
     expect(repeated).toMatchObject({ created: false, occurrences: 2, entry: first.entry })
     expect(first.entry.id).toMatch(/^\d{14}-tool-result-omitted-[0-9a-f]{8}$/)
     expect(await log.list()).toEqual([first.entry])
+    expect(await log.records()).toEqual([{ entry: first.entry, occurrences: 2 }])
 
     const updated = await log.update(first.entry.id, { ...friction, issue: 'wevm/frog#123' })
     expect(updated.issue).toBe('wevm/frog#123')

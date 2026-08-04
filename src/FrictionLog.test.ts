@@ -15,6 +15,7 @@ describe('FrictionLog', () => {
     expect(result).toMatchObject({ created: true, occurrences: 1 })
     expect(log.store.name).toBe('file')
     expect(await log.list()).toEqual([result.entry])
+    expect(await log.records()).toEqual([{ entry: result.entry, occurrences: 1 }])
   })
 
   test('behavior: deduplicates normalized titles without changing the file-store default', async () => {

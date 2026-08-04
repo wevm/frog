@@ -84,6 +84,16 @@ export function adapter(options: Options): FrictionLog.Adapter {
       )
       return result.rows.map((row) => row.id)
     },
+    async records() {
+      const result = await client.query<Row>(
+        `SELECT id, contents, occurrence_count FROM ${table} WHERE namespace = $1 ORDER BY id`,
+        [namespace],
+      )
+      return result.rows.map((row) => ({
+        entry: Entry.parse(row.contents, { id: row.id }),
+        occurrences: Number(row.occurrence_count),
+      }))
+    },
     get,
     async write(entry, writeOptions = {}) {
       const id = writeOptions.id ?? newId(entry.title)

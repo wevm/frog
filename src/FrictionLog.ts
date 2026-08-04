@@ -1,16 +1,23 @@
 import * as Entry from './Entry.js'
 import * as Store from './Store.js'
 
-export type RecordResult = {
-  /** Whether this call created a new entry. */
-  created: boolean
+/** One canonical entry and the number of times it has been observed. */
+export type StoredEntry = {
   /** The canonical entry representing the friction. */
   entry: Entry.Entry
   /** Number of times this adapter has observed the friction, when tracked. */
   occurrences: number
 }
 
+/** Result of recording one friction occurrence. */
+export type RecordResult = StoredEntry & {
+  /** Whether this call created a new entry. */
+  created: boolean
+}
+
 export type Adapter = Store.Adapter & {
+  /** Optional occurrence-aware listing supplied by durable adapters. */
+  records?(): Promise<readonly StoredEntry[]>
   /** Optional atomic deduplication supplied by durable adapters. */
   record?(
     entry: Entry.serialize.Options,
@@ -28,6 +35,12 @@ export class FrictionLog {
 
   list(): Promise<readonly Entry.Entry[]> {
     return this.store.read()
+  }
+
+  /** Lists canonical entries with occurrence counts when the store tracks them. */
+  async records(): Promise<readonly StoredEntry[]> {
+    if (this.store.records) return this.store.records()
+    return (await this.store.read()).map((entry) => ({ entry, occurrences: 1 }))
   }
 
   get(id: string): Promise<Entry.Entry> {

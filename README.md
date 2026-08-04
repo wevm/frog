@@ -200,6 +200,8 @@ const result = await frog.record({
   severity: 'major',
   context: { source: 'production-agent', execution: 'opaque-reference' },
 })
+
+const unresolved = await frog.records() // canonical entries with deduplicated occurrence counts
 ```
 
 Run `PostgresStore.migrate({ client, namespace })` from the consumer's migration process before using

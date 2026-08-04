@@ -12,7 +12,7 @@ export * as Entry from './Entry.js'
 
 /** Storage-independent friction logging for embedded consumers. */
 export { FrictionLog } from './FrictionLog.js'
-export type { Adapter as FrictionStore, RecordResult } from './FrictionLog.js'
+export type { Adapter as FrictionStore, RecordResult, StoredEntry } from './FrictionLog.js'
 
 /** Parses a project's GitHub issue form and renders the entry scaffold it implies. */
 export * as IssueForm from './IssueForm.js'
