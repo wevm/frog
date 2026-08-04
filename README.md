@@ -215,9 +215,8 @@ accepting inbound reports.
 
 ### Store Logs in a Database
 
-Frog separates friction logging from persistence, so agents and applications can record and inspect
-logs through one API while choosing where they live. Repository files are the default, PostgreSQL is
-supported today, and SQLite and Cloudflare D1 are planned.
+Store friction logs in a shared database so multiple agents and applications can record and inspect
+them.
 
 ```sh
 export FROG_DATABASE_URL=postgres://...
