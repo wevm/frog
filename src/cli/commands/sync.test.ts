@@ -43,6 +43,18 @@ test('error: repository reconciliation requires the file store', async () => {
   )
 })
 
+test('error: an injected file store must match the command root', async () => {
+  const cwd = await helpers.repo({ remote })
+  const storageRoot = await helpers.repo({ remote })
+  const store = Store.file({ root: storageRoot })
+
+  expect(await cli.error(['sync', '--cwd', cwd], {}, { store })).toMatchObject({
+    code: 'STORE_ROOT_MISMATCH',
+  })
+  expect(await Store.list({ root: cwd })).toEqual([])
+  expect(await Store.list({ root: storageRoot })).toEqual([])
+})
+
 function issueBody(id: string, body = 'Body.', severity?: Entry.Severity): string {
   return Github.renderBody({
     body,

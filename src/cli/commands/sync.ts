@@ -79,6 +79,11 @@ export const sync = Cli.create('sync', {
         message:
           '`sync` requires the repository file store because reconciliation mirrors are repository-owned.',
       })
+    if (store.root !== root)
+      return c.error({
+        code: 'STORE_ROOT_MISMATCH',
+        message: 'The injected file store must use the same root as `--cwd`.',
+      })
 
     const entries = await attempt(store.read())
     if (!entries.ok) return c.error({ code: entries.code, message: entries.message })

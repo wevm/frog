@@ -87,6 +87,16 @@ The filter was swallowed.
       `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. issue: Invalid string: must match pattern /^[\\w.-]+\\/[\\w.-]+#\\d+$/]`,
     )
   })
+
+  test('error: rejects YAML aliases before validating recursive context', () => {
+    expect(() =>
+      Entry.parse("---\ntitle: 'Slow'\ncontext: &context\n  self: *context\n---\n\nBody.\n", {
+        id,
+      }),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[Entry.InvalidError: Entry \`lazy-squids-chew\` has invalid frontmatter. frontmatter: YAML aliases are not supported.]`,
+    )
+  })
 })
 
 describe('serialize', () => {
