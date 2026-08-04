@@ -99,8 +99,9 @@ export const log = Cli.create('log', {
   output: z.object({
     artifacts: z
       .string()
+      .optional()
       .describe('Directory for reproduction files. Not created until something writes there.'),
-    file: z.string().describe('Path of the entry, relative to the repository root.'),
+    file: z.string().describe('Store location of the entry.'),
     id: z.string(),
     issue: z.string().optional().describe('Linked issue, when --publish filed one.'),
     title: z.string(),
@@ -112,6 +113,13 @@ export const log = Cli.create('log', {
   async run(c) {
     const { config, repo, root } = await context.resolve({ cwd: c.options.cwd })
     const interactive = prompt.interactive()
+    const opensEditor = c.options.open ?? (interactive && !c.options.body)
+    if (opensEditor && Store.activeName() !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_OPTION',
+        message:
+          '`--open` is available only with the repository file store. Pass `--body` instead.',
+      })
 
     // Piped input carries the whole entry, shaped like a commit message. It keeps `log` usable
     // without a terminal, where a prompt cannot run at all.
@@ -145,9 +153,10 @@ export const log = Cli.create('log', {
     const ownTarget = !c.options.target || (repo !== undefined && targetRepo === repo)
 
     // Always load this repository's configured form from disk so a supplied body cannot bypass it.
-    const own = ownTarget
-      ? await attempt(form.own(root, { named: config.inbound.template }))
-      : undefined
+    const own =
+      ownTarget && Store.activeName() === 'file'
+        ? await attempt(form.own(root, { named: config.inbound.template }))
+        : undefined
 
     // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
     // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
@@ -267,7 +276,12 @@ export const log = Cli.create('log', {
 
     if (!c.options.publish)
       return c.ok(
-        { artifacts: Store.toArtifacts(id), file, id, title },
+        {
+          ...(Store.activeName() === 'file' ? { artifacts: Store.toArtifacts(id) } : {}),
+          file,
+          id,
+          title,
+        },
         {
           cta: {
             commands: [

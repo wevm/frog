@@ -41,6 +41,12 @@ export const list = Cli.create('list', {
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
 
+    if (c.options.since && Store.activeName() !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_OPTION',
+        message: '`--since` is available only with the repository file store.',
+      })
+
     // Both `c.error` calls stay at the top level of `run`. See `internal/attempt.ts` for why.
     const entries = await attempt(Store.read({ root }))
     if (!entries.ok)

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { tmpdir, writeFile } from '../test/helpers.js'
+import type * as Entry from './Entry.js'
 import * as Store from './Store.js'
 
 const entry = "---\ntitle: 'Filters are ignored'\n---\n\nBody.\n"
@@ -9,6 +10,38 @@ const entry = "---\ntitle: 'Filters are ignored'\n---\n\nBody.\n"
 function write(id: string, root: string, contents = entry) {
   return writeFile(Store.toPath(id), contents, root)
 }
+
+test('behavior: an async adapter scope redirects every store operation', async () => {
+  const entries = new Map<string, Entry.Entry>()
+  const scoped: Store.Adapter = {
+    name: 'memory',
+    read: async () => [...entries.values()],
+    list: async () => [...entries.keys()],
+    get: async (id) => entries.get(id)!,
+    write: async (value, options = {}) => {
+      const id = options.id ?? 'memory-id'
+      entries.set(id, { ...value, id })
+      return { file: `memory:${id}`, id }
+    },
+    remove: async (id) => entries.delete(id),
+    files: async () => [],
+  }
+  const root = await tmpdir()
+  const value = { body: 'Body.', severity: 'minor', title: 'Scoped' } as const
+
+  await Store.withAdapter(scoped, async () => {
+    expect(Store.activeName()).toBe('memory')
+    await expect(Store.write(value, { root })).resolves.toEqual({
+      file: 'memory:memory-id',
+      id: 'memory-id',
+    })
+    await expect(Store.list({ root })).resolves.toEqual(['memory-id'])
+    await expect(Store.get('memory-id', { root })).resolves.toEqual({ ...value, id: 'memory-id' })
+    await expect(Store.files('memory-id', { root })).resolves.toEqual([])
+    await expect(Store.remove('memory-id', { root })).resolves.toBe(true)
+  })
+  expect(Store.activeName()).toBe('file')
+})
 
 describe('write', () => {
   test('behavior: mints an id and returns the repo-relative path', async () => {

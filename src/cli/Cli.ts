@@ -1,12 +1,15 @@
-import { Binary, Cli } from 'incur'
+import { Binary, Cli, z } from 'incur'
 import { init } from './commands/init.js'
 import { list } from './commands/list.js'
 import { log } from './commands/log.js'
 import { publish } from './commands/publish.js'
+import { resolve } from './commands/resolve.js'
 import { sync } from './commands/sync.js'
 import { targets } from './commands/targets.js'
 import * as context from './internal/context.js'
 import * as packageManager from './internal/packageManager.js'
+import * as environmentStore from './internal/store.js'
+import * as Store from '../Store.js'
 
 const globalOptionValues = new Set([
   '--filter-output',
@@ -17,6 +20,16 @@ const globalOptionValues = new Set([
 
 export const cli = Cli.create('frog', {
   description: 'Automated friction logging for agents.',
+  env: z.object({
+    DATABASE_URL: z.string().optional().describe('Fallback database URL for the Postgres store.'),
+    FROG_DATABASE_URL: z.string().optional().describe('Database URL used by the Postgres store.'),
+    FROG_NAMESPACE: z
+      .string()
+      .optional()
+      .describe('Required Postgres namespace for this consumer.'),
+    FROG_SCHEMA: z.string().optional().describe('Optional Postgres schema.'),
+    FROG_STORE: z.enum(['file', 'postgres']).optional().describe('Entry store. Defaults to file.'),
+  }),
   sync: {
     depth: 1,
     suggestions: [
@@ -30,6 +43,7 @@ export const cli = Cli.create('frog', {
   .command(list)
   .command(log)
   .command(publish)
+  .command(resolve)
   .command(sync)
   .command(targets)
 
@@ -38,12 +52,20 @@ export async function serve(
   argv: string[] = process.argv.slice(2),
   options: Cli.serve.Options = {},
 ) {
-  if (command(argv) !== 'init') return cli.serve(argv, options)
+  const selected = await environmentStore.resolve(options.env ?? process.env)
+  const run = async () => {
+    if (command(argv) !== 'init') return cli.serve(argv, options)
 
-  const { root } = await context.resolve({ cwd: option(argv, '--cwd') })
-  const runner = await packageManager.resolve({ env: options.env, root })
-  if (!runner) return cli.serve(argv, options)
-  return Cli.create(runner).command(init).serve(argv, options)
+    const { root } = await context.resolve({ cwd: option(argv, '--cwd') })
+    const runner = await packageManager.resolve({ env: options.env, root })
+    if (!runner) return cli.serve(argv, options)
+    return Cli.create(runner).command(init).serve(argv, options)
+  }
+  try {
+    return selected ? await Store.withAdapter(selected.adapter, run) : await run()
+  } finally {
+    await selected?.close()
+  }
 }
 
 export default cli

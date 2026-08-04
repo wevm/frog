@@ -216,6 +216,27 @@ remote service, SQLite, or another database. An adapter may provide atomic `reco
 `FrictionLog` supplies the file store's normalized-title deduplication. Consumer-defined `context` is
 stored without interpretation and is never needed by Frog's core behavior.
 
+The CLI can use the same adapter. The repository file store remains the default:
+
+```sh
+frog list
+```
+
+Select Postgres through environment variables when the application already owns the table migration:
+
+```sh
+FROG_STORE=postgres \
+FROG_NAMESPACE=my-application \
+DATABASE_URL=postgres://... \
+frog list
+```
+
+`FROG_DATABASE_URL` overrides the conventional `DATABASE_URL`, and `FROG_SCHEMA` optionally qualifies
+the table. Install `pg` beside Frog only when selecting Postgres. `frog log`, `frog list`, and `frog
+resolve <id>` then operate on that namespace; no variables or driver are required for the default file
+store. Repository-only features such as `list --since`, editing an entry with `log --open`, and artifact
+directories remain available only for the file store.
+
 ### Logging Upstream
 
 Reports friction to another project instead of your own. A target is an npm package or an `owner/repo`,

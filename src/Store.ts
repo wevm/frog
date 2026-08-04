@@ -1,6 +1,9 @@
 import fs from 'node:fs/promises'
+import { AsyncLocalStorage } from 'node:async_hooks'
 import path from 'node:path'
 import * as Entry from './Entry.js'
+
+const activeAdapter = new AsyncLocalStorage<Adapter | undefined>()
 
 /** Directory holding entries, relative to the repository root. */
 export const dir = '.agents/friction-log'
@@ -41,16 +44,27 @@ export type Adapter = {
   files(id: string): Promise<readonly string[]>
 }
 
+/** Runs store operations in one async scope through the supplied adapter. */
+export function withAdapter<T>(store: Adapter, operation: () => Promise<T>): Promise<T> {
+  return activeAdapter.run(store, operation)
+}
+
+/** Name of the adapter selected for this async scope. Defaults to the repository file store. */
+export function activeName(): string {
+  return activeAdapter.getStore()?.name ?? 'file'
+}
+
 /** Binds the existing repository-file store to one root. */
 export function adapter(options: Options): Adapter {
   return {
     name: 'file',
-    read: () => read(options),
-    list: () => list(options),
-    get: (id) => get(id, options),
-    write: (entry, writeOptions = {}) => write(entry, { ...writeOptions, root: options.root }),
-    remove: (id) => remove(id, options),
-    files: (id) => files(id, options),
+    read: () => activeAdapter.run(undefined, () => read(options)),
+    list: () => activeAdapter.run(undefined, () => list(options)),
+    get: (id) => activeAdapter.run(undefined, () => get(id, options)),
+    write: (entry, writeOptions = {}) =>
+      activeAdapter.run(undefined, () => write(entry, { ...writeOptions, root: options.root })),
+    remove: (id) => activeAdapter.run(undefined, () => remove(id, options)),
+    files: (id) => activeAdapter.run(undefined, () => files(id, options)),
   }
 }
 
@@ -108,6 +122,8 @@ export function toId(file: string): string | undefined {
  * @returns Every entry. Throws on the first malformed write-up rather than skipping it.
  */
 export async function read(options: Options): Promise<readonly Entry.Entry[]> {
+  const selected = activeAdapter.getStore()
+  if (selected) return selected.read()
   const ids = await list(options)
   return Promise.all(ids.map((id) => get(id, options)))
 }
@@ -120,6 +136,8 @@ export async function read(options: Options): Promise<readonly Entry.Entry[]> {
  * @returns Entry ids. A missing directory yields an empty list.
  */
 export async function list(options: Options): Promise<readonly string[]> {
+  const selected = activeAdapter.getStore()
+  if (selected) return selected.list()
   const found = await fs
     .readdir(path.join(options.root, dir), { withFileTypes: true })
     .catch((error) => {
@@ -149,6 +167,8 @@ export async function list(options: Options): Promise<readonly string[]> {
  * @param id - Entry id.
  */
 export async function get(id: string, options: Options): Promise<Entry.Entry> {
+  const selected = activeAdapter.getStore()
+  if (selected) return selected.get(id)
   const contents = await fs.readFile(path.join(options.root, toPath(id)), 'utf8')
   return Entry.parse(contents, { id })
 }
@@ -162,6 +182,8 @@ export async function get(id: string, options: Options): Promise<Entry.Entry> {
  * @returns Paths, sorted. Empty when the entry does not exist.
  */
 export async function files(id: string, options: Options): Promise<readonly string[]> {
+  const selected = activeAdapter.getStore()
+  if (selected) return selected.files(id)
   const base = path.join(options.root, toDir(id))
   const found = await fs
     .readdir(base, { recursive: true, withFileTypes: true })
@@ -188,6 +210,8 @@ export async function write(
   entry: Entry.serialize.Options,
   options: write.Options,
 ): Promise<write.ReturnType> {
+  const selected = activeAdapter.getStore()
+  if (selected) return selected.write(entry, options)
   const id = options.id ?? (await claim(entry.title, options))
   const file = toPath(id)
   await fs.mkdir(path.join(options.root, toDir(id)), { recursive: true })
@@ -242,6 +266,8 @@ export declare namespace write {
  * not an error, so reconciliation stays safe to re-run.
  */
 export async function remove(id: string, options: Options): Promise<boolean> {
+  const selected = activeAdapter.getStore()
+  if (selected) return selected.remove(id)
   const base = path.join(options.root, toDir(id))
   try {
     await fs.stat(base)

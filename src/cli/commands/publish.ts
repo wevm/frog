@@ -85,6 +85,7 @@ export const publish = Cli.create('publish', {
       return c.ok({ commented: [], committed: false, created: [], deferred, unlabelled: [] })
 
     if (
+      Store.activeName() === 'file' &&
       publishable.some((entry) => !entry.issue) &&
       c.options.commit !== false &&
       !c.options.dryRun &&
@@ -245,7 +246,13 @@ export const publish = Cli.create('publish', {
     // One commit, however many destinations were involved.
     const commit = await attempt(
       (async () => {
-        if (c.options.commit === false || c.options.dryRun || written.length === 0) return false
+        if (
+          Store.activeName() !== 'file' ||
+          c.options.commit === false ||
+          c.options.dryRun ||
+          written.length === 0
+        )
+          return false
         await Git.add(written, { cwd: root })
         return Git.commit('chore: sync friction log', { cwd: root, files: written })
       })(),
