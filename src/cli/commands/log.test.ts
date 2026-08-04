@@ -47,6 +47,7 @@ test('behavior: durable-store logging atomically records repeated titles', async
   )
 
   expect(repeated.id).toBe(first.id)
+  expect(repeated.title).toBe(title)
   expect(await store.records()).toMatchObject([{ occurrences: 2 }])
 })
 const ownForm = [

@@ -31,3 +31,23 @@ test('security: rejects path traversal without removing parent directories', asy
   })
   await expect(fs.readFile(`${cwd}/.agents/keep.txt`, 'utf8')).resolves.toBe('keep')
 })
+
+test('behavior: passes opaque ids to configured stores', async () => {
+  const cwd = await helpers.repo()
+  const store = Store.from({
+    name: 'custom',
+    read: async () => [],
+    get: async () => {
+      throw new Error('Unexpected get.')
+    },
+    write: async () => {
+      throw new Error('Unexpected write.')
+    },
+    remove: async (id) => id === 'ticket/123',
+  })
+
+  await expect(cli.data(['resolve', 'ticket/123', '--cwd', cwd], {}, { store })).resolves.toEqual({
+    id: 'ticket/123',
+    removed: true,
+  })
+})

@@ -274,7 +274,7 @@ export const log = Cli.create('log', {
       ),
     )
     if (!logged.ok) return c.error({ code: logged.code, message: logged.message })
-    const { id } = logged.value.entry
+    const { id, title: loggedTitle } = logged.value.entry
     const file = logged.value.location
 
     // Reached interactively, or on request. The editor is the long-form input path.
@@ -296,7 +296,7 @@ export const log = Cli.create('log', {
           ...(store.name === 'file' ? { artifacts: Store.toArtifacts(id) } : {}),
           file,
           id,
-          title,
+          title: loggedTitle,
         },
         {
           cta: {
@@ -367,7 +367,7 @@ export const log = Cli.create('log', {
         artifacts: Store.toArtifacts(id),
         file,
         id,
-        title,
+        title: entry.value.title,
         ...(filed.ok && 'issue' in filed.value ? { issue: filed.value.issue } : {}),
         ...(unfiled ? { unfiled } : {}),
       },

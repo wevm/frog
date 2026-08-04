@@ -166,6 +166,7 @@ export function isId(id: string): boolean {
   return (
     id.length > 0 &&
     !id.startsWith('.') &&
+    !/[. ]$/.test(id) &&
     !id.includes('/') &&
     !id.includes('\\') &&
     !id.includes('\0')

@@ -231,6 +231,8 @@ describe('isId', () => {
     ['', false],
     ['.hidden', false],
     ['..', false],
+    ['entry.', false],
+    ['entry ', false],
     ['../outside', false],
     ['nested/outside', false],
     ['nested\\outside', false],

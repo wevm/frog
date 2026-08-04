@@ -32,6 +32,10 @@ const envSchema = z.object({
 
 /** Creates the CLI with one optional store for commands that persist friction. */
 export function create(options: create.Options = {}) {
+  return createCli(options)
+}
+
+function createCli(options: createCli.Options = {}) {
   return Cli.create('frog', {
     description: 'Automated friction logging for agents.',
     env: envSchema,
@@ -47,7 +51,8 @@ export function create(options: create.Options = {}) {
   })
     .use(
       middleware<typeof environmentStore.vars, typeof envSchema>(async (context, next) => {
-        if (options.store) context.set('store', options.store)
+        const store = options.store ?? (await options.resolveStore?.())
+        if (store) context.set('store', store)
         await next()
       }),
     )
@@ -59,6 +64,12 @@ export function create(options: create.Options = {}) {
     .command(resolve)
     .command(sync)
     .command(targets)
+}
+
+declare namespace createCli {
+  type Options = create.Options & {
+    resolveStore?: (() => Promise<Store.Store | undefined>) | undefined
+  }
 }
 
 export declare namespace create {
@@ -73,12 +84,19 @@ export const cli = create()
 /** Serves init with the project runner when one is detected. */
 export async function serve(argv: string[] = process.argv.slice(2), options: serve.Options = {}) {
   const { store, ...serveOptions } = options
-  const selected =
-    store === undefined && usesStore(argv)
-      ? await environmentStore.resolve(options.env ?? process.env)
-      : undefined
-  const commandStore = store ?? selected?.store
-  const runnerCli = create(commandStore ? { store: commandStore } : {})
+  let selected: environmentStore.Selection | undefined
+  let selecting: Promise<environmentStore.Selection | undefined> | undefined
+  const runnerCli = createCli({
+    ...(store ? { store } : {}),
+    ...(store === undefined && usesStore(argv)
+      ? {
+          resolveStore: async () => {
+            selected = await (selecting ??= environmentStore.resolve(options.env ?? process.env))
+            return selected?.store
+          },
+        }
+      : {}),
+  })
   const run = async () => {
     if (command(argv) !== 'init') return runnerCli.serve(argv, serveOptions)
 

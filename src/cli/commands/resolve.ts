@@ -13,7 +13,7 @@ export const resolve = Cli.create('resolve', {
   async run(c) {
     const { root } = await context.resolve({ cwd: c.options.cwd })
     const store = c.var.store ?? Store.file({ root })
-    if (!Store.isId(c.args.id))
+    if (c.var.store === undefined && !Store.isId(c.args.id))
       return c.error({
         code: 'INVALID_ENTRY_ID',
         message: 'Entry id must be one path-safe directory name.',
