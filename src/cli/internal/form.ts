@@ -94,6 +94,19 @@ export declare namespace own {
 }
 
 /**
+ * Reads the explicitly selected issue form without falling back to another form.
+ *
+ * @param root - Repository root.
+ * @param value - Repository-relative path or filename under the issue-template directory.
+ * @returns The selected form, or `undefined` when it is absent or invalid.
+ */
+export async function selected(root: string, value: string): Promise<IssueForm.Form | undefined> {
+  const at = value.includes('/') ? value : `${IssueForm.dir}/${value}`
+  const contents = await fs.readFile(path.join(root, at), 'utf8').catch(() => undefined)
+  return contents ? IssueForm.parse(contents) : undefined
+}
+
+/**
  * Checks that a supplied body preserves an issue form's headings and required answers.
  *
  * Optional fields still need their headings because the project chose the complete form shape. Their

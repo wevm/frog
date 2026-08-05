@@ -317,6 +317,21 @@ test('behavior: an explicitly selected issue form wins', async () => {
   expect((await Store.get(id, { root: cwd })).body).toBe(selectedBody)
 })
 
+test('error: an explicitly selected issue form must resolve', async () => {
+  const cwd = await helpers.repo()
+  await writeOwnForm(cwd)
+
+  const result = await cli.error(['log', title, '--template', 'missing.yml', '--cwd', cwd])
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "code": "TEMPLATE_NOT_FOUND",
+      "message": "Could not load an issue form from \`missing.yml\`.",
+    }
+  `)
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
 test('error: selecting an issue form requires the file store', async () => {
   const store = await postgres.store()
   const cwd = await helpers.repo()

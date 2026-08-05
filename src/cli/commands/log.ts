@@ -184,8 +184,17 @@ export const log = Cli.create('log', {
     // Always load this repository's configured form from disk so a supplied body cannot bypass it.
     const own =
       ownTarget && store.name === 'file'
-        ? await attempt(form.own(root, { named: c.options.template ?? config.inbound.template }))
+        ? await attempt(
+            c.options.template
+              ? form.selected(root, c.options.template)
+              : form.own(root, { named: config.inbound.template }),
+          )
         : undefined
+    if (c.options.template && own?.ok && !own.value)
+      return c.error({
+        code: 'TEMPLATE_NOT_FOUND',
+        message: `Could not load an issue form from \`${c.options.template}\`.`,
+      })
 
     // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
     // judges a report against its own form. Fetched only when the answers would be used. Never fatal:
