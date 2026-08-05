@@ -76,6 +76,11 @@ export const log = Cli.create('log', {
       .optional()
       .describe('File the issue immediately instead of leaving it for `publish`.'),
     severity: Entry.Severity.optional().describe('Impact. Defaults to minor.'),
+    template: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Issue form for this entry, as a path or filename under `.github/ISSUE_TEMPLATE`.'),
     token: z.string().min(1).optional().describe('GitHub token. Overrides the environment.'),
     target: z
       .string()
@@ -165,11 +170,21 @@ export const log = Cli.create('log', {
     // An explicit target can still resolve to this repository, directly or through a package.
     const targetRepo = c.options.target ? await target.repository(c.options.target, root) : repo
     const ownTarget = !c.options.target || (repo !== undefined && targetRepo === repo)
+    if (c.options.template && !ownTarget)
+      return c.error({
+        code: 'TEMPLATE_UNSUPPORTED_TARGET',
+        message: '`--template` is available only for entries about this repository.',
+      })
+    if (c.options.template && store.name !== 'file')
+      return c.error({
+        code: 'STORE_UNSUPPORTED_OPTION',
+        message: '`--template` is available only with the repository file store.',
+      })
 
     // Always load this repository's configured form from disk so a supplied body cannot bypass it.
     const own =
       ownTarget && store.name === 'file'
-        ? await attempt(form.own(root, { named: config.inbound.template }))
+        ? await attempt(form.own(root, { named: c.options.template ?? config.inbound.template }))
         : undefined
 
     // Scaffold from the target's own issue form rather than from Frog's sections. An upstream project
