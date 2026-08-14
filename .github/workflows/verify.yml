@@ -3,6 +3,12 @@ on:
   workflow_call:
   workflow_dispatch:
 
+# A called workflow inherits its caller's `github.workflow`. Use a fixed identity to avoid canceling
+# the caller.
+concurrency:
+  group: Verify-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.ref_type }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
