@@ -165,6 +165,13 @@ Prompts for the details in a terminal, or takes them as flags.
 frog log
 ```
 
+Select another local issue form when a class of friction needs different evidence. The path may be a
+filename under `.github/ISSUE_TEMPLATE` or a repository-relative path:
+
+```sh
+frog log --template flaky-test.yml --label flaky-test
+```
+
 ```
 .agents/friction-log/20260725143012-pnpm-test-files/
   friction.md     the write-up
