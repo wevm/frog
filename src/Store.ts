@@ -470,7 +470,10 @@ export function postgres(options: postgres.Options): Store {
     async write(entry, writeOptions = {}) {
       const id = writeOptions.id ?? newPostgresId(entry.title)
       const dedupeKey = `entry:${id}`
-      const titleKey = `title:${Entry.normalizeTitle(entry.title)}`
+      // An empty normalized title never takes the shared title key: every punctuation-only
+      // title would otherwise share `title:` and collide.
+      const normalized = Entry.normalizeTitle(entry.title)
+      const titleKey = normalized === '' ? dedupeKey : `title:${normalized}`
       await sql`
         INSERT INTO ${table} AS existing(namespace, id, dedupe_key, contents)
         VALUES (${namespace}, ${id}, ${dedupeKey}, ${Entry.serialize(entry)})
@@ -499,9 +502,14 @@ export function postgres(options: postgres.Options): Store {
     },
     async log(entry, logOptions = {}) {
       const id = newPostgresId(entry.title)
+      const normalized = Entry.normalizeTitle(entry.title)
+      // An empty normalized title never deduplicates: every punctuation-only title would
+      // otherwise share one key and count as the same friction.
       const dedupeKey = logOptions.force
         ? `forced:${id}`
-        : `title:${Entry.normalizeTitle(entry.title)}`
+        : normalized === ''
+          ? `entry:${id}`
+          : `title:${normalized}`
       const result = await sql<PostgresRow[]>`
         INSERT INTO ${table}(namespace, id, dedupe_key, contents)
         VALUES (${namespace}, ${id}, ${dedupeKey}, ${Entry.serialize(entry)})

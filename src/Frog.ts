@@ -55,7 +55,10 @@ async function log(
 ): Promise<Store.LogResult> {
   if (store.log) return store.log(entry, options)
 
-  if (!options.force) {
+  // An empty normalized title (empty or punctuation-only, such as `---`) never deduplicates: every
+  // such entry would otherwise match every other, including the mangled piped entries this guard
+  // exists to contain.
+  if (!options.force && Entry.normalizeTitle(entry.title) !== '') {
     const duplicate = (await store.read()).find(
       (candidate) => Entry.normalizeTitle(candidate.title) === Entry.normalizeTitle(entry.title),
     )
