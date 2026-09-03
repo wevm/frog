@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import type { Readable } from 'node:stream'
+import * as Entry from '../../Entry.js'
 
 /** How long to wait for the first byte when it is unclear whether anything is coming. */
 export const grace = 100
@@ -103,19 +104,27 @@ function arriving(stream: Readable, deadline: number): Promise<boolean> {
 }
 
 /**
- * Splits piped input into a title and a body.
+ * Splits piped input into a title, a body, and an optional severity.
  *
  * Shaped like a commit message: the first line is the title, the rest is the body. A caller never has to
  * quote a multi-line string on a command line, where an apostrophe in the body would end the argument.
  *
+ * A complete entry write-up is recognized by its opening fence: when the first non-empty line is `---`,
+ * the title and severity come from the YAML frontmatter block and the body is the Markdown after the
+ * closing fence. Malformed frontmatter yields nothing rather than a `---` title that would poison
+ * later duplicate detection.
+ *
  * @param contents - Piped input.
- * @returns The title and body, or `undefined` when there is no title to take.
+ * @returns The title, body, and frontmatter severity when present, or `undefined` when there is no
+ * title to take.
  */
-export function parse(contents: string): { body: string; title: string } | undefined {
+export function parse(contents: string): parse.Result | undefined {
   const lines = contents.replace(/\r\n/g, '\n').split('\n')
 
   const start = lines.findIndex((line) => line.trim())
   if (start === -1) return undefined
+
+  if (lines[start]?.trim() === '---') return parseFrontmatter(lines.slice(start))
 
   const title = lines[start]?.trim()
   if (!title) return undefined
@@ -126,5 +135,33 @@ export function parse(contents: string): { body: string; title: string } | undef
       .join('\n')
       .trim(),
     title,
+  }
+}
+
+export declare namespace parse {
+  /** Piped entry: commit-message title and body, plus frontmatter severity when piped as a file. */
+  type Result = {
+    /** Markdown body: everything after the title, or after the frontmatter block. */
+    body: string
+    /** Frontmatter severity. Absent for the commit-message shape; the caller defaults it. */
+    severity?: Entry.Severity | undefined
+    /** One line, specific enough to search for. */
+    title: string
+  }
+}
+
+/**
+ * Parses piped input that starts with a YAML frontmatter fence.
+ *
+ * @param lines - Piped lines starting at the opening `---`.
+ * @returns The frontmatter title, severity, and Markdown body, or `undefined` when the block is
+ * malformed or names no title.
+ */
+function parseFrontmatter(lines: readonly string[]): parse.Result | undefined {
+  try {
+    const parsed = Entry.parse(lines.join('\n'), { id: 'piped' })
+    return { body: parsed.body, severity: parsed.severity, title: parsed.title }
+  } catch {
+    return undefined
   }
 }

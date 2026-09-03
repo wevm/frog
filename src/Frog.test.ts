@@ -34,6 +34,16 @@ describe('create', () => {
     expect(await frog.logs()).toHaveLength(1)
   })
 
+  test('behavior: does not deduplicate empty or fence-only titles', async () => {
+    const frog = Frog.create({ store: Store.file({ root: await tmpdir() }) })
+    const first = await frog.log({ ...entry, title: '---' })
+    const second = await frog.log({ ...entry, title: '---' })
+
+    expect(second.created).toBe(true)
+    expect(second.entry.id).not.toBe(first.entry.id)
+    expect(await frog.logs()).toHaveLength(2)
+  })
+
   test('behavior: delegates atomic logging to a store that provides it', async () => {
     const log = vi.fn(async () => ({
       created: false,
