@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { z } from 'incur'
 import * as Config from '../../Config.js'
 import * as Git from '../../Git.js'
@@ -17,7 +18,7 @@ export type Context = {
  */
 export async function resolve(options: resolve.Options = {}): Promise<Context> {
   const cwd = options.cwd ?? process.cwd()
-  const root = (await Git.root({ cwd })) ?? cwd
+  const root = path.resolve((await Git.root({ cwd })) ?? cwd)
   const remote = await Git.repo({ cwd: root })
   const config = await Config.resolve({
     root,
