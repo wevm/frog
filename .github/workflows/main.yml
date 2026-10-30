@@ -36,7 +36,7 @@ jobs:
 
       - name: PR or publish
         id: changesets
-        uses: changesets/action@v1
+        uses: wevm/actions/vendor/changesets/action/wagmi@73e899a58d51092d694fbaf94b7a1d8c09bfea28
         with:
           commit: 'chore: version packages'
           publish: pnpm changeset:publish
@@ -77,7 +77,7 @@ jobs:
       # The queues are declared in `wrangler.jsonc`, so they have to exist before the Worker binding
       # resolves. Creating one that is already there is an error, which is what the `|| true` is for.
       - name: Deploy the app
-        uses: cloudflare/wrangler-action@v3
+        uses: wevm/actions/vendor/cloudflare/wrangler-action/rev-9acf94ace14e@73e899a58d51092d694fbaf94b7a1d8c09bfea28
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -91,7 +91,7 @@ jobs:
       # there would be no Worker to attach them to. The command here is a dry run so this step only ever
       # costs the upload.
       - name: Sync the app secrets
-        uses: cloudflare/wrangler-action@v3
+        uses: wevm/actions/vendor/cloudflare/wrangler-action/rev-9acf94ace14e@73e899a58d51092d694fbaf94b7a1d8c09bfea28
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
