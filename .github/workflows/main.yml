@@ -62,6 +62,7 @@ jobs:
     needs: verify
     permissions:
       contents: read
+      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -74,13 +75,20 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
+      - name: Mint deployment token
+        id: cloudflare
+        uses: wevm/actions/.github/actions/cloudflare-sts@f681dd57021d3617312d8dd42bd2806076de77cc
+        with:
+          policy: deploy-production
+          ttl: 15m
+
       # The queues are declared in `wrangler.jsonc`, so they have to exist before the Worker binding
       # resolves. Creating one that is already there is an error, which is what the `|| true` is for.
       - name: Deploy the app
         uses: wevm/actions/vendor/cloudflare/wrangler-action/rev-9acf94ace14e@73e899a58d51092d694fbaf94b7a1d8c09bfea28
         with:
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ steps.cloudflare.outputs.account-id }}
+          apiToken: ${{ steps.cloudflare.outputs.token }}
           packageManager: pnpm
           preCommands: |
             wrangler queues create frog-webhooks || true
@@ -93,8 +101,8 @@ jobs:
       - name: Sync the app secrets
         uses: wevm/actions/vendor/cloudflare/wrangler-action/rev-9acf94ace14e@73e899a58d51092d694fbaf94b7a1d8c09bfea28
         with:
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ steps.cloudflare.outputs.account-id }}
+          apiToken: ${{ steps.cloudflare.outputs.token }}
           command: deploy --dry-run
           packageManager: pnpm
           secrets: |
