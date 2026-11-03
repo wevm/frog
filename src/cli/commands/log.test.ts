@@ -285,6 +285,66 @@ test('behavior: this repository configured issue form wins', async () => {
   expect((await Store.get(id, { root: cwd })).body).toBe(configuredBody)
 })
 
+test('behavior: an explicitly selected issue form wins', async () => {
+  const cwd = await helpers.repo()
+  await writeOwnForm(cwd)
+  await writeOwnForm(
+    cwd,
+    [
+      'name: Flaky Test',
+      'body:',
+      '  - type: textarea',
+      '    attributes:',
+      '      label: Passing Retry',
+      '    validations:',
+      '      required: true',
+    ].join('\n'),
+    'flaky-test.yml',
+  )
+  const selectedBody = '### Passing Retry\n\nThe unchanged retry passed.'
+
+  const { id } = await cli.data<Logged>([
+    'log',
+    title,
+    '--body',
+    selectedBody,
+    '--template',
+    'flaky-test.yml',
+    '--cwd',
+    cwd,
+  ])
+
+  expect((await Store.get(id, { root: cwd })).body).toBe(selectedBody)
+})
+
+test('error: an explicitly selected issue form must resolve', async () => {
+  const cwd = await helpers.repo()
+  await writeOwnForm(cwd)
+
+  const result = await cli.error(['log', title, '--template', 'missing.yml', '--cwd', cwd])
+
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "code": "TEMPLATE_NOT_FOUND",
+      "message": "Could not load an issue form from \`missing.yml\`.",
+    }
+  `)
+  expect(await Store.list({ root: cwd })).toEqual([])
+})
+
+test('error: selecting an issue form requires the file store', async () => {
+  const store = await postgres.store()
+  const cwd = await helpers.repo()
+
+  expect(
+    await cli.error(
+      ['log', title, '--body', body, '--template', 'flaky-test.yml', '--cwd', cwd],
+      {},
+      { store },
+    ),
+  ).toMatchObject({ code: 'STORE_UNSUPPORTED_OPTION' })
+})
+
 test('error: a body broken in the editor must preserve this repository own issue form', async () => {
   const cwd = await helpers.repo()
   await writeOwnForm(cwd)
@@ -435,6 +495,25 @@ describe('--target', () => {
 
       ### Current Behavior"
     `)
+  })
+
+  test('error: selecting a local issue form cannot target another repository', async () => {
+    const cwd = await consumer()
+
+    expect(
+      await cli.error([
+        'log',
+        title,
+        '--body',
+        body,
+        '--target',
+        upstream,
+        '--template',
+        'flaky-test.yml',
+        '--cwd',
+        cwd,
+      ]),
+    ).toMatchObject({ code: 'TEMPLATE_UNSUPPORTED_TARGET' })
   })
 
   test('behavior: a template named in the target config wins', async () => {
