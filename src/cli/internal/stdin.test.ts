@@ -54,6 +54,42 @@ describe('parse', () => {
   test.for(['', '   ', '\n\n\n'])('behavior: %j has no title', (contents) => {
     expect(stdin.parse(contents)).toBeUndefined()
   })
+
+  test('behavior: parses a frontmatter block for title, severity, and body', () => {
+    const contents = [
+      '---',
+      "title: 'Filters ignored'",
+      'severity: major',
+      '---',
+      '',
+      '## Description',
+      '',
+      'The filter was swallowed.',
+      '',
+    ].join('\n')
+    expect(stdin.parse(contents)).toEqual({
+      body: '## Description\n\nThe filter was swallowed.',
+      severity: 'major',
+      title: 'Filters ignored',
+    })
+  })
+
+  test('behavior: a frontmatter block without severity defaults to minor', () => {
+    const contents = ["---", "title: 'Filters ignored'", '---', '', 'Body.'].join('\n')
+    expect(stdin.parse(contents)).toEqual({
+      body: 'Body.',
+      severity: 'minor',
+      title: 'Filters ignored',
+    })
+  })
+
+  test.for([
+    '---\ntitle:\n---\n\nBody.',
+    '---\nseverity: minor\n---\n\nBody.',
+    '---\ntitle: one\n\nBody without a closing fence.',
+  ])('behavior: malformed frontmatter %j has no title', (contents) => {
+    expect(stdin.parse(contents)).toBeUndefined()
+  })
 })
 
 describe('read', () => {
