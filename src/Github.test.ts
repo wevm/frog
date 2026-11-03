@@ -543,7 +543,7 @@ describe('find', () => {
     ).toBeUndefined()
   })
 
-  test('behavior: caps pagination at 50 pages', async () => {
+  test('behavior: scans the newest issues before reaching the 50-page cap', async () => {
     const seeded = Array.from({ length: 5_001 }, (_, index) => ({
       labels: [],
       title: index === 5_000 ? title : `Unrelated ${index}`,
@@ -552,7 +552,7 @@ describe('find', () => {
 
     expect(
       await Github.find(client(instance.url), { hash: Github.hash(title), repo, title }),
-    ).toBeUndefined()
+    ).toMatchObject({ number: 5_001 })
     expect(
       instance.requests.filter(
         (request) => request.method === 'GET' && request.path === '/repos/wevm/viem/issues',
@@ -629,6 +629,20 @@ describe('index', () => {
 })
 
 describe('matcher', () => {
+  test('behavior: indexes labelled issues without reported push access', async () => {
+    const instance = await github({ [repo]: [{ title }] }, { pushAccess: [] })
+
+    const matcher = await Github.matcher(client(instance.url), { label: 'friction', repo })
+
+    expect(matcher.labelled).toBe(false)
+    expect(
+      instance.requests.filter(
+        (request) => request.method === 'GET' && request.path === `/repos/${repo}/issues`,
+      ),
+    ).toHaveLength(1)
+    await expect(matcher.match(title)).resolves.toMatchObject({ number: 1 })
+  })
+
   test('behavior: matches a report before a changed title', async () => {
     const report = 'acme/app:entry-a'
     const instance = await github(
