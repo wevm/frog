@@ -370,6 +370,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
         const label = url.searchParams.get('labels')
         const creator = url.searchParams.get('creator')
         const state = url.searchParams.get('state') ?? 'open'
+        const direction = url.searchParams.get('direction') ?? 'desc'
         const page = Number(url.searchParams.get('page') ?? '1')
         const perPage = Number(url.searchParams.get('per_page') ?? '30')
 
@@ -381,6 +382,7 @@ export async function github(seed: Seed = {}, options: Options = {}): Promise<In
             ...issue,
             ...(pulls.has(`${repo}#${issue.number}`) ? { pull_request: { url: '' } } : {}),
           }))
+        if (direction === 'desc') matching.reverse()
 
         return json(response, 200, matching.slice((page - 1) * perPage, page * perPage))
       }

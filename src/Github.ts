@@ -1010,7 +1010,7 @@ async function listAll(client: Client, options: { repo: string }): Promise<reado
   for (let page = 1; page <= 50; page++) {
     const response = await client.issues.listForRepo({
       ...split(options.repo),
-      direction: 'asc',
+      direction: 'desc',
       page,
       per_page: 100,
       sort: 'created',
@@ -1064,9 +1064,9 @@ export type Matcher = {
 /**
  * Prepares dedupe for a repository, choosing a strategy the token can actually use.
  *
- * With push access, issues are indexed by label first. A miss falls back to one unfiltered listing,
- * which also covers labels removed by users or dropped during creation. Without push access, that
- * fallback is the primary index.
+ * Issues are indexed by label first. A miss falls back to one unfiltered listing, which also covers
+ * labels removed by users or dropped during creation. Push access only determines whether labels are
+ * expected to stick on newly created issues.
  *
  * @param client - Authenticated client for the repository.
  */
@@ -1075,7 +1075,7 @@ export async function matcher(client: Client, options: matcher.Options): Promise
   const accepts = (issue: Issue) =>
     !options.exclude?.(issue) &&
     (!options.expectedAuthor || issue.author === options.expectedAuthor)
-  const labelledIssues = push ? (await list(client, options)).filter(accepts) : []
+  const labelledIssues = (await list(client, options)).filter(accepts)
   const titleOverrides = new Map<number, string>()
   const updateIndex = (index: Map<string, Issue>, issues: readonly Issue[]) => {
     index.clear()
