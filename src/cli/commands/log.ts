@@ -244,11 +244,14 @@ export const log = Cli.create('log', {
     if (entries && !entries.ok) return c.error({ code: entries.code, message: entries.message })
 
     // Stores without atomic logging still catch the repeat at authoring time, where it is cheap.
-    const duplicate = entries?.ok
-      ? entries.value.find(
-          (entry) => Entry.normalizeTitle(entry.title) === Entry.normalizeTitle(title),
-        )
-      : undefined
+    // An empty normalized title never matches: punctuation-only titles such as `---` all
+    // normalize to the empty string and must not collide with each other.
+    const duplicate =
+      entries?.ok && Entry.normalizeTitle(title) !== ''
+        ? entries.value.find(
+            (entry) => Entry.normalizeTitle(entry.title) === Entry.normalizeTitle(title),
+          )
+        : undefined
     if (duplicate && !c.options.force)
       return c.error({
         code: 'DUPLICATE_FRICTION',
@@ -264,7 +267,10 @@ export const log = Cli.create('log', {
     if (promptedSeverity && !promptedSeverity.ok)
       return c.error({ code: promptedSeverity.code, message: promptedSeverity.message })
 
-    const severity = c.options.severity ?? (promptedSeverity?.ok ? promptedSeverity.value : 'minor')
+    const severity =
+      c.options.severity ??
+      input?.severity ??
+      (promptedSeverity?.ok ? promptedSeverity.value : 'minor')
 
     const logged = await attempt(
       Frog.create({ store }).log(
